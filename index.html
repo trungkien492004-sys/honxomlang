@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🏘️ XÓM ANH HÙNG v3.0 - Phiên Bản Online</title>
     <meta name="description" content="Game nhập vai sinh tồn thuần Việt - Đa người chơi online">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -408,7 +408,26 @@
             </div>
         </div>
 
+        <!-- ===== 🔥 BẢNG THÔNG BÁO SỰ KIỆN LỚN (3s) ===== -->
+        <div id="bigEventOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px; backdrop-filter:blur(8px);">
+            <div id="bigEventTitle" style="font-family:'Orbitron', monospace; font-size:2.5rem; color:#fca5a5; text-shadow:0 0 20px #ef4444; margin-bottom:10px; font-weight:900; transform:scale(0); animation:popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">SỰ KIỆN</div>
+            <div id="bigEventDesc" style="font-size:1.3rem; color:#fff; line-height:1.5; margin-bottom:20px; opacity:0; animation:fadeIn 0.5s 0.2s forwards;">Chi tiết sự kiện...</div>
+            <div id="bigEventExtra" style="font-size:1rem; color:#fbbf24; font-weight:bold; margin-bottom:30px; opacity:0; animation:fadeIn 0.5s 0.4s forwards;"></div>
+            <button class="board-btn close-board" onclick="closeBigEvent()" style="padding:10px 30px; font-size:1.2rem; background:#374151; opacity:0; animation:fadeIn 0.5s 0.6s forwards;">✖ Bỏ qua (3s)</button>
+        </div>
+
     </div>
+
+    <style>
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 
     <!-- 🔥 Firebase SDKs (compat — must load before firebase.js) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>

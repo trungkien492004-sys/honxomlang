@@ -3,6 +3,12 @@
 
 const RACE_DICE_EMOJIS = ['⚀','⚁','⚂','⚃','⚄','⚅'];
 const RACE_PLAYER_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b'];
+const NEIGHBORHOOD_NAMES = [
+    "Nhà HÒA", "Quán Net THU THẢO", "Nhà MẮM", "Hẻm TẸT", "Tạp hóa THƯƠNG HIỀN",
+    "Chốt bảo vệ KIÊN", "Trạm sạc HECK", "Nhà HẢI", "Quán bida TRÒN", "Nhà KẾT",
+    "Quán nhậu HUY", "Bãi rác NẤM", "Nhà LÙN", "Lỗ cống QUÂN", "Tiệm cắt tóc BI", "Sân banh BỐP",
+    "Gốc đa Làng", "Chuồng Gà", "Cột Điện", "Ao Cá"
+];
 
 // ── Kho Thẻ Bài (Hơn 20 thẻ, phân loại theo Type) ─────────────
 const RACE_CARDS = [
@@ -77,8 +83,11 @@ function boardTakeDamage(p, amount, reason) {
 }
 
 // ── Vẽ thẻ bài 3D ─────────────────────────────────────────────
-window.boardDrawRandomCard = function(p, reason) {
-    if(boardGame.gameOver || p.eliminated) return;
+window.boardDrawRandomCard = function(p, reason, callback) {
+    if(boardGame.gameOver || p.eliminated) {
+        if(callback) callback();
+        return;
+    }
     const roll = Math.random() * 100;
     let tier = roll < 50 ? 'common' : roll < 80 ? 'rare' : 'epic';
     let pool = RACE_CARDS.filter(c => c.rarity === tier);
@@ -98,6 +107,13 @@ window.boardDrawRandomCard = function(p, reason) {
             <div style="font-size:0.75rem;color:#fbbf24;margin-top:6px;font-weight:bold;">👉 ${result}</div>
         </div>`;
     boardAddLog(`🃏 ${p.name} lật: [${card.name}] — ${result}`, 'card');
+    
+    window.boardShowBigNotice(
+        `${typeIcon} ${card.name}`, 
+        `Rút thẻ ở <b>${reason}</b><br><br><span style="color:#fcd34d">${card.desc}</span>`, 
+        `👉 ${result}`, 
+        callback
+    );
 };
 
 // ── Hoạt ảnh xúc xắc ──────────────────────────────────────────
@@ -130,8 +146,9 @@ window.boardProcessTurn = function(p, roll, callback) {
     if(p.skipTurn) {
         p.skipTurn = false;
         boardAddLog(`😴 ${p.name} mất lượt!`);
-        boardDrawRandomCard(p, 'sau lượt ngủ gật');
-        if(callback) callback();
+        window.boardShowBigNotice("😴 Ngủ gật", `${p.name} bị mất lượt này!`, "", () => {
+            if(callback) callback();
+        });
         return;
     }
 
@@ -147,50 +164,65 @@ window.boardProcessTurn = function(p, roll, callback) {
     setTimeout(() => {
         if(p.eliminated) return;
 
+        let cellName = NEIGHBORHOOD_NAMES[p.pos % NEIGHBORHOOD_NAMES.length];
+
+        const finalizeTurn = () => {
+            // Kiem tra xem chi con 1 nguoi song khong
+            const alive = boardGame.players.filter(x => !x.eliminated);
+            if(alive.length === 1 && boardGame.players.length > 1) {
+                boardGame.gameOver = true;
+                boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
+                if(alive[0].networkId === myNetworkId || alive[0].isHuman) { player.gold += 200 + (boardGame.betPool||0); refreshHudDisplay(); }
+            }
+            boardRenderGrid(); 
+            boardRenderPlayers();
+            if(callback) callback();
+        };
+
+        const handleWinOrCard = () => {
+            if(p.pos >= BOARD_TOTAL_CELLS - 1) {
+                boardGame.gameOver = true;
+                let prize = boardGame.betPool || 0;
+                if(p.networkId === myNetworkId || p.isHuman) {
+                    player.gold += (200 + prize);
+                    refreshHudDisplay();
+                }
+                boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
+                document.getElementById('diceResultText').textContent = `🏆 ${p.name} CHIẾN THẮNG!`;
+                window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 💰`, finalizeTurn);
+                audio.play('levelup');
+            } else {
+                // Rút bài nếu chưa win
+                boardDrawRandomCard(p, cellName, finalizeTurn);
+            }
+        };
+
+        const handleCombat = () => {
+            let combatLog = boardHandleCombat(p);
+            if(combatLog) {
+                window.boardShowBigNotice("⚔️ ĐỤNG ĐỘ", combatLog, `Khu vực: ${cellName}`, handleWinOrCard);
+            } else {
+                handleWinOrCard();
+            }
+        };
+
         // Xử lý bẫy trên sân
         if(boardGame.trappedCells[p.pos]) {
             delete boardGame.trappedCells[p.pos];
             boardAddLog(`💥 ${p.name} dẫm bẫy! Lùi 3 ô!`, 'special');
             boardMovePlayer(p.idx, -3, true);
-        }
-
-        // Xử lý đụng độ người chơi khác (PvP)
-        boardHandleCombat(p);
-
-        // Kiểm tra Win
-        if(p.pos >= BOARD_TOTAL_CELLS - 1) {
-            boardGame.gameOver = true;
-            let prize = boardGame.betPool || 0;
-            if(p.networkId === myNetworkId || p.isHuman) {
-                player.gold += (200 + prize);
-                refreshHudDisplay();
-            }
-            boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
-            document.getElementById('diceResultText').textContent = `🏆 ${p.name} CHIẾN THẮNG!`;
-            showToast(`🏆 ${p.name} thắng Cờ Đua Sinh Tồn!`);
-            audio.play('levelup');
+            window.boardShowBigNotice("💣 DẪM BẪY!", `${p.name} dẫm phải bẫy ở ${cellName} và bị lùi 3 ô!`, "", handleCombat);
         } else {
-            // Rút bài nếu chưa win
-            boardDrawRandomCard(p, 'ô đích');
+            handleCombat();
         }
 
-        // Kiem tra xem chi con 1 nguoi song khong
-        const alive = boardGame.players.filter(x => !x.eliminated);
-        if(alive.length === 1 && boardGame.players.length > 1) {
-            boardGame.gameOver = true;
-            boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
-            if(alive[0].networkId === myNetworkId || alive[0].isHuman) { player.gold += 200 + (boardGame.betPool||0); refreshHudDisplay(); }
-        }
-
-        boardRenderGrid(); 
-        boardRenderPlayers();
-        if(callback) callback();
     }, 400);
 };
 
 // PvP khi 2 ng chung 1 ô
 function boardHandleCombat(p) {
-    if(p.pos <= 0 || p.pos >= 39) return;
+    if(p.pos <= 0 || p.pos >= 39) return null;
+    let combatHappened = "";
     boardGame.players.forEach(other => {
         if(other.idx !== p.idx && !other.eliminated && other.pos === p.pos) {
             // P đánh Other
@@ -199,12 +231,55 @@ function boardHandleCombat(p) {
                 boardAddLog(`⚔️ ĐỤNG ĐỘ! ${p.name} dùng 🗡️ đâm ${other.name}!`, 'special');
                 let dmgLog = boardTakeDamage(other, 1, `Bị ${p.name} đâm`);
                 boardAddLog(dmgLog, 'special');
+                combatHappened += `🤜 ${p.name} chém ${other.name} một nhát!<br>`;
             } else {
                 boardAddLog(`🤜 ${p.name} và ${other.name} đứng chung ô nhưng không có 🗡️ đánh nhau!`);
+                combatHappened += `🤜 ${p.name} và ${other.name} lườm nhau (không có vũ khí)<br>`;
             }
         }
     });
+    return combatHappened || null;
 }
+
+// ── Overlay Thông Báo Sự Kiện ─────────────────────────────────
+window._bigEventTimer = null;
+window._bigEventCallback = null;
+
+window.boardShowBigNotice = function(title, desc, extra = '', callback) {
+    const overlay = document.getElementById('bigEventOverlay');
+    if(!overlay) {
+        if(callback) callback();
+        return;
+    }
+    try { audio.play('hit'); } catch(e){}
+    document.getElementById('bigEventTitle').textContent = title;
+    document.getElementById('bigEventDesc').innerHTML = desc;
+    document.getElementById('bigEventExtra').innerHTML = extra;
+    overlay.style.display = 'flex';
+    
+    // Reset animations
+    const els = [document.getElementById('bigEventTitle'), document.getElementById('bigEventDesc'), document.getElementById('bigEventExtra'), overlay.querySelector('button')];
+    els.forEach(el => { if(el) { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; }});
+    
+    if(window._bigEventTimer) clearTimeout(window._bigEventTimer);
+    window._bigEventTimer = setTimeout(() => {
+        window.closeBigEvent();
+    }, 3000);
+    
+    window._bigEventCallback = callback;
+};
+
+window.closeBigEvent = function() {
+    try { audio.play('click'); } catch(e){}
+    const overlay = document.getElementById('bigEventOverlay');
+    if(overlay) overlay.style.display = 'none';
+    if(window._bigEventTimer) clearTimeout(window._bigEventTimer);
+    if(window._bigEventCallback) {
+        const cb = window._bigEventCallback;
+        window._bigEventCallback = null;
+        cb();
+    }
+};
 
 // ── Di chuyển ─────────────────────────────────────────────────
 window.boardMovePlayer = function(idx, steps, animate) {
