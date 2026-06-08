@@ -21,42 +21,6 @@ window.currentFirebaseUser = null;
 window._cloudSaveEnabled   = false;
 window._cloudSaveData      = null;
 
-// ── Xử lý kết quả sau khi redirect từ Google về ──────────────
-auth.getRedirectResult().then(async (result) => {
-    if (!result || !result.user) return;
-
-    const user = result.user;
-    window.currentFirebaseUser = user;
-    window._cloudSaveEnabled   = true;
-
-    _fbToast(`✅ Đăng nhập thành công! Xin chào ${user.displayName} 🎉`, '#22c55e');
-
-    const saved = await loadGameFromCloud(user.uid);
-    if (saved && saved.classId) {
-        window._cloudSaveData = saved;
-        const inp = document.getElementById('usernameInp');
-        if (inp) inp.value = saved.name;
-        _fbToast(`☁️ Tải save: ${saved.name} Lv.${saved.level} · 💰${saved.gold} vàng`, '#fbbf24');
-        // Auto vào game sau 1.5 giây
-        setTimeout(() => { if(typeof submitLogin==='function') submitLogin(); }, 1500);
-    } else {
-        const inp = document.getElementById('usernameInp');
-        if (inp && user.displayName) inp.value = user.displayName.split(' ')[0];
-        _fbToast('🎮 Tài khoản mới — chọn nghề để bắt đầu!', '#a78bfa');
-    }
-
-    // Hiện nút đăng xuất
-    _showSignOutBtn(user.displayName);
-
-}).catch((err) => {
-    console.error('[Firebase] Redirect result error:', err);
-    if (err.code === 'auth/unauthorized-domain') {
-        _fbToast('⚠️ Domain chưa được thêm vào Firebase Auth!', '#ef4444');
-    } else if (err.code && err.code !== 'auth/no-current-user') {
-        _fbToast(`❌ Lỗi: ${err.message}`, '#ef4444');
-    }
-});
-
 // ── Auth State (theo dõi đăng nhập sẵn có) ───────────────────
 auth.onAuthStateChanged(async (user) => {
     window.currentFirebaseUser = user;
@@ -88,16 +52,39 @@ auth.onAuthStateChanged(async (user) => {
     _showSignOutBtn(user.displayName);
 });
 
-// ── loginWithGoogle — dùng REDIRECT (không popup) ────────────
-window.loginWithGoogle = function() {
-    _fbToast('⏳ Đang chuyển sang Google đăng nhập...', '#4fc3f7');
-    // Ngắn delay để toast hiện trước khi redirect
-    setTimeout(() => {
-        auth.signInWithRedirect(googleProvider).catch((err) => {
-            console.error('[Firebase] Redirect error:', err);
-            _fbToast(`❌ Lỗi redirect: ${err.message}`, '#ef4444');
-        });
-    }, 600);
+// ── loginWithGoogle — dùng POPUP ────────────
+window.loginWithGoogle = async function() {
+    _fbToast('⏳ Đang mở cửa sổ đăng nhập...', '#4fc3f7');
+    try {
+        const result = await auth.signInWithPopup(googleProvider);
+        const user = result.user;
+        window.currentFirebaseUser = user;
+        window._cloudSaveEnabled = true;
+
+        _fbToast(`✅ Đăng nhập thành công! Xin chào ${user.displayName} 🎉`, '#22c55e');
+        _showSignOutBtn(user.displayName);
+
+        const saved = await loadGameFromCloud(user.uid);
+        if (saved && saved.classId) {
+            window._cloudSaveData = saved;
+            const inp = document.getElementById('usernameInp');
+            if (inp) inp.value = saved.name;
+            _fbToast(`☁️ Tải save: ${saved.name} Lv.${saved.level}`, '#fbbf24');
+            setTimeout(() => { if(typeof submitLogin==='function') submitLogin(); }, 1500);
+        } else {
+            const inp = document.getElementById('usernameInp');
+            if (inp && user.displayName) inp.value = user.displayName.split(' ')[0];
+            _fbToast('🎮 Tài khoản mới — chọn nghề để bắt đầu!', '#a78bfa');
+        }
+    } catch (err) {
+        console.error('[Firebase] Popup error:', err);
+        if (err.code === 'auth/popup-blocked') {
+            alert('⚠️ Trình duyệt chặn Popup! Vui lòng cho phép popup trên trang này (nút trên thanh địa chỉ).');
+            _fbToast('⚠️ Trình duyệt chặn Popup!', '#ef4444');
+        } else {
+            _fbToast(`❌ Lỗi: ${err.message}`, '#ef4444');
+        }
+    }
 };
 
 // ── signOutUser ───────────────────────────────────────────────
