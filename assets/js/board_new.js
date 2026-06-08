@@ -215,6 +215,14 @@ window.boardMovePlayer = function(idx, steps, animate) {
     if(animate) { boardRenderGrid(); boardRenderPlayers(); }
 };
 
+// ── Hàm phụ trợ tính tọa độ vòng quanh ──────────────────────────
+function _getCellPos(i) {
+    if(i < 13) return { r: 1, c: i + 1 };
+    if(i < 20) return { r: i - 13 + 2, c: 13 };
+    if(i < 33) return { r: 9, c: 13 - (i - 20) };
+    return { r: 9 - (i - 33), c: 1 };
+}
+
 // ── Render Track ──────────────────────────────────────────────
 window.boardRenderGrid = function() {
     const grid = document.getElementById('boardGrid');
