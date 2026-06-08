@@ -25,31 +25,9 @@ window._cloudSaveData      = null;
 auth.onAuthStateChanged(async (user) => {
     window.currentFirebaseUser = user;
     if (!user) return;
-
     window._cloudSaveEnabled = true;
-    const saved = await loadGameFromCloud(user.uid);
-
-    const inp    = document.getElementById('usernameInp');
-    const notice = document.getElementById('saveNotice');
-
-    if (saved && saved.classId) {
-        window._cloudSaveData = saved;
-        if (inp) inp.value = saved.name;
-        if (notice) {
-            notice.style.display = 'block';
-            notice.innerHTML = `☁️ <b>${user.displayName}</b> — Save: ${saved.name} Lv.${saved.level} · 💰${saved.gold} vàng<br><small style="color:#94a3b8">Nhấn "Vào Xóm" để tiếp tục hoặc chờ tự động...</small>`;
-        }
-        // Auto vào game nếu đã có save
-        setTimeout(() => { if(typeof submitLogin==='function') submitLogin(); }, 2000);
-    } else {
-        if (inp && user.displayName) inp.value = user.displayName.split(' ')[0];
-        if (notice) {
-            notice.style.display = 'block';
-            notice.innerHTML = `✅ Đã đăng nhập: <b>${user.displayName}</b><br><small style="color:#94a3b8">Nhấn "Vào Xóm" để chọn nghề.</small>`;
-        }
-    }
-
     _showSignOutBtn(user.displayName);
+    await openCharacterSelection(user);
 });
 
 // ── loginWithGoogle — dùng POPUP ────────────
@@ -63,19 +41,8 @@ window.loginWithGoogle = async function() {
 
         _fbToast(`✅ Đăng nhập thành công! Xin chào ${user.displayName} 🎉`, '#22c55e');
         _showSignOutBtn(user.displayName);
-
-        const saved = await loadGameFromCloud(user.uid);
-        if (saved && saved.classId) {
-            window._cloudSaveData = saved;
-            const inp = document.getElementById('usernameInp');
-            if (inp) inp.value = saved.name;
-            _fbToast(`☁️ Tải save: ${saved.name} Lv.${saved.level}`, '#fbbf24');
-            setTimeout(() => { if(typeof submitLogin==='function') submitLogin(); }, 1500);
-        } else {
-            const inp = document.getElementById('usernameInp');
-            if (inp && user.displayName) inp.value = user.displayName.split(' ')[0];
-            _fbToast('🎮 Tài khoản mới — chọn nghề để bắt đầu!', '#a78bfa');
-        }
+        
+        await openCharacterSelection(user);
     } catch (err) {
         console.error('[Firebase] Popup error:', err);
         if (err.code === 'auth/popup-blocked') {
@@ -87,18 +54,120 @@ window.loginWithGoogle = async function() {
     }
 };
 
+// ── Màn hình Chọn Nhân Vật (3 Slots) ─────────────────────────
+window.openCharacterSelection = async function(user) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('characterSelectScreen').classList.add('active');
+    
+    const container = document.getElementById('characterSlotsContainer');
+    container.innerHTML = '<div style="color:#94a3b8; width:100%; text-align:center;">Đang tải dữ liệu Cloud...</div>';
+
+    // Đọc 3 slot
+    const slotIDs = [user.uid, `${user.uid}_2`, `${user.uid}_3`];
+    const slotsData = await Promise.all(slotIDs.map(id => loadGameFromCloud(id)));
+
+    container.innerHTML = '';
+    slotsData.forEach((data, index) => {
+        const docId = slotIDs[index];
+        const slotName = `Slot ${index + 1}`;
+        
+        const card = document.createElement('div');
+        card.className = 'class-card ' + (data ? (data.classId || 'cop') : '');
+        card.style.position = 'relative';
+        
+        if(data && data.classId) {
+            // Đã có nhân vật
+            let emoji = '🏃';
+            if(data.classId === 'cop') emoji = '👮‍♂️';
+            if(data.classId === 'teacher') emoji = '👩‍🏫';
+            if(data.classId === 'merchant') emoji = '🧳';
+            if(data.classId === 'engineer') emoji = '👷‍♂️';
+            
+            card.innerHTML = `
+                <div style="position:absolute;top:8px;right:12px;font-size:0.7rem;color:#94a3b8;font-weight:bold;">${slotName}</div>
+                <div class="class-emoji">${emoji}</div>
+                <div class="class-name">${data.name}</div>
+                <div class="class-desc" style="color:#fbbf24;font-weight:bold;margin-bottom:4px;">Cấp độ: ${data.level || 1}</div>
+                <div class="class-desc">💰 ${data.gold || 0} vàng</div>
+            `;
+            card.onclick = () => selectExistingCharacter(docId, data);
+        } else {
+            // Trống
+            card.style.background = 'rgba(255,255,255,0.02)';
+            card.style.border = '2px dashed rgba(255,255,255,0.1)';
+            card.style.display = 'flex';
+            card.style.alignItems = 'center';
+            card.style.justifyContent = 'center';
+            card.style.flexDirection = 'column';
+            card.innerHTML = `
+                <div style="position:absolute;top:8px;right:12px;font-size:0.7rem;color:#94a3b8;font-weight:bold;">${slotName}</div>
+                <div style="font-size:2.5rem;color:#475569;margin-bottom:10px;">➕</div>
+                <div style="color:#94a3b8;font-weight:bold;">Tạo Nhân Vật</div>
+            `;
+            card.onclick = () => createNewCharacter(docId);
+        }
+        container.appendChild(card);
+    });
+};
+
+window.selectExistingCharacter = function(docId, data) {
+    window.currentSlotId = docId;
+    window._cloudSaveData = data;
+    
+    // Inject the data into the game player object directly!
+    Object.assign(window.player, data);
+    
+    // Đảm bảo có init class stats
+    if(typeof CLASS_DATA !== 'undefined' && data.classId) {
+        let t = CLASS_DATA[data.classId];
+        if(!window.player.skills || window.player.skills.length === 0) window.player.skills = JSON.parse(JSON.stringify(t.skills));
+    }
+
+    _fbToast(`☁️ Tải save: ${data.name} Lv.${data.level}`, '#fbbf24');
+    
+    // Hide screens and start the game!
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('gameScreen').classList.add('active');
+    
+    if (typeof spawnInitialMonsters === 'function') spawnInitialMonsters();
+    if (typeof mainGameLoop === 'function') requestAnimationFrame(mainGameLoop);
+    if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
+    if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
+    
+    try { audio.play('levelup'); } catch(e){}
+    try { window.currentScreen = 'gameScreen'; } catch(e){}
+};
+
+window.createNewCharacter = function(docId) {
+    window.currentSlotId = docId;
+    window._cloudSaveData = null; // Bắt đầu mới
+    
+    const inp = document.getElementById('usernameInp');
+    if (inp && window.currentFirebaseUser && window.currentFirebaseUser.displayName) {
+        inp.value = window.currentFirebaseUser.displayName.split(' ')[0];
+    }
+    
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('loginScreen').classList.add('active');
+    
+    // Ẩn nút Google vì đã login rồi
+    const btnGoogle = document.querySelector('.btn-google');
+    if(btnGoogle) btnGoogle.style.display = 'none';
+};
+
 // ── signOutUser ───────────────────────────────────────────────
 window.signOutUser = async function() {
     await auth.signOut();
     window.currentFirebaseUser = null;
     window._cloudSaveEnabled   = false;
     window._cloudSaveData      = null;
+    window.currentSlotId       = null;
     location.reload();
 };
 
 // ── saveGameToCloud ───────────────────────────────────────────
 window.saveGameToCloud = async function(playerData) {
-    if (!window.currentFirebaseUser || !playerData) return false;
+    if (!window.currentFirebaseUser || !playerData || !window.currentSlotId) return false;
     try {
         const data = {
             name:      playerData.name,
@@ -127,7 +196,7 @@ window.saveGameToCloud = async function(playerData) {
             email:       window.currentFirebaseUser.email || '',
             lastSaved:   firebase.firestore.FieldValue.serverTimestamp()
         };
-        await db.collection('players').doc(window.currentFirebaseUser.uid).set(data, { merge: true });
+        await db.collection('players').doc(window.currentSlotId).set(data, { merge: true });
         return true;
     } catch (err) {
         console.error('[Firebase] Save error:', err);
@@ -136,9 +205,9 @@ window.saveGameToCloud = async function(playerData) {
 };
 
 // ── loadGameFromCloud ─────────────────────────────────────────
-window.loadGameFromCloud = async function(uid) {
+window.loadGameFromCloud = async function(docId) {
     try {
-        const doc = await db.collection('players').doc(uid).get();
+        const doc = await db.collection('players').doc(docId).get();
         return doc.exists ? doc.data() : null;
     } catch (err) {
         console.error('[Firebase] Load error:', err);

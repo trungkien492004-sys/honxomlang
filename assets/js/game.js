@@ -207,7 +207,7 @@
         let clickMarker = null;
         let skillActionPopups = [];
 
-        let player = {
+        window.player = {
             name: "",
             classId: "",
             level: 1,
@@ -258,17 +258,82 @@
         let mCanvas = document.getElementById('minimap');
         let mCtx = mCanvas.getContext('2d');
 
-        // Setup Multiplayer Synchronization using BroadcastChannel API
-        let pvpChannel = { postMessage() {}, onmessage: null };
-        let chatChannel = { postMessage() {}, onmessage: null };
-        if(typeof BroadcastChannel !== 'undefined') {
-            try {
-                pvpChannel = new BroadcastChannel('xom_anh_hung_pvp_channel');
-                chatChannel = new BroadcastChannel('xom_anh_hung_chat_channel');
-            } catch(e) {
-                console.warn('BroadcastChannel is not available in this browser/environment.', e);
+        // Setup Multiplayer Synchronization using Firebase Firestore (True Online)
+        let pvpChannel = {
+            postMessage(msg) {
+                if(!window.currentFirebaseUser || typeof db === 'undefined') return;
+                if(msg.type === 'PRESENCE') {
+                    db.collection('active_players').doc(myNetworkId).set({
+                        ...msg, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    }, {merge: true}).catch(()=>{});
+                } else {
+                    db.collection('network_events').add({
+                        ...msg, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(()=>{});
+                }
             }
-        }
+        };
+
+        let chatChannel = {
+            postMessage(msg) {
+                if(!window.currentFirebaseUser || typeof db === 'undefined') return;
+                db.collection('chat_messages').add({
+                    ...msg, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(()=>{});
+            }
+        };
+
+        // Firebase Listeners
+        setTimeout(() => {
+            if(typeof db !== 'undefined') {
+                // 1. Presence Sync
+                db.collection('active_players').onSnapshot(snap => {
+                    snap.forEach(doc => {
+                        const msg = doc.data();
+                        if(msg.id && msg.id !== myNetworkId) {
+                            handleNetworkMessage(msg);
+                        }
+                    });
+                });
+
+                // 2. Transient Events (PVP, Invites, Board)
+                let startEventTime = new Date();
+                db.collection('network_events')
+                  .where('timestamp', '>', startEventTime)
+                  .orderBy('timestamp')
+                  .onSnapshot(snap => {
+                      snap.docChanges().forEach(change => {
+                          if(change.type === 'added') {
+                              const msg = change.doc.data();
+                              if(msg.id && msg.id !== myNetworkId) {
+                                  handleNetworkMessage(msg);
+                              }
+                          }
+                      });
+                  });
+
+                // 3. Global Chat
+                let startChatTime = new Date();
+                db.collection('chat_messages')
+                  .where('timestamp', '>', startChatTime)
+                  .orderBy('timestamp')
+                  .onSnapshot(snap => {
+                      snap.docChanges().forEach(change => {
+                          if(change.type === 'added') {
+                              const msg = change.doc.data();
+                              if(msg.id && msg.id !== myNetworkId) {
+                                  // Call the original chat handler if exists, else append directly
+                                  if (chatChannel.onmessage) {
+                                      chatChannel.onmessage({ data: msg });
+                                  } else if (typeof appendChatMessage === 'function') {
+                                      appendChatMessage(msg.name, msg.text, msg.isSystem, msg.color);
+                                  }
+                              }
+                          }
+                      });
+                  });
+            }
+        }, 3000); // Wait 3s to let Firebase auth initialize
 
         const SAMPLE_FOOTBALL_FIXTURES = [
             { league: 'Premier League', match: 'Manchester City vs Liverpool', time: '21:00', status: 'LIVE', odds: '1.85 / 3.20 / 2.10' },
@@ -306,7 +371,7 @@
             };
 
             // Setup Network Tick Pulse (Every 1 second)
-            setInterval(broadcastMyPresence, 1000);
+            setInterval(broadcastMyPresence, 2000); // 2s per update for Firestore limits
             // Setup Cleanup Tick for offline network players
             setInterval(cleanupNetworkPlayers, 4000);
             // Setup Autosave Interval (Every 30 seconds)
