@@ -431,14 +431,7 @@ window.boardSendRaceInvite = function(targetId, targetName) {
 
 // ══════════════════════════════════════════════════════════════
 // 🔥 Firebase / Google Login Stub
-// ══════════════════════════════════════════════════════════════
-window.loginWithGoogle = function() {
-    // TODO: Replace with Firebase implementation
-    // import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-    // const auth = getAuth();
-    // signInWithPopup(auth, new GoogleAuthProvider()).then(result => { ... });
-    showToast('🔧 Firebase chưa cấu hình. Dùng đăng nhập thường trước!');
-};
+// Firebase / Google Login Stub removed because firebase.js handles it now
 
 // ── Handle incoming BOARD_RACE_INVITE via BroadcastChannel ───
 document.addEventListener('DOMContentLoaded', () => {
