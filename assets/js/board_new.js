@@ -296,11 +296,13 @@ window.boardRenderPlayers = function() {
 };
 
 // ── Khởi tạo ──────────────────────────────────────────────────
-window._startBoardGame = function(betAmount) {
+window.openBoardGame = function(pvpMode = false) {
+    audio.play('click');
+    let betAmount = 0; // TODO: Lấy từ modal cược nếu có
     boardGame = {
         players: [], currentTurn: 0, isRolling: false,
         trappedCells: {}, log: [], gameOver: false,
-        pvp: false, hostId: null, betPool: betAmount
+        pvp: !!pvpMode, hostId: pvpMode ? myNetworkId : null, betPool: betAmount
     };
     boardGame.players.push({
         idx: 0, name: player.name, networkId: myNetworkId,
@@ -368,3 +370,56 @@ window.boardNextTurn = function() {
 };
 
 console.log('🏁 [board_new.js] Cờ Đua Sinh Tồn v4 loaded!');
+
+// ── Bet Modal & Triggers ──────────────────────────────────────
+window.openBoardGameWithBet = function() {
+    audio.play('click');
+    const modal = document.getElementById('boardBetModal');
+    if(modal) modal.classList.add('active');
+    window._selectedBetAmount = 50;
+    const opts = document.querySelectorAll('.bet-option');
+    if(opts.length > 0) {
+        opts.forEach(el => el.classList.remove('selected'));
+        opts[0].classList.add('selected');
+    }
+};
+
+window.selectBetAmount = function(amt) {
+    audio.play('click');
+    window._selectedBetAmount = amt;
+    document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('selected'));
+    if(event && event.currentTarget) event.currentTarget.classList.add('selected');
+};
+
+window.closeBetModal = function() {
+    audio.play('click');
+    const modal = document.getElementById('boardBetModal');
+    if(modal) modal.classList.remove('active');
+};
+
+window.confirmBetAndStart = function() {
+    audio.play('click');
+    let amt = window._selectedBetAmount;
+    const customInp = document.getElementById('customBetAmount');
+    if(customInp && customInp.value) {
+        amt = parseInt(customInp.value) || 0;
+    }
+    if(player.gold < amt) {
+        showToast('⚠️ Không đủ vàng để cược!');
+        return;
+    }
+    player.gold -= amt;
+    refreshHudDisplay();
+    closeBetModal();
+    
+    // Bắt đầu game với tiền cược
+    openBoardGame(false); 
+    boardGame.betPool = amt; 
+    boardRenderGrid(); // Render lại để hiện Nồi Cược
+};
+
+window.startBoardGameNoBet = function() {
+    audio.play('click');
+    closeBetModal();
+    openBoardGame(false);
+};
