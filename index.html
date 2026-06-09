@@ -19,8 +19,11 @@
         </div>
         <div class="login-box" style="display:flex; flex-direction:column; gap:10px;">
             <input type="text" id="usernameInp" class="login-input" placeholder="Tài khoản..." maxlength="20" style="padding:12px; border-radius:8px; border:2px solid #334155; background:#1e293b; color:white; font-size:1.1rem; text-align:center; outline:none;">
-            <input type="password" id="passwordInp" class="login-input" placeholder="Mật khẩu..." maxlength="20" style="padding:12px; border-radius:8px; border:2px solid #334155; background:#1e293b; color:white; font-size:1.1rem; text-align:center; outline:none;">
-            <button class="btn" onclick="submitClassicLogin()" id="classicLoginBtn">ĐĂNG NHẬP / ĐĂNG KÝ</button>
+            <input type="password" id="passwordInp" class="login-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)..." maxlength="20" style="padding:12px; border-radius:8px; border:2px solid #334155; background:#1e293b; color:white; font-size:1.1rem; text-align:center; outline:none;">
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="submitClassicLogin('login')" id="classicLoginBtn" style="flex:1;">ĐĂNG NHẬP</button>
+                <button class="btn" onclick="submitClassicLogin('register')" id="classicRegisterBtn" style="flex:1; background:#0ea5e9;">ĐĂNG KÝ</button>
+            </div>
             <div style="text-align:center; color:#94a3b8; font-size:0.9rem;">HOẶC</div>
             <button class="btn btn-google" onclick="loginWithGoogle()">
                 <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.3 30.2 0 24 0 14.7 0 6.7 5.4 2.7 13.3l7.9 6.1C12.5 13.3 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.2-.4-4.7H24v9h12.4c-.5 2.8-2.2 5.2-4.6 6.8l7.2 5.6c4.2-3.9 6.6-9.6 7.1-16.7z"/><path fill="#FBBC05" d="M10.6 28.7c-.6-1.7-.9-3.4-.9-5.2s.3-3.6.9-5.2l-7.9-6.1C1 15.2 0 19.5 0 24s1 8.8 2.7 12.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.2-5.6c-2 1.4-4.6 2.2-8 2.2-6.2 0-11.5-3.8-13.4-9.4l-7.9 6.1C6.7 42.6 14.7 48 24 48z"/></svg>

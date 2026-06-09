@@ -42,41 +42,45 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-window.submitClassicLogin = async function() {
+window.submitClassicLogin = async function(mode) {
     let un = document.getElementById('usernameInp').value.trim();
     let pw = document.getElementById('passwordInp').value.trim();
     let errBox = document.getElementById('loginErrorMsg');
     
-    if(un.length < 3 || pw.length < 3) {
-        errBox.textContent = "Tài khoản và mật khẩu phải từ 3 ký tự!";
+    if(un.length < 3 || pw.length < 6) {
+        errBox.textContent = "Tài khoản >= 3 ký tự, mật khẩu >= 6 ký tự!";
         errBox.style.display = 'block';
         return;
     }
     
     errBox.style.display = 'none';
-    document.getElementById('classicLoginBtn').textContent = "Đang kết nối...";
+    let btnId = mode === 'login' ? 'classicLoginBtn' : 'classicRegisterBtn';
+    let originalText = document.getElementById(btnId).textContent;
+    document.getElementById(btnId).textContent = "Đang kết nối...";
     
     let fakeEmail = un.toLowerCase() + "@xomanhung.com";
     
     try {
-        await auth.signInWithEmailAndPassword(fakeEmail, pw);
-        _fbToast(`✅ Đăng nhập thành công!`, '#22c55e');
-    } catch(err) {
-        if(err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-            // Tự động đăng ký nếu chưa có
-            try {
-                await auth.createUserWithEmailAndPassword(fakeEmail, pw);
-                _fbToast(`🎉 Đăng ký thành công!`, '#22c55e');
-            } catch(regErr) {
-                errBox.textContent = "Lỗi đăng ký: " + regErr.message;
-                errBox.style.display = 'block';
-            }
+        if(mode === 'login') {
+            await auth.signInWithEmailAndPassword(fakeEmail, pw);
+            _fbToast(`✅ Đăng nhập thành công!`, '#22c55e');
         } else {
-            errBox.textContent = "Sai mật khẩu hoặc lỗi: " + err.message;
-            errBox.style.display = 'block';
+            await auth.createUserWithEmailAndPassword(fakeEmail, pw);
+            _fbToast(`🎉 Đăng ký thành công!`, '#22c55e');
         }
+    } catch(err) {
+        if(err.code === 'auth/user-not-found' && mode === 'login') {
+            errBox.textContent = "Tài khoản không tồn tại, vui lòng Đăng ký!";
+        } else if(err.code === 'auth/email-already-in-use' && mode === 'register') {
+            errBox.textContent = "Tài khoản đã tồn tại, vui lòng Đăng nhập!";
+        } else if(err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+            errBox.textContent = "Sai mật khẩu!";
+        } else {
+            errBox.textContent = "Lỗi: " + err.message;
+        }
+        errBox.style.display = 'block';
     }
-    document.getElementById('classicLoginBtn').textContent = "ĐĂNG NHẬP / ĐĂNG KÝ";
+    document.getElementById(btnId).textContent = originalText;
 };
 
 // 🌟 loginWithGoogle — dùng POPUP 🌟🌟🌟🌟🌟🌟
