@@ -2620,6 +2620,26 @@ function toggleAutoFarm() {
                 else if(sk.type === 'point') color = '#38bdf8';
                 else if(sk.type === 'target') color = '#f59e0b';
             }
+            
+            // --- Ultimate VFX Triggers ---
+            if(window.playUltimateVFX) {
+                if(type === 'skill_cop_3' || type === 'skill_hunter_3') {
+                    window.playUltimateVFX(x, y, 'kamehameha');
+                } else if (type === 'skill_merchant_3' || type === 'skill_teacher_3') {
+                    window.playUltimateVFX(x, y, 'magic_circle');
+                } else if (type === 'skill_engineer_3' || type === 'skill_cop_2') {
+                    window.playUltimateVFX(x, y, 'haki');
+                } else {
+                    // Small standard sparks for regular skills
+                    if(window.spawnParticle) {
+                        for(let i=0; i<10; i++) {
+                            window.spawnParticle(x, y, color, Math.random()*5+3, 15, (Math.random()-0.5)*10, (Math.random()-0.5)*10, 'glow');
+                        }
+                    }
+                }
+            }
+            // -----------------------------
+
             skillEffects.push({ type, x, y, startAt: Date.now(), duration: 900, age: 0, name: sk?.name || type, color });
             skillActionPopups.push({ text: sk?.name || type, x, y, startAt: Date.now(), duration: 900, color });
         }
@@ -2874,8 +2894,27 @@ function toggleAutoFarm() {
         function mainGameLoop() {
             if(currentScreen !== 'gameScreen') return;
 
+            // Apply camera shake
+            let sx = 0, sy = 0;
+            if(window.screenShake && window.screenShake.time > 0) {
+                sx = (Math.random() - 0.5) * window.screenShake.magnitude;
+                sy = (Math.random() - 0.5) * window.screenShake.magnitude;
+                window.screenShake.time -= 16;
+                if(window.screenShake.time <= 0) window.screenShake.magnitude = 0;
+            }
+            camera.x += sx;
+            camera.y += sy;
+
             updateGameLogicState();
             renderWorldGraphicsLayers();
+            
+            // Revert camera shake
+            camera.x -= sx;
+            camera.y -= sy;
+            
+            // Render VFX Overlays (Particles, Weather, Day/Night)
+            if(window.renderVFXOverlays) window.renderVFXOverlays(ctx, camera);
+            
             renderMinimapGraphics();
 
             requestAnimationFrame(mainGameLoop);
@@ -3018,18 +3057,48 @@ function toggleAutoFarm() {
         }
 
         function renderWorldThemeAreas() {
+            // Draw a basic Anime-styled grass texture checkerboard
+            let scale = 1; // You could scale if you have real images
+            let tileSize = 200;
+            
+            let startGridX = Math.floor(camera.x / tileSize) * tileSize;
+            let startGridY = Math.floor(camera.y / tileSize) * tileSize;
+
+            for(let gx = startGridX; gx < startGridX + canvas.width + tileSize; gx += tileSize) {
+                for(let gy = startGridY; gy < startGridY + canvas.height + tileSize; gy += tileSize) {
+                    let wx = gx; let wy = gy;
+                    if(wx >= 0 && wy >= 0 && wx <= WORLD_SIZE && wy <= WORLD_SIZE) {
+                        // Create a subtle checkerboard pattern of greens
+                        if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                            ctx.fillStyle = "#84cc16"; // Lighter lime green
+                        } else {
+                            ctx.fillStyle = "#65a30d"; // Darker lime green
+                        }
+                        ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                        
+                        // Draw some stylized grass tufts randomly
+                        ctx.fillStyle = "#4d7c0f";
+                        ctx.fillRect(wx - camera.x + 50, wy - camera.y + 50, 4, 12);
+                        ctx.fillRect(wx - camera.x + 54, wy - camera.y + 54, 4, 8);
+                    }
+                }
+            }
+
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+
             WORLD_THEME_AREAS.forEach(area => {
                 ctx.save();
                 ctx.fillStyle = area.color;
-                ctx.fillRect(area.x - camera.x, area.y - camera.y, area.w, area.h);
+                ctx.fillRect(area.x, area.y, area.w, area.h);
                 ctx.strokeStyle = 'rgba(255,255,255,0.12)';
                 ctx.lineWidth = 2;
-                ctx.strokeRect(area.x - camera.x, area.y - camera.y, area.w, area.h);
+                ctx.strokeRect(area.x, area.y, area.w, area.h);
 
                 ctx.font = '18px "Baloo 2"';
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#f8fafc';
-                ctx.fillText(area.icon + ' ' + area.label, area.x - camera.x + 10, area.y - camera.y + 26);
+                ctx.fillText(area.icon + ' ' + area.label, area.x + 10, area.y + 26);
 
                 if(area.icon === '🏰') {
                     let mazeX = area.x + area.w - 90;
@@ -3044,7 +3113,7 @@ function toggleAutoFarm() {
 
                 if(area.icon === '🪱') {
                     ctx.fillStyle = 'rgba(6, 78, 59, 0.25)';
-                    ctx.beginPath(); ctx.ellipse(area.x + 90 - camera.x, area.y + 85 - camera.y, 60, 24, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(area.x + 90, area.y + 85, 60, 24, 0, 0, Math.PI * 2); ctx.fill();
                     ctx.strokeStyle = '#fde68a'; ctx.stroke();
                 }
 
@@ -3053,13 +3122,14 @@ function toggleAutoFarm() {
                         let lx = area.x + 20 + i*40;
                         let ly = area.y + 60 + (i%2)*20;
                         ctx.fillStyle = '#f97316';
-                        ctx.fillRect(lx - camera.x, ly - camera.y, 14, 22);
-                        ctx.strokeStyle = '#fb923c'; ctx.strokeRect(lx - camera.x, ly - camera.y, 14, 22);
+                        ctx.fillRect(lx, ly, 14, 22);
+                        ctx.strokeStyle = '#fb923c'; ctx.strokeRect(lx, ly, 14, 22);
                     }
                 }
 
                 ctx.restore();
             });
+            ctx.restore();
         }
 
         function renderWorldGraphicsLayers() {
@@ -3200,6 +3270,15 @@ function toggleAutoFarm() {
             // Layer 6: Render Self Client Core Main Player Character
             let px = player.x - camera.x;
             let py = player.y - camera.y;
+
+            if(player.hp > 0 && window.spawnAura && Math.random() < 0.25) {
+                let auraColor = '#fbbf24'; // Super Saiyan yellow
+                if(player.classId === 'cop') auraColor = '#38bdf8'; 
+                else if(player.classId === 'teacher') auraColor = '#ef4444'; 
+                else if(player.classId === 'merchant') auraColor = '#fbbf24';
+                else if(player.classId === 'engineer') auraColor = '#a855f7';
+                window.spawnAura(player.x, player.y, auraColor);
+            }
 
             ctx.save();
             let auraRadius = 42 + Math.sin(Date.now() / 180) * 4;
