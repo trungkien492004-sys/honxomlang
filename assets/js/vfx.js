@@ -160,21 +160,22 @@ window.renderVFXOverlays = function(ctx, camera) {
     let hour = window.gameTimeClock / 60;
     let darkAlpha = 0;
     
-    ctx.globalCompositeOperation = 'multiply';
+    // Sử dụng source-over để làm tối một cách tự nhiên (đừng dùng multiply với màu quá tối sẽ làm đen thui)
+    ctx.globalCompositeOperation = 'source-over';
+    
     if(hour >= 18 && hour < 20) {
-        // Hoàng hôn
+        // Hoàng hôn (18h - 20h)
         darkAlpha = (hour - 18) / 2 * 0.4;
-        ctx.fillStyle = `rgba(255, 120, 50, ${darkAlpha * 0.5})`;
+        ctx.fillStyle = `rgba(255, 100, 0, ${darkAlpha})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     } else if (hour >= 20 || hour < 5) {
-        // Đêm tối
-        ctx.fillStyle = `rgba(10, 10, 40, 0.7)`;
+        // Đêm tối (20h - 5h sáng)
+        ctx.fillStyle = `rgba(10, 15, 30, 0.65)`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     } else if (hour >= 5 && hour < 7) {
-        // Bình minh
-        darkAlpha = 0.7 - ((hour - 5) / 2 * 0.7);
-        ctx.fillStyle = `rgba(10, 10, 40, ${darkAlpha})`;
+        // Bình minh (5h - 7h sáng)
+        darkAlpha = 0.65 - ((hour - 5) / 2 * 0.65);
+        ctx.fillStyle = `rgba(10, 15, 30, ${darkAlpha})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    ctx.globalCompositeOperation = 'source-over';
 };
