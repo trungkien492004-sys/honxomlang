@@ -27,26 +27,26 @@ window.spawnParticle = function(x, y, color, size, life, vx, vy, type = 'normal'
 
 // 3. Hiệu ứng chiêu cuối theo phong cách Anime
 window.playUltimateVFX = function(x, y, type) {
-    triggerScreenShake(15, 600); // Rung màn hình
+    window.triggerScreenShake(15, 600); // Rung màn hình
     
     if(type === 'kamehameha') {
         for(let i=0; i<50; i++) {
             let vx = (Math.random() - 0.5) * 20;
             let vy = (Math.random() - 0.5) * 20;
-            spawnParticle(x, y, '#38bdf8', Math.random()*15 + 5, 40, vx, vy, 'glow');
+            window.spawnParticle(x, y, '#38bdf8', Math.random()*15 + 5, 40, vx, vy, 'glow');
         }
     } else if (type === 'magic_circle') {
         for(let i=0; i<360; i+=10) {
             let rad = i * Math.PI / 180;
             let vx = Math.cos(rad) * 8;
             let vy = Math.sin(rad) * 8;
-            spawnParticle(x, y, '#fbbf24', 8, 50, vx, vy, 'glow');
+            window.spawnParticle(x, y, '#fbbf24', 8, 50, vx, vy, 'glow');
         }
     } else if (type === 'haki') {
         for(let i=0; i<30; i++) {
             let vx = (Math.random() - 0.5) * 25;
             let vy = (Math.random() - 0.5) * 25;
-            spawnParticle(x, y, i%2===0 ? '#ef4444' : '#000000', Math.random()*20 + 5, 30, vx, vy, 'spark');
+            window.spawnParticle(x, y, i%2===0 ? '#ef4444' : '#000000', Math.random()*20 + 5, 30, vx, vy, 'spark');
         }
     }
 };
@@ -54,7 +54,7 @@ window.playUltimateVFX = function(x, y, type) {
 window.spawnAura = function(x, y, color) {
     let vx = (Math.random() - 0.5) * 2;
     let vy = -Math.random() * 5 - 2;
-    spawnParticle(x, y, color, Math.random()*8 + 4, 20, vx, vy, 'aura');
+    window.spawnParticle(x, y, color, Math.random()*8 + 4, 20, vx, vy, 'aura');
 };
 
 // 4. Sinh hạt thời tiết
@@ -68,19 +68,19 @@ function updateWeather() {
     if(!canvas) return;
 
     if(window.weatherType === 'rain' && Math.random() < 0.3) {
-        weatherParticles.push({
+        window.weatherParticles.push({
             x: Math.random() * canvas.width,
             y: -20,
             vx: 2, vy: 15, size: 2, color: 'rgba(200, 200, 255, 0.6)', life: 100, type: 'rain'
         });
     } else if(window.weatherType === 'snow' && Math.random() < 0.1) {
-        weatherParticles.push({
+        window.weatherParticles.push({
             x: Math.random() * canvas.width,
             y: -20,
             vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 2, size: Math.random()*3+2, color: '#ffffff', life: 200, type: 'snow'
         });
     } else if(window.weatherType === 'petals' && Math.random() < 0.05) { // Lá rụng Naruto/Anime
-        weatherParticles.push({
+        window.weatherParticles.push({
             x: Math.random() * canvas.width,
             y: -20,
             vx: (Math.random() - 0.5) * 4, vy: 3 + Math.random() * 3, size: Math.random()*5+3, color: '#fbcfe8', life: 200, type: 'petal'
