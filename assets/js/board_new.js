@@ -171,8 +171,10 @@ window.boardProcessTurn = function(p, roll, callback) {
             const alive = boardGame.players.filter(x => !x.eliminated);
             if(alive.length === 1 && boardGame.players.length > 1) {
                 boardGame.gameOver = true;
+                let prize = 200 + (boardGame.betPool||0);
                 boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
-                if(alive[0].networkId === myNetworkId || alive[0].isHuman) { player.gold += 200 + (boardGame.betPool||0); refreshHudDisplay(); }
+                if(alive[0].networkId === myNetworkId || alive[0].isHuman) { player.gold += prize; refreshHudDisplay(); }
+                window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${alive[0].name} là người sống sót cuối cùng!`, `Thưởng: ${prize} 💰<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, () => {}, true);
             }
             boardRenderGrid(); 
             boardRenderPlayers();
@@ -189,7 +191,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                 }
                 boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
                 document.getElementById('diceResultText').textContent = `🏆 ${p.name} CHIẾN THẮNG!`;
-                window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 💰`, finalizeTurn);
+                window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 💰<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, finalizeTurn, true);
                 audio.play('levelup');
             } else {
                 // Rút bài nếu chưa win
@@ -245,7 +247,7 @@ function boardHandleCombat(p) {
 window._bigEventTimer = null;
 window._bigEventCallback = null;
 
-window.boardShowBigNotice = function(title, desc, extra = '', callback) {
+window.boardShowBigNotice = function(title, desc, extra = '', callback, persist = false) {
     const overlay = document.getElementById('bigEventOverlay');
     if(!overlay) {
         if(callback) callback();
@@ -262,11 +264,13 @@ window.boardShowBigNotice = function(title, desc, extra = '', callback) {
     els.forEach(el => { if(el) { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; }});
     
     if(window._bigEventTimer) clearTimeout(window._bigEventTimer);
-    window._bigEventTimer = setTimeout(() => {
-        window.closeBigEvent();
-    }, 3000);
-    
     window._bigEventCallback = callback;
+    
+    if(!persist) {
+        window._bigEventTimer = setTimeout(() => {
+            window.closeBigEvent();
+        }, 3000);
+    }
 };
 
 window.closeBigEvent = function() {

@@ -6,6 +6,7 @@
     <title>🏘️ XÓM ANH HÙNG v3.0 - Phiên Bản Online</title>
     <meta name="description" content="Game nhập vai sinh tồn thuần Việt - Đa người chơi online">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/mobile.css">
 </head>
 <body>
 
@@ -114,15 +115,28 @@
         </div>
 
         <div class="bottom-hud">
-            <button class="nav-btn" onclick="togglePanel('inventory')">🎒 Hành Trang</button>
-            <button class="nav-btn" onclick="togglePanel('skills')">⚡ Kỹ Năng</button>
-            <button class="nav-btn" onclick="togglePanel('equipment')">🛡️ Trang Bị</button>
-            <button class="nav-btn" onclick="togglePanel('quests')">📜 Nhiệm Vụ</button>
-            <button class="nav-btn" onclick="togglePanel('pvp')">⚔️ Đấu Trường</button>
-            <button class="nav-btn" onclick="togglePanel('party')">🤝 Tổ Đội</button>
-            <button class="nav-btn" onclick="togglePanel('chat')">💬 Chat Tổng</button>
-            <button class="nav-btn" onclick="togglePanel('bet')">🏟️ Cược Bóng</button>
-            <button class="nav-btn" onclick="openBoardGameWithBet()" style="background:linear-gradient(135deg,#f97316,#7c3aed);">🏁 Cờ Đua</button>
+            <!-- Tích hợp thành Hamburger Menu trên Mobile -->
+            <div id="mobileMenuToggle" onclick="toggleMobileMenu()">
+                <div style="font-size:1.8rem; pointer-events:none;">☰</div>
+            </div>
+            <div id="hudNavContainer" class="nav-container">
+                <button class="nav-btn" onclick="togglePanel('inventory')">🎒 Hành Trang</button>
+                <button class="nav-btn" onclick="togglePanel('skills')">⚡ Kỹ Năng</button>
+                <button class="nav-btn" onclick="togglePanel('equipment')">🛡️ Trang Bị</button>
+                <button class="nav-btn" onclick="togglePanel('quests')">📜 Nhiệm Vụ</button>
+                <button class="nav-btn" onclick="togglePanel('pvp')">⚔️ Đấu Trường</button>
+                <button class="nav-btn" onclick="togglePanel('party')">🤝 Tổ Đội</button>
+                <button class="nav-btn" onclick="togglePanel('chat')">💬 Chat Tổng</button>
+                <button class="nav-btn" onclick="togglePanel('bet')">🏟️ Cược Bóng</button>
+                <button class="nav-btn" onclick="openBoardGameWithBet()" style="background:linear-gradient(135deg,#f97316,#7c3aed);">🏁 Cờ Đua</button>
+            </div>
+        </div>
+
+        <!-- ===== VIRTUAL JOYSTICK (MOBILE) ===== -->
+        <div id="joystickZone">
+            <div id="joystickBase">
+                <div id="joystickStick"></div>
+            </div>
         </div>
 
         <div id="targetIndicator" style="
@@ -421,12 +435,12 @@
             </div>
         </div>
 
-        <!-- ===== 🔥 BẢNG THÔNG BÁO SỰ KIỆN LỚN (3s) ===== -->
-        <div id="bigEventOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px; backdrop-filter:blur(8px);">
+        <!-- ===== 🔥 BẢNG THÔNG BÁO SỰ KIỆN LỚN ===== -->
+        <div id="bigEventOverlay" onclick="closeBigEvent()" style="display:none; position:fixed; inset:0; background:rgba(10,10,15,0.95); z-index:99999; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px; cursor:pointer;">
             <div id="bigEventTitle" style="font-family:'Orbitron', monospace; font-size:2.5rem; color:#fca5a5; text-shadow:0 0 20px #ef4444; margin-bottom:10px; font-weight:900; transform:scale(0); animation:popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">SỰ KIỆN</div>
             <div id="bigEventDesc" style="font-size:1.3rem; color:#fff; line-height:1.5; margin-bottom:20px; opacity:0; animation:fadeIn 0.5s 0.2s forwards;">Chi tiết sự kiện...</div>
             <div id="bigEventExtra" style="font-size:1rem; color:#fbbf24; font-weight:bold; margin-bottom:30px; opacity:0; animation:fadeIn 0.5s 0.4s forwards;"></div>
-            <button class="board-btn close-board" onclick="closeBigEvent()" style="padding:10px 30px; font-size:1.2rem; background:#374151; opacity:0; animation:fadeIn 0.5s 0.6s forwards;">✖ Bỏ qua (3s)</button>
+            <button class="board-btn close-board" style="padding:10px 30px; font-size:1.2rem; background:#374151; opacity:0; animation:fadeIn 0.5s 0.6s forwards; pointer-events:none;">✖ Bấm để Đóng</button>
         </div>
 
     </div>
@@ -447,10 +461,17 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
-
-    <!-- Game scripts -->
     <script src="assets/js/firebase.js"></script>
-    <script src="assets/js/game.js"></script>
+    <script src="assets/js/items.js"></script>
+    <script src="assets/js/quests.js"></script>
+    <script src="assets/js/skills.js"></script>
+    <script src="assets/js/joystick.js"></script>
     <script src="assets/js/board_new.js"></script>
+    <script src="assets/js/game.js"></script>
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('hudNavContainer').classList.toggle('open');
+        }
+    </script>
 </body>
 </html>

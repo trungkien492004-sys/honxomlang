@@ -1,0 +1,171 @@
+/* ---- MOBILE UI OVERHAUL ---- */
+/* Hamburger Menu */
+#mobileMenuToggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    right: 140px; /* Cạnh minimap */
+    width: 42px;
+    height: 42px;
+    background: rgba(15,15,35,0.9);
+    border: 2px solid rgba(255,215,0,0.4);
+    border-radius: 10px;
+    z-index: 50;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    user-select: none;
+}
+
+.nav-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+/* Virtual Joystick */
+#joystickZone {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+    z-index: 40;
+    touch-action: none;
+    display: none; /* Chỉ bật trên Mobile */
+    justify-content: center;
+    align-items: center;
+}
+#joystickBase {
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#joystickStick {
+    width: 55px;
+    height: 55px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(150,150,150,0.8));
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+    transition: transform 0.1s ease-out;
+}
+#joystickZone.active #joystickStick {
+    transition: none;
+}
+
+@media (max-width: 1024px) {
+    /* Mở Hamburger & Joystick */
+    #mobileMenuToggle { display: flex; }
+    #joystickZone { display: flex; }
+    
+    /* Thu gọn Top HUD */
+    .top-hud { transform: scale(0.85); transform-origin: top left; top: 5px; left: 5px; }
+    
+    /* Thu gọn Minimap & Nút tiện ích */
+    #minimap { width: 90px; height: 90px; }
+    .right-top-box { right: 5px; top: 5px; width: 90px; gap: 4px; }
+    .right-top-box .btn-sm { font-size: 0.65rem; padding: 4px; }
+    #mobileMenuToggle { right: 105px; top: 5px; } /* Cạnh Minimap mới */
+    
+    /* Biến Bottom HUD thành Dropdown Menu */
+    .bottom-hud {
+        top: 55px;
+        right: 15px;
+        left: auto;
+        transform: none;
+        background: rgba(15,15,35,0.95);
+        border: 2px solid rgba(255,215,0,0.3);
+        border-radius: 12px;
+        padding: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        display: none;
+        width: 200px;
+        z-index: 45;
+    }
+    #hudNavContainer {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+    #hudNavContainer.open { display: flex; }
+    .bottom-hud:has(#hudNavContainer.open) { display: block; }
+    
+    .nav-btn { width: 100%; text-align: left; padding: 12px 10px; font-size: 0.95rem; justify-content: flex-start; }
+    
+    /* Hệ thống Kỹ Năng kiểu MOBA */
+    .skill-hotbar {
+        left: auto;
+        right: 15px;
+        bottom: 15px;
+        transform: none;
+        background: none;
+        border: none;
+        width: 220px;
+        height: 220px;
+        padding: 0;
+        box-shadow: none;
+    }
+    .skill-hotbar h3 { display: none; }
+    #skillButtons {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: block;
+        justify-content: unset;
+    }
+    .skill-slot {
+        position: absolute;
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        background: rgba(0,0,0,0.5);
+    }
+    .skill-slot .skill-circle, .skill-slot .skill-circle img {
+        width: 100%; height: 100%;
+    }
+    .skill-slot .cooldown-ring svg { width: 100%; height: 100%; }
+    .skill-slot .cooldown-text { font-size: 0.8rem; }
+    .skill-slot .skill-auto-toggle { display: none; } /* Ẩn nút auto góc chéo */
+
+    /* Nút Đánh Thường (Bự) */
+    .skill-slot[data-slot="1"] {
+        width: 90px; height: 90px;
+        bottom: 0; right: 0;
+        border: 2px solid #fbbf24;
+    }
+    .skill-slot[data-slot="1"] .cooldown-text { font-size: 1rem; }
+
+    /* Nút Kỹ năng 2,3,4 (Vòng Cung) */
+    .skill-slot[data-slot="2"] {
+        width: 65px; height: 65px;
+        bottom: 110px; right: 10px;
+    }
+    .skill-slot[data-slot="3"] {
+        width: 65px; height: 65px;
+        bottom: 80px; right: 90px;
+    }
+    .skill-slot[data-slot="4"] {
+        width: 65px; height: 65px;
+        bottom: 15px; right: 125px;
+    }
+
+    /* Các panel toàn màn hình */
+    .game-panel {
+        width: 95vw;
+        height: 85vh;
+        top: 5vh;
+        left: 2.5vw;
+        transform: none;
+    }
+}

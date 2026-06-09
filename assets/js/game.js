@@ -1610,9 +1610,10 @@
             if(!container) return;
             container.innerHTML = "";
 
-            function makeSlot(button, autoBox) {
+            function makeSlot(button, autoBox, slotIndex) {
                 let slot = document.createElement('div');
                 slot.className = 'skill-slot';
+                if(slotIndex) slot.dataset.slot = slotIndex;
                 slot.appendChild(button);
                 if(autoBox) slot.appendChild(autoBox);
                 return slot;
@@ -1638,8 +1639,9 @@
             normalBtn.onmouseenter = () => showSkillTooltip('??nh th??ng', '??n ??nh c? b?n kh?ng t?n MP. Ch?n qu?i tr??c r?i b?m ?? ??nh.', 'Kh?ng t?n MP');
             normalBtn.onmousemove = moveSkillTooltip;
             normalBtn.onmouseleave = hideSkillTooltip;
-            container.appendChild(makeSlot(normalBtn));
+            container.appendChild(makeSlot(normalBtn, null, 1));
 
+            let sIdx = 2;
             player.skills.forEach(s => {
                 let btn = document.createElement('button');
                 btn.type = 'button';
@@ -1677,7 +1679,7 @@ ${s.desc}`;
                 autoBox.onclick = (ev) => { ev.stopPropagation(); };
                 autoBox.onchange = (ev) => { ev.stopPropagation(); toggleAutoSkill(s.id, autoBox.checked); };
 
-                container.appendChild(makeSlot(btn, autoBox));
+                container.appendChild(makeSlot(btn, autoBox, sIdx++));
             });
         }
 
@@ -2893,19 +2895,27 @@ function toggleAutoFarm() {
 
             // B. Movement computation vector calculations
             let speed = player.baseSpeed;
-            let targetX = player.destinationX;
-            let targetY = player.destinationY;
+            
+            // Joystick Override
+            if(window.joystickActive && window.joystickVector && (window.joystickVector.x !== 0 || window.joystickVector.y !== 0)) {
+                player.x += window.joystickVector.x * speed;
+                player.y += window.joystickVector.y * speed;
+                player.destinationX = undefined;
+                player.destinationY = undefined;
+            } else {
+                let targetX = player.destinationX;
+                let targetY = player.destinationY;
 
-            if(player.targetMonster) {
-                // Adjust vector position towards target monster bounding edge
-                targetX = player.targetMonster.x;
-                targetY = player.targetMonster.y;
-            }
+                if(player.targetMonster) {
+                    // Adjust vector position towards target monster bounding edge
+                    targetX = player.targetMonster.x;
+                    targetY = player.targetMonster.y;
+                }
 
-            if(targetX !== undefined && targetY !== undefined) {
-                let dx = targetX - player.x;
-                let dy = targetY - player.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
+                if(targetX !== undefined && targetY !== undefined) {
+                    let dx = targetX - player.x;
+                    let dy = targetY - player.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
 
                 let stopThreshold = player.targetMonster ? 45 : 6;
                 if(dist > stopThreshold) {
@@ -2924,9 +2934,9 @@ function toggleAutoFarm() {
                         player.destinationY = undefined;
                     }
                 }
-            }
+            } // Close the 'else' block from Joystick Override
 
-            player.isMoving = (player.destinationX !== undefined || (player.targetMonster && player.targetMonster.hp > 0)) && !(player.destinationX === undefined && !player.targetMonster);
+            player.isMoving = (window.joystickActive) || (player.destinationX !== undefined || (player.targetMonster && player.targetMonster.hp > 0)) && !(player.destinationX === undefined && !player.targetMonster);
             player.animationState = player.isMoving ? 'run' : 'idle';
 
             // Bound checking limits protection
