@@ -79,6 +79,36 @@ window.submitClassicLogin = async function() {
     document.getElementById('classicLoginBtn').textContent = "ĐĂNG NHẬP / ĐĂNG KÝ";
 };
 
+// 🌟 loginWithGoogle — dùng POPUP 🌟🌟🌟🌟🌟🌟
+window.loginWithGoogle = async function() {
+    _fbToast('⏳ Đang mở cửa sổ đăng nhập...', '#4fc3f7');
+    try {
+        const result = await auth.signInWithPopup(googleProvider);
+        const user = result.user;
+        window.currentFirebaseUser = user;
+        window._cloudSaveEnabled = true;
+
+        _fbToast(`✅ Đăng nhập thành công! Xin chào ${user.displayName} 🎉`, '#22c55e');
+        _showSignOutBtn(user.displayName);
+        
+        let savedServer = localStorage.getItem('xom_saved_server');
+        if(savedServer) {
+            window.currentServerId = savedServer;
+            await openCharacterSelection(user);
+        } else {
+            openServerSelection();
+        }
+    } catch (err) {
+        console.error('[Firebase] Popup error:', err);
+        if (err.code === 'auth/popup-blocked') {
+            alert('⚠️ Trình duyệt chặn Popup! Vui lòng cho phép popup trên trang này (nút trên thanh địa chỉ).');
+            _fbToast('⚠️ Trình duyệt chặn Popup!', '#ef4444');
+        } else {
+            _fbToast(`❌ Lỗi: ${err.message}`, '#ef4444');
+        }
+    }
+};
+
 window.openServerSelection = function() {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('serverScreen').classList.add('active');

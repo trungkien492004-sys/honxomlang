@@ -2934,6 +2934,8 @@ function toggleAutoFarm() {
                         player.destinationY = undefined;
                     }
                 }
+                // Close if(targetX !== undefined && targetY !== undefined)
+            }
             } // Close the 'else' block from Joystick Override
 
             player.isMoving = (window.joystickActive) || (player.destinationX !== undefined || (player.targetMonster && player.targetMonster.hp > 0)) && !(player.destinationX === undefined && !player.targetMonster);
