@@ -21,36 +21,75 @@ window.currentFirebaseUser = null;
 window._cloudSaveEnabled   = false;
 window._cloudSaveData      = null;
 
-// ── Auth State (theo dõi đăng nhập sẵn có) ───────────────────
+// 🌟 Auth State
 auth.onAuthStateChanged(async (user) => {
     window.currentFirebaseUser = user;
-    if (!user) return;
+    if (!user) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('loginScreen').classList.add('active');
+        return;
+    }
     window._cloudSaveEnabled = true;
-    _showSignOutBtn(user.displayName);
-    await openCharacterSelection(user);
+    _showSignOutBtn(user.email ? user.email.split('@')[0] : 'Người chơi');
+    
+    // Đã đăng nhập -> Chọn Server
+    let savedServer = localStorage.getItem('xom_saved_server');
+    if(savedServer) {
+        window.currentServerId = savedServer;
+        await openCharacterSelection(user);
+    } else {
+        openServerSelection();
+    }
 });
 
-// ── loginWithGoogle — dùng POPUP ────────────
-window.loginWithGoogle = async function() {
-    _fbToast('⏳ Đang mở cửa sổ đăng nhập...', '#4fc3f7');
+window.submitClassicLogin = async function() {
+    let un = document.getElementById('usernameInp').value.trim();
+    let pw = document.getElementById('passwordInp').value.trim();
+    let errBox = document.getElementById('loginErrorMsg');
+    
+    if(un.length < 3 || pw.length < 3) {
+        errBox.textContent = "Tài khoản và mật khẩu phải từ 3 ký tự!";
+        errBox.style.display = 'block';
+        return;
+    }
+    
+    errBox.style.display = 'none';
+    document.getElementById('classicLoginBtn').textContent = "Đang kết nối...";
+    
+    let fakeEmail = un.toLowerCase() + "@xomanhung.com";
+    
     try {
-        const result = await auth.signInWithPopup(googleProvider);
-        const user = result.user;
-        window.currentFirebaseUser = user;
-        window._cloudSaveEnabled = true;
-
-        _fbToast(`✅ Đăng nhập thành công! Xin chào ${user.displayName} 🎉`, '#22c55e');
-        _showSignOutBtn(user.displayName);
-        
-        await openCharacterSelection(user);
-    } catch (err) {
-        console.error('[Firebase] Popup error:', err);
-        if (err.code === 'auth/popup-blocked') {
-            alert('⚠️ Trình duyệt chặn Popup! Vui lòng cho phép popup trên trang này (nút trên thanh địa chỉ).');
-            _fbToast('⚠️ Trình duyệt chặn Popup!', '#ef4444');
+        await auth.signInWithEmailAndPassword(fakeEmail, pw);
+        _fbToast(`✅ Đăng nhập thành công!`, '#22c55e');
+    } catch(err) {
+        if(err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+            // Tự động đăng ký nếu chưa có
+            try {
+                await auth.createUserWithEmailAndPassword(fakeEmail, pw);
+                _fbToast(`🎉 Đăng ký thành công!`, '#22c55e');
+            } catch(regErr) {
+                errBox.textContent = "Lỗi đăng ký: " + regErr.message;
+                errBox.style.display = 'block';
+            }
         } else {
-            _fbToast(`❌ Lỗi: ${err.message}`, '#ef4444');
+            errBox.textContent = "Sai mật khẩu hoặc lỗi: " + err.message;
+            errBox.style.display = 'block';
         }
+    }
+    document.getElementById('classicLoginBtn').textContent = "ĐĂNG NHẬP / ĐĂNG KÝ";
+};
+
+window.openServerSelection = function() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('serverScreen').classList.add('active');
+};
+
+window.selectServer = async function(serverId) {
+    window.currentServerId = serverId;
+    localStorage.setItem('xom_saved_server', serverId);
+    _fbToast(`Đã chọn máy chủ: ${serverId}`, '#4fc3f7');
+    if(window.currentFirebaseUser) {
+        await openCharacterSelection(window.currentFirebaseUser);
     }
 };
 
@@ -62,8 +101,9 @@ window.openCharacterSelection = async function(user) {
     const container = document.getElementById('characterSlotsContainer');
     container.innerHTML = '<div style="color:#94a3b8; width:100%; text-align:center;">Đang tải dữ liệu Cloud...</div>';
 
-    // Đọc 3 slot
-    const slotIDs = [user.uid, `${user.uid}_2`, `${user.uid}_3`];
+    // Đọc 3 slot (Lưu ý: Thêm prefix ServerId để phân biệt nhân vật giữa các Server)
+    const serverPrefix = window.currentServerId ? window.currentServerId + "_" : "S1_";
+    const slotIDs = [`${serverPrefix}${user.uid}_1`, `${serverPrefix}${user.uid}_2`, `${serverPrefix}${user.uid}_3`];
     const slotsData = await Promise.all(slotIDs.map(id => loadGameFromCloud(id)));
 
     container.innerHTML = '';
@@ -142,13 +182,15 @@ window.createNewCharacter = function(docId) {
     window.currentSlotId = docId;
     window._cloudSaveData = null; // Bắt đầu mới
     
-    const inp = document.getElementById('usernameInp');
-    if (inp && window.currentFirebaseUser && window.currentFirebaseUser.displayName) {
-        inp.value = window.currentFirebaseUser.displayName.split(' ')[0];
+    // Gán tên tài khoản làm tên mặc định
+    if(window.currentFirebaseUser && window.currentFirebaseUser.email) {
+        window.player = window.player || {};
+        window.player.name = window.currentFirebaseUser.email.split('@')[0];
     }
     
+    // Chuyển thẳng sang classScreen (Bỏ qua loginScreen)
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('loginScreen').classList.add('active');
+    document.getElementById('classScreen').classList.add('active');
     
     // Ẩn nút Google vì đã login rồi
     const btnGoogle = document.querySelector('.btn-google');
