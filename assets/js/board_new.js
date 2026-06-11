@@ -297,7 +297,18 @@ window.boardMovePlayer = function(idx, steps, animate) {
 
 // â”€â”€ HÃ m phá»¥ trá»£ tÃ­nh tá»a Ä‘á»™ vÃ²ng quanh â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _getCellPos(i) {
-    if(i < 13) return { r: 1, c: i + 1 };
+    if(i < 10) return { r: 1, c: i + 1 };
+    if(i < 14) return { r: i - 10 + 2, c: 10 };
+    if(i < 24) return { r: 6, c: 10 - (i - 14) };
+    if(i < 28) return { r: 6 - (i - 23), c: 1 };
+    if(i < 36) return { r: 2, c: (i - 28) + 2 };
+    if(i < 38) return { r: i - 36 + 3, c: 9 };
+    if(i < 46) return { r: 5, c: 9 - (i - 38) };
+    if(i < 48) return { r: 5 - (i - 45), c: 2 };
+    if(i < 54) return { r: 3, c: (i - 48) + 3 };
+    if(i < 60) return { r: 4, c: 8 - (i - 54) };
+    return { r: 1, c: 1 };
+};
     if(i < 20) return { r: i - 13 + 2, c: 13 };
     if(i < 33) return { r: 9, c: 13 - (i - 20) };
     return { r: 9 - (i - 33), c: 1 };
@@ -311,11 +322,11 @@ window.boardRenderGrid = function() {
     // XÃ³a CSS grid cÅ©, thiáº¿t láº­p CSS grid oval rá»™ng hÆ¡n
     grid.style.cssText = [
         'display:grid',
-        'grid-template-columns:repeat(13,1fr)',
-        'grid-template-rows:repeat(9,1fr)',
+        'grid-template-columns:repeat(10,1fr)',
+        'grid-template-rows:repeat(6,1fr)',
         'gap:4px',
         'width:100%',
-        'aspect-ratio:13/9',
+        'aspect-ratio:10/6',
         'max-height:400px',
         'margin-bottom:12px'
     ].join(';');
@@ -323,7 +334,7 @@ window.boardRenderGrid = function() {
     // Title á»Ÿ giá»¯a
     const center = document.createElement('div');
     center.className = 'board-center';
-    center.style.cssText = 'grid-row:2/9;grid-column:2/13;background:rgba(0,0,0,0.5);border-radius:16px;border:2px dashed #475569;';
+    center.style.cssText = 'grid-row:2/6;grid-column:2/10;background:rgba(0,0,0,0.5);border-radius:16px;border:2px dashed #475569;';
     
     // Chá»‰ hiá»ƒn thá»‹ ngÆ°á»i cÃ²n sá»‘ng trÃªn báº£ng xáº¿p háº¡ng mini giá»¯a sÃ¢n
     const alivePlayers = boardGame.players.filter(p => !p.eliminated);
@@ -343,7 +354,7 @@ window.boardRenderGrid = function() {
 
     for(let i = 0; i < BOARD_TOTAL_CELLS; i++) {
         const pos  = _getCellPos(i);
-        const type = i === 0 ? 'start' : i === 39 ? 'finish' : '';
+        const type = i === 0 ? 'start' : i === (BOARD_TOTAL_CELLS - 1) ? 'finish' : '';
         const icon = i === 0 ? 'ðŸ' : i === 39 ? 'ðŸ†' : boardGame.trappedCells[i] ? 'ðŸ’£' : '';
         
         // Tokens hiá»‡n táº¡i á»Ÿ Ã´ nÃ y
