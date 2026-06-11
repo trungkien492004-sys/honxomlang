@@ -39,7 +39,7 @@
             <h1 style="font-size: 3rem;">CHỌN MÁY CHỦ</h1>
             <p>Vui lòng chọn máy chủ để tiếp tục cuộc hành trình</p>
         </div>
-        <div class="class-container" id="serverListContainer" style="gap:20px; max-width:600px;">
+        <div class="class-container" id="serverListContainer" style="max-width:600px;">
             <div class="class-card" onclick="selectServer('S1')">
                 <h2 style="color:#fbbf24; margin-bottom:10px;">[S1] Tân Thủ</h2>
                 <p style="font-size:0.9rem; color:#94a3b8;">Máy chủ khởi nguyên. Rất đông đúc.</p>
@@ -62,7 +62,7 @@
             <h1 style="font-size: 3rem;">CHỌN NHÂN VẬT</h1>
             <p>Chọn nhân vật có sẵn hoặc tạo mới để tham gia sinh tồn</p>
         </div>
-        <div class="class-container" id="characterSlotsContainer" style="gap:20px; max-width:800px;">
+        <div class="class-container" id="characterSlotsContainer" style="max-width:800px;">
             <div style="color:#94a3b8; width:100%; text-align:center;">Đang tải dữ liệu Cloud...</div>
         </div>
         <div style="text-align:center; margin-top:20px;">
@@ -105,7 +105,7 @@
 
         <div class="top-hud">
             <div class="player-info">
-                <div class="avatar" id="hudAvatar">👮‍♂️</div>
+                <div class="avatar" id="hudAvatar" style="padding:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); border:2px solid var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.2);"><canvas id="hudAvatarCanvas" width="60" height="60" style="width:60px; height:60px; display:block; image-rendering: -webkit-optimize-contrast;"></canvas></div>
                 <div>
                     <div style="font-weight: 800; font-size: 1.1rem;" id="hudName">Player (Lv.1)</div>
                     <div class="bars">
@@ -495,6 +495,8 @@
     <script src="assets/js/joystick.js"></script>
     <script src="assets/js/board_new.js"></script>
     <script src="assets/js/vfx.js"></script>
+    <script src="assets/js/sprites_data.js"></script>
+    <script src="assets/js/sprites_renderer.js"></script>
     <script src="assets/js/game.js"></script>
     <script>
         function toggleMobileMenu() {

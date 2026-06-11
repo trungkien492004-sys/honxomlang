@@ -153,29 +153,129 @@ window.renderVFXOverlays = function(ctx, camera) {
         }
     }
     
-    // Ngày và Đêm (Day/Night Overlay)
+    // Ngày và Đêm (Day/Night Overlay & Dynamic 2D Lighting)
     window.gameTimeClock += 0.05; // Mỗi khung hình trôi qua một chút
     if(window.gameTimeClock > 1440) window.gameTimeClock = 0; // 1440 phút = 24h
     
     let hour = window.gameTimeClock / 60;
     let darkAlpha = 0;
-    
-    // Sử dụng source-over để làm tối một cách tự nhiên (đừng dùng multiply với màu quá tối sẽ làm đen thui)
-    ctx.globalCompositeOperation = 'source-over';
+    let hasDarkness = false;
+    let overlayColor = '';
     
     if(hour >= 18 && hour < 20) {
         // Hoàng hôn (18h - 20h)
-        darkAlpha = (hour - 18) / 2 * 0.4;
-        ctx.fillStyle = `rgba(255, 100, 0, ${darkAlpha})`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        darkAlpha = (hour - 18) / 2 * 0.45;
+        overlayColor = `rgba(230, 90, 20, ${darkAlpha})`;
+        hasDarkness = true;
     } else if (hour >= 20 || hour < 5) {
         // Đêm tối (20h - 5h sáng)
-        ctx.fillStyle = `rgba(10, 15, 30, 0.65)`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        overlayColor = `rgba(10, 15, 30, 0.68)`;
+        hasDarkness = true;
     } else if (hour >= 5 && hour < 7) {
         // Bình minh (5h - 7h sáng)
-        darkAlpha = 0.65 - ((hour - 5) / 2 * 0.65);
-        ctx.fillStyle = `rgba(10, 15, 30, ${darkAlpha})`;
+        darkAlpha = 0.68 - ((hour - 5) / 2 * 0.68);
+        overlayColor = `rgba(10, 15, 30, ${darkAlpha})`;
+        hasDarkness = true;
+    }
+    
+    if (hasDarkness) {
+        ctx.save();
+        
+        // 1. Phủ bóng tối/hoàng hôn lên toàn màn hình
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = overlayColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 2. Đục lỗ vùng sáng bằng cơ chế destination-out
+        ctx.globalCompositeOperation = 'destination-out';
+        
+        // Ánh sáng của Player
+        if (window.player && window.player.x !== undefined) {
+            let px = window.player.x - camera.x;
+            let py = window.player.y - camera.y;
+            let pRad = 220; 
+            let grad = ctx.createRadialGradient(px, py, 15, px, py, pRad);
+            grad.addColorStop(0, 'rgba(0, 0, 0, 1.0)'); 
+            grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');  
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(px, py, pRad, 0, Math.PI * 2); ctx.fill();
+        }
+        
+        // Ánh sáng của các NPC trong làng
+        if (typeof NPC_DATA !== 'undefined') {
+            for (let nKey in NPC_DATA) {
+                let npc = NPC_DATA[nKey];
+                let nx = npc.x - camera.x;
+                let ny = npc.y - camera.y;
+                let nRad = 150;
+                let grad = ctx.createRadialGradient(nx, ny, 10, nx, ny, nRad);
+                grad.addColorStop(0, 'rgba(0, 0, 0, 1.0)');
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.arc(nx, ny, nRad, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+        
+        // Ánh sáng rực lửa bao quanh Boss
+        if (window.monsters) {
+            window.monsters.forEach(m => {
+                if (m.isBoss && m.hp > 0) {
+                    let mx = m.x - camera.x;
+                    let my = m.y - camera.y;
+                    let bRad = 260;
+                    let grad = ctx.createRadialGradient(mx, my, 25, mx, my, bRad);
+                    grad.addColorStop(0, 'rgba(0, 0, 0, 1.0)');
+                    grad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath(); ctx.arc(mx, my, bRad, 0, Math.PI * 2); ctx.fill();
+                }
+            });
+        }
+        
+        // 3. Phủ hiệu ứng màu sắc ánh đèn bằng chế độ pha trộn screen
+        ctx.globalCompositeOperation = 'screen';
+        
+        // Ánh sáng đèn vàng ấm áp của Player
+        if (window.player && window.player.x !== undefined) {
+            let px = window.player.x - camera.x;
+            let py = window.player.y - camera.y;
+            let gradWarm = ctx.createRadialGradient(px, py, 5, px, py, 220);
+            gradWarm.addColorStop(0, 'rgba(253, 186, 116, 0.15)'); 
+            gradWarm.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+            ctx.fillStyle = gradWarm;
+            ctx.beginPath(); ctx.arc(px, py, 220, 0, Math.PI * 2); ctx.fill();
+        }
+        
+        // Ánh sáng tĩnh của các NPC
+        if (typeof NPC_DATA !== 'undefined') {
+            for (let nKey in NPC_DATA) {
+                let npc = NPC_DATA[nKey];
+                let nx = npc.x - camera.x;
+                let ny = npc.y - camera.y;
+                let gradWarm = ctx.createRadialGradient(nx, ny, 5, nx, ny, 150);
+                gradWarm.addColorStop(0, 'rgba(253, 186, 116, 0.18)');
+                gradWarm.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+                ctx.fillStyle = gradWarm;
+                ctx.beginPath(); ctx.arc(nx, ny, 150, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
+        // Quầng lửa đỏ phát sáng bao quanh Siêu Boss
+        if (window.monsters) {
+            window.monsters.forEach(m => {
+                if (m.isBoss && m.hp > 0) {
+                    let mx = m.x - camera.x;
+                    let my = m.y - camera.y;
+                    let gradWarm = ctx.createRadialGradient(mx, my, 15, mx, my, 260);
+                    gradWarm.addColorStop(0, 'rgba(239, 68, 68, 0.22)'); 
+                    gradWarm.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+                    ctx.fillStyle = gradWarm;
+                    ctx.beginPath(); ctx.arc(mx, my, 260, 0, Math.PI * 2); ctx.fill();
+                }
+            });
+        }
+        
+        ctx.restore();
     }
 };

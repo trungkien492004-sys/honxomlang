@@ -1,5 +1,5 @@
 // --- 1. CONFIGURATIONS & GAME CONSTANTS ---
-        const WORLD_SIZE = 1800; 
+        const WORLD_SIZE = 4000; 
         const SAVE_KEY = "XOM_ANH_HUNG_SAVE_V2";
         const AUDIO_ENABLED = true;
 
@@ -168,34 +168,42 @@
         ];
 
         const NPC_DATA = {
-            elder: { name: "Cụ Trưởng Làng", emoji: "🧙‍♂️", role: "Cốt Truyện & Đại Nhiệm Vụ", x: 900, y: 900, radius: 45 },
-            blacksmith: { name: "Bác Thợ Rèn Hùng Hổ", emoji: "👨‍🏭", role: "Lò Rèn Chế Tạo Trang Bị", x: 500, y: 800, radius: 45 },
-            merchant: { name: "Cô Ba Tạp Hóa", emoji: "👩‍🌾", role: "Giao Thương Mua Bán Vật Phẩm", x: 1300, y: 1000, radius: 45 },
-            vinhsHouse: { name: "Nhà Vinh Đèn Lồng", emoji: "🏮", role: "Chủ Đèn Lồng", x: 210, y: 350, radius: 40 },
-            tankShop: { name: "Chú Tăng Bán Xe", emoji: "🚜", role: "Xe Tăng Xóm Giữa", x: 420, y: 260, radius: 40 },
-            flowerHouse: { name: "Nhà Hoa Cúc", emoji: "🌼", role: "Vườn Hoa Sắc Màu", x: 900, y: 520, radius: 38 },
-            poorHouse: { name: "Nhà Nghèo", emoji: "🏚️", role: "Gia Đình Khiêm Nhường", x: 1080, y: 670, radius: 38 },
-            fruitVendor: { name: "Quầy Hoa Quả", emoji: "🍉", role: "Bán Hoa Quả & Rau", x: 1260, y: 710, radius: 38 },
-            fishSeller: { name: "Bà Bán Cá", emoji: "🐟", role: "Đặc Sản Cá Đồng", x: 1420, y: 860, radius: 38 },
-            barber: { name: "Tiệm Cắt Tóc", emoji: "💈", role: "Mốt Tóc Xóm", x: 1540, y: 720, radius: 38 },
-            dirtyPond: { name: "Ao Cạn Bẩn", emoji: "🪱", role: "Ao Tháng Ngâu", x: 1540, y: 420, radius: 45 },
-            richMaze: { name: "Mê Cung Siêu Giàu", emoji: "🏰", role: "Biệt Thự Vườn Lớn", x: 1340, y: 240, radius: 50 }
+            elder: { name: "Cụ Trưởng Làng", emoji: "🧙‍♂️", role: "Cốt Truyện & Đại Nhiệm Vụ", x: 2000, y: 2000, radius: 45 },
+            blacksmith: { name: "Bác Thợ Rèn Hùng Hổ", emoji: "👨‍🏭", role: "Lò Rèn Chế Tạo Trang Bị", x: 1750, y: 1950, radius: 45 },
+            merchant: { name: "Cô Ba Tạp Hóa", emoji: "👩‍🌾", role: "Giao Thương Mua Bán Vật Phẩm", x: 2250, y: 2050, radius: 45 },
+            vinhsHouse: { name: "Nhà Vinh Đèn Lồng", emoji: "🏮", role: "Chủ Đèn Lồng", x: 1460, y: 1500, radius: 40 },
+            tankShop: { name: "Chú Tăng Bán Xe", emoji: "🚜", role: "Xe Tăng Xóm Giữa", x: 1620, y: 1380, radius: 40 },
+            flowerHouse: { name: "Nhà Hoa Cúc", emoji: "🌼", role: "Vườn Hoa Sắc Màu", x: 2000, y: 1620, radius: 38 },
+            poorHouse: { name: "Nhà Nghèo", emoji: "🏚️", role: "Gia Đình Khiêm Nhường", x: 2180, y: 1770, radius: 38 },
+            fruitVendor: { name: "Quầy Hoa Quả", emoji: "🍉", role: "Bán Hoa Quả & Rau", x: 2360, y: 1810, radius: 38 },
+            fishSeller: { name: "Bà Bán Cá", emoji: "🐟", role: "Đặc Sản Cá Đồng", x: 2520, y: 1960, radius: 38 },
+            barber: { name: "Tiệm Cắt Tóc", emoji: "💈", role: "Mốt Tóc Xóm", x: 2640, y: 1820, radius: 38 },
+            dirtyPond: { name: "Ao Cạn Bẩn", emoji: "🪱", role: "Ao Tháng Ngâu", x: 2640, y: 1520, radius: 45 },
+            richMaze: { name: "Mê Cung Siêu Giàu", emoji: "🏰", role: "Biệt Thự Vườn Lớn", x: 2440, y: 1340, radius: 50 }
         };
 
         const WORLD_THEME_AREAS = [
-            { name: 'Đầu Xóm Đèn Lồng', x: 120, y: 320, w: 240, h: 180, color: 'rgba(244, 194, 56, 0.18)', icon: '🏮', label: 'Làng Đèn Lồng' },
-            { name: 'Cửa Hàng Xe Tăng', x: 360, y: 200, w: 240, h: 180, color: 'rgba(107, 114, 128, 0.18)', icon: '🚜', label: 'Xe Tăng Chú Tăng' },
-            { name: 'Vườn Hoa Cúc', x: 780, y: 470, w: 260, h: 210, color: 'rgba(236, 72, 153, 0.14)', icon: '🌼', label: 'Nhà Hoa Cúc' },
-            { name: 'Nhà Nghèo', x: 1020, y: 640, w: 220, h: 170, color: 'rgba(120, 120, 120, 0.18)', icon: '🏚️', label: 'Nhà Nghèo' },
-            { name: 'Chợ Hoa Quả', x: 1220, y: 680, w: 240, h: 160, color: 'rgba(34, 197, 94, 0.14)', icon: '🍉', label: 'Chợ Hoa Quả' },
-            { name: 'Chợ Cá Đồng', x: 1380, y: 820, w: 220, h: 160, color: 'rgba(59, 130, 246, 0.16)', icon: '🐟', label: 'Chợ Cá' },
-            { name: 'Tiệm Cắt Tóc', x: 1500, y: 700, w: 240, h: 180, color: 'rgba(249, 115, 22, 0.16)', icon: '💈', label: 'Tiệm Tóc' },
-            { name: 'Ao Cạn', x: 1500, y: 360, w: 240, h: 160, color: 'rgba(22, 78, 99, 0.18)', icon: '🪱', label: 'Ao Cạn' },
-            { name: 'Biệt Thự Mê Cung', x: 1280, y: 180, w: 340, h: 240, color: 'rgba(168, 85, 247, 0.13)', icon: '🏰', label: 'Mê Cung Siêu Giàu' }
+            // Khu trung tâm Làng (x: 1300-2700, y: 1200-2200)
+            { name: 'Đầu Xóm Đèn Lồng', x: 1400, y: 1450, w: 240, h: 180, color: 'rgba(244, 194, 56, 0.14)', icon: '🏮', label: 'Làng Đèn Lồng' },
+            { name: 'Cửa Hàng Xe Tăng', x: 1550, y: 1300, w: 240, h: 180, color: 'rgba(107, 114, 128, 0.14)', icon: '🚜', label: 'Xe Tăng Chú Tăng' },
+            { name: 'Vườn Hoa Cúc', x: 1880, y: 1570, w: 260, h: 210, color: 'rgba(236, 72, 153, 0.12)', icon: '🌼', label: 'Nhà Hoa Cúc' },
+            { name: 'Nhà Nghèo', x: 2120, y: 1700, w: 220, h: 170, color: 'rgba(120, 120, 120, 0.14)', icon: '🏚️', label: 'Nhà Nghèo' },
+            { name: 'Chợ Hoa Quả', x: 2280, y: 1750, w: 240, h: 160, color: 'rgba(34, 197, 94, 0.11)', icon: '🍉', label: 'Chợ Hoa Quả' },
+            { name: 'Chợ Cá Đồng', x: 2440, y: 1880, w: 220, h: 160, color: 'rgba(59, 130, 246, 0.13)', icon: '🐟', label: 'Chợ Cá' },
+            { name: 'Tiệm Cắt Tóc', x: 2560, y: 1760, w: 240, h: 180, color: 'rgba(249, 115, 22, 0.13)', icon: '💈', label: 'Tiệm Tóc' },
+            { name: 'Ao Cạn', x: 2560, y: 1420, w: 240, h: 160, color: 'rgba(22, 78, 99, 0.14)', icon: '🪱', label: 'Ao Cạn' },
+            { name: 'Biệt Thự Mê Cung', x: 2340, y: 1240, w: 340, h: 240, color: 'rgba(168, 85, 247, 0.11)', icon: '🏰', label: 'Mê Cung Siêu Giàu' },
+
+            // Các phân khu bản đồ mới mở rộng (Rộng gấp 4 lần)
+            { name: 'Rừng U Minh', x: 200, y: 2200, w: 1000, h: 1200, color: 'rgba(6, 78, 59, 0.22)', icon: '🌲', label: 'Rừng U Minh (Khó)' },
+            { name: 'Hồ Sen Tĩnh Lặng', x: 2300, y: 2300, w: 1200, h: 1000, color: 'rgba(8, 145, 178, 0.18)', icon: '🏞️', label: 'Hồ Sen Tĩnh Lặng' },
+            { name: 'Đồi Cỏ Mặt Trời', x: 2800, y: 300, w: 1000, h: 900, color: 'rgba(234, 179, 8, 0.13)', icon: '🌄', label: 'Đồi Cỏ Mặt Trời' },
+            { name: 'Khu Luyện Cấp Ngoài Làng', x: 500, y: 3200, w: 1400, h: 650, color: 'rgba(220, 38, 38, 0.12)', icon: '💀', label: 'Bãi Luyện Cấp (Dị Biến)' },
+            { name: 'Chợ Quê Xóm Dưới', x: 2400, y: 3400, w: 900, h: 500, color: 'rgba(16, 185, 129, 0.14)', icon: '🎪', label: 'Chợ Quê Xóm Dưới' }
         ];
 
         // --- 3. STATE MANAGEMENT VARIABLES ---
-        let currentScreen = 'login';
+        let currentScreen = window.currentScreen || 'login';
         let activePanel = null;
         let shopActiveTab = 'buy';
         let isAutoFarming = false;
@@ -219,9 +227,9 @@
             maxMp: 50,
             baseAtk: 10,
             baseDef: 5,
-            baseSpeed: 4,
+            baseSpeed: 4.5,
             gold: 150,
-            x: 950, y: 950, // Coordinates in World Map Space
+            x: 2000, y: 2000, // Coordinates in World Map Space centered at 2000,2000
             targetMonster: null,
             inventory: [
                 { id: "potion_hp", count: 3 },
@@ -344,6 +352,8 @@
             { league: 'World Cup', match: 'Brazil vs Germany', time: '02:00', status: 'UPCOMING', odds: '1.90 / 3.25 / 2.20' }
         ];
 
+        window.pressedKeys = {};
+
         // --- 4. LOGIN & INITIALIZATION & SAVE SYSTEM ---
         window.onload = () => {
             setupCanvasSize();
@@ -360,6 +370,18 @@
             canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleWorldClick(e.touches[0]); }, {passive:false});
             canvas.addEventListener('mousemove', handleSkillCursor);
             canvas.addEventListener('mouseout', () => { skillCursor = null; });
+
+            // Lắng nghe bàn phím di chuyển (WASD / Phím mũi tên) và phím tắt menu
+            window.addEventListener('keydown', (e) => {
+                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+                let key = e.key.toLowerCase();
+                window.pressedKeys[key] = true;
+                handleKeyDown(e);
+            });
+            window.addEventListener('keyup', (e) => {
+                let key = e.key.toLowerCase();
+                window.pressedKeys[key] = false;
+            });
 
             // PvP Network Broadcast Incoming Message Route
             pvpChannel.onmessage = (e) => { handleNetworkMessage(e.data); };
@@ -388,6 +410,7 @@
         function checkAndDisplayLocalSave() {
             let saved = localStorage.getItem(SAVE_KEY);
             let notice = document.getElementById('saveNotice');
+            if (!notice) return;
             if(saved) {
                 try {
                     let data = JSON.parse(saved);
@@ -452,11 +475,13 @@
             showToast("🎮 Chào mừng bạn! Nhấp chuột lên bãi đất trống để di chuyển.");
         }
 
-        function switchScreen(sId) {
+        window.switchScreen = function(sId) {
             currentScreen = sId;
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(sId).classList.add('active');
-        }
+            const el = document.getElementById(sId);
+            if(el) el.classList.add('active');
+        };
+        const switchScreen = window.switchScreen;
 
         // --- LOCAL STORAGE CORE SAVE/LOAD ENGINE ---
         function autosaveGameProcess() {
@@ -1416,21 +1441,35 @@
         // --- 6. MONSTER SPAWNING & COMBAT SIMULATION ENGINE ---
         function spawnInitialMonsters() {
             monsters = [];
-            // Spawn 12 standard roaming monsters across the world grid
-            for(let i=0; i<12; i++) {
+            // Spawn 36 quái vật thường rải rác khắp bản đồ
+            for(let i=0; i<36; i++) {
                 spawnSingleMonster(false);
             }
-            // Spawn 1 Boss entity in remote sector
+            // Spawn 2 Siêu Boss ở hai phân khu xa xôi hiểm trở
+            spawnSingleMonster(true);
             spawnSingleMonster(true);
         }
 
         function spawnSingleMonster(isBoss = false) {
             let template = isBoss ? BOSS_POOL[0] : MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
             let angle = Math.random() * Math.PI * 2;
-            let dist = 150 + Math.random() * 550; // Distance radius surrounding village center
             
-            let mx = 900 + Math.cos(angle) * dist;
-            let my = 900 + Math.sin(angle) * dist;
+            let mx, my;
+            if (isBoss) {
+                // Boss chỉ xuất hiện ở khu vực hẻo lánh (Rừng sâu hoặc Đồi cỏ hoang)
+                let bossSpots = [
+                    { x: 600, y: 3400 },
+                    { x: 3300, y: 700 }
+                ];
+                let spot = bossSpots[Math.floor(Math.random() * bossSpots.length)];
+                mx = spot.x + (Math.random() - 0.5) * 200;
+                my = spot.y + (Math.random() - 0.5) * 200;
+            } else {
+                // Quái thường spawn rộng rãi quanh khu trung tâm và các bãi ngoài
+                let dist = 180 + Math.random() * 1600;
+                mx = 2000 + Math.cos(angle) * dist;
+                my = 2000 + Math.sin(angle) * dist;
+            }
 
             monsters.push({
                 ...JSON.parse(JSON.stringify(template)),
@@ -2693,7 +2732,14 @@ function toggleAutoFarm() {
 
         function refreshHudDisplay() {
             let cls = CLASS_DATA[player.classId];
-            document.getElementById('hudAvatar').textContent = cls?.emoji || "👮‍♂️";
+            const hudCanvas = document.getElementById('hudAvatarCanvas');
+            if (hudCanvas && window.drawBeautifulRPGChibi) {
+                const hctx = hudCanvas.getContext('2d');
+                hctx.clearRect(0, 0, 60, 60);
+                window.drawBeautifulRPGChibi(hctx, 30, 24, player.classId, false, 0.85, 'right');
+            } else {
+                document.getElementById('hudAvatar').textContent = cls?.emoji || "👮‍♂️";
+            }
             document.getElementById('hudName').textContent = `${player.name} (Cấp ${player.level} ${cls?.name || ''})`;
             
             let maxHp = getEffectiveMaxHp();
@@ -2935,8 +2981,28 @@ function toggleAutoFarm() {
             // B. Movement computation vector calculations
             let speed = player.baseSpeed;
             
+            // Tính toán hướng đi bàn phím (WASD / Phím mũi tên)
+            let keyVx = 0;
+            let keyVy = 0;
+            if (window.pressedKeys) {
+                if (window.pressedKeys['w'] || window.pressedKeys['arrowup']) keyVy = -1;
+                if (window.pressedKeys['s'] || window.pressedKeys['arrowdown']) keyVy = 1;
+                if (window.pressedKeys['a'] || window.pressedKeys['arrowleft']) keyVx = -1;
+                if (window.pressedKeys['d'] || window.pressedKeys['arrowright']) keyVx = 1;
+            }
+
+            // Keyboard Override
+            if (keyVx !== 0 || keyVy !== 0) {
+                let len = Math.hypot(keyVx, keyVy);
+                player.x += (keyVx / len) * speed;
+                player.y += (keyVy / len) * speed;
+                player.destinationX = undefined;
+                player.destinationY = undefined;
+                player.targetMonster = null;
+                window.joystickActive = false; // Tắt di chuyển joystick nếu bấm phím
+            }
             // Joystick Override
-            if(window.joystickActive && window.joystickVector && (window.joystickVector.x !== 0 || window.joystickVector.y !== 0)) {
+            else if(window.joystickActive && window.joystickVector && (window.joystickVector.x !== 0 || window.joystickVector.y !== 0)) {
                 player.x += window.joystickVector.x * speed;
                 player.y += window.joystickVector.y * speed;
                 player.destinationX = undefined;
@@ -2977,7 +3043,7 @@ function toggleAutoFarm() {
             }
             } // Close the 'else' block from Joystick Override
 
-            player.isMoving = (window.joystickActive) || (player.destinationX !== undefined || (player.targetMonster && player.targetMonster.hp > 0)) && !(player.destinationX === undefined && !player.targetMonster);
+            player.isMoving = (keyVx !== 0 || keyVy !== 0) || (window.joystickActive) || (player.destinationX !== undefined || (player.targetMonster && player.targetMonster.hp > 0)) && !(player.destinationX === undefined && !player.targetMonster);
             player.animationState = player.isMoving ? 'run' : 'idle';
 
             // Bound checking limits protection
@@ -3210,9 +3276,22 @@ function toggleAutoFarm() {
                     ctx.strokeStyle = "#e53935"; ctx.lineWidth = 2; ctx.stroke();
                 }
 
-                ctx.font = m.isBoss ? "48px Arial" : "28px Arial";
-                ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                ctx.fillText(m.emoji, sx, sy);
+                let drawn = false;
+                if (window.drawHelbreathMonster) {
+                    drawn = window.drawHelbreathMonster(ctx, sx, sy, m);
+                }
+                if (!drawn) {
+                    ctx.save();
+                    ctx.font = m.isBoss ? "48px Arial" : "28px Arial";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.shadowBlur = m.isBoss ? 16 : 8;
+                    ctx.shadowColor = m.isBoss ? "#ef4444" : "rgba(0, 0, 0, 0.7)";
+                    ctx.strokeStyle = "#000000";
+                    ctx.lineWidth = 4;
+                    ctx.strokeText(m.emoji, sx, sy);
+                    ctx.fillText(m.emoji, sx, sy);
+                    ctx.restore();
+                }
 
                 // Individual Mini health tracking ticks status bar
                 let barW = m.isBoss ? 80 : 40;
@@ -3237,9 +3316,13 @@ function toggleAutoFarm() {
                 let sx = p.x - camera.x;
                 let sy = p.y - camera.y;
 
-                // Base avatar skin frame
-                ctx.font = "30px Arial"; ctx.textAlign = "center";
-                ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
+                // Base avatar skin frame: Chibi RPG vector
+                if (window.drawBeautifulRPGChibi) {
+                    window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, false, 0.9, 'right');
+                } else {
+                    ctx.font = "30px Arial"; ctx.textAlign = "center";
+                    ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
+                }
                 
                 // Name text tags label
                 ctx.font = "bold 12px 'Baloo 2'"; ctx.fillStyle = "#f43f5e";
@@ -3301,8 +3384,25 @@ function toggleAutoFarm() {
                 ctx.restore();
             }
 
-            ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-            ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);
+            // Client Character Render: Chibi RPG vector
+            if (window.drawBeautifulRPGChibi) {
+                let faceDir = 'right';
+                let dx = 0;
+                if (window.pressedKeys) {
+                    if (window.pressedKeys['a'] || window.pressedKeys['arrowleft']) dx = -1;
+                    if (window.pressedKeys['d'] || window.pressedKeys['arrowright']) dx = 1;
+                }
+                if (dx === 0 && window.joystickActive && window.joystickVector) {
+                    dx = window.joystickVector.x;
+                }
+                if (dx < -0.1) faceDir = 'left';
+                else if (dx > 0.1) faceDir = 'right';
+                
+                window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir);
+            } else {
+                ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);
+            }
 
             // Self text label tag name
             ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff";

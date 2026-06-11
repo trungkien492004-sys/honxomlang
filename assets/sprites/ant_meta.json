@@ -1,0 +1,1562 @@
+[
+  {
+    "sheetName": "ant_sheet_0.png",
+    "width": 92,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_1.png",
+    "width": 92,
+    "height": 20,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 20,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 20,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 20,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 23,
+        "height": 20,
+        "pivotX": -14,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_2.png",
+    "width": 80,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 40,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 60,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_3.png",
+    "width": 92,
+    "height": 19,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 19,
+        "pivotX": -14,
+        "pivotY": -14
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_4.png",
+    "width": 92,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 17,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_5.png",
+    "width": 92,
+    "height": 19,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 19,
+        "pivotX": -10,
+        "pivotY": -14
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -10,
+        "pivotY": -13
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -10,
+        "pivotY": -13
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -10,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_6.png",
+    "width": 80,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 40,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 60,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_7.png",
+    "width": 92,
+    "height": 19,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 19,
+        "pivotX": -10,
+        "pivotY": -12
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 19,
+        "pivotX": -10,
+        "pivotY": -12
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 19,
+        "pivotX": -10,
+        "pivotY": -12
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 23,
+        "height": 19,
+        "pivotX": -10,
+        "pivotY": -12
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_8.png",
+    "width": 96,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -13,
+        "pivotY": -13
+      },
+      {
+        "left": 48,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 72,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -13,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_9.png",
+    "width": 92,
+    "height": 20,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 20,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -12
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 24,
+        "height": 20,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 70,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -14,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_10.png",
+    "width": 80,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 40,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 60,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_11.png",
+    "width": 92,
+    "height": 19,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -14,
+        "pivotY": -14
+      },
+      {
+        "left": 68,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_12.png",
+    "width": 96,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -13,
+        "pivotY": -14
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      },
+      {
+        "left": 48,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -13,
+        "pivotY": -14
+      },
+      {
+        "left": 72,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_13.png",
+    "width": 92,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -11,
+        "pivotY": -13
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -9,
+        "pivotY": -13
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 24,
+        "height": 18,
+        "pivotX": -11,
+        "pivotY": -13
+      },
+      {
+        "left": 70,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -9,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_14.png",
+    "width": 80,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 40,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 60,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_15.png",
+    "width": 92,
+    "height": 19,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -9,
+        "pivotY": -12
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 24,
+        "height": 19,
+        "pivotX": -11,
+        "pivotY": -12
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -9,
+        "pivotY": -12
+      },
+      {
+        "left": 68,
+        "top": 0,
+        "width": 24,
+        "height": 19,
+        "pivotX": -11,
+        "pivotY": -12
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_16.png",
+    "width": 93,
+    "height": 52,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 21,
+        "pivotX": -12,
+        "pivotY": -16
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 39,
+        "pivotX": -12,
+        "pivotY": -34
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 45,
+        "pivotX": -12,
+        "pivotY": -40
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 24,
+        "height": 52,
+        "pivotX": -13,
+        "pivotY": -47
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_17.png",
+    "width": 139,
+    "height": 53,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 24,
+        "pivotX": -14,
+        "pivotY": -17
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 34,
+        "height": 40,
+        "pivotX": -14,
+        "pivotY": -33
+      },
+      {
+        "left": 56,
+        "top": 0,
+        "width": 39,
+        "height": 47,
+        "pivotX": -14,
+        "pivotY": -40
+      },
+      {
+        "left": 95,
+        "top": 0,
+        "width": 44,
+        "height": 53,
+        "pivotX": -14,
+        "pivotY": -46
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_18.png",
+    "width": 169,
+    "height": 37,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 19,
+        "height": 20,
+        "pivotX": -11,
+        "pivotY": -14
+      },
+      {
+        "left": 19,
+        "top": 0,
+        "width": 42,
+        "height": 30,
+        "pivotX": -11,
+        "pivotY": -24
+      },
+      {
+        "left": 61,
+        "top": 0,
+        "width": 50,
+        "height": 33,
+        "pivotX": -11,
+        "pivotY": -27
+      },
+      {
+        "left": 111,
+        "top": 0,
+        "width": 58,
+        "height": 37,
+        "pivotX": -11,
+        "pivotY": -31
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_19.png",
+    "width": 142,
+    "height": 24,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 17,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 35,
+        "height": 19,
+        "pivotX": -14,
+        "pivotY": -14
+      },
+      {
+        "left": 57,
+        "top": 0,
+        "width": 40,
+        "height": 22,
+        "pivotX": -14,
+        "pivotY": -14
+      },
+      {
+        "left": 97,
+        "top": 0,
+        "width": 45,
+        "height": 24,
+        "pivotX": -14,
+        "pivotY": -14
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_20.png",
+    "width": 93,
+    "height": 26,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 21,
+        "pivotX": -12,
+        "pivotY": -14
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 24,
+        "pivotX": -12,
+        "pivotY": -14
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 24,
+        "height": 26,
+        "pivotX": -12,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_21.png",
+    "width": 142,
+    "height": 25,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -9,
+        "pivotY": -13
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 35,
+        "height": 20,
+        "pivotX": -22,
+        "pivotY": -14
+      },
+      {
+        "left": 57,
+        "top": 0,
+        "width": 40,
+        "height": 21,
+        "pivotX": -27,
+        "pivotY": -13
+      },
+      {
+        "left": 97,
+        "top": 0,
+        "width": 45,
+        "height": 25,
+        "pivotX": -32,
+        "pivotY": -14
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_22.png",
+    "width": 169,
+    "height": 33,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 19,
+        "height": 20,
+        "pivotX": -9,
+        "pivotY": -14
+      },
+      {
+        "left": 19,
+        "top": 0,
+        "width": 42,
+        "height": 28,
+        "pivotX": -32,
+        "pivotY": -22
+      },
+      {
+        "left": 61,
+        "top": 0,
+        "width": 50,
+        "height": 30,
+        "pivotX": -40,
+        "pivotY": -24
+      },
+      {
+        "left": 111,
+        "top": 0,
+        "width": 58,
+        "height": 33,
+        "pivotX": -48,
+        "pivotY": -27
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_23.png",
+    "width": 142,
+    "height": 49,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 24,
+        "pivotX": -9,
+        "pivotY": -17
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 35,
+        "height": 38,
+        "pivotX": -22,
+        "pivotY": -31
+      },
+      {
+        "left": 57,
+        "top": 0,
+        "width": 40,
+        "height": 44,
+        "pivotX": -27,
+        "pivotY": -37
+      },
+      {
+        "left": 97,
+        "top": 0,
+        "width": 45,
+        "height": 49,
+        "pivotX": -32,
+        "pivotY": -42
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_24.png",
+    "width": 92,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 23,
+        "height": 17,
+        "pivotX": -12,
+        "pivotY": -12
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_25.png",
+    "width": 89,
+    "height": 20,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 20,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -14,
+        "pivotY": -12
+      },
+      {
+        "left": 45,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -14,
+        "pivotY": -12
+      },
+      {
+        "left": 67,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -14,
+        "pivotY": -12
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_26.png",
+    "width": 78,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 40,
+        "top": 0,
+        "width": 19,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 59,
+        "top": 0,
+        "width": 19,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_27.png",
+    "width": 89,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 45,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 67,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_28.png",
+    "width": 92,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 17,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      },
+      {
+        "left": 69,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -14
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_29.png",
+    "width": 90,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -10,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -10,
+        "pivotY": -13
+      },
+      {
+        "left": 46,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -9,
+        "pivotY": -13
+      },
+      {
+        "left": 68,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -9,
+        "pivotY": -13
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_30.png",
+    "width": 79,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 40,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 60,
+        "top": 0,
+        "width": 19,
+        "height": 17,
+        "pivotX": -9,
+        "pivotY": -11
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_31.png",
+    "width": 89,
+    "height": 19,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 19,
+        "pivotX": -10,
+        "pivotY": -12
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -9,
+        "pivotY": -12
+      },
+      {
+        "left": 45,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -9,
+        "pivotY": -12
+      },
+      {
+        "left": 67,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -9,
+        "pivotY": -12
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_32.png",
+    "width": 110,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 18,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 27,
+        "height": 16,
+        "pivotX": -14,
+        "pivotY": -11
+      },
+      {
+        "left": 50,
+        "top": 0,
+        "width": 29,
+        "height": 16,
+        "pivotX": -15,
+        "pivotY": -11
+      },
+      {
+        "left": 79,
+        "top": 0,
+        "width": 31,
+        "height": 15,
+        "pivotX": -16,
+        "pivotY": -10
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_33.png",
+    "width": 109,
+    "height": 20,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 20,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 26,
+        "height": 18,
+        "pivotX": -15,
+        "pivotY": -11
+      },
+      {
+        "left": 48,
+        "top": 0,
+        "width": 29,
+        "height": 17,
+        "pivotX": -16,
+        "pivotY": -10
+      },
+      {
+        "left": 77,
+        "top": 0,
+        "width": 32,
+        "height": 14,
+        "pivotX": -17,
+        "pivotY": -8
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_34.png",
+    "width": 85,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 21,
+        "height": 16,
+        "pivotX": -11,
+        "pivotY": -9
+      },
+      {
+        "left": 41,
+        "top": 0,
+        "width": 22,
+        "height": 15,
+        "pivotX": -11,
+        "pivotY": -8
+      },
+      {
+        "left": 63,
+        "top": 0,
+        "width": 22,
+        "height": 16,
+        "pivotX": -11,
+        "pivotY": -9
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_35.png",
+    "width": 105,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -14,
+        "pivotY": -13
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 26,
+        "height": 18,
+        "pivotX": -15,
+        "pivotY": -11
+      },
+      {
+        "left": 48,
+        "top": 0,
+        "width": 28,
+        "height": 17,
+        "pivotX": -16,
+        "pivotY": -10
+      },
+      {
+        "left": 76,
+        "top": 0,
+        "width": 29,
+        "height": 16,
+        "pivotX": -16,
+        "pivotY": -9
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_36.png",
+    "width": 110,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 17,
+        "pivotX": -12,
+        "pivotY": -13
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 27,
+        "height": 17,
+        "pivotX": -14,
+        "pivotY": -12
+      },
+      {
+        "left": 50,
+        "top": 0,
+        "width": 29,
+        "height": 15,
+        "pivotX": -15,
+        "pivotY": -10
+      },
+      {
+        "left": 79,
+        "top": 0,
+        "width": 31,
+        "height": 14,
+        "pivotX": -16,
+        "pivotY": -8
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_37.png",
+    "width": 110,
+    "height": 18,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 18,
+        "pivotX": -9,
+        "pivotY": -13
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 26,
+        "height": 17,
+        "pivotX": -12,
+        "pivotY": -11
+      },
+      {
+        "left": 48,
+        "top": 0,
+        "width": 30,
+        "height": 15,
+        "pivotX": -15,
+        "pivotY": -9
+      },
+      {
+        "left": 78,
+        "top": 0,
+        "width": 32,
+        "height": 15,
+        "pivotX": -16,
+        "pivotY": -8
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_38.png",
+    "width": 85,
+    "height": 17,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 17,
+        "pivotX": -10,
+        "pivotY": -11
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 21,
+        "height": 15,
+        "pivotX": -11,
+        "pivotY": -9
+      },
+      {
+        "left": 41,
+        "top": 0,
+        "width": 22,
+        "height": 15,
+        "pivotX": -12,
+        "pivotY": -8
+      },
+      {
+        "left": 63,
+        "top": 0,
+        "width": 22,
+        "height": 17,
+        "pivotX": -12,
+        "pivotY": -9
+      }
+    ]
+  },
+  {
+    "sheetName": "ant_sheet_39.png",
+    "width": 104,
+    "height": 19,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 22,
+        "height": 19,
+        "pivotX": -9,
+        "pivotY": -12
+      },
+      {
+        "left": 22,
+        "top": 0,
+        "width": 25,
+        "height": 18,
+        "pivotX": -11,
+        "pivotY": -11
+      },
+      {
+        "left": 47,
+        "top": 0,
+        "width": 28,
+        "height": 18,
+        "pivotX": -13,
+        "pivotY": -11
+      },
+      {
+        "left": 75,
+        "top": 0,
+        "width": 29,
+        "height": 17,
+        "pivotX": -14,
+        "pivotY": -10
+      }
+    ]
+  }
+]
