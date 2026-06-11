@@ -1,90 +1,90 @@
-// ===== ðŸ   BOARD_NEW.JS â€” Cá»  Ä ua Sinh Tá»“n v4.0 (Yu-Gi-Oh Style) =====
+// ===== 🏁 BOARD_NEW.JS — Cờ Đua Sinh Tồn v4.0 (Yu-Gi-Oh Style) =====
 'use strict';
 var boardGame = null;
 const BOARD_TOTAL_CELLS = 60;
 
-const RACE_DICE_EMOJIS = ['âš€','âš ','âš‚','âšƒ','âš„','âš…'];
+const RACE_DICE_EMOJIS = ['⚀','⚁','⚂','⚃','⚄','⚅'];
 const RACE_PLAYER_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b'];
 const NEIGHBORHOOD_NAMES = [
-    "NhÃ  HÃ’A", "QuÃ¡n Net THU THáº¢O", "NhÃ  Máº®M", "Háº»m Táº¸T", "Táº¡p hÃ³a THÆ¯Æ NG HIá»€N",
-    "Chá»‘t báº£o vá»‡ KIÃŠN", "Tráº¡m sáº¡c HECK", "NhÃ  Háº¢I", "QuÃ¡n bida TRÃ’N", "NhÃ  Káº¾T",
-    "QuÃ¡n nháº­u HUY", "BÃ£i rÃ¡c Náº¤M", "NhÃ  LÃ™N", "Lá»— cá»‘ng QUÃ‚N", "Tiá»‡m cáº¯t tÃ³c BI", "SÃ¢n banh Bá»P",
-    "Gá»‘c Ä‘a LÃ ng", "Chuá»“ng GÃ ", "Cá»™t Äiá»‡n", "Ao CÃ¡"
+    "Nhà HÒA", "Quán Net THU THẢO", "Nhà MẮM", "Hẻm TẸT", "Tạp hóa THƯƠNG HIỀN",
+    "Chốt bảo vệ KIÊN", "Trạm sạc HECK", "Nhà HẢI", "Quán bida TRÒN", "Nhà KẾT",
+    "Quán nhậu HUY", "Bãi rác NẤM", "Nhà LÙN", "Lỗ cống QUÂN", "Tiệm cắt tóc BI", "Sân banh BỐP",
+    "Gốc đa Làng", "Chuồng Gà", "Cột Điện", "Ao Cá"
 ];
 
-// â”€â”€ Kho Tháº» BÃ i (HÆ¡n 20 tháº», phÃ¢n loáº¡i theo Type) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Kho Thẻ Bài (Hơn 20 thẻ, phân loại theo Type) ─────────────
 const RACE_CARDS = [
-    // ðŸ‘¾ MONSTER (QuÃ¡i Váº­t) - Máº¥t máº¡ng náº¿u khÃ´ng cÃ³ vÅ© khÃ­
-    { name: "SÃ³i XÃ¡m Äá»™t Biáº¿n", type: 'monster', rarity: 'common', desc: "Gáº·p quÃ¡i váº­t! Trá»« 1 máº¡ng náº¿u khÃ´ng cÃ³ VÅ© KhÃ­.", 
-      effect: p => boardFightMonster(p, "SÃ³i XÃ¡m", 30) },
-    { name: "CÆ°Æ¡ng Thi LÃ ng", type: 'monster', rarity: 'rare', desc: "Gáº·p quÃ¡i váº­t! Trá»« 1 máº¡ng náº¿u khÃ´ng cÃ³ VÅ© KhÃ­.", 
-      effect: p => boardFightMonster(p, "CÆ°Æ¡ng Thi", 50) },
-    { name: "Rá»“ng Lá»­a Cá»• Äáº¡i", type: 'monster', rarity: 'epic', desc: "TrÃ¹m Rá»“ng! Trá»« 2 máº¡ng náº¿u khÃ´ng cÃ³ KhiÃªn/VÅ© khÃ­ cháº·n.", 
-      effect: p => boardFightMonster(p, "Rá»“ng Lá»­a", 100, 2) },
+    // 👾 MONSTER (Quái Vật) - Mất mạng nếu không có vũ khí
+    { name: "Sói Xám Đột Biến", type: 'monster', rarity: 'common', desc: "Gặp quái vật! Trừ 1 mạng nếu không có Vũ Khí.", 
+      effect: p => boardFightMonster(p, "Sói Xám", 30) },
+    { name: "Cương Thi Làng", type: 'monster', rarity: 'rare', desc: "Gặp quái vật! Trừ 1 mạng nếu không có Vũ Khí.", 
+      effect: p => boardFightMonster(p, "Cương Thi", 50) },
+    { name: "Rồng Lửa Cổ Đại", type: 'monster', rarity: 'epic', desc: "Trùm Rồng! Trừ 2 mạng nếu không có Khiên/Vũ khí chặn.", 
+      effect: p => boardFightMonster(p, "Rồng Lửa", 100, 2) },
 
-    // ðŸ—¡ï¸ EQUIP (Trang bá»‹)
-    { name: "Kiáº¿m Sáº¯t XÃ³m", type: 'equip', rarity: 'common', desc: "Nháº­n 1 ðŸ—¡ï¸ VÅ© KhÃ­! DÃ¹ng Ä‘á»ƒ Ä‘Ã¡nh quÃ¡i hoáº·c cÆ°á»›p máº¡ng Ä‘á»‘i thá»§.", 
-      effect: p => { p.weapons++; return 'Nháº·t Ä‘Æ°á»£c 1 ðŸ—¡ï¸ VÅ© KhÃ­!'; } },
-    { name: "Cung Gá»— Tráº¯c", type: 'equip', rarity: 'common', desc: "Nháº­n 1 ðŸ—¡ï¸ VÅ© KhÃ­!", 
-      effect: p => { p.weapons++; return 'Nháº·t Ä‘Æ°á»£c Cung! (+1 ðŸ—¡ï¸)'; } },
-    { name: "KhiÃªn Gá»— Má»™c", type: 'equip', rarity: 'common', desc: "Nháº­n 1 ðŸ›¡ï¸ KhiÃªn! Cháº·n 1 Ä‘Ã²n chÃ­ tá»­.", 
-      effect: p => { p.shields++; return 'Nháº·t Ä‘Æ°á»£c 1 ðŸ›¡ï¸ KhiÃªn!'; } },
-    { name: "KhiÃªn ThÃ©p Äen", type: 'equip', rarity: 'rare', desc: "Nháº­n 1 ðŸ›¡ï¸ KhiÃªn siÃªu cáº¥p!", 
-      effect: p => { p.shields++; return 'Nháº­n 1 ðŸ›¡ï¸ KhiÃªn!'; } },
-    { name: "Há»™p Cá»©u ThÆ°Æ¡ng", type: 'equip', rarity: 'epic', desc: "Há»“i láº¡i 1 â¤ï¸ Máº¡ng (Tá»‘i Ä‘a 3).", 
-      effect: p => { if(p.lives < 3) { p.lives++; return 'Há»“i 1 â¤ï¸ Máº¡ng!'; } return 'Máº¡ng Ä‘Ã£ Ä‘áº§y, khÃ´ng tÃ¡c dá»¥ng.'; } },
+    // 🗡️ EQUIP (Trang bị)
+    { name: "Kiếm Sắt Xóm", type: 'equip', rarity: 'common', desc: "Nhận 1 🗡️ Vũ Khí! Dùng để đánh quái hoặc cướp mạng đối thủ.", 
+      effect: p => { p.weapons++; return 'Nhặt được 1 🗡️ Vũ Khí!'; } },
+    { name: "Cung Gỗ Trắc", type: 'equip', rarity: 'common', desc: "Nhận 1 🗡️ Vũ Khí!", 
+      effect: p => { p.weapons++; return 'Nhặt được Cung! (+1 🗡️)'; } },
+    { name: "Khiên Gỗ Mộc", type: 'equip', rarity: 'common', desc: "Nhận 1 🛡️ Khiên! Chặn 1 đòn chí tử.", 
+      effect: p => { p.shields++; return 'Nhặt được 1 🛡️ Khiên!'; } },
+    { name: "Khiên Thép Đen", type: 'equip', rarity: 'rare', desc: "Nhận 1 🛡️ Khiên siêu cấp!", 
+      effect: p => { p.shields++; return 'Nhận 1 🛡️ Khiên!'; } },
+    { name: "Hộp Cứu Thương", type: 'equip', rarity: 'epic', desc: "Hồi lại 1 ❤️ Mạng (Tối đa 3).", 
+      effect: p => { if(p.lives < 3) { p.lives++; return 'Hồi 1 ❤️ Mạng!'; } return 'Mạng đã đầy, không tác dụng.'; } },
 
-    // ðŸŒªï¸ SPELL (Ma phÃ¡p di chuyá»ƒn / há»— trá»£)
-    { name: "Cuá»“ng Phong", type: 'spell', rarity: 'common', desc: "Tiáº¿n thÃªm 3 Ã´!", 
-      effect: p => { boardMovePlayer(p.idx, 3, true); return 'Tiáº¿n 3 Ã´.'; } },
-    { name: "Lá»‘c XoÃ¡y", type: 'spell', rarity: 'common', desc: "LÃ¹i 2 Ã´!", 
-      effect: p => { boardMovePlayer(p.idx, -2, true); return 'LÃ¹i 2 Ã´.'; } },
-    { name: "RÆ°Æ¡ng VÃ ng", type: 'spell', rarity: 'rare', desc: "+50 VÃ ng!", 
-      effect: p => { if(p.isHuman||p.networkId===myNetworkId) { player.gold+=50; refreshHudDisplay(); } return 'Nháº­n 50 vÃ ng.'; } },
-    { name: "Dá»‹ch Chuyá»ƒn KhÃ´ng Gian", type: 'spell', rarity: 'epic', desc: "Äá»•i chá»— vá»›i ngÆ°á»i gáº§n nháº¥t!", 
+    // 🌪️ SPELL (Ma pháp di chuyển / hỗ trợ)
+    { name: "Cuồng Phong", type: 'spell', rarity: 'common', desc: "Tiến thêm 3 ô!", 
+      effect: p => { boardMovePlayer(p.idx, 3, true); return 'Tiến 3 ô.'; } },
+    { name: "Lốc Xoáy", type: 'spell', rarity: 'common', desc: "Lùi 2 ô!", 
+      effect: p => { boardMovePlayer(p.idx, -2, true); return 'Lùi 2 ô.'; } },
+    { name: "Rương Vàng", type: 'spell', rarity: 'rare', desc: "+50 Vàng!", 
+      effect: p => { if(p.isHuman||p.networkId===myNetworkId) { player.gold+=50; refreshHudDisplay(); } return 'Nhận 50 vàng.'; } },
+    { name: "Dịch Chuyển Không Gian", type: 'spell', rarity: 'epic', desc: "Đổi chỗ với người gần nhất!", 
       effect: p => boardSwapNearest(p) },
-    { name: "TÄƒng Tá»‘c Sinh Tá»“n", type: 'spell', rarity: 'rare', desc: "Tiáº¿n 5 Ã´ vÃ  nháº­n 1 KhiÃªn!", 
-      effect: p => { p.shields++; boardMovePlayer(p.idx, 5, true); return 'Tiáº¿n 5 Ã´ + 1 ðŸ›¡ï¸ KhiÃªn.'; } },
+    { name: "Tăng Tốc Sinh Tồn", type: 'spell', rarity: 'rare', desc: "Tiến 5 ô và nhận 1 Khiên!", 
+      effect: p => { p.shields++; boardMovePlayer(p.idx, 5, true); return 'Tiến 5 ô + 1 🛡️ Khiên.'; } },
 
-    // ðŸ’£ TRAP (Cáº¡m báº«y)
-    { name: "Há»‘ ChÃ´ng Trá»«ng Pháº¡t", type: 'trap', rarity: 'rare', desc: "Trá»« 1 máº¡ng ngay láº­p tá»©c!", 
-      effect: p => { return boardTakeDamage(p, 1, "Há»‘ ChÃ´ng"); } },
-    { name: "SÃ©t ÄÃ¡nh", type: 'trap', rarity: 'epic', desc: "NgÆ°á»i dáº«n Ä‘áº§u máº¥t 1 máº¡ng!", 
+    // 💣 TRAP (Cạm bẫy)
+    { name: "Hố Chông Trừng Phạt", type: 'trap', rarity: 'rare', desc: "Trừ 1 mạng ngay lập tức!", 
+      effect: p => { return boardTakeDamage(p, 1, "Hố Chông"); } },
+    { name: "Sét Đánh", type: 'trap', rarity: 'epic', desc: "Người dẫn đầu mất 1 mạng!", 
       effect: p => { 
           const L = boardGame.players.filter(x=>!x.eliminated).reduce((a,b) => a.pos > b.pos ? a : b); 
-          if(L) return boardTakeDamage(L, 1, "SÃ©t ÄÃ¡nh"); 
-          return 'KhÃ´ng cÃ³ ai bá»‹ sÃ©t Ä‘Ã¡nh.';
+          if(L) return boardTakeDamage(L, 1, "Sét Đánh"); 
+          return 'Không có ai bị sét đánh.';
       } 
     },
 ];
 
-// HÃ m Xá»­ lÃ½ ÄÃ¡nh QuÃ¡i (Tá»± Ä‘á»™ng)
+// Hàm Xử lý Đánh Quái (Tự động)
 function boardFightMonster(p, mName, reward, damage = 1) {
     if (p.weapons > 0) {
         p.weapons--;
         if(p.isHuman||p.networkId===myNetworkId) { player.gold += reward; refreshHudDisplay(); }
-        return `DÃ¹ng ðŸ—¡ï¸ diá»‡t ${mName}! ThÆ°á»Ÿng ${reward}ðŸ’°`;
+        return `Dùng 🗡️ diệt ${mName}! Thưởng ${reward}💰`;
     } else {
-        return boardTakeDamage(p, damage, `Bá»‹ ${mName} cáº¯n`);
+        return boardTakeDamage(p, damage, `Bị ${mName} cắn`);
     }
 }
 
-// HÃ m Xá»­ lÃ½ Máº¥t Máº¡ng
+// Hàm Xử lý Mất Mạng
 function boardTakeDamage(p, amount, reason) {
     if (p.shields > 0) {
         p.shields--;
-        return `ðŸ›¡ï¸ DÃ¹ng KhiÃªn cháº·n Ä‘Æ°á»£c Ä‘Ã²n (${reason})!`;
+        return `🛡️ Dùng Khiên chặn được đòn (${reason})!`;
     }
     p.lives -= amount;
     if (p.lives <= 0) {
         p.eliminated = true;
-        boardAddLog(`ðŸ’€ ${p.name} Ä‘Ã£ Bá»Š LOáº I KHá»ŽI CUá»˜C CHÆ I!`, 'win');
-        return `ðŸ’€ Háº¿t máº¡ng! Báº N ÄÃƒ Bá»Š LOáº I!`;
+        boardAddLog(`💀 ${p.name} đã BỊ LOẠI KHỎI CUỘC CHƠI!`, 'win');
+        return `💀 Hết mạng! BẠN ĐÃ BỊ LOẠI!`;
     }
-    return `ðŸ’” Máº¥t ${amount} máº¡ng vÃ¬ ${reason}! (CÃ²n ${p.lives}â¤ï¸)`;
+    return `💔 Mất ${amount} mạng vì ${reason}! (Còn ${p.lives}❤️)`;
 }
 
-// â”€â”€ Váº½ tháº» bÃ i 3D â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Vẽ thẻ bài 3D ─────────────────────────────────────────────
 window.boardDrawRandomCard = function(p, reason, callback) {
     if(boardGame.gameOver || p.eliminated) {
         if(callback) callback();
@@ -99,26 +99,26 @@ window.boardDrawRandomCard = function(p, reason, callback) {
     let result = card.effect(p);
     
     const badgeClass  = `badge-${card.rarity}`;
-    const typeIcon = card.type === 'monster' ? 'ðŸ‘¾' : card.type === 'equip' ? 'ðŸ›¡ï¸' : card.type === 'trap' ? 'ðŸ’£' : 'ðŸŒªï¸';
+    const typeIcon = card.type === 'monster' ? '👾' : card.type === 'equip' ? '🛡️' : card.type === 'trap' ? '💣' : '🌪️';
 
     document.getElementById('boardCardDisplay').innerHTML = `
         <div class="drawn-card card-3d-flip ${card.type}-card">
             <span class="card-rarity-badge ${badgeClass}">${card.rarity.toUpperCase()}</span>
             <div style="font-size:1.4rem;margin:8px 0;">${typeIcon} ${card.name}</div>
             <div style="font-size:0.8rem;color:#cbd5e1;padding:4px;">${card.desc}</div>
-            <div style="font-size:0.75rem;color:#fbbf24;margin-top:6px;font-weight:bold;">ðŸ‘‰ ${result}</div>
+            <div style="font-size:0.75rem;color:#fbbf24;margin-top:6px;font-weight:bold;">👉 ${result}</div>
         </div>`;
-    boardAddLog(`ðŸƒ ${p.name} láº­t: [${card.name}] â€” ${result}`, 'card');
+    boardAddLog(`🃏 ${p.name} lật: [${card.name}] — ${result}`, 'card');
     
     window.boardShowBigNotice(
         `${typeIcon} ${card.name}`, 
-        `RÃºt tháº» á»Ÿ <b>${reason}</b><br><br><span style="color:#fcd34d">${card.desc}</span>`, 
-        `ðŸ‘‰ ${result}`, 
+        `Rút thẻ ở <b>${reason}</b><br><br><span style="color:#fcd34d">${card.desc}</span>`, 
+        `👉 ${result}`, 
         callback
     );
 };
 
-// â”€â”€ Hoáº¡t áº£nh xÃºc xáº¯c â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Hoạt ảnh xúc xắc ──────────────────────────────────────────
 window.boardDoRollAnimation = function(boardPlayer, callback) {
     const diceEl  = document.getElementById('diceDisplay');
     const resultEl = document.getElementById('diceResultText');
@@ -131,14 +131,14 @@ window.boardDoRollAnimation = function(boardPlayer, callback) {
         if(++ticks >= 6) {
             clearInterval(interval);
             diceEl.textContent = RACE_DICE_EMOJIS[roll - 1];
-            resultEl.textContent = `${boardPlayer.name} Ä‘i ${roll} bÆ°á»›c`;
+            resultEl.textContent = `${boardPlayer.name} đi ${roll} bước`;
             boardPlayer.lastRoll = roll;
             boardProcessTurn(boardPlayer, roll, callback);
         }
     }, 100);
 };
 
-// â”€â”€ Logic Ä‘i lÆ°á»£t hoÃ n toÃ n má»›i â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Logic đi lượt hoàn toàn mới ───────────────────────────────
 window.boardProcessTurn = function(p, roll, callback) {
     if(p.eliminated) {
         boardNextTurn();
@@ -147,21 +147,21 @@ window.boardProcessTurn = function(p, roll, callback) {
     }
     if(p.skipTurn) {
         p.skipTurn = false;
-        boardAddLog(`ðŸ˜´ ${p.name} máº¥t lÆ°á»£t!`);
-        window.boardShowBigNotice("ðŸ˜´ Ngá»§ gáº­t", `${p.name} bá»‹ máº¥t lÆ°á»£t nÃ y!`, "", () => {
+        boardAddLog(`😴 ${p.name} mất lượt!`);
+        window.boardShowBigNotice("😴 Ngủ gật", `${p.name} bị mất lượt này!`, "", () => {
             if(callback) callback();
         });
         return;
     }
 
-    // Tiáº¿n tá»›i (khÃ´ng cáº§n 6 Ä‘á»ƒ xuáº¥t chuá»“ng)
+    // Tiến tới (không cần 6 để xuất chuồng)
     let steps = roll;
     if (p.pos + steps > BOARD_TOTAL_CELLS - 1) {
-        steps = (BOARD_TOTAL_CELLS - 1) - p.pos; // Dá»«ng á»Ÿ Ä‘Ã­ch
+        steps = (BOARD_TOTAL_CELLS - 1) - p.pos; // Dừng ở đích
     }
 
     boardMovePlayer(p.idx, steps, false);
-    boardAddLog(`ðŸƒ ${p.name} tiáº¿n lÃªn Ã´ ${p.pos + 1}.`);
+    boardAddLog(`🏃 ${p.name} tiến lên ô ${p.pos + 1}.`);
 
     setTimeout(() => {
         if(p.eliminated) return;
@@ -174,9 +174,9 @@ window.boardProcessTurn = function(p, roll, callback) {
             if(alive.length === 1 && boardGame.players.length > 1) {
                 boardGame.gameOver = true;
                 let prize = 200 + (boardGame.betPool||0);
-                boardAddLog(`ðŸ† Táº¥t cáº£ Ä‘á»‘i thá»§ Ä‘Ã£ cháº¿t! ${alive[0].name} Sá»NG SÃ“T VÃ€ CHIáº¾N THáº®NG!`, 'win');
+                boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
                 if(alive[0].networkId === myNetworkId || alive[0].isHuman) { player.gold += prize; refreshHudDisplay(); }
-                window.boardShowBigNotice("ðŸ† CHIáº¾N THáº®NG", `${alive[0].name} lÃ  ngÆ°á»i sá»‘ng sÃ³t cuá»‘i cÃ¹ng!`, `ThÆ°á»Ÿng: ${prize} ðŸ’°<br><br><span style="color:#22c55e;font-size:0.9rem;">(Cháº¡m Ä‘á»ƒ tiáº¿p tá»¥c)</span>`, () => {}, true);
+                window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${alive[0].name} là người sống sót cuối cùng!`, `Thưởng: ${prize} 💰<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, () => {}, true);
             }
             boardRenderGrid(); 
             boardRenderPlayers();
@@ -191,12 +191,12 @@ window.boardProcessTurn = function(p, roll, callback) {
                     player.gold += (200 + prize);
                     refreshHudDisplay();
                 }
-                boardAddLog(`ðŸ† ${p.name} Ä‘Ã£ cÃ¡n ÄÃCH Äáº¦U TIÃŠN!`, 'win');
-                document.getElementById('diceResultText').textContent = `ðŸ† ${p.name} CHIáº¾N THáº®NG!`;
-                window.boardShowBigNotice("ðŸ† CHIáº¾N THáº®NG", `${p.name} Ä‘Ã£ cÃ¡n Ä‘Ã­ch an toÃ n!`, `ThÆ°á»Ÿng: ${200 + prize} ðŸ’°<br><br><span style="color:#22c55e;font-size:0.9rem;">(Cháº¡m Ä‘á»ƒ tiáº¿p tá»¥c)</span>`, finalizeTurn, true);
+                boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
+                document.getElementById('diceResultText').textContent = `🏆 ${p.name} CHIẾN THẮNG!`;
+                window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 💰<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, finalizeTurn, true);
                 audio.play('levelup');
             } else {
-                // RÃºt bÃ i náº¿u chÆ°a win
+                // Rút bài nếu chưa win
                 boardDrawRandomCard(p, cellName, finalizeTurn);
             }
         };
@@ -204,18 +204,18 @@ window.boardProcessTurn = function(p, roll, callback) {
         const handleCombat = () => {
             let combatLog = boardHandleCombat(p);
             if(combatLog) {
-                window.boardShowBigNotice("âš”ï¸ Äá»¤NG Äá»˜", combatLog, `Khu vá»±c: ${cellName}`, handleWinOrCard);
+                window.boardShowBigNotice("⚔️ ĐỤNG ĐỘ", combatLog, `Khu vực: ${cellName}`, handleWinOrCard);
             } else {
                 handleWinOrCard();
             }
         };
 
-        // Xá»­ lÃ½ báº«y trÃªn sÃ¢n
+        // Xử lý bẫy trên sân
         if(boardGame.trappedCells[p.pos]) {
             delete boardGame.trappedCells[p.pos];
-            boardAddLog(`ðŸ’¥ ${p.name} dáº«m báº«y! LÃ¹i 3 Ã´!`, 'special');
+            boardAddLog(`💥 ${p.name} dẫm bẫy! Lùi 3 ô!`, 'special');
             boardMovePlayer(p.idx, -3, true);
-            window.boardShowBigNotice("ðŸ’£ DáºªM BáºªY!", `${p.name} dáº«m pháº£i báº«y á»Ÿ ${cellName} vÃ  bá»‹ lÃ¹i 3 Ã´!`, "", handleCombat);
+            window.boardShowBigNotice("💣 DẪM BẪY!", `${p.name} dẫm phải bẫy ở ${cellName} và bị lùi 3 ô!`, "", handleCombat);
         } else {
             handleCombat();
         }
@@ -223,29 +223,29 @@ window.boardProcessTurn = function(p, roll, callback) {
     }, 400);
 };
 
-// PvP khi 2 ng chung 1 Ã´
+// PvP khi 2 ng chung 1 ô
 function boardHandleCombat(p) {
     if(p.pos <= 0 || p.pos >= 39) return null;
     let combatHappened = "";
     boardGame.players.forEach(other => {
         if(other.idx !== p.idx && !other.eliminated && other.pos === p.pos) {
-            // P Ä‘Ã¡nh Other
+            // P đánh Other
             if (p.weapons > 0) {
                 p.weapons--;
-                boardAddLog(`âš”ï¸ Äá»¤NG Äá»˜! ${p.name} dÃ¹ng ðŸ—¡ï¸ Ä‘Ã¢m ${other.name}!`, 'special');
-                let dmgLog = boardTakeDamage(other, 1, `Bá»‹ ${p.name} Ä‘Ã¢m`);
+                boardAddLog(`⚔️ ĐỤNG ĐỘ! ${p.name} dùng 🗡️ đâm ${other.name}!`, 'special');
+                let dmgLog = boardTakeDamage(other, 1, `Bị ${p.name} đâm`);
                 boardAddLog(dmgLog, 'special');
-                combatHappened += `ðŸ¤œ ${p.name} chÃ©m ${other.name} má»™t nhÃ¡t!<br>`;
+                combatHappened += `🤜 ${p.name} chém ${other.name} một nhát!<br>`;
             } else {
-                boardAddLog(`ðŸ¤œ ${p.name} vÃ  ${other.name} Ä‘á»©ng chung Ã´ nhÆ°ng khÃ´ng cÃ³ ðŸ—¡ï¸ Ä‘Ã¡nh nhau!`);
-                combatHappened += `ðŸ¤œ ${p.name} vÃ  ${other.name} lÆ°á»m nhau (khÃ´ng cÃ³ vÅ© khÃ­)<br>`;
+                boardAddLog(`🤜 ${p.name} và ${other.name} đứng chung ô nhưng không có 🗡️ đánh nhau!`);
+                combatHappened += `🤜 ${p.name} và ${other.name} lườm nhau (không có vũ khí)<br>`;
             }
         }
     });
     return combatHappened || null;
 }
 
-// â”€â”€ Overlay ThÃ´ng BÃ¡o Sá»± Kiá»‡n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Overlay Thông Báo Sự Kiện ─────────────────────────────────
 window._bigEventTimer = null;
 window._bigEventCallback = null;
 
@@ -287,7 +287,7 @@ window.closeBigEvent = function() {
     }
 };
 
-// â”€â”€ Di chuyá»ƒn â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Di chuyển ─────────────────────────────────────────────────
 window.boardMovePlayer = function(idx, steps, animate) {
     let p = boardGame.players[idx];
     if(!p || p.eliminated) return;
@@ -296,68 +296,61 @@ window.boardMovePlayer = function(idx, steps, animate) {
     if(animate) { boardRenderGrid(); boardRenderPlayers(); }
 };
 
-// â”€â”€ HÃ m phá»¥ trá»£ tÃ­nh tá»a Ä‘á»™ vÃ²ng quanh â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Hàm phụ trợ tính tọa độ vòng quanh ──────────────────────────
 function _getCellPos(i) {
-    if(i < 10) return { r: 1, c: i + 1 };
-    if(i < 14) return { r: i - 10 + 2, c: 10 };
-    if(i < 24) return { r: 6, c: 10 - (i - 14) };
-    if(i < 28) return { r: 6 - (i - 23), c: 1 };
-    if(i < 36) return { r: 2, c: (i - 28) + 2 };
-    if(i < 38) return { r: i - 36 + 3, c: 9 };
-    if(i < 46) return { r: 5, c: 9 - (i - 38) };
-    if(i < 48) return { r: 5 - (i - 45), c: 2 };
-    if(i < 54) return { r: 3, c: (i - 48) + 3 };
-    if(i < 60) return { r: 4, c: 8 - (i - 54) };
-    return { r: 1, c: 1 };
-};
+    if(i < 13) return { r: 1, c: i + 1 };
+    if(i < 20) return { r: i - 13 + 2, c: 13 };
+    if(i < 33) return { r: 9, c: 13 - (i - 20) };
+    return { r: 9 - (i - 33), c: 1 };
+}
 
-// â”€â”€ Render Track â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Render Track ──────────────────────────────────────────────
 window.boardRenderGrid = function() {
     const grid = document.getElementById('boardGrid');
     if(!grid) return;
     grid.innerHTML = '';
-    // XÃ³a CSS grid cÅ©, thiáº¿t láº­p CSS grid oval rá»™ng hÆ¡n
+    // Xóa CSS grid cũ, thiết lập CSS grid oval rộng hơn
     grid.style.cssText = [
         'display:grid',
-        'grid-template-columns:repeat(10,1fr)',
-        'grid-template-rows:repeat(6,1fr)',
+        'grid-template-columns:repeat(13,1fr)',
+        'grid-template-rows:repeat(9,1fr)',
         'gap:4px',
         'width:100%',
-        'aspect-ratio:10/6',
+        'aspect-ratio:13/9',
         'max-height:400px',
         'margin-bottom:12px'
     ].join(';');
 
-    // Title á»Ÿ giá»¯a
+    // Title ở giữa
     const center = document.createElement('div');
     center.className = 'board-center';
-    center.style.cssText = 'grid-row:2/6;grid-column:2/10;background:rgba(0,0,0,0.5);border-radius:16px;border:2px dashed #475569;';
+    center.style.cssText = 'grid-row:2/9;grid-column:2/13;background:rgba(0,0,0,0.5);border-radius:16px;border:2px dashed #475569;';
     
-    // Chá»‰ hiá»ƒn thá»‹ ngÆ°á»i cÃ²n sá»‘ng trÃªn báº£ng xáº¿p háº¡ng mini giá»¯a sÃ¢n
+    // Chỉ hiển thị người còn sống trên bảng xếp hạng mini giữa sân
     const alivePlayers = boardGame.players.filter(p => !p.eliminated);
     
     center.innerHTML = `
-        <div class="board-center-title" style="font-size:1.8rem;text-shadow:0 0 10px #fca5a5;color:#fecdd3;">â˜ ï¸ Äáº¤U TRÆ¯á»œNG SINH Tá»’N â˜ ï¸</div>
+        <div class="board-center-title" style="font-size:1.8rem;text-shadow:0 0 10px #fca5a5;color:#fecdd3;">☠️ ĐẤU TRƯỜNG SINH TỒN ☠️</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;">
             ${alivePlayers.map(p => `
                 <div style="text-align:center;min-width:60px;background:rgba(255,255,255,0.05);padding:8px;border-radius:8px;">
                     <div style="font-size:2rem;line-height:1;margin-bottom:4px;filter:drop-shadow(0 0 5px ${p.color});">${p.emoji}</div>
                     <div style="font-size:0.65rem;font-weight:800;color:${p.color};">${p.name}</div>
-                    <div style="font-size:0.6rem;color:#fca5a5;margin-top:2px;">${'â¤ï¸'.repeat(p.lives)}</div>
+                    <div style="font-size:0.6rem;color:#fca5a5;margin-top:2px;">${'❤️'.repeat(p.lives)}</div>
                 </div>`).join('')}
         </div>
-        ${boardGame.betPool ? `<div style="margin-top:10px;font-size:0.8rem;color:#f97316;font-weight:800;background:#fff1;padding:4px 12px;border-radius:20px;display:inline-block;">ðŸ† Ná»’I CÆ¯á»¢C: ${boardGame.betPool} VÃ€NG ðŸ’°</div>` : ''}`;
+        ${boardGame.betPool ? `<div style="margin-top:10px;font-size:0.8rem;color:#f97316;font-weight:800;background:#fff1;padding:4px 12px;border-radius:20px;display:inline-block;">🏆 NỒI CƯỢC: ${boardGame.betPool} VÀNG 💰</div>` : ''}`;
     grid.appendChild(center);
 
     for(let i = 0; i < BOARD_TOTAL_CELLS; i++) {
         const pos  = _getCellPos(i);
-        const type = i === 0 ? 'start' : i === (BOARD_TOTAL_CELLS - 1) ? 'finish' : '';
-        const icon = i === 0 ? 'ðŸ' : i === 39 ? 'ðŸ†' : boardGame.trappedCells[i] ? 'ðŸ’£' : '';
+        const type = i === 0 ? 'start' : i === 39 ? 'finish' : '';
+        const icon = i === 0 ? '🏁' : i === 39 ? '🏆' : boardGame.trappedCells[i] ? '💣' : '';
         
-        // Tokens hiá»‡n táº¡i á»Ÿ Ã´ nÃ y
+        // Tokens hiện tại ở ô này
         const cellPlayers = boardGame.players.filter(p => p.pos === i && !p.eliminated);
         const tokens = cellPlayers.map(p => 
-            `<div class="board-token-large" style="border-color:${p.color};box-shadow:0 0 8px ${p.color};" title="${p.name} (${p.lives}â¤ï¸)">${p.emoji}</div>`
+            `<div class="board-token-large" style="border-color:${p.color};box-shadow:0 0 8px ${p.color};" title="${p.name} (${p.lives}❤️)">${p.emoji}</div>`
         ).join('');
         
         const div = document.createElement('div');
@@ -369,7 +362,7 @@ window.boardRenderGrid = function() {
     }
 };
 
-// â”€â”€ Render Danh sÃ¡ch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Render Danh sách ──────────────────────────────────────────
 window.boardRenderPlayers = function() {
     const c = document.getElementById('boardPlayersContainer');
     if(!c) return;
@@ -378,33 +371,33 @@ window.boardRenderPlayers = function() {
         const deadCls = p.eliminated ? 'eliminated-player' : '';
         return `<div class="board-player-row ${isCur ? 'current' : ''} ${deadCls}">
             <div class="player-color-dot" style="background:${p.color};"></div>
-            <span style="font-size:1.4rem; filter:drop-shadow(0 0 2px #fff);">${p.eliminated ? 'ðŸ’€' : p.emoji}</span>
+            <span style="font-size:1.4rem; filter:drop-shadow(0 0 2px #fff);">${p.eliminated ? '💀' : p.emoji}</span>
             <div style="flex:1;min-width:0;padding-left:8px;">
                 <div style="font-size:0.8rem;font-weight:800;color:${p.eliminated?'#64748b':p.color};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    ${p.name}${isCur?' ðŸŽ²':''}${p.eliminated?' (ÄÃƒ CHáº¾T)':''}
+                    ${p.name}${isCur?' 🎲':''}${p.eliminated?' (ĐÃ CHẾT)':''}
                 </div>
                 <div style="font-size:0.65rem;color:#cbd5e1;margin-top:3px;font-weight:bold;">
-                    ${p.eliminated ? 'Bá»Š LOáº I' : `Máº¡ng: ${'â¤ï¸'.repeat(p.lives)} | ðŸ—¡ï¸x${p.weapons} | ðŸ›¡ï¸x${p.shields} | Ã”: ${p.pos+1}`}
+                    ${p.eliminated ? 'BỊ LOẠI' : `Mạng: ${'❤️'.repeat(p.lives)} | 🗡️x${p.weapons} | 🛡️x${p.shields} | Ô: ${p.pos+1}`}
                 </div>
             </div>
         </div>`;
     }).join('');
 };
 
-// â”€â”€ Khá»Ÿi táº¡o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Khởi tạo ──────────────────────────────────────────────────
 window.openBoardGame = function(pvpMode = false) {
     audio.play('click');
-    let betAmount = 0; // TODO: Láº¥y tá»« modal cÆ°á»£c náº¿u cÃ³
+    let betAmount = 0; // TODO: Lấy từ modal cược nếu có
     boardGame = {
         players: [], currentTurn: 0, isRolling: false,
         trappedCells: {}, log: [], gameOver: false,
         pvp: !!pvpMode, hostId: pvpMode ? myNetworkId : null, betPool: betAmount
     };
     boardGame.players.push({
-        idx: 0, name: player.name, networkId: myNetworkId, classId: player.classId, skin: player.equipment.skin,
-        pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false, // Core sinh tá»“n
+        idx: 0, name: player.name, networkId: myNetworkId, classId: player.classId, skin: player.equipment?.skin,
+        pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false, // Core sinh tồn
         color: RACE_PLAYER_COLORS[0],
-        emoji: CLASS_DATA[player.classId]?.emoji || 'ðŸƒ',
+        emoji: CLASS_DATA[player.classId]?.emoji || '🏃',
         isHuman: true, isBot: false, skipTurn: false
     });
     
@@ -417,7 +410,7 @@ window.openBoardGame = function(pvpMode = false) {
     if(bpd && bpa) {
         if(betAmount > 0) {
             bpd.style.display = 'flex';
-            bpa.textContent = `${betAmount} ðŸ’°`;
+            bpa.textContent = `${betAmount} 💰`;
         } else {
             bpd.style.display = 'none';
         }
@@ -427,31 +420,31 @@ window.openBoardGame = function(pvpMode = false) {
     boardRenderPlayers();
     boardUpdateRollBtn();
     document.getElementById('boardGameModal').classList.add('active');
-    boardAddLog(`ðŸ Äáº¤U TRÆ¯á»œNG Báº®T Äáº¦U! Ai háº¿t 3 â¤ï¸ sáº½ cháº¿t. Äi tá»›i Ã´ 40 Ä‘á»ƒ tháº¯ng!`, 'special');
+    boardAddLog(`🏁 ĐẤU TRƯỜNG BẮT ĐẦU! Ai hết 3 ❤️ sẽ chết. Đi tới ô 40 để thắng!`, 'special');
 };
 
 window.boardAddBot = function() {
     if(boardGame.players.length >= 4) return;
     const idx = boardGame.players.length;
-    const botNames  = ['ðŸ¤– SÃ¡t Thá»§ Bot', 'ðŸ¦¾ Cá»— MÃ¡y ChÃ©m', 'ðŸ¤¯ Káº» ÄiÃªn'];
-    const botEmojis = ['ðŸ§Ÿ','ðŸ§›','ðŸ¦¹'];
+    const botNames  = ['🤖 Sát Thủ Bot', '🦾 Cỗ Máy Chém', '🤯 Kẻ Điên'];
+    const botEmojis = ['🧟','🧛','🦹'];
     boardGame.players.push({
         idx, name: botNames[idx-1] || `Bot ${idx}`, networkId: null, 
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: RACE_PLAYER_COLORS[idx] || '#f59e0b',
-        emoji: botEmojis[idx-1] || 'ðŸ‘¾',
+        emoji: botEmojis[idx-1] || '👾',
         isHuman: false, isBot: true, skipTurn: false
     });
     boardRenderPlayers();
-    boardAddLog(`ðŸ’€ ${botNames[idx-1]} Ä‘Ã£ tham gia Ä‘áº¥u trÆ°á»ng!`);
+    boardAddLog(`💀 ${botNames[idx-1]} đã tham gia đấu trường!`);
 };
 
-// â”€â”€ Logic chuyá»ƒn lÆ°á»£t cÃ³ xá»­ lÃ½ ngÆ°á»i cháº¿t â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Logic chuyển lượt có xử lý người chết ──────────────────
 window.boardNextTurn = function() {
     if(boardGame.gameOver) return;
     let nextIdx = (boardGame.currentTurn + 1) % boardGame.players.length;
     let safety = 0;
-    // Bá» qua nhá»¯ng ngÆ°á»i Ä‘Ã£ cháº¿t
+    // Bỏ qua những người đã chết
     while(boardGame.players[nextIdx].eliminated && safety < 10) {
         nextIdx = (nextIdx + 1) % boardGame.players.length;
         safety++;
@@ -465,9 +458,9 @@ window.boardNextTurn = function() {
     }
 };
 
-console.log('ðŸ [board_new.js] Cá» Äua Sinh Tá»“n v4 loaded!');
+console.log('🏁 [board_new.js] Cờ Đua Sinh Tồn v4 loaded!');
 
-// â”€â”€ Bet Modal & Triggers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Bet Modal & Triggers ──────────────────────────────────────
 window.openBoardGameWithBet = function() {
     audio.play('click');
     const modal = document.getElementById('boardBetModal');
@@ -501,17 +494,17 @@ window.confirmBetAndStart = function() {
         amt = parseInt(customInp.value) || 0;
     }
     if(player.gold < amt) {
-        showToast('âš ï¸ KhÃ´ng Ä‘á»§ vÃ ng Ä‘á»ƒ cÆ°á»£c!');
+        showToast('⚠️ Không đủ vàng để cược!');
         return;
     }
     player.gold -= amt;
     refreshHudDisplay();
     closeBetModal();
     
-    // Báº¯t Ä‘áº§u game vá»›i tiá»n cÆ°á»£c
+    // Bắt đầu game với tiền cược
     openBoardGame(false); 
     boardGame.betPool = amt; 
-    boardRenderGrid(); // Render láº¡i Ä‘á»ƒ hiá»‡n Ná»“i CÆ°á»£c
+    boardRenderGrid(); // Render lại để hiện Nồi Cược
 };
 
 window.startBoardGameNoBet = function() {
@@ -543,7 +536,7 @@ window.boardUpdateRollBtn = function() {
     if(!btn || !boardGame) return;
     let isMyTurn = window.boardIsMyTurn();
     btn.disabled = boardGame.isRolling || boardGame.gameOver || !isMyTurn;
-    btn.textContent = boardGame.gameOver ? 'ðŸ VÃ¡n Ä‘Ã£ káº¿t thÃºc' : isMyTurn ? 'ðŸŽ² Tung XÃºc Xáº¯c' : 'â³ Chá» Ä‘á»‘i thá»§...';
+    btn.textContent = boardGame.gameOver ? '🏁 Ván đã kết thúc' : isMyTurn ? '🎲 Tung Xúc Xắc' : '⏳ Chờ đối thủ...';
 };
 
 window.boardRollDice = function() {
@@ -569,7 +562,7 @@ window.boardRollForCurrentPlayer = function() {
     window.boardDoRollAnimation(cur, () => {
         boardGame.isRolling = false;
         if(cur.lastRoll === 6 && !boardGame.gameOver && !cur.eliminated) {
-            window.boardAddLog(`â­ ${cur.name} tung 6, Ä‘Æ°á»£c thÃªm lÆ°á»£t!`, 'special');
+            window.boardAddLog(`⭐ ${cur.name} tung 6, được thêm lượt!`, 'special');
             window.boardRenderPlayers();
         } else {
             window.boardNextTurn();
@@ -612,7 +605,7 @@ window.boardApplyNetworkState = function(msg) {
 };
 
 window.boardSwapNearest = function(p) {
-    if(!boardGame) return 'Lá»—i game';
+    if(!boardGame) return 'Lỗi game';
     let nearest = null; let minDist = Infinity;
     boardGame.players.forEach((pl,i) => {
         if(i !== p.idx && !pl.eliminated) { 
@@ -625,28 +618,7 @@ window.boardSwapNearest = function(p) {
         p.pos = nearest.pos;
         nearest.pos = tmp;
         window.boardRenderGrid();
-        return `Äá»•i vá»‹ trÃ­ vá»›i ${nearest.name}.`;
+        return `Đổi vị trí với ${nearest.name}.`;
     }
-    return 'KhÃ´ng cÃ³ ai Ä‘á»ƒ Ä‘á»•i.';
-}
-
-window.openBoardInviteModal = function() {
-    let list = document.getElementById('boardInvitePlayerList');
-    if(!list) return;
-    list.innerHTML = '';
-    let count = 0;
-    if(typeof networkPlayers !== 'undefined') {
-        Object.entries(networkPlayers).forEach(([id, p]) => {
-            count++;
-            list.innerHTML += `<div class="invite-player-row"><span>${p.name}</span><button class="board-btn" style="padding:4px 8px;font-size:0.7rem;" onclick="sendBoardInvite('${id}', '${p.name}')">Mời Chơi Cờ</button></div>`;
-        });
-    }
-    if(count === 0) list.innerHTML = '<div style="color:#888;font-size:0.8rem;text-align:center;">Không có ai online.</div>';
-    document.getElementById('boardInviteModal').style.display = 'flex';
-};
-window.closeBoardInviteModal = function() { document.getElementById('boardInviteModal').style.display = 'none'; };
-window.sendBoardInvite = function(id, name) {
-    if(typeof pvpChannel !== 'undefined') pvpChannel.postMessage({ type: 'BOARD_INVITE', id: myNetworkId, targetId: id, senderName: player.name });
-    showToast('Đã gửi lời mời Cờ Đua đến ' + name);
-    window.closeBoardInviteModal();
+    return 'Không có ai để đổi.';
 };

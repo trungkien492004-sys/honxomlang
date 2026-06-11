@@ -25,31 +25,132 @@ window._cloudSaveData      = null;
 const _skinCache = {};
 window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, scale = 1, faceDirection = 'right', isBlinking = false, skinId = null) {
     if(skinId === 'skin_cong_chua') {
-        const imgName = isMoving ? 'ayaa.jpg' : 'aya.jpg';
-        if(!_skinCache[imgName]) {
-            let img = new Image();
-            img.src = 'assets/img/skins/' + imgName;
-            _skinCache[imgName] = img;
+        ctx.save();
+        let tick = Date.now() / 150;
+        let bob = isMoving ? Math.sin(tick) * 4 * scale : Math.sin(Date.now() / 400) * 1.5 * scale;
+        let legSwing = isMoving ? Math.sin(tick) * 8 * scale : 0;
+        
+        if(faceDirection === 'left') {
+            ctx.translate(x, y);
+            ctx.scale(-1, 1);
+            ctx.translate(-x, -y);
         }
-        if(_skinCache[imgName].complete && _skinCache[imgName].naturalWidth > 0) {
-            ctx.save();
-            if(faceDirection === 'left') {
-                ctx.translate(x, y);
-                ctx.scale(-1, 1);
-                ctx.translate(-x, -y);
-            }
-            let drawW = 60 * scale;
-            let drawH = 60 * scale;
-            let drawX = x - drawW / 2;
-            let drawY = (y - 30 * scale) + (isMoving ? Math.sin(Date.now() / 150) * 4 * scale : 0);
-            
-            // Draw sparkly aura
-            ctx.shadowColor = 'rgba(255, 182, 193, 0.8)';
-            ctx.shadowBlur = 15;
-            ctx.drawImage(_skinCache[imgName], drawX, drawY, drawW, drawH);
-            ctx.restore();
-            return; // Skip normal drawing
+        
+        ctx.translate(x, y + bob);
+        
+        // Aura
+        ctx.shadowColor = 'rgba(255, 182, 193, 0.8)';
+        ctx.shadowBlur = 15;
+        
+        // Fairy Wings (glowing)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.ellipse(-15*scale, -15*scale, 10*scale, 20*scale, -Math.PI/6, 0, Math.PI*2);
+        ctx.ellipse(-10*scale, 5*scale, 8*scale, 15*scale, -Math.PI/4, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0; // reset
+        
+        // Hair (Pastel Rainbow)
+        let gradient = ctx.createLinearGradient(0, -35*scale, 0, 10*scale);
+        gradient.addColorStop(0, '#fca5a5'); // red
+        gradient.addColorStop(0.33, '#fde047'); // yellow
+        gradient.addColorStop(0.66, '#86efac'); // green
+        gradient.addColorStop(1, '#93c5fd'); // blue
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(0, -18*scale, 18*scale, Math.PI, 0); // top hair
+        ctx.rect(-18*scale, -18*scale, 36*scale, 25*scale); // back hair flow
+        ctx.fill();
+        
+        // Body/Dress (multi-layer princess dress)
+        ctx.fillStyle = '#fbcfe8'; // light pink base
+        ctx.beginPath();
+        ctx.moveTo(0, -5*scale);
+        ctx.lineTo(-15*scale, 20*scale);
+        ctx.lineTo(15*scale, 20*scale);
+        ctx.fill();
+        
+        ctx.fillStyle = '#fce7f3'; // white-ish pink layer
+        ctx.beginPath();
+        ctx.moveTo(0, -5*scale);
+        ctx.lineTo(-20*scale, 25*scale);
+        ctx.lineTo(20*scale, 25*scale);
+        ctx.fill();
+        ctx.strokeStyle = '#f9a8d4';
+        ctx.lineWidth = 2*scale;
+        ctx.stroke();
+
+        // Legs
+        ctx.strokeStyle = '#fecdd3';
+        ctx.lineWidth = 4*scale;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-5*scale, 25*scale);
+        ctx.lineTo(-5*scale - legSwing, 35*scale);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(5*scale, 25*scale);
+        ctx.lineTo(5*scale + legSwing, 35*scale);
+        ctx.stroke();
+        
+        // Face
+        ctx.fillStyle = '#fff0f5'; // very light pale skin
+        ctx.beginPath();
+        ctx.arc(0, -15*scale, 14*scale, 0, Math.PI*2);
+        ctx.fill();
+        
+        // Eyes (Anime style big eyes)
+        ctx.fillStyle = '#1e3a8a';
+        ctx.beginPath();
+        ctx.ellipse(5*scale, -15*scale, 3*scale, 5*scale, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(5.5*scale, -17*scale, 1.5*scale, 0, Math.PI*2);
+        ctx.fill();
+        
+        // Blush
+        ctx.fillStyle = 'rgba(255,105,180,0.4)';
+        ctx.beginPath();
+        ctx.ellipse(9*scale, -12*scale, 3*scale, 1.5*scale, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        // Crown (Crystal rainbow)
+        ctx.fillStyle = 'gold';
+        ctx.beginPath();
+        ctx.moveTo(-6*scale, -28*scale);
+        ctx.lineTo(-8*scale, -36*scale);
+        ctx.lineTo(0*scale, -32*scale);
+        ctx.lineTo(6*scale, -38*scale);
+        ctx.lineTo(5*scale, -28*scale);
+        ctx.fill();
+        ctx.fillStyle = 'cyan';
+        ctx.beginPath(); ctx.arc(6*scale, -38*scale, 2*scale, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'magenta';
+        ctx.beginPath(); ctx.arc(-8*scale, -36*scale, 2*scale, 0, Math.PI*2); ctx.fill();
+
+        // Star Wand
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2*scale;
+        ctx.beginPath();
+        ctx.moveTo(12*scale, 5*scale);
+        ctx.lineTo(20*scale, -10*scale);
+        ctx.stroke();
+        
+        ctx.fillStyle = 'yellow';
+        ctx.shadowColor = 'yellow';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        // Simple star
+        let cx = 20*scale, cy = -10*scale, r = 6*scale;
+        for(let i=0; i<5; i++) {
+            ctx.lineTo(Math.cos((18+i*72)/180*Math.PI)*r + cx, -Math.sin((18+i*72)/180*Math.PI)*r + cy);
+            ctx.lineTo(Math.cos((54+i*72)/180*Math.PI)*(r/2) + cx, -Math.sin((54+i*72)/180*Math.PI)*(r/2) + cy);
         }
+        ctx.fill();
+
+        ctx.restore();
+        return; // Skip normal drawing
     }
 
     ctx.save();
