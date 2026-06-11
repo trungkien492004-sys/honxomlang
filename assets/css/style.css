@@ -1,14 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&family=Boogaloo&family=Baloo+2:wght@400;600;800&family=Orbitron:wght@700;900&display=swap');
 
 :root {
-    --gold: #FFD700;
-    --red: #E53935;
-    --green: #43A047;
-    --blue: #1E88E5;
-    --dark: #1a1a2e;
-    --darker: #0f0f1a;
-    --panel: rgba(15, 15, 30, 0.96);
-    --border: rgba(255, 215, 0, 0.25);
+    /* RPG Brownish Theme */
+    --rpg-brown-darkest: #1a0f0a;
+    --rpg-brown-dark: #2d1810;
+    --rpg-brown-medium: #4a2c1a;
+    --rpg-brown-base: #6b4423;
+    --rpg-brown-light: #8b5a2b;
+    --rpg-brown-lighter: #b87333;
+    --rpg-gold: #d4af37;
+    --rpg-gold-dark: #b8941f;
+    --rpg-gold-light: #f4d03f;
+    --rpg-parchment: #f4e4c1;
+    --rpg-leather: #704214;
+    --rpg-shadow: rgba(26, 15, 10, 0.8);
+    --rpg-highlight: rgba(212, 175, 55, 0.3);
+
+    --gold: var(--rpg-gold);
+    --red: #C82333;
+    --green: #218838;
+    --blue: #0056b3;
+    --dark: var(--rpg-brown-darkest);
+    --darker: #0b0705;
+    --panel: linear-gradient(135deg, var(--rpg-brown-dark) 0%, var(--rpg-brown-darkest) 100%);
+    --border: var(--rpg-leather);
     --cop: #4fc3f7;
     --teacher: #ce93d8;
     --merchant: #ffb74d;
@@ -84,21 +99,39 @@ input[type="text"], input[type="email"], input[type="password"] {
 }
 
 .btn {
-    background: linear-gradient(135deg, #f5af19, #e15f41);
-    color: white;
-    border: none;
+    background: linear-gradient(180deg, var(--rpg-brown-light) 0%, var(--rpg-brown-medium) 100%);
+    color: var(--rpg-parchment);
+    border: 2px solid var(--rpg-leather);
+    border-radius: 6px;
     padding: 12px 25px;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: bold;
-    border-radius: 8px;
     cursor: pointer;
     width: 100%;
     transition: all 0.2s;
-    font-family: inherit;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    font-family: 'Georgia', serif;
+    text-shadow: 1px 1px 2px var(--rpg-shadow);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 2px 4px var(--rpg-shadow);
 }
-.btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-.btn:active { transform: translateY(1px); }
+.btn:hover {
+    background: linear-gradient(180deg, var(--rpg-brown-lighter) 0%, var(--rpg-brown-light) 100%);
+    border-color: var(--rpg-gold);
+    color: var(--rpg-gold-light);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 2px 6px var(--rpg-gold-dark),
+        0 0 12px rgba(212, 175, 55, 0.3);
+    transform: translateY(-2px);
+}
+.btn:active {
+    background: linear-gradient(180deg, var(--rpg-brown-medium) 0%, var(--rpg-brown-dark) 100%);
+    box-shadow: 
+        inset 0 2px 4px var(--rpg-shadow),
+        0 1px 2px var(--rpg-shadow);
+    transform: translateY(1px);
+}
 
 .btn-google {
     background: #fff;
@@ -133,27 +166,32 @@ input[type="text"], input[type="email"], input[type="password"] {
     width: 100%;
 }
 .class-card {
-    background: rgba(17, 24, 39, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 2px solid rgba(255, 215, 0, 0.12);
-    border-radius: 12px;
+    background: linear-gradient(160deg, rgba(74, 44, 26, 0.7) 0%, rgba(26, 15, 10, 0.9) 100%);
+    border: 2px solid var(--rpg-leather);
+    border-radius: 6px;
     padding: 16px;
     width: 190px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    box-shadow: 
+        inset 0 2px 6px rgba(0, 0, 0, 0.5),
+        0 4px 15px var(--rpg-shadow);
 }
 .class-card:hover {
-    border-color: var(--gold);
-    transform: translateY(-8px);
-    background: rgba(31, 41, 55, 0.85);
-    box-shadow: 0 12px 30px rgba(255, 215, 0, 0.2);
+    border-color: var(--rpg-gold);
+    transform: translateY(-6px);
+    background: linear-gradient(160deg, rgba(94, 54, 32, 0.8) 0%, rgba(36, 20, 12, 0.95) 100%);
+    box-shadow: 
+        inset 0 2px 6px rgba(0, 0, 0, 0.3),
+        0 8px 25px rgba(212, 175, 55, 0.3);
 }
 .class-card.selected {
-    border-color: var(--gold);
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.45);
+    border-color: var(--rpg-gold);
+    background: linear-gradient(160deg, rgba(112, 66, 20, 0.9) 0%, rgba(45, 24, 16, 0.98) 100%);
+    box-shadow: 
+        inset 0 2px 6px rgba(0, 0, 0, 0.2),
+        0 0 25px rgba(212, 175, 55, 0.6);
 }
 .class-emoji {
     font-size: 3rem;
@@ -839,46 +877,76 @@ input[type="text"], input[type="email"], input[type="password"] {
 }
 .btn-sm {
     padding: 9px 12px;
-    font-size: 0.88rem;
-    border-radius: 10px;
-    font-family: inherit;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    font-family: 'Georgia', serif;
     font-weight: bold;
     cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: #334155;
-    color: white;
+    border: 1.5px solid var(--rpg-leather);
+    background: linear-gradient(180deg, var(--rpg-brown-medium) 0%, var(--rpg-brown-dark) 100%);
+    color: var(--rpg-parchment);
     pointer-events: auto;
     position: relative;
     z-index: 35;
     width: 100%;
-    transition: background 0.18s, transform 0.12s;
+    transition: all 0.2s;
+    text-shadow: 1px 1px 1px var(--rpg-shadow);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 2px var(--rpg-shadow);
 }
-.btn-sm:hover { background: #475569; transform: translateY(-1px); }
-.btn-sm:active { transform: translateY(1px); }
-.btn-sm.active { background: #ef4444; animation: pulse 1s infinite alternate; }
+.btn-sm:hover {
+    background: linear-gradient(180deg, var(--rpg-brown-light) 0%, var(--rpg-brown-medium) 100%);
+    border-color: var(--rpg-gold);
+    color: var(--rpg-gold-light);
+    transform: translateY(-1px);
+}
+.btn-sm:active {
+    transform: translateY(1px);
+}
+.btn-sm.active {
+    background: #ef4444;
+    animation: pulse 1s infinite alternate;
+}
 
 .middle-hud { display: flex; justify-content: center; align-items: center; pointer-events: none; }
 .game-panel {
-    background: var(--panel);
-    border: 2px solid var(--gold);
-    border-radius: 12px;
+    background: linear-gradient(135deg, var(--rpg-brown-dark) 0%, var(--rpg-brown-darkest) 100%);
+    border: 3px solid var(--rpg-leather);
+    border-radius: 8px;
     width: min(520px, calc(100vw - 420px));
     max-height: min(560px, calc(100vh - 235px));
     display: none;
     flex-direction: column;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    box-shadow: 
+        0 8px 32px var(--rpg-shadow),
+        inset 0 1px 0 rgba(212, 175, 55, 0.2),
+        0 0 0 1px var(--rpg-brown-dark);
     pointer-events: auto;
+    position: relative;
+}
+.game-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--rpg-gold) 20%, var(--rpg-gold) 80%, transparent 100%);
+    opacity: 0.5;
 }
 .panel-header {
-    background: rgba(255,215,0,0.1);
-    padding: 10px 15px;
-    font-size: 1.3rem;
+    background: linear-gradient(180deg, var(--rpg-brown-base) 0%, var(--rpg-brown-medium) 100%);
+    border-bottom: 2px solid var(--rpg-leather);
+    padding: 12px 16px;
+    font-size: 1.15rem;
     font-weight: bold;
-    color: var(--gold);
-    border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center;
+    color: var(--rpg-gold);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 5px 5px 0 0;
+    text-shadow: 1px 1px 2px var(--rpg-shadow), 0 0 8px rgba(212, 175, 55, 0.3);
+    letter-spacing: 1px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
-.panel-close { cursor: pointer; font-size: 1.2rem; transition: color 0.2s; }
+.panel-close { cursor: pointer; font-size: 1.2rem; color: var(--rpg-parchment); transition: color 0.2s; }
 .panel-close:hover { color: #ff5252; }
 .panel-body { padding: 15px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
 
@@ -903,24 +971,36 @@ input[type="text"], input[type="email"], input[type="password"] {
     pointer-events: auto;
 }
 .nav-btn {
-    background: #23233b;
-    border: 1px solid rgba(255,255,255,0.12);
-    color: #ddd;
+    background: linear-gradient(180deg, var(--rpg-brown-medium) 0%, var(--rpg-brown-dark) 100%);
+    border: 1.5px solid var(--rpg-leather);
+    color: var(--rpg-parchment);
     padding: 8px 10px;
-    font-size: 0.84rem;
-    font-family: inherit;
+    font-size: 0.82rem;
+    font-family: 'Georgia', serif;
     font-weight: 700;
-    border-radius: 12px;
+    border-radius: 4px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
     justify-content: center;
     white-space: nowrap;
-    transition: transform 0.18s ease, background 0.18s ease;
+    transition: all 0.2s ease;
+    text-shadow: 1px 1px 1px var(--rpg-shadow);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 2px var(--rpg-shadow);
 }
-.nav-btn:hover { background: var(--gold); color: #000; transform: translateX(-2px); }
-.nav-btn.active { background: var(--gold); color: #000; box-shadow: 0 0 10px var(--gold); }
+.nav-btn:hover { 
+    background: linear-gradient(180deg, var(--rpg-brown-light) 0%, var(--rpg-brown-medium) 100%);
+    border-color: var(--rpg-gold);
+    color: var(--rpg-gold-light);
+    transform: translateY(-2px);
+}
+.nav-btn.active { 
+    background: linear-gradient(180deg, var(--rpg-gold-dark) 0%, var(--rpg-brown-base) 100%);
+    border-color: var(--rpg-gold);
+    color: var(--rpg-gold-light);
+    box-shadow: 0 0 10px var(--rpg-gold-dark);
+}
 
 .skill-hotbar {
     position: fixed;

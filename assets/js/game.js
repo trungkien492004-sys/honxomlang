@@ -3,93 +3,93 @@
         const SAVE_KEY = "XOM_ANH_HUNG_SAVE_V2";
         const AUDIO_ENABLED = true;
 
-        // Sound Engine Class utilizing Web Audio API
+        // Sound Engine Class utilizing HTML5 Audio Elements for Helbreath authentic assets
         class AudioSynthEngine {
             constructor() {
-                this.ctx = null;
-                this.masterGain = null;
+                this.muted = false;
+                this.bgmVolume = 0.35;
+                this.sfxVolume = 0.50;
+                this.bgm = null;
+                this.currentBgmName = "";
+                this.sfxPools = {};
             }
             init() {
-                if(this.ctx) return;
-                try {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    this.masterGain = this.ctx.createGain();
-                    this.masterGain.gain.setValueAtTime(0.25, this.ctx.currentTime); // Master volume limit
-                    this.masterGain.connect(this.ctx.destination);
-                } catch(e) { console.error("Web Audio API not supported", e); }
+                if(this.bgm) return;
+                this.bgm = new Audio();
+                this.bgm.loop = true;
+                this.bgm.volume = this.muted ? 0 : this.bgmVolume;
+            }
+            playBgm(trackName) {
+                this.init();
+                if(this.currentBgmName === trackName) return;
+                
+                const path = `assets/audio/music/${trackName}.mp3`;
+                this.bgm.src = path;
+                this.currentBgmName = trackName;
+                
+                if(!this.muted) {
+                    this.bgm.play().catch(e => {
+                        console.log("Audio BGM autoplay blocked, waiting for interaction.");
+                        const playOnInteraction = () => {
+                            if (this.bgm.src && !this.muted) {
+                                this.bgm.play().catch(o => {});
+                            }
+                            document.removeEventListener('click', playOnInteraction);
+                            document.removeEventListener('keydown', playOnInteraction);
+                        };
+                        document.addEventListener('click', playOnInteraction);
+                        document.addEventListener('keydown', playOnInteraction);
+                    });
+                }
+            }
+            stopBgm() {
+                if(this.bgm) {
+                    this.bgm.pause();
+                    this.currentBgmName = "";
+                }
             }
             play(type) {
-                if(!AUDIO_ENABLED) return;
-                this.init();
-                if(!this.ctx) return;
-                if(this.ctx.state === 'suspended') this.ctx.resume();
-
-                let osc = this.ctx.createOscillator();
-                let gainNode = this.ctx.createGain();
-                osc.connect(gainNode);
-                gainNode.connect(this.masterGain);
-
-                let now = this.ctx.currentTime;
-
+                if(!AUDIO_ENABLED || this.muted) return;
+                
+                let fileName = "";
                 switch(type) {
                     case 'click':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(400, now);
-                        gainNode.gain.setValueAtTime(0.15, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                        osc.start(now); osc.stop(now + 0.1);
+                        fileName = "C16.mp3"; // GUI Click/Cast
                         break;
                     case 'hit':
-                        osc.type = 'square';
-                        osc.frequency.setValueAtTime(150, now);
-                        osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
-                        gainNode.gain.setValueAtTime(0.3, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-                        osc.start(now); osc.stop(now + 0.12);
+                        fileName = "C6.mp3"; // Bladed weapon damage
                         break;
                     case 'levelup':
-                        // Play an ascending arpeggio of notes
-                        osc.type = 'sine';
-                        let notes = [261.63, 329.63, 392.00, 523.25];
-                        notes.forEach((freq, idx) => {
-                            let noteOsc = this.ctx.createOscillator();
-                            let noteGain = this.ctx.createGain();
-                            noteOsc.type = 'sine';
-                            noteOsc.frequency.setValueAtTime(freq, now + idx * 0.1);
-                            noteGain.gain.setValueAtTime(0.2, now + idx * 0.1);
-                            noteGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.15);
-                            noteOsc.connect(noteGain);
-                            noteGain.connect(this.masterGain);
-                            noteOsc.start(now + idx * 0.1);
-                            noteOsc.stop(now + idx * 0.1 + 0.15);
-                        });
+                        fileName = "C23.mp3"; // Levelup fanfare
                         break;
                     case 'skill':
-                        osc.type = 'sawtooth';
-                        osc.frequency.setValueAtTime(300, now);
-                        osc.frequency.linearRampToValueAtTime(800, now + 0.25);
-                        gainNode.gain.setValueAtTime(0.18, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-                        osc.start(now); osc.stop(now + 0.25);
+                        fileName = "E5.mp3"; // Skill cast
                         break;
                     case 'gold':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(987.77, now); // B5 note
-                        osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6 note
-                        gainNode.gain.setValueAtTime(0.2, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                        osc.start(now); osc.stop(now + 0.2);
+                        fileName = "E20.mp3"; // Item added / gold pickup
                         break;
                     case 'quest':
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(440, now);
-                        osc.frequency.setValueAtTime(554.37, now + 0.1);
-                        osc.frequency.setValueAtTime(659.25, now + 0.2);
-                        gainNode.gain.setValueAtTime(0.25, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                        osc.start(now); osc.stop(now + 0.4);
+                        fileName = "E29.mp3"; // Quest / inventory bags
+                        break;
+                    default:
+                        fileName = type.endsWith('.mp3') ? type : `${type}.mp3`;
                         break;
                 }
+                
+                const path = `assets/audio/sounds/${fileName}`;
+                if(!this.sfxPools[path]) {
+                    this.sfxPools[path] = [];
+                }
+                
+                let audioEl = this.sfxPools[path].find(el => el.paused || el.ended);
+                if(!audioEl) {
+                    audioEl = new Audio(path);
+                    this.sfxPools[path].push(audioEl);
+                }
+                
+                audioEl.volume = this.sfxVolume;
+                audioEl.currentTime = 0;
+                audioEl.play().catch(e => {});
             }
         }
         const audio = new AudioSynthEngine();
@@ -358,6 +358,10 @@
         window.onload = () => {
             setupCanvasSize();
             checkAndDisplayLocalSave();
+
+            // Start playing the gothic default menu music
+            audio.init();
+            audio.playBgm('default');
             
             const autoFarmBtn = document.getElementById('autoFarmBtn');
             if(autoFarmBtn) autoFarmBtn.addEventListener('click', toggleAutoFarm);
@@ -480,6 +484,14 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             const el = document.getElementById(sId);
             if(el) el.classList.add('active');
+
+            if(sId === 'gameScreen') {
+                audio.playBgm('aresden'); // Main game zone theme
+            } else if(sId === 'loginScreen' || sId === 'characterSelectScreen' || sId === 'classScreen' || sId === 'serverScreen') {
+                audio.playBgm('default'); // Menu login/char select theme
+            } else {
+                audio.stopBgm();
+            }
         };
         const switchScreen = window.switchScreen;
 
@@ -2966,7 +2978,31 @@ function toggleAutoFarm() {
             requestAnimationFrame(mainGameLoop);
         }
 
+        let lastBgmCheckTime = 0;
         function updateGameLogicState() {
+            // Zone Background Music transition tick check
+            let nowTime = Date.now();
+            if (nowTime - lastBgmCheckTime > 1000) {
+                lastBgmCheckTime = nowTime;
+                let currentArea = null;
+                WORLD_THEME_AREAS.forEach(area => {
+                    if (player.x >= area.x && player.x <= area.x + area.w &&
+                        player.y >= area.y && player.y <= area.y + area.h) {
+                        currentArea = area;
+                    }
+                });
+                
+                let targetBgm = 'aresden';
+                if (currentArea) {
+                    if (currentArea.name === 'Rừng U Minh') targetBgm = 'dungeon';
+                    else if (currentArea.name === 'Hồ Sen Tĩnh Lặng') targetBgm = 'elvine';
+                    else if (currentArea.name === 'Đồi Cỏ Mặt Trời') targetBgm = 'middleland';
+                    else if (currentArea.name === 'Khu Luyện Cấp Ngoài Làng') targetBgm = 'apocalypse';
+                    else if (currentArea.name === 'Chợ Quê Xóm Dưới') targetBgm = 'middleland';
+                }
+                audio.playBgm(targetBgm);
+            }
+
             // A. AI Auto Farm logic targeting closest enemy routine
             if(isAutoFarming && !player.targetMonster && monsters.length > 0) {
                 let closest = null; let minD = 99999;
@@ -3414,8 +3450,79 @@ function toggleAutoFarm() {
             particles.forEach(p => {
                 ctx.save();
                 ctx.globalAlpha = p.opacity;
-                ctx.font = "20px Arial";
-                ctx.fillText(p.emoji, p.x - camera.x, p.y - camera.y);
+                
+                let px = p.x - camera.x;
+                let py = p.y - camera.y;
+                
+                if (p.emoji === "⚔️" || p.emoji === "💥" || p.emoji === "🔥") {
+                    // Draw a blood splatter or bright spark line
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = "#ef4444";
+                    ctx.strokeStyle = "#f87171";
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(px - p.vx * 3, py - p.vy * 3);
+                    ctx.lineTo(px + p.vx * 3, py + p.vy * 3);
+                    ctx.stroke();
+                } else if (p.emoji === "🧪") {
+                    // Draw rising green bubble glows
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = "#22c55e";
+                    ctx.fillStyle = "#4ade80";
+                    ctx.beginPath();
+                    ctx.arc(px, py, 4 + p.life % 4, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (p.emoji === "❤️") {
+                    // Draw glowing heart shape or red pulsing circle
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "#f43f5e";
+                    ctx.fillStyle = "#fda4af";
+                    ctx.beginPath();
+                    ctx.arc(px, py, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (p.emoji === "✨" || p.emoji === "⭐") {
+                    // Draw glowing golden star/diamond shape
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "#eab308";
+                    ctx.fillStyle = "#fef08a";
+                    ctx.beginPath();
+                    ctx.moveTo(px, py - 8);
+                    ctx.lineTo(px + 4, py - 2);
+                    ctx.lineTo(px + 10, py);
+                    ctx.lineTo(px + 4, py + 2);
+                    ctx.lineTo(px, py + 8);
+                    ctx.lineTo(px - 4, py + 2);
+                    ctx.lineTo(px - 10, py);
+                    ctx.lineTo(px - 4, py - 2);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (p.emoji === "💀") {
+                    // Draw dark soul particles
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "#7c3aed";
+                    ctx.fillStyle = "#c084fc";
+                    ctx.beginPath();
+                    ctx.arc(px, py, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (p.emoji === "💰") {
+                    // Draw shiny yellow coin circles
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "#fbbf24";
+                    ctx.fillStyle = "#fbbf24";
+                    ctx.beginPath();
+                    ctx.arc(px, py, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = "#b45309";
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                } else {
+                    // Fallback to text emojis for other particles
+                    ctx.font = "20px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(p.emoji, px, py);
+                }
+                
                 ctx.restore();
             });
             
