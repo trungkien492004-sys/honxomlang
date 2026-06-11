@@ -364,7 +364,7 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
     ctx.restore();
 };
 
-window.switchScreenState = function(sId) {
+window.switchScreen = function(sId) {
     window.currentScreen = sId;
     if (typeof window.switchScreen === 'function') {
         window.switchScreen(sId);
@@ -435,7 +435,7 @@ auth.onAuthStateChanged(async (user) => {
         
         window.currentFirebaseUser = null;
         window._cloudSaveEnabled = false;
-        window.switchScreenState('loginScreen');
+        window.switchScreen('loginScreen');
     }
 });
 
@@ -570,7 +570,7 @@ window.loginWithGoogle = async function() {
 };
 
 window.openServerSelection = function() {
-    window.switchScreenState('serverScreen');
+    window.switchScreen('serverScreen');
 };
 
 window.selectServer = async function(serverId) {
@@ -584,7 +584,7 @@ window.selectServer = async function(serverId) {
 
 // ── Màn hình Chọn Nhân Vật (3 Slots) ─────────────────────────
 window.openCharacterSelection = async function(user) {
-    window.switchScreenState('characterSelectScreen');
+    window.switchScreen('characterSelectScreen');
     
     const container = document.getElementById('characterSlotsContainer');
     container.innerHTML = '<div style="color:#94a3b8; width:100%; text-align:center;">Đang tải dữ liệu Cloud...</div>';
@@ -659,7 +659,7 @@ window.selectExistingCharacter = function(docId, data) {
     _fbToast(`☁️ Tải save: ${data.name} Lv.${data.level}`, '#fbbf24');
     
     // Hide screens and start the game!
-    window.switchScreenState('gameScreen');
+    window.switchScreen('gameScreen');
     
     if (typeof spawnInitialMonsters === 'function') spawnInitialMonsters();
     if (typeof mainGameLoop === 'function') requestAnimationFrame(mainGameLoop);
@@ -680,7 +680,7 @@ window.createNewCharacter = function(docId) {
     }
     
     // Chuyển thẳng sang classScreen (Bỏ qua loginScreen)
-    window.switchScreenState('classScreen');
+    window.switchScreen('classScreen');
     
     // Ẩn nút Google vì đã login rồi
     const btnGoogle = document.querySelector('.btn-google');
