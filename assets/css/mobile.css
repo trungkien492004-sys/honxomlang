@@ -65,18 +65,32 @@
 }
 
 @media (max-width: 1024px) {
-    /* Mở Hamburger & Joystick */
+    /* Mở Hamburger, ẩn hoàn toàn Joystick để dùng chạm để đi */
     #mobileMenuToggle { display: flex; }
-    #joystickZone { display: flex; }
+    #joystickZone { display: none !important; }
     
     /* Thu gọn Top HUD */
-    .top-hud { transform: scale(0.85); transform-origin: top left; top: 5px; left: 5px; }
+    .top-hud { transform: scale(0.75); transform-origin: top left; top: 5px; left: 5px; }
     
     /* Thu gọn Minimap & Nút tiện ích */
-    #minimap { width: 90px; height: 90px; }
-    .right-top-box { right: 5px; top: 5px; width: 90px; gap: 4px; }
-    .right-top-box .btn-sm { font-size: 0.65rem; padding: 4px; }
-    #mobileMenuToggle { right: 105px; top: 5px; } /* Cạnh Minimap mới */
+    #minimap { width: 75px; height: 75px; }
+    .right-top-box { right: 5px; top: 5px; width: 75px; gap: 4px; }
+    .right-top-box .btn-sm { font-size: 0.6rem; padding: 3px; }
+    #mobileMenuToggle { right: 90px; top: 5px; } /* Cạnh Minimap mới */
+    
+    /* Thu nhỏ Toasts để nhìn map tốt hơn */
+    #toastContainer {
+        top: 60px !important;
+        left: 10px !important;
+        transform: scale(0.75) !important;
+        transform-origin: top left !important;
+        gap: 3px !important;
+    }
+    .toast {
+        width: 220px !important;
+        font-size: 0.75rem !important;
+        padding: 5px 10px !important;
+    }
     
     /* Biến Bottom HUD thành Dropdown Menu */
     .bottom-hud {
@@ -87,22 +101,22 @@
         background: rgba(15,15,35,0.95);
         border: 2px solid rgba(255,215,0,0.3);
         border-radius: 12px;
-        padding: 10px;
+        padding: 8px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         display: none;
-        width: 200px;
+        width: 180px;
         z-index: 45;
     }
     #hudNavContainer {
         display: none;
         flex-direction: column;
         width: 100%;
-        gap: 8px;
+        gap: 6px;
     }
     #hudNavContainer.open { display: flex; }
     .bottom-hud:has(#hudNavContainer.open) { display: block; }
     
-    .nav-btn { width: 100%; text-align: left; padding: 12px 10px; font-size: 0.95rem; justify-content: flex-start; }
+    .nav-btn { width: 100%; text-align: left; padding: 8px 10px; font-size: 0.8rem; justify-content: flex-start; }
     
     /* Hệ thống Kỹ Năng kiểu MOBA */
     .skill-hotbar {

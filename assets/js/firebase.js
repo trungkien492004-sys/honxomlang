@@ -30,6 +30,14 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
     let bob = isMoving ? Math.sin(tick) * 4 * scale : Math.sin(Date.now() / 400) * 1.5 * scale;
     let legSwing = isMoving ? Math.sin(tick) * 8 * scale : 0;
     
+    // Outlines styling
+    const outlineColor = '#0f172a';
+    const outlineWidth = 1.5 * scale;
+    ctx.strokeStyle = outlineColor;
+    ctx.lineWidth = outlineWidth;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
     // 1. Soft Shadow
     ctx.beginPath();
     ctx.ellipse(x, y + 30 * scale, 18 * scale, 6 * scale, 0, 0, Math.PI * 2);
@@ -44,18 +52,25 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
     if (isMoving) {
         // Left foot
         ctx.beginPath();
-        ctx.arc(x - 8 * scale + legSwing, cy + 28 * scale, 5 * scale, 0, Math.PI * 2);
+        ctx.arc(x - 8 * scale + legSwing, cy + 28 * scale, 5.5 * scale, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
         // Right foot
         ctx.beginPath();
-        ctx.arc(x + 8 * scale - legSwing, cy + 28 * scale, 5 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 8 * scale - legSwing, cy + 28 * scale, 5.5 * scale, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
     } else {
         // Standing feet
         ctx.beginPath();
-        ctx.arc(x - 7 * scale, cy + 28 * scale, 5 * scale, 0, Math.PI * 2);
-        ctx.arc(x + 7 * scale, cy + 28 * scale, 5 * scale, 0, Math.PI * 2);
+        ctx.arc(x - 7 * scale, cy + 28 * scale, 5.5 * scale, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(x + 7 * scale, cy + 28 * scale, 5.5 * scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
     }
     
     // 3. Body / Outfit
@@ -75,36 +90,101 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
         detailColor = '#fbbf24'; // Yellow shirt
     }
     
+    // Draw Body Outfit
     ctx.fillStyle = outfitColor;
     ctx.beginPath();
     ctx.roundRect(x - 12 * scale, cy + 8 * scale, 24 * scale, 18 * scale, 6 * scale);
     ctx.fill();
+    ctx.stroke();
     
-    // Body details
+    // Body details / Accessories
     ctx.fillStyle = detailColor;
     if (classId === 'cop') {
+        // Gold Badge
         ctx.beginPath();
-        ctx.arc(x + (faceDirection === 'left' ? -4 : 4) * scale, cy + 13 * scale, 3 * scale, 0, Math.PI * 2);
+        ctx.arc(x + (faceDirection === 'left' ? -5 : 5) * scale, cy + 13 * scale, 3.5 * scale, 0, Math.PI * 2);
         ctx.fill();
-    } else if (classId === 'teacher') {
+        ctx.stroke();
+        
+        // Police Belt
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x - 12 * scale, cy + 21 * scale, 24 * scale, 3 * scale);
+        ctx.fillStyle = '#fbbf24'; // Golden buckle
+        ctx.fillRect(x - 2 * scale, cy + 20 * scale, 4 * scale, 5 * scale);
+        
+        // Gun Holster
+        ctx.fillStyle = '#78350f';
         ctx.beginPath();
-        ctx.arc(x, cy + 10 * scale, 3 * scale, 0, Math.PI * 2);
+        ctx.roundRect(x + (faceDirection === 'left' ? 9 : -12) * scale, cy + 16 * scale, 4 * scale, 7 * scale, 1 * scale);
+        ctx.fill();
+        ctx.stroke();
+    } else if (classId === 'teacher') {
+        // Pink Ribbon Collar
+        ctx.fillStyle = '#ffffff'; // White collar first
+        ctx.beginPath();
+        ctx.moveTo(x - 4 * scale, cy + 8 * scale);
+        ctx.lineTo(x, cy + 12 * scale);
+        ctx.lineTo(x + 4 * scale, cy + 8 * scale);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.fillStyle = '#f472b6'; // Pink ribbon
+        ctx.beginPath();
+        ctx.arc(x, cy + 11 * scale, 3 * scale, 0, Math.PI * 2);
         ctx.fill();
     } else if (classId === 'merchant') {
+        // Gold Buttons
+        ctx.fillStyle = '#fbbf24';
         ctx.beginPath();
         ctx.arc(x, cy + 12 * scale, 2 * scale, 0, Math.PI * 2);
-        ctx.arc(x, cy + 17 * scale, 2 * scale, 0, Math.PI * 2);
+        ctx.arc(x, cy + 18 * scale, 2 * scale, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Coin Bag hanging at the side
+        ctx.fillStyle = '#b45309';
+        let bx = x + (faceDirection === 'left' ? 8 : -11) * scale;
+        ctx.beginPath();
+        ctx.arc(bx, cy + 20 * scale, 4.5 * scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fbbf24'; // Gold ribbon tie
+        ctx.fillRect(bx - 2 * scale, cy + 15 * scale, 4 * scale, 1.5 * scale);
     } else if (classId === 'engineer') {
+        // Straps
         ctx.fillStyle = '#4b5563';
-        ctx.fillRect(x - 8 * scale, cy + 8 * scale, 3 * scale, 6 * scale);
-        ctx.fillRect(x + 5 * scale, cy + 8 * scale, 3 * scale, 6 * scale);
+        ctx.fillRect(x - 8 * scale, cy + 8 * scale, 3 * scale, 8 * scale);
+        ctx.fillRect(x + 5 * scale, cy + 8 * scale, 3 * scale, 8 * scale);
+        ctx.strokeRect(x - 8 * scale, cy + 8 * scale, 3 * scale, 8 * scale);
+        ctx.strokeRect(x + 5 * scale, cy + 8 * scale, 3 * scale, 8 * scale);
+        
+        // Wrench tool in pocket
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 1.8 * scale;
+        let wx = x + (faceDirection === 'left' ? 7 : -9) * scale;
+        ctx.beginPath();
+        ctx.moveTo(wx, cy + 14 * scale);
+        ctx.lineTo(wx, cy + 23 * scale);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(wx, cy + 14 * scale, 2 * scale, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = outlineWidth; // Restore
+        ctx.strokeStyle = outlineColor;
     }
     
     // 4. Head
     ctx.fillStyle = '#ffedd5'; // Light peach skin tone
     ctx.beginPath();
-    ctx.arc(x, cy - 6 * scale, 15 * scale, 0, Math.PI * 2);
+    ctx.arc(x, cy - 6 * scale, 15.5 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Blushing Cheeks (Cute detail)
+    ctx.fillStyle = 'rgba(244, 63, 94, 0.35)';
+    ctx.beginPath();
+    ctx.arc(x - 7 * scale, cy - 3 * scale, 3.2 * scale, 0, Math.PI * 2);
+    ctx.arc(x + 7 * scale, cy - 3 * scale, 3.2 * scale, 0, Math.PI * 2);
     ctx.fill();
     
     // 5. Hair & Headwear
@@ -112,77 +192,116 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
     if (classId === 'cop') {
         ctx.fillStyle = '#7c2d12'; // Red-brown hair
         ctx.beginPath();
-        ctx.arc(x, cy - 10 * scale, 16 * scale, Math.PI, 0); // Hair top
+        ctx.arc(x, cy - 9 * scale, 16.5 * scale, Math.PI, 0); // Hair top
         ctx.fill();
+        ctx.stroke();
         
         // Police Cap
         ctx.fillStyle = '#1e3a8a';
         ctx.beginPath();
-        ctx.arc(x, cy - 11 * scale, 15 * scale, Math.PI * 1.15, Math.PI * 1.85);
-        ctx.lineTo(x + (faceDirection === 'left' ? -20 : 20) * scale, cy - 13 * scale);
+        ctx.arc(x, cy - 11 * scale, 15.5 * scale, Math.PI * 1.15, Math.PI * 1.85);
+        ctx.lineTo(x + (faceDirection === 'left' ? -20 : 20) * scale, cy - 12.5 * scale);
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
+        
         // Cap badge
         ctx.fillStyle = '#eab308';
         ctx.beginPath();
-        ctx.arc(x + (faceDirection === 'left' ? -4 : 4) * scale, cy - 14 * scale, 3 * scale, 0, Math.PI * 2);
+        ctx.arc(x + (faceDirection === 'left' ? -4 : 4) * scale, cy - 14.5 * scale, 3 * scale, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
     } else if (classId === 'teacher') {
         ctx.fillStyle = '#18181b'; // Black hair
         ctx.beginPath();
-        ctx.arc(x, cy - 7 * scale, 17 * scale, 0, Math.PI * 2);
+        ctx.arc(x, cy - 7 * scale, 17.5 * scale, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillRect(x - 17 * scale, cy - 7 * scale, 34 * scale, 20 * scale);
-        ctx.fillStyle = '#ffedd5'; // Redraw face skin
+        ctx.stroke();
+        
+        ctx.fillRect(x - 17.5 * scale, cy - 7 * scale, 35 * scale, 20 * scale);
+        ctx.strokeRect(x - 17.5 * scale, cy - 7 * scale, 35 * scale, 20 * scale);
+        
+        ctx.fillStyle = '#ffedd5'; // Redraw face skin over hair
         ctx.beginPath();
         ctx.arc(x, cy - 4 * scale, 13 * scale, 0, Math.PI * 2);
         ctx.fill();
-        // Bangs
+        
+        // Blushing Cheeks again (for teacher layered face)
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.35)';
+        ctx.beginPath();
+        ctx.arc(x - 6 * scale, cy - 1 * scale, 3 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 6 * scale, cy - 1 * scale, 3 * scale, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hair Bangs
         ctx.fillStyle = '#18181b';
         ctx.beginPath();
         ctx.arc(x, cy - 10 * scale, 15 * scale, Math.PI * 1.1, Math.PI * 1.9);
         ctx.closePath();
         ctx.fill();
-        // Red bow
+        ctx.stroke();
+        
+        // Red Bow
         ctx.fillStyle = '#dc2626';
         ctx.beginPath();
         ctx.ellipse(x - 12 * scale, cy - 18 * scale, 6 * scale, 4 * scale, Math.PI/4, 0, Math.PI*2);
         ctx.ellipse(x + 12 * scale, cy - 18 * scale, 6 * scale, 4 * scale, -Math.PI/4, 0, Math.PI*2);
         ctx.fill();
+        ctx.stroke();
     } else if (classId === 'merchant') {
         ctx.fillStyle = '#eab308'; // Blonde hair
         ctx.beginPath();
-        ctx.arc(x - 5 * scale, cy - 5 * scale, 14 * scale, 0, Math.PI*2);
-        ctx.arc(x + 5 * scale, cy - 5 * scale, 14 * scale, 0, Math.PI*2);
+        ctx.arc(x - 5 * scale, cy - 5 * scale, 14.5 * scale, 0, Math.PI*2);
+        ctx.arc(x + 5 * scale, cy - 5 * scale, 14.5 * scale, 0, Math.PI*2);
         ctx.fill();
+        ctx.stroke();
+        
         // Brown hat
         ctx.fillStyle = '#78350f';
         ctx.beginPath();
-        ctx.ellipse(x, cy - 14 * scale, 20 * scale, 4 * scale, 0, 0, Math.PI * 2); // Brim
+        ctx.ellipse(x, cy - 14 * scale, 20 * scale, 4.5 * scale, 0, 0, Math.PI * 2); // Brim
         ctx.fill();
+        ctx.stroke();
+        
         ctx.beginPath();
         ctx.roundRect(x - 11 * scale, cy - 24 * scale, 22 * scale, 11 * scale, 4 * scale); // Crown
         ctx.fill();
+        ctx.stroke();
+        
+        // Hatband
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(x - 10.5 * scale, cy - 16 * scale, 21 * scale, 2.5 * scale);
     } else if (classId === 'engineer') {
         ctx.fillStyle = '#27272a'; // Black hair
         ctx.beginPath();
-        ctx.arc(x, cy - 7 * scale, 16 * scale, Math.PI, 0);
+        ctx.arc(x, cy - 7 * scale, 16.5 * scale, Math.PI, 0);
         ctx.fill();
+        ctx.stroke();
+        
         // Helmet
-        ctx.fillStyle = '#fbbf24'; // Yellow
+        ctx.fillStyle = '#fbbf24'; // Yellow helmet
         ctx.beginPath();
-        ctx.arc(x, cy - 12 * scale, 15 * scale, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.arc(x, cy - 12 * scale, 15.5 * scale, Math.PI * 1.15, Math.PI * 1.85);
         ctx.lineTo(x + 18 * scale, cy - 12 * scale);
         ctx.lineTo(x - 18 * scale, cy - 12 * scale);
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
+        
         // Goggles on helmet
         ctx.fillStyle = '#1e293b';
-        ctx.fillRect(x - 10 * scale, cy - 10 * scale, 20 * scale, 4 * scale);
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillRect(x - 8 * scale, cy - 9 * scale, 7 * scale, 3 * scale);
-        ctx.fillRect(x + 1 * scale, cy - 9 * scale, 7 * scale, 3 * scale);
+        ctx.fillRect(x - 10 * scale, cy - 10 * scale, 20 * scale, 4.5 * scale);
+        ctx.strokeRect(x - 10 * scale, cy - 10 * scale, 20 * scale, 4.5 * scale);
+        ctx.fillStyle = '#38bdf8'; // Blue glass
+        ctx.fillRect(x - 8 * scale, cy - 9.5 * scale, 7 * scale, 3 * scale);
+        ctx.fillRect(x + 1 * scale, cy - 9.5 * scale, 7 * scale, 3 * scale);
     }
+    
+    // Hair Highlights (adds quality and depth)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.beginPath();
+    ctx.arc(x - 3 * scale, cy - 18 * scale, 4 * scale, 0, Math.PI * 2);
+    ctx.fill();
     
     // 6. Eyes & Face expression
     let eyeOffsetX = (faceDirection === 'left' ? -4 : 4) * scale;
@@ -201,24 +320,45 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
         ctx.moveTo(x + eyeOffsetX + eyeSpacing - 2*scale, cy - 6 * scale);
         ctx.lineTo(x + eyeOffsetX + eyeSpacing + 2*scale, cy - 6 * scale);
         ctx.stroke();
+        ctx.lineWidth = outlineWidth; // Restore
+        ctx.strokeStyle = outlineColor;
     } else {
         ctx.beginPath();
         ctx.arc(x + eyeOffsetX - eyeSpacing, cy - 6 * scale, 3.5 * scale, 0, Math.PI * 2);
         ctx.arc(x + eyeOffsetX + eyeSpacing, cy - 6 * scale, 3.5 * scale, 0, Math.PI * 2);
         ctx.fill();
-        // Eye sparkles
+        
+        // White pupil sparkle
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(x + eyeOffsetX - eyeSpacing - 1 * scale, cy - 7 * scale, 1 * scale, 0, Math.PI * 2);
-        ctx.arc(x + eyeOffsetX + eyeSpacing - 1 * scale, cy - 7 * scale, 1 * scale, 0, Math.PI * 2);
+        ctx.arc(x + eyeOffsetX - eyeSpacing - 1 * scale, cy - 7.5 * scale, 1 * scale, 0, Math.PI * 2);
+        ctx.arc(x + eyeOffsetX + eyeSpacing - 1 * scale, cy - 7.5 * scale, 1 * scale, 0, Math.PI * 2);
         ctx.fill();
+    }
+    
+    // Intellect Glasses for Teacher
+    if (classId === 'teacher') {
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.2 * scale;
+        ctx.beginPath();
+        ctx.arc(x + eyeOffsetX - eyeSpacing, cy - 5.5 * scale, 5 * scale, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(x + eyeOffsetX + eyeSpacing, cy - 5.5 * scale, 5 * scale, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath(); // Bridge
+        ctx.moveTo(x + eyeOffsetX - eyeSpacing + 5 * scale, cy - 5.5 * scale);
+        ctx.lineTo(x + eyeOffsetX + eyeSpacing - 5 * scale, cy - 5.5 * scale);
+        ctx.stroke();
+        ctx.lineWidth = outlineWidth; // Restore
+        ctx.strokeStyle = outlineColor;
     }
     
     // Mouth (Smile)
     ctx.strokeStyle = '#991b1b';
     ctx.lineWidth = 1.5 * scale;
     ctx.beginPath();
-    ctx.arc(x + eyeOffsetX, cy - 2 * scale, 2.5 * scale, 0, Math.PI);
+    ctx.arc(x + eyeOffsetX, cy - 1 * scale, 2.5 * scale, 0, Math.PI);
     ctx.stroke();
     
     ctx.restore();

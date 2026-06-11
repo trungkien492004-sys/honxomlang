@@ -152,6 +152,27 @@ window.generateMapDecorations = function(mapId) {
             }
         }
 
+        // Composed Buildings around BUILDING_ENTRANCES
+        const villageBuildings = [
+            { x: 1800, y: 1600, name: "Ủy Ban Xã" },
+            { x: 2000, y: 1600, name: "Trường Học" },
+            { x: 2200, y: 1600, name: "Trạm Công An" },
+            { x: 2300, y: 1550, name: "Lò Rèn" },
+            { x: 2500, y: 1550, name: "Đình Làng" }
+        ];
+        villageBuildings.forEach((ent, idx) => {
+            // Walls (placed slightly behind door Y, sorting will draw them first)
+            addDecoration('wall_a', ent.x - 38, ent.y - 10, 1.1);
+            addDecoration('wall_b', ent.x + 38, ent.y - 10, 1.1);
+            // Roof (placed higher up)
+            let roofType = (idx % 2 === 0) ? 'roof_a' : 'roof_b';
+            addDecoration(roofType, ent.x, ent.y - 45, 1.1);
+            // Chimney
+            addDecoration('chimney', ent.x + 40, ent.y - 75, 1.1);
+            // Door (placed at front, ent.y)
+            addDecoration(idx % 2 === 0 ? 'door' : 'wide_door', ent.x, ent.y, 1.1);
+        });
+
         // Forge area (blacksmith at 2300, 1600)
         addDecoration('barrel', 2260, 1610, 1.1);
         addDecoration('crate', 2240, 1590, 1.1);
@@ -208,6 +229,18 @@ window.generateMapDecorations = function(mapId) {
         addDecoration('crate', 180, 200, 1.1);
         addDecoration('chimney', 500, 150, 1.4);
     }
+    
+    // Group all decorations into 500x500 chunks
+    window.mapDecorationsChunks = {};
+    window.mapDecorations.forEach(dec => {
+        let cx = Math.floor(dec.x / DECORATION_CHUNK_SIZE);
+        let cy = Math.floor(dec.y / DECORATION_CHUNK_SIZE);
+        let key = `${cx},${cy}`;
+        if (!window.mapDecorationsChunks[key]) {
+            window.mapDecorationsChunks[key] = [];
+        }
+        window.mapDecorationsChunks[key].push(dec);
+    });
 };
 
 function addDecoration(type, x, y, scale = 1.0) {
@@ -246,6 +279,18 @@ function addDecoration(type, x, y, scale = 1.0) {
     } else if (type === 'stump') {
         w = 50; h = 45;
         pivotX = 25; pivotY = 38;
+    } else if (type.includes('wall')) {
+        w = 100; h = 100;
+        pivotX = 50; pivotY = 90;
+    } else if (type.includes('roof')) {
+        w = 180; h = 120;
+        pivotX = 90; pivotY = 110;
+    } else if (type.includes('door')) {
+        w = 50; h = 70;
+        pivotX = 25; pivotY = 65;
+    } else if (type.includes('chimney')) {
+        w = 35; h = 60;
+        pivotX = 17; pivotY = 55;
     }
     
     window.mapDecorations.push({
@@ -259,6 +304,10 @@ function addDecoration(type, x, y, scale = 1.0) {
         pivotY: pivotY * scale
     });
 }
+
+// Pre-chunking size variable
+const DECORATION_CHUNK_SIZE = 500;
+window.mapDecorationsChunks = {};
 
 // Render a single decoration
 window.drawDecoration = function(ctx, dec, camera) {

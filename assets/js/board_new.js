@@ -1,5 +1,6 @@
 // ===== 🏁 BOARD_NEW.JS — Cờ Đua Sinh Tồn v4.0 (Yu-Gi-Oh Style) =====
 'use strict';
+var boardGame = null;
 
 const RACE_DICE_EMOJIS = ['⚀','⚁','⚂','⚃','⚄','⚅'];
 const RACE_PLAYER_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b'];
@@ -509,4 +510,114 @@ window.startBoardGameNoBet = function() {
     audio.play('click');
     closeBetModal();
     openBoardGame(false);
+};
+
+window.boardAddLog = function(text, type) {
+    if(!boardGame) return;
+    boardGame.log.push({ text, type });
+    if(boardGame.log.length > 24) boardGame.log.shift();
+    let logEl = document.getElementById('boardLog');
+    if(!logEl) return;
+    logEl.innerHTML = boardGame.log.map(l => `<p class="${l.type||''}">${l.text}</p>`).join('');
+    logEl.scrollTop = logEl.scrollHeight;
+};
+
+window.boardIsMyTurn = function() {
+    if(!boardGame || boardGame.gameOver) return false;
+    let cur = boardGame.players[boardGame.currentTurn];
+    if(!cur) return false;
+    if(boardGame.pvp) return cur.networkId === myNetworkId;
+    return !!cur.isHuman;
+};
+
+window.boardUpdateRollBtn = function() {
+    let btn = document.getElementById('rollDiceBtn');
+    if(!btn || !boardGame) return;
+    let isMyTurn = window.boardIsMyTurn();
+    btn.disabled = boardGame.isRolling || boardGame.gameOver || !isMyTurn;
+    btn.textContent = boardGame.gameOver ? '🏁 Ván đã kết thúc' : isMyTurn ? '🎲 Tung Xúc Xắc' : '⏳ Chờ đối thủ...';
+};
+
+window.boardRollDice = function() {
+    if(!boardGame || boardGame.isRolling || boardGame.gameOver) return;
+    let cur = boardGame.players[boardGame.currentTurn];
+    if(!cur || !window.boardIsMyTurn()) return;
+    if(boardGame.pvp && boardGame.hostId !== myNetworkId) {
+        if(typeof pvpChannel !== 'undefined') {
+            pvpChannel.postMessage({ type: 'BOARD_ROLL_REQUEST', id: myNetworkId, hostId: boardGame.hostId });
+        }
+        boardGame.isRolling = true;
+        window.boardUpdateRollBtn();
+        return;
+    }
+    window.boardRollForCurrentPlayer();
+};
+
+window.boardRollForCurrentPlayer = function() {
+    let cur = boardGame.players[boardGame.currentTurn];
+    if(!cur) return;
+    boardGame.isRolling = true;
+    window.boardUpdateRollBtn();
+    window.boardDoRollAnimation(cur, () => {
+        boardGame.isRolling = false;
+        if(cur.lastRoll === 6 && !boardGame.gameOver && !cur.eliminated) {
+            window.boardAddLog(`⭐ ${cur.name} tung 6, được thêm lượt!`, 'special');
+            window.boardRenderPlayers();
+        } else {
+            window.boardNextTurn();
+        }
+        window.boardUpdateRollBtn();
+        window.boardBroadcastState('state');
+    });
+};
+
+window.boardBroadcastState = function(kind) {
+    if(!boardGame || !boardGame.pvp || boardGame.hostId !== myNetworkId) return;
+    if(typeof pvpChannel !== 'undefined') {
+        pvpChannel.postMessage({
+            type: kind === 'start' ? 'BOARD_PVP_START' : 'BOARD_PVP_STATE',
+            id: myNetworkId,
+            hostId: myNetworkId,
+            targetIds: boardGame.players.map(p => p.networkId).filter(Boolean),
+            boardGame: JSON.parse(JSON.stringify(boardGame)),
+            cardHtml: document.getElementById('boardCardDisplay')?.innerHTML || '',
+            diceText: document.getElementById('diceResultText')?.textContent || ''
+        });
+    }
+};
+
+window.boardApplyNetworkState = function(msg) {
+    if(!msg.boardGame || !msg.targetIds?.includes(myNetworkId)) return;
+    boardGame = msg.boardGame;
+    boardGame.players.forEach((p, idx) => {
+        p.idx = idx;
+        p.isHuman = p.networkId === myNetworkId;
+        p.isBot = false;
+    });
+    boardGame.isRolling = false;
+    document.getElementById('boardGameModal').classList.add('active');
+    if(msg.cardHtml) document.getElementById('boardCardDisplay').innerHTML = msg.cardHtml;
+    if(msg.diceText) document.getElementById('diceResultText').textContent = msg.diceText;
+    window.boardRenderGrid();
+    window.boardRenderPlayers();
+    window.boardUpdateRollBtn();
+};
+
+window.boardSwapNearest = function(p) {
+    if(!boardGame) return 'Lỗi game';
+    let nearest = null; let minDist = Infinity;
+    boardGame.players.forEach((pl,i) => {
+        if(i !== p.idx && !pl.eliminated) { 
+            let d = Math.abs((pl.pos || 0) - (p.pos || 0)); 
+            if(d < minDist) { minDist = d; nearest = pl; } 
+        }
+    });
+    if(nearest) {
+        let tmp = p.pos;
+        p.pos = nearest.pos;
+        nearest.pos = tmp;
+        window.boardRenderGrid();
+        return `Đổi vị trí với ${nearest.name}.`;
+    }
+    return 'Không có ai để đổi.';
 };

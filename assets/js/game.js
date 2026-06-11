@@ -158,7 +158,24 @@
             ar_iron:   { id: "ar_iron", name: "Giáp Sắt Cự Thần", emoji: "🛡️", type: "armor", atk: 0, def: 14, hp: 80, price: 200 },
             
             // Accessories
-            ac_ring:   { id: "ac_ring", name: "Nhẫn Ngọc Cẩm Thạch", emoji: "📿", type: "accessory", atk: 5, def: 3, hp: 30, price: 120 }
+            ac_ring:   { id: "ac_ring", name: "Nhẫn Ngọc Cẩm Thạch", emoji: "📿", type: "accessory", atk: 5, def: 3, hp: 30, price: 120 },
+            
+            // Dungeon Keys
+            key_demon_cave: { id: "key_demon_cave", name: "Chìa Khóa Hang Quỷ", emoji: "🔑", type: "material", desc: "Dùng để mở độ khó cao của Hang Quỷ", price: 150 },
+            key_cemetery: { id: "key_cemetery", name: "Chìa Khóa Nghĩa Địa", emoji: "🔑", type: "material", desc: "Dùng để mở độ khó cao của Nghĩa Địa", price: 150 },
+            key_ghost_forest: { id: "key_ghost_forest", name: "Chìa Khóa Rừng Ma", emoji: "🔑", type: "material", desc: "Dùng để mở độ khó cao của Rừng Ma", price: 150 },
+            key_ancient_temple: { id: "key_ancient_temple", name: "Chìa Khóa Đền Cổ", emoji: "🔑", type: "material", desc: "Dùng để mở độ khó cao của Đền Cổ", price: 150 },
+            key_dungeon: { id: "key_dungeon", name: "Chìa Khóa Hầm Ngục", emoji: "🔑", type: "material", desc: "Dùng để mở độ khó cao của Hầm Ngục Tối", price: 150 },
+            
+            // Epic Items
+            wp_hellfire: { id: "wp_hellfire", name: "Kiếm Ma Địa Ngục", emoji: "🔥", type: "weapon", atk: 60, def: 10, hp: 100, price: 1000 },
+            ar_guardian: { id: "ar_guardian", name: "Giáp Hộ Vệ Hoàng Gia", emoji: "🛡️", type: "armor", atk: 5, def: 25, hp: 200, price: 1200 },
+            ac_phoenix: { id: "ac_phoenix", name: "Dây Chuyền Phượng Hoàng", emoji: "💍", type: "accessory", atk: 15, def: 5, hp: 80, price: 800 },
+            
+            // Legendary Items
+            wp_barlog: { id: "wp_barlog", name: "Rìu Chiến Ma Vương Barlog", emoji: "🪓", type: "weapon", atk: 100, def: 20, hp: 250, price: 3000 },
+            ar_god: { id: "ar_god", name: "Giáp Thần Long Vạn Năng", emoji: "🐉", type: "armor", atk: 20, def: 50, hp: 500, price: 4000 },
+            ac_god_eye: { id: "ac_god_eye", name: "Mắt Thần Vạn Biến", emoji: "👁️", type: "accessory", atk: 35, def: 15, hp: 150, price: 2500 }
         };
 
         const CRAFT_RECIPES = [
@@ -660,15 +677,17 @@
                 refreshHudDisplay();
             }
             else if(msg.type === 'BOARD_PVP_START') {
-                boardApplyNetworkState(msg);
-                showToast('?? ?? v?o ph?ng PvP C? V? ??ch.');
+                if (window.boardApplyNetworkState) window.boardApplyNetworkState(msg);
+                showToast('🎮 Đã vào phòng PvP Cờ Đua.');
             }
             else if(msg.type === 'BOARD_PVP_STATE') {
-                boardApplyNetworkState(msg);
+                if (window.boardApplyNetworkState) window.boardApplyNetworkState(msg);
             }
-            else if(msg.type === 'BOARD_ROLL_REQUEST' && boardGame.pvp && boardGame.hostId === myNetworkId && msg.hostId === myNetworkId) {
-                let cur = boardGame.players[boardGame.currentTurn];
-                if(cur && cur.networkId === msg.id && !boardGame.isRolling && !boardGame.gameOver) boardRollForCurrentPlayer();
+            else if(msg.type === 'BOARD_ROLL_REQUEST' && window.boardGame && window.boardGame.pvp && window.boardGame.hostId === myNetworkId && msg.hostId === myNetworkId) {
+                let cur = window.boardGame.players[window.boardGame.currentTurn];
+                if(cur && cur.networkId === msg.id && !window.boardGame.isRolling && !window.boardGame.gameOver) {
+                    if (window.boardRollForCurrentPlayer) window.boardRollForCurrentPlayer();
+                }
             }
             else if(msg.type === 'CHALLENGE' && msg.targetId === myNetworkId) {
                 audio.play('quest');
@@ -1002,413 +1021,7 @@
         }
 
         // ===== 🏁 BOARD GAME: CỜ ĐUA THẺ BÀI =====
-        const BOARD_TOTAL_CELLS = 40;
-        const BOARD_PIECES_PER_PLAYER = 4;
-        const BOARD_DICE_EMOJIS = ['?','?','?','?','?','?'];
-        const PLAYER_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b'];
-        const PLAYER_EMOJIS = ['??','??','??','??'];
-
-        const MAGIC_CARDS = [
-            { name: "?? Gi? Thu?n", rarity: 'common', desc: "Ti?n th?m 3 ?!", effect: (p) => { boardMovePlayer(p.idx, 3, true); return 'Ti?n th?m 3 ?.'; } },
-            { name: "?? L?c Xo?y", rarity: 'common', desc: "L?i 2 ?!", effect: (p) => { boardMovePlayer(p.idx, -2, true); return 'L?i 2 ?.'; } },
-            { name: "? V?n May", rarity: 'common', desc: "+30 v?ng th??ng!", effect: (p) => { if(p.networkId === myNetworkId || p.isHuman) { player.gold += 30; refreshHudDisplay(); } return 'Nh?n 30 v?ng.'; } },
-            { name: "?? Ng? G?t", rarity: 'common', desc: "M?t l??t ti?p theo!", effect: (p) => { p.skipTurn = true; return 'M?t l??t k? ti?p.'; } },
-            { name: "?? Ho?n V?", rarity: 'common', desc: "??i v? tr? v?i ng??i g?n nh?t!", effect: (p) => boardSwapNearest(p) },
-            { name: "?? Si?u T?c", rarity: 'rare', desc: "Ti?n th?m 10 ?!", effect: (p) => { boardMovePlayer(p.idx, 10, true); return 'Ti?n th?m 10 ?.'; } },
-            { name: "?? Nam Ch?m", rarity: 'rare', desc: "K?o ng??i d?n ??u v? v? tr? b?n!", effect: (p) => boardPullLeader(p) },
-            { name: "??? Mi?n Nhi?m", rarity: 'rare', desc: "Mi?n d?ch hi?u ?ng x?u 2 l??t!", effect: (p) => { p.immune = 2; return 'Mi?n nhi?m 2 l??t.'; } },
-            { name: "?? B?y M?n", rarity: 'rare', desc: "??t b?y ? ? hi?n t?i.", effect: (p) => { boardTrapCell(p.pos); return '?? ??t b?y.'; } },
-            { name: "?? Thi?n M?nh", rarity: 'epic', desc: "Ti?n g?n v? ??ch.", effect: (p) => { if(p.pieces) p.pieces[p.activePiece || 0] = Math.min(38, BOARD_TOTAL_CELLS-2); boardSyncPlayerPos(p); boardRenderGrid(); return 'V?t l?n g?n ??ch.'; } },
-            { name: "?? Thi?n Th?ch", rarity: 'epic', desc: "Ng??i ch?i kh?c l?i 4 ?!", effect: (p) => { boardGame.players.forEach((pl,i) => { if(i!==p.idx && !pl.immune) boardMovePlayer(i,-4,true); }); return 'T?t c? ??i th? l?i 4 ?.'; } },
-            { name: "?? B?nh Y?n", rarity: 'epic', desc: "Kh?ng c? bi?n c?.", effect: () => 'L??t n?y b?nh y?n.' },
-        ];
-
-        const BOARD_SPECIALS = {};
-
-        let boardGame = {
-            players: [],
-            currentTurn: 0,
-            isRolling: false,
-            trappedCells: {},
-            log: [],
-            gameOver: false,
-            pvp: false,
-            hostId: null
-        };
-
-        function createBoardPlayer({ idx, name, networkId = null, isLocal = false, isBot = false, classId = null }) {
-            return {
-                idx,
-                name,
-                networkId,
-                pos: -1,
-                pieces: [-1,-1,-1,-1],
-                activePiece: 0,
-                finished: 0,
-                color: PLAYER_COLORS[idx] || PLAYER_COLORS[0],
-                emoji: isBot ? PLAYER_EMOJIS[idx] : (CLASS_DATA[classId || player.classId]?.emoji || PLAYER_EMOJIS[idx] || '??'),
-                isHuman: isLocal,
-                isBot,
-                skipTurn: false,
-                immune: 0
-            };
-        }
-
-        function openBoardGame(pvpMode = false) {
-            audio.play('click');
-            boardGame = { players: [], currentTurn: 0, isRolling: false, trappedCells: {}, log: [], gameOver: false, pvp: !!pvpMode, hostId: pvpMode ? myNetworkId : null };
-            boardGame.players.push(createBoardPlayer({ idx: 0, name: player.name, networkId: myNetworkId, isLocal: true, classId: player.classId }));
-
-            if(pvpMode) {
-                Object.entries(networkPlayers).slice(0, 3).forEach(([id, opp]) => {
-                    boardGame.players.push(createBoardPlayer({ idx: boardGame.players.length, name: opp.name, networkId: id, classId: opp.classId }));
-                });
-                if(boardGame.players.length < 2) {
-                    showToast('?? Ch?a c? ng??i ch?i online ?? PvP c?. M? th?m tab ho?c d?ng th?m Bot.');
-                    boardGame.pvp = false;
-                    boardGame.hostId = null;
-                    boardAddBot();
-                } else {
-                    boardBroadcastState('start');
-                }
-            } else {
-                boardAddBot();
-            }
-
-            boardRenderGrid();
-            boardRenderPlayers();
-            boardUpdateRollBtn();
-            document.getElementById('boardGameModal').classList.add('active');
-            boardAddLog(`${boardGame.pvp ? '?? PvP C? V? ??ch' : '?? C? V? ??ch'} b?t ??u. Tung 6 ?? xu?t qu?n, v? ?? 4 qu?n l? th?ng.`, 'special');
-            boardBroadcastState('state');
-        }
-
-        function closeBoardGame() {
-            document.getElementById('boardGameModal').classList.remove('active');
-        }
-
-        function boardAddBot() {
-            if(boardGame.pvp) { showToast('?? ?ang ? ch? ?? PvP c?, kh?ng th?m Bot.'); return; }
-            if(boardGame.players.length >= 4) { showToast('?? T?i ?a 4 ng??i ch?i!'); return; }
-            let idx = boardGame.players.length;
-            let botNames = ['Bot Tr? Tu?', 'Bot M?y M?c', 'Bot S?t'];
-            boardGame.players.push(createBoardPlayer({ idx, name: botNames[idx-1] || `Bot ${idx}`, isBot: true }));
-            boardRenderPlayers();
-            boardAddLog(`?? ${botNames[idx-1]||'Bot'} tham gia!`);
-        }
-
-        function boardRenderGrid() {
-            let grid = document.getElementById('boardGrid');
-            grid.innerHTML = '';
-            let rows = [];
-            for(let r = 0; r < 4; r++) {
-                let row = [];
-                for(let c = 0; c < 10; c++) row.push(r * 10 + c + 1);
-                if(r % 2 === 1) row.reverse();
-                rows.push(row);
-            }
-            rows.reverse();
-            rows.forEach(row => {
-                row.forEach(cellNum => {
-                    let realIdx = cellNum - 1;
-                    let div = document.createElement('div');
-                    div.className = 'board-cell' + (cellNum === 1 ? ' start' : '');
-                    div.id = `bcell_${realIdx}`;
-                    let tokens = boardGame.players.flatMap(p => (p.pieces || [p.pos]).map((pos, pieceIdx) => pos === realIdx ? `<div class="token" style="background:${p.color};" title="${p.name} - qu?n ${pieceIdx+1}"></div>` : '')).join('');
-                    let trapped = boardGame.trappedCells[realIdx] ? '??' : '';
-                    div.innerHTML = `<span class="cell-num">${cellNum}</span><span class="cell-emoji">${cellNum===1?'??':(cellNum===40?'??':trapped)}</span><div class="cell-tokens">${tokens}</div>`;
-                    grid.appendChild(div);
-                });
-            });
-        }
-
-        function boardRenderPlayers() {
-            let container = document.getElementById('boardPlayersContainer');
-            container.innerHTML = boardGame.players.map((p,i) => `
-                <div class="board-player-row ${i===boardGame.currentTurn&&!boardGame.gameOver?'current':''}">
-                    <span style="font-size:1.2rem;">${p.emoji}</span>
-                    <div style="flex:1;">
-                        <div style="font-size:0.78rem;font-weight:700;color:${p.color};">${p.name} ${i===boardGame.currentTurn?'? L??t':''}${p.skipTurn?' ??':''}</div>
-                        <div style="font-size:0.7rem;color:#888;">Chu?ng: ${(p.pieces||[]).filter(x=>x<0).length} ? ???ng: ${(p.pieces||[]).filter(x=>x>=0&&x<BOARD_TOTAL_CELLS-1).length} ? ??ch: ${p.finished||0}/${BOARD_PIECES_PER_PLAYER}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function boardIsMyTurn() {
-            let cur = boardGame.players[boardGame.currentTurn];
-            if(!cur) return false;
-            if(boardGame.pvp) return cur.networkId === myNetworkId;
-            return !!cur.isHuman;
-        }
-
-        function boardUpdateRollBtn() {
-            let btn = document.getElementById('rollDiceBtn');
-            if(!btn) return;
-            let isMyTurn = boardIsMyTurn();
-            btn.disabled = boardGame.isRolling || boardGame.gameOver || !isMyTurn;
-            btn.textContent = boardGame.gameOver ? '?? V?n ?? k?t th?c' : isMyTurn ? '?? Tung X?c X?c' : '? Ch? ??i th?...';
-        }
-
-        function boardRollDice() {
-            if(boardGame.isRolling || boardGame.gameOver) return;
-            let cur = boardGame.players[boardGame.currentTurn];
-            if(!cur || !boardIsMyTurn()) return;
-            if(boardGame.pvp && boardGame.hostId !== myNetworkId) {
-                pvpChannel.postMessage({ type: 'BOARD_ROLL_REQUEST', id: myNetworkId, hostId: boardGame.hostId });
-                boardGame.isRolling = true;
-                boardUpdateRollBtn();
-                return;
-            }
-            boardRollForCurrentPlayer();
-        }
-
-        function boardRollForCurrentPlayer() {
-            let cur = boardGame.players[boardGame.currentTurn];
-            if(!cur) return;
-            boardGame.isRolling = true;
-            boardUpdateRollBtn();
-            boardDoRollAnimation(cur, () => {
-                boardGame.isRolling = false;
-                if(!boardGame.gameOver && cur.lastRoll === 6) {
-                    boardAddLog(`?? ${cur.name} tung 6, ???c th?m l??t!`, 'special');
-                    boardRenderPlayers();
-                } else {
-                    boardNextTurn();
-                }
-                boardUpdateRollBtn();
-                boardBroadcastState('state');
-            });
-        }
-
-        function boardDoRollAnimation(boardPlayer, callback) {
-            let diceEl = document.getElementById('diceDisplay');
-            let resultEl = document.getElementById('diceResultText');
-            let roll = 1 + Math.floor(Math.random() * 6);
-            let ticks = 0;
-            let interval = setInterval(() => {
-                diceEl.textContent = BOARD_DICE_EMOJIS[Math.floor(Math.random()*6)];
-                diceEl.style.animation = 'none';
-                diceEl.offsetHeight;
-                diceEl.style.animation = 'diceRoll 0.5s ease';
-                ticks++;
-                if(ticks >= 6) {
-                    clearInterval(interval);
-                    diceEl.textContent = BOARD_DICE_EMOJIS[roll-1];
-                    resultEl.textContent = `${boardPlayer.name} tung ???c: ${roll}`;
-                    boardPlayer.lastRoll = roll;
-                    boardProcessTurn(boardPlayer, roll, callback);
-                }
-            }, 100);
-        }
-
-        function boardSyncPlayerPos(p) {
-            let moving = (p.pieces || []).filter(pos => pos >= 0 && pos < BOARD_TOTAL_CELLS - 1);
-            p.pos = moving.length ? Math.max(...moving) : -1;
-            p.finished = (p.pieces || []).filter(pos => pos >= BOARD_TOTAL_CELLS - 1).length;
-        }
-
-        function boardChoosePieceIndex(p, roll) {
-            if(!p.pieces) p.pieces = [p.pos ?? -1, -1, -1, -1];
-            if(roll === 6) {
-                let homeIdx = p.pieces.findIndex(pos => pos < 0);
-                if(homeIdx !== -1) return homeIdx;
-            }
-            let movable = p.pieces
-                .map((pos, idx) => ({ pos, idx }))
-                .filter(piece => piece.pos >= 0 && piece.pos < BOARD_TOTAL_CELLS - 1 && piece.pos + roll <= BOARD_TOTAL_CELLS - 1)
-                .sort((a, b) => b.pos - a.pos);
-            return movable.length ? movable[0].idx : -1;
-        }
-
-        function boardDrawRandomCard(p, reason) {
-            if(boardGame.gameOver || !p) return;
-            let card = MAGIC_CARDS[Math.floor(Math.random() * MAGIC_CARDS.length)];
-            boardSyncPlayerPos(p);
-            let result = card.effect(p);
-            boardSyncPlayerPos(p);
-            let cardHtml = `<div class="drawn-card ${card.rarity !== 'common' ? 'card-' + card.rarity : ''}">
-                <div style="font-size:1.3rem;">${card.name}</div>
-                <div style="font-size:0.78rem;color:#cbd5e1;margin-top:4px;">${card.desc}</div>
-                <div style="font-size:0.72rem;color:#fbbf24;margin-top:2px;">${result}</div>
-            </div>`;
-            document.getElementById('boardCardDisplay').innerHTML = cardHtml;
-            boardAddLog(`?? ${p.name} l?t th? ${reason || 'cu?i l??t'}: ${card.name} - ${result}`, 'card');
-        }
-
-        function boardKickOpponents(currentPlayer, landingPos) {
-            if(landingPos < 0 || landingPos >= BOARD_TOTAL_CELLS - 1) return;
-            boardGame.players.forEach(other => {
-                if(other.idx === currentPlayer.idx || !other.pieces) return;
-                other.pieces.forEach((pos, idx) => {
-                    if(pos === landingPos) {
-                        other.pieces[idx] = -1;
-                        boardSyncPlayerPos(other);
-                        boardAddLog(`?? ${currentPlayer.name} ?? qu?n c?a ${other.name} v? chu?ng!`, 'special');
-                    }
-                });
-            });
-        }
-
-        function boardProcessTurn(p, roll, callback) {
-            if(p.skipTurn) {
-                p.skipTurn = false;
-                boardAddLog(`?? ${p.name} m?t l??t v? ng? g?t!`);
-                boardDrawRandomCard(p, 'sau l??t m?t l??t');
-                if(callback) callback();
-                return;
-            }
-            if(p.immune > 0) p.immune--;
-            if(!p.pieces) p.pieces = [-1,-1,-1,-1];
-            let pieceIdx = boardChoosePieceIndex(p, roll);
-            if(pieceIdx === -1) {
-                boardAddLog(`?? ${p.name} tung ${roll} nh?ng ch?a c? qu?n h?p l? ?? ?i${roll !== 6 ? ' (c?n 6 ?? xu?t chu?ng)' : ''}.`);
-                boardDrawRandomCard(p, 'cu?i l??t');
-                boardRenderGrid();
-                boardRenderPlayers();
-                if(callback) callback();
-                return;
-            }
-            p.activePiece = pieceIdx;
-            if(p.pieces[pieceIdx] < 0) {
-                p.pieces[pieceIdx] = 0;
-                boardAddLog(`?? ${p.name} xu?t qu?n ${pieceIdx + 1}!`, 'special');
-            } else {
-                boardMovePlayer(p.idx, roll, false);
-                boardAddLog(`?? ${p.name} ?i qu?n ${pieceIdx + 1} th?m ${roll} ?.`);
-            }
-            let newPos = p.pieces[pieceIdx];
-            setTimeout(() => {
-                if(boardGame.trappedCells[newPos]) {
-                    delete boardGame.trappedCells[newPos];
-                    if(!p.immune) {
-                        boardAddLog(`?? ${p.name} d?m b?y! L?i 3 ?!`, 'special');
-                        boardMovePlayer(p.idx, -3, true);
-                    } else {
-                        boardAddLog(`??? ${p.name} mi?n nhi?m b?y!`);
-                    }
-                }
-                boardKickOpponents(p, p.pieces[pieceIdx]);
-                boardSyncPlayerPos(p);
-                if((p.finished || 0) >= BOARD_PIECES_PER_PLAYER) {
-                    boardGame.gameOver = true;
-                    let prize = 200;
-                    if(p.networkId === myNetworkId || p.isHuman) { player.gold += prize; refreshHudDisplay(); }
-                    boardAddLog(`?? ${p.name} ??a ?? 4 qu?n v? ??CH! ${p.networkId === myNetworkId || p.isHuman ? '+200 V?ng!' : '??i th? th?ng!'}`, 'special');
-                    document.getElementById('diceResultText').textContent = `?? ${p.name} CHI?N TH?NG!`;
-                    showToast(`?? ${p.name} th?ng C? V? ??ch!`);
-                    audio.play('levelup');
-                } else {
-                    boardDrawRandomCard(p, 'cu?i l??t');
-                }
-                boardRenderGrid();
-                boardRenderPlayers();
-                if(callback) callback();
-            }, 400);
-        }
-
-        function boardMovePlayer(idx, steps, animate) {
-            let p = boardGame.players[idx];
-            if(!p) return;
-            if(!p.pieces) p.pieces = [p.pos ?? -1, -1, -1, -1];
-            let pieceIdx = p.activePiece ?? boardChoosePieceIndex(p, Math.max(0, steps));
-            if(pieceIdx < 0) return;
-            let current = p.pieces[pieceIdx];
-            if(current < 0) return;
-            let next = current + steps;
-            if(next > BOARD_TOTAL_CELLS - 1) return;
-            p.pieces[pieceIdx] = Math.max(0, Math.min(BOARD_TOTAL_CELLS - 1, next));
-            boardSyncPlayerPos(p);
-            if(animate) { boardRenderGrid(); boardRenderPlayers(); }
-        }
-
-        function boardSwapNearest(p) {
-            let nearest = null; let minDist = Infinity;
-            boardGame.players.forEach((pl,i) => {
-                if(i !== p.idx) { let d = Math.abs((pl.pos || 0) - (p.pos || 0)); if(d < minDist) { minDist = d; nearest = pl; } }
-            });
-            if(nearest && nearest.pieces) {
-                let pi = p.activePiece || 0;
-                let ni = nearest.activePiece || 0;
-                let tmp = p.pieces[pi];
-                p.pieces[pi] = nearest.pieces[ni];
-                nearest.pieces[ni] = tmp;
-                boardSyncPlayerPos(p); boardSyncPlayerPos(nearest); boardRenderGrid();
-                return `??i v? tr? v?i ${nearest.name}.`;
-            }
-            return 'Kh?ng c? ai ?? ??i.';
-        }
-
-        function boardPullLeader(p) {
-            let leader = boardGame.players.reduce((a,b) => a.pos > b.pos ? a : b);
-            if(leader.idx === p.idx) return 'B?n ?ang d?n ??u r?i.';
-            if(leader.pieces) leader.pieces[leader.activePiece || 0] = Math.max(0, p.pos);
-            boardSyncPlayerPos(leader);
-            boardRenderGrid();
-            return `K?o ${leader.name} v? ? ${p.pos+1}.`;
-        }
-
-        function boardTrapCell(pos) {
-            if(pos >= 0) boardGame.trappedCells[pos] = true;
-            boardRenderGrid();
-        }
-
-        function boardAddLog(text, type) {
-            boardGame.log.push({ text, type });
-            if(boardGame.log.length > 24) boardGame.log.shift();
-            let logEl = document.getElementById('boardLog');
-            if(!logEl) return;
-            logEl.innerHTML = boardGame.log.map(l => `<p class="${l.type||''}">${l.text}</p>`).join('');
-            logEl.scrollTop = logEl.scrollHeight;
-        }
-
-        function boardRunBotTurn(bot) {
-            setTimeout(() => {
-                if(boardGame.gameOver) return;
-                boardRollForCurrentPlayer();
-            }, 900);
-        }
-
-        function boardNextTurn() {
-            if(boardGame.gameOver) return;
-            boardGame.currentTurn = (boardGame.currentTurn + 1) % boardGame.players.length;
-            let next = boardGame.players[boardGame.currentTurn];
-            boardRenderPlayers();
-            boardUpdateRollBtn();
-            boardBroadcastState('state');
-            if(next && next.isBot) boardRunBotTurn(next);
-        }
-
-        function boardBroadcastState(kind) {
-            if(!boardGame.pvp || boardGame.hostId !== myNetworkId) return;
-            pvpChannel.postMessage({
-                type: kind === 'start' ? 'BOARD_PVP_START' : 'BOARD_PVP_STATE',
-                id: myNetworkId,
-                hostId: myNetworkId,
-                targetIds: boardGame.players.map(p => p.networkId).filter(Boolean),
-                boardGame: JSON.parse(JSON.stringify(boardGame)),
-                cardHtml: document.getElementById('boardCardDisplay')?.innerHTML || '',
-                diceText: document.getElementById('diceResultText')?.textContent || ''
-            });
-        }
-
-        function boardApplyNetworkState(msg) {
-            if(!msg.boardGame || !msg.targetIds?.includes(myNetworkId)) return;
-            boardGame = msg.boardGame;
-            boardGame.players.forEach((p, idx) => {
-                p.idx = idx;
-                p.isHuman = p.networkId === myNetworkId;
-                p.isBot = false;
-            });
-            boardGame.isRolling = false;
-            document.getElementById('boardGameModal').classList.add('active');
-            if(msg.cardHtml) document.getElementById('boardCardDisplay').innerHTML = msg.cardHtml;
-            if(msg.diceText) document.getElementById('diceResultText').textContent = msg.diceText;
-            boardRenderGrid();
-            boardRenderPlayers();
-            boardUpdateRollBtn();
-        }
-
+        // All board game code has been moved to board_new.js
         // === Wire all modal buttons after DOM ready ===
         window.autoAcceptPvp = false;
         window.autoRejectPvp = false;
@@ -1474,25 +1087,94 @@
             }
         }
 
-        function spawnSingleMonster(isBoss = false) {
-            let template = isBoss ? BOSS_POOL[0] : MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
-            let angle = Math.random() * Math.PI * 2;
-            
+        function spawnSingleMonster(isBoss = false, mapId = window.currentMapId) {
+            let template = null;
             let mx, my;
-            if (isBoss) {
-                // Boss chỉ xuất hiện ở khu vực hẻo lánh (Rừng sâu hoặc Đồi cỏ hoang)
-                let bossSpots = [
-                    { x: 600, y: 3400 },
-                    { x: 3300, y: 700 }
-                ];
-                let spot = bossSpots[Math.floor(Math.random() * bossSpots.length)];
-                mx = spot.x + (Math.random() - 0.5) * 200;
-                my = spot.y + (Math.random() - 0.5) * 200;
+            
+            if (mapId === 'world') {
+                template = isBoss ? BOSS_POOL[0] : MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
+                let angle = Math.random() * Math.PI * 2;
+                if (isBoss) {
+                    let bossSpots = [
+                        { x: 600, y: 3400 },
+                        { x: 3300, y: 700 }
+                    ];
+                    let spot = bossSpots[Math.floor(Math.random() * bossSpots.length)];
+                    mx = spot.x + (Math.random() - 0.5) * 200;
+                    my = spot.y + (Math.random() - 0.5) * 200;
+                } else {
+                    let dist = 180 + Math.random() * 1600;
+                    mx = 2000 + Math.cos(angle) * dist;
+                    my = 2000 + Math.sin(angle) * dist;
+                }
             } else {
-                // Quái thường spawn rộng rãi quanh khu trung tâm và các bãi ngoài
-                let dist = 180 + Math.random() * 1600;
-                mx = 2000 + Math.cos(angle) * dist;
-                my = 2000 + Math.sin(angle) * dist;
+                // Dungeon specific spawning
+                if (mapId === 'demon_cave') {
+                    if (isBoss) {
+                        template = { name: 'Quỷ Vương Khổng Lồ (Cyclops Lord)', emoji: '🐗', hp: 2500, maxHp: 2500, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
+                        mx = 2000; my = 2000;
+                    } else {
+                        template = MONSTER_POOL[3]; // Cyclops
+                        mx = 2000 + (Math.random() - 0.5) * 800;
+                        my = 2000 + (Math.random() - 0.5) * 800;
+                    }
+                } else if (mapId === 'cemetery') {
+                    if (isBoss) {
+                        template = { name: 'Chúa Tể Thây Ma (Zombie Lord)', emoji: '🐕', hp: 3500, maxHp: 3500, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
+                        mx = 2000; my = 2000;
+                    } else {
+                        template = MONSTER_POOL[2]; // Zombie
+                        mx = 2000 + (Math.random() - 0.5) * 800;
+                        my = 2000 + (Math.random() - 0.5) * 800;
+                    }
+                } else if (mapId === 'dungeon') {
+                    if (isBoss) {
+                        template = { name: 'Ma Vương Rực Lửa (Barlog King)', emoji: '👹', hp: 5000, maxHp: 5000, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
+                        mx = 2000; my = 2000;
+                    } else {
+                        template = { name: "Quỷ Lửa Nhỏ", emoji: "👹", hp: 350, maxHp: 350, atk: 28, exp: 160, gold: 60 };
+                        mx = 2000 + (Math.random() - 0.5) * 800;
+                        my = 2000 + (Math.random() - 0.5) * 800;
+                    }
+                } else if (mapId === 'ghost_forest') {
+                    if (isBoss) {
+                        template = { name: 'Ác Quỷ Bóng Đêm', emoji: '👹', hp: 3000, maxHp: 3000, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
+                        mx = 2000; my = 2000;
+                    } else {
+                        template = MONSTER_POOL[0]; // Ant
+                        mx = 2000 + (Math.random() - 0.5) * 800;
+                        my = 2000 + (Math.random() - 0.5) * 800;
+                    }
+                } else if (mapId === 'ancient_temple') {
+                    if (isBoss) {
+                        template = { name: 'Hộ Vệ Đền Cổ', emoji: '🐗', hp: 4000, maxHp: 4000, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
+                        mx = 2000; my = 2000;
+                    } else {
+                        template = MONSTER_POOL[3]; // Cyclops
+                        mx = 2000 + (Math.random() - 0.5) * 800;
+                        my = 2000 + (Math.random() - 0.5) * 800;
+                    }
+                }
+            }
+
+            if (!template) return;
+            
+            // Apply difficulty stat modifiers
+            if (mapId !== 'world') {
+                let diff = window.dungeonDifficulty || 'easy';
+                let mult = 1.0;
+                if (diff === 'medium') mult = 1.5;
+                else if (diff === 'hard') mult = 2.5;
+                else if (diff === 'hell') mult = 4.0;
+                
+                template = JSON.parse(JSON.stringify(template));
+                template.hp = Math.round((template.hp || template.maxHp) * mult);
+                template.maxHp = template.hp;
+                template.atk = Math.round(template.atk * (1 + (mult - 1) * 0.5));
+                if (template.goldReward) template.goldReward = Math.round(template.goldReward * mult);
+                if (template.xpReward) template.xpReward = Math.round(template.xpReward * mult);
+                if (template.gold) template.gold = Math.round(template.gold * mult);
+                if (template.exp) template.exp = Math.round(template.exp * mult);
             }
 
             monsters.push({
@@ -1502,7 +1184,8 @@
                 vx: (Math.random() - 0.5) * 1.5,
                 vy: (Math.random() - 0.5) * 1.5,
                 lastAttack: 0,
-                id: "M_" + Math.random()
+                id: "M_" + Math.random(),
+                spawnedMapId: mapId
             });
         }
 
@@ -2004,10 +1687,82 @@ function updateAndRenderParticles() {
 
             // Drop material system roll (Chance based loot mechanics)
             let dropRoll = Math.random();
-            if(dropRoll < 0.45) {
-                let dropId = Math.random() < 0.7 ? "iron_ore" : "magic_crystal";
-                addItemToInventory(dropId, 1);
-                showToast(`🎁 Nhặt được: ${ITEMS[dropId].emoji} ${ITEMS[dropId].name}!`);
+            let spawnedMap = m.spawnedMapId || 'world';
+            
+            if (spawnedMap === 'world') {
+                // World drops
+                if (m.isBoss) {
+                    // World Boss drops 1 random key 100%
+                    let keys = ['key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
+                    let dropId = keys[Math.floor(Math.random() * keys.length)];
+                    addItemToInventory(dropId, 1);
+                    showToast(`🎁 Tiêu diệt Boss thế giới! Nhặt được: ${ITEMS[dropId].emoji} ${ITEMS[dropId].name}!`, '#fbbf24');
+                } else {
+                    // Normal world monsters drop material or 5% key
+                    if (dropRoll < 0.45) {
+                        let dropId = "iron_ore";
+                        let roll = Math.random();
+                        if (roll < 0.3) {
+                            dropId = "magic_crystal";
+                        } else if (roll < 0.35) {
+                            let keys = ['key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
+                            dropId = keys[Math.floor(Math.random() * keys.length)];
+                        }
+                        addItemToInventory(dropId, 1);
+                        showToast(`🎁 Nhặt được: ${ITEMS[dropId].emoji} ${ITEMS[dropId].name}!`);
+                    }
+                }
+            } else {
+                // Dungeon drops based on difficulty
+                let diff = window.dungeonDifficulty || 'easy';
+                if (m.isBoss) {
+                    // Boss drops
+                    let keyId = 'key_' + spawnedMap;
+                    if (diff === 'easy') {
+                        addItemToInventory(keyId, 1);
+                        showToast(`🎁 Nhặt được: ${ITEMS[keyId].emoji} ${ITEMS[keyId].name}!`);
+                    } else if (diff === 'medium') {
+                        addItemToInventory(keyId, 1);
+                        if (Math.random() < 0.5) addItemToInventory(keyId, 1); // chance for 2nd key
+                        showToast(`🎁 Nhặt được Chìa Khóa Hầm Ngục!`);
+                    } else if (diff === 'hard') {
+                        // Drops 1 key + 15% Epic item
+                        addItemToInventory(keyId, 1);
+                        let epics = ['wp_hellfire', 'ar_guardian', 'ac_phoenix'];
+                        let epicId = epics[Math.floor(Math.random() * epics.length)];
+                        if (Math.random() < 0.15) {
+                            addItemToInventory(epicId, 1);
+                            showToast(`🔥 SIÊU PHẨM SỬ THI: Nhặt được ${ITEMS[epicId].emoji} ${ITEMS[epicId].name}!`, '#a855f7');
+                        } else {
+                            showToast(`🎁 Nhặt được: ${ITEMS[keyId].emoji} ${ITEMS[keyId].name}!`);
+                        }
+                    } else if (diff === 'hell') {
+                        // Drops 2 keys + 10% Legendary item
+                        addItemToInventory(keyId, 2);
+                        let legendaries = ['wp_barlog', 'ar_god', 'ac_god_eye'];
+                        let legId = legendaries[Math.floor(Math.random() * legendaries.length)];
+                        if (Math.random() < 0.10) {
+                            addItemToInventory(legId, 1);
+                            showToast(`👑 BẢO VẬT TRUYỀN THUYẾT: Nhặt được ${ITEMS[legId].emoji} ${ITEMS[legId].name}!`, '#f97316');
+                        } else {
+                            showToast(`🎁 Nhặt được: 2x ${ITEMS[keyId].name}!`);
+                        }
+                    }
+                } else {
+                    // Minion drops in dungeon
+                    if (dropRoll < 0.50) {
+                        let dropId = "iron_ore";
+                        let roll = Math.random();
+                        if (roll < 0.35) dropId = "magic_crystal";
+                        // Medium/Hard/Hell minions have chance to drop key
+                        else if ((diff === 'medium' && roll < 0.45) || (diff === 'hard' && roll < 0.55) || (diff === 'hell' && roll < 0.65)) {
+                            let keyId = 'key_' + spawnedMap;
+                            dropId = keyId;
+                        }
+                        addItemToInventory(dropId, 1);
+                        showToast(`🎁 Nhặt được: ${ITEMS[dropId].emoji} ${ITEMS[dropId].name}!`);
+                    }
+                }
             }
 
             // Update quest objectives instantly
@@ -2042,7 +1797,7 @@ function updateAndRenderParticles() {
             }
 
             // Respawn replacement immediately to retain population scale
-            setTimeout(() => { spawnSingleMonster(m.isBoss); }, 6000);
+            setTimeout(() => { spawnSingleMonster(m.isBoss, m.spawnedMapId || 'world'); }, 6000);
             refreshHudDisplay();
         }
 
@@ -2511,7 +2266,7 @@ function toggleAutoFarm() {
             // Populate Buy Tab
             let buyBox = document.getElementById('shopTabBuy');
             buyBox.innerHTML = "";
-            let buyables = ['potion_hp', 'potion_mp', 'wp_wooden', 'ar_cloth', 'ac_ring'];
+            let buyables = ['potion_hp', 'potion_mp', 'wp_wooden', 'ar_cloth', 'ac_ring', 'key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
             buyables.forEach(id => {
                 let item = ITEMS[id];
                 let d = document.createElement('div');
@@ -3135,12 +2890,14 @@ function toggleAutoFarm() {
                 }
             }
 
-            // D. Continuous standard background monster physics step
+            // D. Continuous standard background monster physics step (Culling: only update physics if within 1200px of player)
             monsters.forEach(m => {
-                m.x += m.vx; m.y += m.vy;
-                if(m.x < 50 || m.x > WORLD_SIZE - 50) m.vx *= -1;
-                if(m.y < 50 || m.y > WORLD_SIZE - 50) m.vy *= -1;
-
+                let d = Math.hypot(m.x - player.x, m.y - player.y);
+                if (d < 1200) {
+                    m.x += m.vx; m.y += m.vy;
+                    if(m.x < 50 || m.x > WORLD_SIZE - 50) m.vx *= -1;
+                    if(m.y < 50 || m.y > WORLD_SIZE - 50) m.vy *= -1;
+                }
             });
 
             // E. Process particle age decay parameters
@@ -3608,49 +3365,53 @@ function toggleAutoFarm() {
                 });
             }
 
-            // Add Monsters
+            // Add Monsters (Culling: only visible monsters)
+            const monPad = 80;
             monsters.forEach(m => {
-                drawList.push({
-                    y: m.y,
-                    draw: () => {
-                        let sx = m.x - camera.x;
-                        let sy = m.y - camera.y;
+                if (m.x >= camera.x - monPad && m.x <= camera.x + canvas.width + monPad &&
+                    m.y >= camera.y - monPad && m.y <= camera.y + canvas.height + monPad) {
+                    drawList.push({
+                        y: m.y,
+                        draw: () => {
+                            let sx = m.x - camera.x;
+                            let sy = m.y - camera.y;
 
-                        if(m.isBoss) {
-                            ctx.beginPath(); ctx.arc(sx, sy, 40, 0, Math.PI*2);
-                            ctx.fillStyle = "rgba(229,57,53,0.15)"; ctx.fill();
-                            ctx.strokeStyle = "#e53935"; ctx.lineWidth = 2; ctx.stroke();
+                            if(m.isBoss) {
+                                ctx.beginPath(); ctx.arc(sx, sy, 40, 0, Math.PI*2);
+                                ctx.fillStyle = "rgba(229,57,53,0.15)"; ctx.fill();
+                                ctx.strokeStyle = "#e53935"; ctx.lineWidth = 2; ctx.stroke();
+                            }
+
+                            let drawn = false;
+                            if (window.drawHelbreathMonster) {
+                                drawn = window.drawHelbreathMonster(ctx, sx, sy, m);
+                            }
+                            if (!drawn) {
+                                ctx.save();
+                                ctx.font = m.isBoss ? "48px Arial" : "28px Arial";
+                                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                                ctx.shadowBlur = m.isBoss ? 16 : 8;
+                                ctx.shadowColor = m.isBoss ? "#ef4444" : "rgba(0, 0, 0, 0.7)";
+                                ctx.strokeStyle = "#000000";
+                                ctx.lineWidth = 4;
+                                ctx.strokeText(m.emoji, sx, sy);
+                                ctx.fillText(m.emoji, sx, sy);
+                                ctx.restore();
+                            }
+
+                            let barW = m.isBoss ? 80 : 40;
+                            let barH = m.isBoss ? 7 : 4;
+                            ctx.fillStyle = "#333";
+                            ctx.fillRect(sx - barW/2, sy - 30, barW, barH);
+                            ctx.fillStyle = m.isBoss ? "#e53935" : "#4caf50";
+                            ctx.fillRect(sx - barW/2, sy - 30, barW * (m.hp / m.maxHp), barH);
+
+                            ctx.font = "11px 'Baloo 2'"; ctx.fillStyle = m.isBoss ? "var(--red)" : "#aaa";
+                            ctx.textAlign = "center";
+                            ctx.fillText(m.name, sx, sy - 36);
                         }
-
-                        let drawn = false;
-                        if (window.drawHelbreathMonster) {
-                            drawn = window.drawHelbreathMonster(ctx, sx, sy, m);
-                        }
-                        if (!drawn) {
-                            ctx.save();
-                            ctx.font = m.isBoss ? "48px Arial" : "28px Arial";
-                            ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                            ctx.shadowBlur = m.isBoss ? 16 : 8;
-                            ctx.shadowColor = m.isBoss ? "#ef4444" : "rgba(0, 0, 0, 0.7)";
-                            ctx.strokeStyle = "#000000";
-                            ctx.lineWidth = 4;
-                            ctx.strokeText(m.emoji, sx, sy);
-                            ctx.fillText(m.emoji, sx, sy);
-                            ctx.restore();
-                        }
-
-                        let barW = m.isBoss ? 80 : 40;
-                        let barH = m.isBoss ? 7 : 4;
-                        ctx.fillStyle = "#333";
-                        ctx.fillRect(sx - barW/2, sy - 30, barW, barH);
-                        ctx.fillStyle = m.isBoss ? "#e53935" : "#4caf50";
-                        ctx.fillRect(sx - barW/2, sy - 30, barW * (m.hp / m.maxHp), barH);
-
-                        ctx.font = "11px 'Baloo 2'"; ctx.fillStyle = m.isBoss ? "var(--red)" : "#aaa";
-                        ctx.textAlign = "center";
-                        ctx.fillText(m.name, sx, sy - 36);
-                    }
-                });
+                    });
+                }
             });
 
             // Add Remote players
@@ -3745,17 +3506,46 @@ function toggleAutoFarm() {
                 }
             });
 
-            // Add Map Decorations
-            window.mapDecorations.forEach(dec => {
-                drawList.push({
-                    y: dec.y,
-                    draw: () => {
-                        if (window.drawDecoration) {
-                            window.drawDecoration(ctx, dec, camera);
+            // Add Map Decorations using Chunk-Based Streaming
+            const dChunkSize = 500;
+            const pad = 150;
+            let startCx = Math.max(0, Math.floor((camera.x - pad) / dChunkSize));
+            let endCx = Math.floor((camera.x + canvas.width + pad) / dChunkSize);
+            let startCy = Math.max(0, Math.floor((camera.y - pad) / dChunkSize));
+            let endCy = Math.floor((camera.y + canvas.height + pad) / dChunkSize);
+
+            if (window.mapDecorationsChunks) {
+                for (let cx = startCx; cx <= endCx; cx++) {
+                    for (let cy = startCy; cy <= endCy; cy++) {
+                        let key = `${cx},${cy}`;
+                        let chunkDecs = window.mapDecorationsChunks[key];
+                        if (chunkDecs) {
+                            chunkDecs.forEach(dec => {
+                                drawList.push({
+                                    y: dec.y,
+                                    draw: () => {
+                                        if (window.drawDecoration) {
+                                            window.drawDecoration(ctx, dec, camera);
+                                        }
+                                    }
+                                });
+                            });
                         }
                     }
+                }
+            } else {
+                // Fallback if chunks not initialized
+                window.mapDecorations.forEach(dec => {
+                    drawList.push({
+                        y: dec.y,
+                        draw: () => {
+                            if (window.drawDecoration) {
+                                window.drawDecoration(ctx, dec, camera);
+                            }
+                        }
+                    });
                 });
-            });
+            }
 
             // Sort all by Y pivot position
             drawList.sort((a, b) => a.y - b.y);
@@ -3919,75 +3709,15 @@ function toggleAutoFarm() {
             monsters = [];
             if (mapId === 'world') {
                 spawnInitialMonsters();
-            } else if (mapId === 'demon_cave') {
-                spawnBoss('demon_cave', 'Quỷ Vương Khổng Lồ (Cyclops Lord)', '🐗', 2500, 2000, 2000);
-                for (let i = 0; i < 15; i++) {
-                    spawnMinion('cyc', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
-                }
-            } else if (mapId === 'cemetery') {
-                spawnBoss('cemetery', 'Chúa Tể Thây Ma (Zombie Lord)', '🐕', 3500, 2000, 2000);
-                for (let i = 0; i < 15; i++) {
-                    spawnMinion('zom', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
-                }
-            } else if (mapId === 'dungeon') {
-                spawnBoss('dungeon', 'Ma Vương Rực Lửa (Barlog King)', '👹', 5000, 2000, 2000);
-                for (let i = 0; i < 15; i++) {
-                    spawnMinion('barlog', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
-                }
-            } else if (mapId === 'ghost_forest') {
-                spawnBoss('ghost_forest', 'Ác Quỷ Bóng Đêm', '👹', 3000, 2000, 2000);
-                for (let i = 0; i < 12; i++) {
-                    spawnMinion('ant', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
-                }
-            } else if (mapId === 'ancient_temple') {
-                spawnBoss('ancient_temple', 'Hộ Vệ Đền Cổ', '🐗', 4000, 2000, 2000);
-                for (let i = 0; i < 12; i++) {
-                    spawnMinion('cyc', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
+            } else {
+                // Spawn Boss for this map
+                spawnSingleMonster(true, mapId);
+                // Spawn minions
+                let count = (mapId === 'demon_cave' || mapId === 'cemetery' || mapId === 'dungeon') ? 15 : 12;
+                for (let i = 0; i < count; i++) {
+                    spawnSingleMonster(false, mapId);
                 }
             }
-        }
-
-        function spawnBoss(mapId, name, emoji, hp, x, y) {
-            monsters.push({
-                name: name,
-                emoji: emoji,
-                hp: hp,
-                maxHp: hp,
-                atk: 45,
-                def: 25,
-                speed: 2.2,
-                isBoss: true,
-                xpReward: 1200,
-                goldReward: 2500,
-                x: x,
-                y: y,
-                vx: 0,
-                vy: 0,
-                lastAttack: 0,
-                id: "BOSS_" + mapId
-            });
-        }
-
-        function spawnMinion(type, x, y) {
-            let template = null;
-            if (type === 'ant') template = MONSTER_POOL[0];
-            else if (type === 'slm') template = MONSTER_POOL[1];
-            else if (type === 'zom') template = MONSTER_POOL[2];
-            else if (type === 'cyc') template = MONSTER_POOL[3];
-            else if (type === 'barlog') {
-                template = { name: "Quỷ Lửa Nhỏ", emoji: "👹", hp: 350, maxHp: 350, atk: 28, exp: 160, gold: 60 };
-            }
-            if (!template) template = MONSTER_POOL[0];
-            
-            monsters.push({
-                ...JSON.parse(JSON.stringify(template)),
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * 1.5,
-                vy: (Math.random() - 0.5) * 1.5,
-                lastAttack: 0,
-                id: "MINION_" + Math.random()
-            });
         }
 
         window.changeMap = function(mapId, spawnX, spawnY) {
@@ -4143,6 +3873,145 @@ function toggleAutoFarm() {
             document.body.appendChild(menu);
         }
 
+        function openDifficultySelector(entrance) {
+            // Push player back slightly to prevent trigger loop
+            let px = player.x;
+            let py = player.y;
+            let dx = px - entrance.x;
+            let dy = py - entrance.y;
+            let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+            player.x = entrance.x + (dx / dist) * 60;
+            player.y = entrance.y + (dy / dist) * 60;
+            player.destinationX = undefined;
+            player.destinationY = undefined;
+            player.targetMonster = null;
+
+            // Remove existing modal if any
+            let old = document.getElementById('difficultyModal');
+            if (old) old.remove();
+
+            let modal = document.createElement('div');
+            modal.id = 'difficultyModal';
+            modal.style.position = 'fixed';
+            modal.style.left = '50%';
+            modal.style.top = '50%';
+            modal.style.transform = 'translate(-50%, -50%)';
+            modal.style.width = '320px';
+            modal.style.background = '#1e1e24';
+            modal.style.border = '2px solid #e53935';
+            modal.style.borderRadius = '12px';
+            modal.style.color = '#fff';
+            modal.style.zIndex = '99999';
+            modal.style.boxShadow = '0 0 20px rgba(229, 57, 53, 0.5)';
+            modal.style.fontFamily = "'Segoe UI', sans-serif";
+            
+            // Header
+            let header = document.createElement('div');
+            header.style.background = '#e53935';
+            header.style.padding = '10px';
+            header.style.textAlign = 'center';
+            header.style.fontWeight = 'bold';
+            header.style.fontSize = '1.05rem';
+            header.style.borderTopLeftRadius = '10px';
+            header.style.borderTopRightRadius = '10px';
+            header.textContent = `🔮 ĐỘ KHÓ: HẦM NGỤC`;
+            modal.appendChild(header);
+
+            // Body
+            let body = document.createElement('div');
+            body.style.padding = '12px';
+            body.style.display = 'flex';
+            body.style.flexDirection = 'column';
+            body.style.gap = '8px';
+
+            let baseLevel = 1;
+            if (entrance.targetMapId === 'demon_cave') baseLevel = 15;
+            else if (entrance.targetMapId === 'cemetery') baseLevel = 25;
+            else if (entrance.targetMapId === 'ghost_forest') baseLevel = 35;
+            else if (entrance.targetMapId === 'ancient_temple') baseLevel = 45;
+            else if (entrance.targetMapId === 'dungeon') baseLevel = 55;
+
+            let keyId = 'key_' + entrance.targetMapId;
+            let keyCount = 0;
+            let keyInv = player.inventory.find(i => i.id === keyId);
+            if (keyInv) keyCount = keyInv.count;
+
+            let difficulties = [
+                { id: 'easy', name: '🟢 Dễ', desc: 'Thưởng: x1.0 Vàng/XP. Không cần chìa khóa.', reqLvl: baseLevel, reqKeys: 0 },
+                { id: 'medium', name: '🟡 Thường', desc: 'Thưởng: x1.5 Vàng/XP. Có cơ hội rớt chìa khóa.', reqLvl: baseLevel + 5, reqKeys: 0 },
+                { id: 'hard', name: '🔴 Khó', desc: `Thưởng: x2.5 Vàng/XP. Cơ hội Epic loot. Cần 1 chìa (Có: ${keyCount})`, reqLvl: baseLevel + 10, reqKeys: 1 },
+                { id: 'hell', name: '☠️ Ác Mộng', desc: `Thưởng: x4.0 Vàng/XP. Cơ hội Legendary loot. Cần 2 chìa (Có: ${keyCount})`, reqLvl: baseLevel + 20, reqKeys: 2 }
+            ];
+
+            difficulties.forEach(diff => {
+                let btn = document.createElement('div');
+                btn.style.background = '#2e2e38';
+                btn.style.border = '1px solid #4a4a5a';
+                btn.style.borderRadius = '8px';
+                btn.style.padding = '8px';
+                btn.style.cursor = 'pointer';
+                btn.style.transition = 'background 0.2s';
+                
+                btn.onmouseover = () => { btn.style.background = '#3e3e4a'; };
+                btn.onmouseout = () => { btn.style.background = '#2e2e38'; };
+
+                btn.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:0.9rem;">
+                        <span>${diff.name}</span>
+                        <span style="color:#aaa; font-size:0.8rem;">Cấp: ${diff.reqLvl}</span>
+                    </div>
+                    <div style="font-size:0.7rem; color:#cbd5e1; margin-top:2px;">${diff.desc}</div>
+                `;
+
+                btn.onclick = () => {
+                    if (player.level < diff.reqLvl) {
+                        showToast(`⚠️ Cần đạt cấp ${diff.reqLvl} cho độ khó này!`, '#ef4444');
+                        return;
+                    }
+                    if (diff.reqKeys > 0) {
+                        if (keyCount < diff.reqKeys) {
+                            showToast(`⚠️ Không đủ Chìa Khóa! Cần ${diff.reqKeys}x ${ITEMS[keyId].name}!`, '#ef4444');
+                            return;
+                        }
+                        // Consume keys
+                        let invItem = player.inventory.find(i => i.id === keyId);
+                        if (invItem) {
+                            invItem.count -= diff.reqKeys;
+                            if (invItem.count <= 0) {
+                                let idx = player.inventory.indexOf(invItem);
+                                player.inventory.splice(idx, 1);
+                            }
+                        }
+                        showToast(`🔑 Đã tiêu hao ${diff.reqKeys}x Chìa Khóa Hầm Ngục!`);
+                    }
+                    
+                    window.dungeonDifficulty = diff.id;
+                    modal.remove();
+                    window.changeMap(entrance.targetMapId, entrance.spawnX, entrance.spawnY);
+                };
+
+                body.appendChild(btn);
+            });
+
+            // Cancel button
+            let cancel = document.createElement('button');
+            cancel.textContent = 'ĐÓNG';
+            cancel.style.width = '100%';
+            cancel.style.padding = '8px';
+            cancel.style.background = '#4b5563';
+            cancel.style.border = 'none';
+            cancel.style.borderRadius = '6px';
+            cancel.style.color = '#fff';
+            cancel.style.fontWeight = 'bold';
+            cancel.style.cursor = 'pointer';
+            cancel.style.marginTop = '4px';
+            cancel.onclick = () => { modal.remove(); };
+            body.appendChild(cancel);
+
+            modal.appendChild(body);
+            document.body.appendChild(modal);
+        }
+
         window.checkPortalTriggers = function() {
             let px = player.x;
             let py = player.y;
@@ -4179,12 +4048,19 @@ function toggleAutoFarm() {
                         
                         if (player.level < reqLevel) {
                             showToast(`⚠️ Cần đạt cấp ${reqLevel} để đi vào hầm ngục này!`, '#ef4444');
-                            player.x -= (player.x - entrance.x) * 0.5;
-                            player.y -= (player.y - entrance.y) * 0.5;
+                            let dx = px - entrance.x;
+                            let dy = py - entrance.y;
+                            let pushDist = 60;
+                            if (dist === 0) { dx = 0; dy = 1; dist = 1; }
+                            player.x = entrance.x + (dx / dist) * pushDist;
+                            player.y = entrance.y + (dy / dist) * pushDist;
+                            player.destinationX = undefined;
+                            player.destinationY = undefined;
+                            player.targetMonster = null;
                             return;
                         }
                         
-                        window.changeMap(entrance.targetMapId, entrance.spawnX, entrance.spawnY);
+                        openDifficultySelector(entrance);
                         return;
                     }
                 }
