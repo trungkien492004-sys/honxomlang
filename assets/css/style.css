@@ -72,7 +72,7 @@ body {
     text-shadow: 0 0 10px rgba(255,215,0,0.5);
     animation: pulse 2s infinite alternate;
 }
-.title-container h1 { font-family: 'Boogaloo', cursive; font-size: 4rem; color: var(--gold); }
+.title-container h1 { font-family: 'Baloo 2', sans-serif; font-size: 4rem; color: var(--gold); }
 .title-container p { font-size: 1.2rem; color: #aaa; }
 
 .login-box {
@@ -281,7 +281,7 @@ input[type="text"], input[type="email"], input[type="password"] {
 
 .board-title {
     text-align: center;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 1.8rem;
     font-weight: 900;
     color: var(--gold);
@@ -398,7 +398,7 @@ input[type="text"], input[type="email"], input[type="password"] {
 }
 
 .board-center-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 0.65rem;
     color: var(--gold);
     letter-spacing: 2px;
@@ -496,7 +496,7 @@ input[type="text"], input[type="email"], input[type="password"] {
     font-size: 0.82rem;
 }
 .board-bet-pool .pool-amount {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Baloo 2', sans-serif;
     font-weight: 900;
     color: var(--gold);
     font-size: 1rem;
@@ -656,7 +656,7 @@ input[type="text"], input[type="email"], input[type="password"] {
 }
 
 .bet-modal-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 1.3rem;
     font-weight: 900;
     color: #f97316;
@@ -698,7 +698,7 @@ input[type="text"], input[type="email"], input[type="password"] {
     border-radius: 10px;
     font-size: 1rem;
     text-align: center;
-    font-family: 'Orbitron', monospace;
+    font-family: 'Baloo 2', sans-serif;
 }
 
 /* ---- Invite Friend Modal ---- */
@@ -724,7 +724,7 @@ input[type="text"], input[type="email"], input[type="password"] {
     animation: betModalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .invite-modal-title {
-    font-family: 'Orbitron', monospace;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 1.2rem;
     font-weight: 900;
     color: #a78bfa;
@@ -1137,7 +1137,7 @@ input[type="text"], input[type="email"], input[type="password"] {
     box-sizing: border-box;
 }
 .lore-box h2 {
-    font-family: 'Boogaloo', cursive;
+    font-family: 'Baloo 2', sans-serif;
     font-size: 2.2rem;
     color: var(--gold);
     margin-bottom: 15px;
@@ -1153,7 +1153,7 @@ input[type="text"], input[type="email"], input[type="password"] {
 @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.03); } }
 @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-.float-text { position: absolute; font-weight: 800; font-size: 1.4rem; pointer-events: none; z-index: 5; text-shadow: 2px 2px 0px #000; animation: floatUp 1.2s forwards ease-out; font-family: 'Boogaloo', cursive; }
+.float-text { position: absolute; font-weight: 800; font-size: 1.4rem; pointer-events: none; z-index: 5; text-shadow: 2px 2px 0px #000; animation: floatUp 1.2s forwards ease-out; font-family: 'Baloo 2', sans-serif; }
 @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 1; } 50% { transform: translateY(-40px) scale(1.2); opacity: 1; } 100% { transform: translateY(-70px) scale(0.9); opacity: 0; } }
 
 #saveIndicator { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,200,0,0.8); color: white; padding: 4px 12px; font-size: 0.85rem; border-radius: 20px; z-index: 50; font-weight: bold; display: none; }
@@ -1261,5 +1261,6 @@ input[type="text"], input[type="email"], input[type="password"] {
          0 %   {   t r a n s f o r m :   t r a n s l a t e X ( - 1 0 0 % )   r o t a t e ( 4 5 d e g ) ;   } 
          1 0 0 %   {   t r a n s f o r m :   t r a n s l a t e X ( 1 0 0 % )   r o t a t e ( 4 5 d e g ) ;   } 
  } 
-  
+ 
+ 
  
