@@ -215,6 +215,9 @@
         let clickMarker = null;
         let skillActionPopups = [];
 
+        window.currentMapId = 'world';
+        window.lastPortalVisited = null;
+
         window.player = {
             name: "",
             classId: "",
@@ -358,6 +361,8 @@
         window.onload = () => {
             setupCanvasSize();
             checkAndDisplayLocalSave();
+
+            if (window.loadMapDecorations) window.loadMapDecorations();
 
             // Start playing the gothic default menu music
             audio.init();
@@ -1453,13 +1458,20 @@
         // --- 6. MONSTER SPAWNING & COMBAT SIMULATION ENGINE ---
         function spawnInitialMonsters() {
             monsters = [];
-            // Spawn 36 quái vật thường rải rác khắp bản đồ
-            for(let i=0; i<36; i++) {
-                spawnSingleMonster(false);
+            
+            if (window.generateMapDecorations) {
+                window.generateMapDecorations(window.currentMapId || 'world');
             }
-            // Spawn 2 Siêu Boss ở hai phân khu xa xôi hiểm trở
-            spawnSingleMonster(true);
-            spawnSingleMonster(true);
+
+            if (window.currentMapId === 'world') {
+                // Spawn 36 quái vật thường rải rác khắp bản đồ
+                for(let i=0; i<36; i++) {
+                    spawnSingleMonster(false);
+                }
+                // Spawn 2 Siêu Boss ở hai phân khu xa xôi hiểm trở
+                spawnSingleMonster(true);
+                spawnSingleMonster(true);
+            }
         }
 
         function spawnSingleMonster(isBoss = false) {
@@ -3156,91 +3168,337 @@ function toggleAutoFarm() {
                 effect.age = Date.now() - effect.startAt;
             });
             skillEffects = skillEffects.filter(effect => effect.age < effect.duration);
+
+            // H. Update NPC roaming and chat bubbles
+            for (let nKey in NPC_DATA) {
+                let npc = NPC_DATA[nKey];
+                if (nKey === 'dirtyPond' || nKey === 'richMaze' || nKey === 'vinhsHouse' || nKey === 'poorHouse' || nKey === 'flowerHouse') continue;
+                
+                if (!npc.ox) {
+                    npc.ox = npc.x;
+                    npc.oy = npc.y;
+                    npc.roamCooldown = 0;
+                    npc.chatCooldown = 0;
+                }
+                
+                if (Date.now() > (npc.roamCooldown || 0)) {
+                    if (Math.random() < 0.25) {
+                        let angle = Math.random() * Math.PI * 2;
+                        let dist = 30 + Math.random() * 50;
+                        npc.tx = npc.ox + Math.cos(angle) * dist;
+                        npc.ty = npc.oy + Math.sin(angle) * dist;
+                        npc.roamCooldown = Date.now() + 2000 + Math.random() * 3000;
+                    } else {
+                        npc.tx = undefined;
+                        npc.ty = undefined;
+                        npc.roamCooldown = Date.now() + 1000 + Math.random() * 2000;
+                    }
+                }
+                
+                if (npc.tx !== undefined && npc.ty !== undefined) {
+                    let dx = npc.tx - npc.x;
+                    let dy = npc.ty - npc.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist > 2) {
+                        npc.x += (dx / dist) * 0.8;
+                        npc.y += (dy / dist) * 0.8;
+                    } else {
+                        npc.x = npc.tx;
+                        npc.y = npc.ty;
+                        npc.tx = undefined;
+                        npc.ty = undefined;
+                    }
+                }
+                
+                if (Date.now() > (npc.chatCooldown || 0)) {
+                    if (Math.random() < 0.15) {
+                        let phrases = [];
+                        if (nKey === 'elder') {
+                            phrases = ["Hỡi các dũng sĩ, yêu quái đang mạnh lên!", "Hãy bảo vệ Xóm Anh Hùng!", "Có nhiệm vụ mới cho cháu đây!"];
+                        } else if (nKey === 'blacksmith') {
+                            phrases = ["Cần rèn kiếm hay cường hóa giáp không?", "Lò rèn đỏ rực thắp sáng đêm!", "Đao kiếm của cháu đã mài chưa?"];
+                        } else if (nKey === 'merchant') {
+                            phrases = ["Mua máu, mana thảo dược giá gốc đây!", "Thương hội cô Ba buôn lậu chất nhất xóm!", "Có quà đặc biệt cho khách quen đây!"];
+                        } else if (nKey === 'barber') {
+                            phrases = ["Cắt quả đầu cua hay tóc undercut dũng sĩ đi!", "Làm kiểu tóc gothic Helbreath đi dũng sĩ!", "Đổi kiểu tóc đổi vận mệnh!"];
+                        } else {
+                            phrases = ["Hôm nay buôn bán ế ẩm quá!", "Mừng các dũng sĩ viễn chinh trở về!", "Xóm mình ngày càng nhộn nhịp!"];
+                        }
+                        npc.speechBubble = phrases[Math.floor(Math.random() * phrases.length)];
+                        npc.speechBubbleTime = Date.now() + 3000;
+                        npc.chatCooldown = Date.now() + 8000 + Math.random() * 8000;
+                    }
+                }
+            }
+
+            // I. Check portal and door triggers
+            if (window.checkPortalTriggers) {
+                window.checkPortalTriggers();
+            }
         }
 
         function renderWorldThemeAreas() {
-            // Draw a basic Anime-styled grass texture checkerboard
-            let scale = 1; // You could scale if you have real images
             let tileSize = 200;
-            
             let startGridX = Math.floor(camera.x / tileSize) * tileSize;
             let startGridY = Math.floor(camera.y / tileSize) * tileSize;
+            let mapId = window.currentMapId || 'world';
 
             for(let gx = startGridX; gx < startGridX + canvas.width + tileSize; gx += tileSize) {
                 for(let gy = startGridY; gy < startGridY + canvas.height + tileSize; gy += tileSize) {
                     let wx = gx; let wy = gy;
                     if(wx >= 0 && wy >= 0 && wx <= WORLD_SIZE && wy <= WORLD_SIZE) {
-                        // Create a subtle checkerboard pattern of greens
-                        if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
-                            ctx.fillStyle = "#84cc16"; // Lighter lime green
+                        if (mapId === 'world') {
+                            // Grass tiles
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#65a30d"; // Lime green
+                            } else {
+                                ctx.fillStyle = "#4d7c0f"; // Darker green
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            // Stylized grass tufts
+                            ctx.fillStyle = "#3f6212";
+                            ctx.fillRect(wx - camera.x + 50, wy - camera.y + 50, 4, 12);
+                            ctx.fillRect(wx - camera.x + 54, wy - camera.y + 54, 4, 8);
+                        } else if (mapId === 'demon_cave') {
+                            // Volcanic cave
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#1e1e24";
+                            } else {
+                                ctx.fillStyle = "#2c2c35";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            ctx.fillStyle = "#ea580c"; // Lava glows
+                            ctx.fillRect(wx - camera.x + 80, wy - camera.y + 80, 40, 6);
+                            ctx.fillRect(wx - camera.x + 100, wy - camera.y + 60, 6, 40);
+                        } else if (mapId === 'cemetery') {
+                            // Graveyard mud/soil
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#45474a";
+                            } else {
+                                ctx.fillStyle = "#343538";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                        } else if (mapId === 'ghost_forest') {
+                            // Cursed woods
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#2e1065";
+                            } else {
+                                ctx.fillStyle = "#1e1b4b";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                        } else if (mapId === 'ancient_temple') {
+                            // Ancient stone slabs
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#52525b";
+                            } else {
+                                ctx.fillStyle = "#3f3f46";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            ctx.strokeStyle = "#27272a";
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                        } else if (mapId === 'dungeon') {
+                            // Dungeon brick blocks
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#18181b";
+                            } else {
+                                ctx.fillStyle = "#27272a";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            ctx.strokeStyle = "#09090b";
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
                         } else {
-                            ctx.fillStyle = "#65a30d"; // Darker lime green
+                            // Building interiors (wooden floorboards)
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#78350f";
+                            } else {
+                                ctx.fillStyle = "#451a03";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            ctx.strokeStyle = "#292524";
+                            ctx.lineWidth = 1;
+                            for (let i = 0; i < tileSize; i += 40) {
+                                ctx.beginPath();
+                                ctx.moveTo(wx - camera.x + i, wy - camera.y);
+                                ctx.lineTo(wx - camera.x + i, wy - camera.y + tileSize);
+                                ctx.stroke();
+                            }
                         }
-                        ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
-                        
-                        // Draw some stylized grass tufts randomly
-                        ctx.fillStyle = "#4d7c0f";
-                        ctx.fillRect(wx - camera.x + 50, wy - camera.y + 50, 4, 12);
-                        ctx.fillRect(wx - camera.x + 54, wy - camera.y + 54, 4, 8);
                     }
                 }
             }
 
-            ctx.save();
-            ctx.translate(-camera.x, -camera.y);
-
-            WORLD_THEME_AREAS.forEach(area => {
+            if (mapId === 'world') {
                 ctx.save();
-                ctx.fillStyle = area.color;
-                ctx.fillRect(area.x, area.y, area.w, area.h);
-                ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(area.x, area.y, area.w, area.h);
+                ctx.translate(-camera.x, -camera.y);
+                WORLD_THEME_AREAS.forEach(area => {
+                    ctx.save();
+                    ctx.fillStyle = area.color;
+                    ctx.fillRect(area.x, area.y, area.w, area.h);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(area.x, area.y, area.w, area.h);
+                    ctx.font = '18px "Baloo 2"';
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.fillText(area.icon + ' ' + area.label, area.x + 10, area.y + 26);
 
-                ctx.font = '18px "Baloo 2"';
-                ctx.textAlign = 'left';
-                ctx.fillStyle = '#f8fafc';
-                ctx.fillText(area.icon + ' ' + area.label, area.x + 10, area.y + 26);
-
-                if(area.icon === '🏰') {
-                    let mazeX = area.x + area.w - 90;
-                    let mazeY = area.y + 55;
-                    ctx.fillStyle = 'rgba(148,163,184,0.25)';
-                    ctx.fillRect(mazeX, mazeY, 70, 70);
-                    ctx.strokeStyle = '#eab308';
-                    ctx.strokeRect(mazeX, mazeY, 70, 70);
-                    ctx.beginPath(); ctx.moveTo(mazeX + 10, mazeY + 10); ctx.lineTo(mazeX + 60, mazeY + 10); ctx.lineTo(mazeX + 60, mazeY + 60); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(mazeX + 10, mazeY + 35); ctx.lineTo(mazeX + 50, mazeY + 35); ctx.lineTo(mazeX + 50, mazeY + 60); ctx.stroke();
-                }
-
-                if(area.icon === '🪱') {
-                    ctx.fillStyle = 'rgba(6, 78, 59, 0.25)';
-                    ctx.beginPath(); ctx.ellipse(area.x + 90, area.y + 85, 60, 24, 0, 0, Math.PI * 2); ctx.fill();
-                    ctx.strokeStyle = '#fde68a'; ctx.stroke();
-                }
-
-                if(area.icon === '🏮') {
-                    for(let i=0;i<5;i++) {
-                        let lx = area.x + 20 + i*40;
-                        let ly = area.y + 60 + (i%2)*20;
-                        ctx.fillStyle = '#f97316';
-                        ctx.fillRect(lx, ly, 14, 22);
-                        ctx.strokeStyle = '#fb923c'; ctx.strokeRect(lx, ly, 14, 22);
+                    if(area.icon === '🏰') {
+                        let mazeX = area.x + area.w - 90;
+                        let mazeY = area.y + 55;
+                        ctx.fillStyle = 'rgba(148,163,184,0.25)';
+                        ctx.fillRect(mazeX, mazeY, 70, 70);
+                        ctx.strokeStyle = '#eab308';
+                        ctx.strokeRect(mazeX, mazeY, 70, 70);
+                        ctx.beginPath(); ctx.moveTo(mazeX + 10, mazeY + 10); ctx.lineTo(mazeX + 60, mazeY + 10); ctx.lineTo(mazeX + 60, mazeY + 60); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(mazeX + 10, mazeY + 35); ctx.lineTo(mazeX + 50, mazeY + 35); ctx.lineTo(mazeX + 50, mazeY + 60); ctx.stroke();
                     }
-                }
-
+                    if(area.icon === '🪱') {
+                        ctx.fillStyle = 'rgba(6, 78, 59, 0.25)';
+                        ctx.beginPath(); ctx.ellipse(area.x + 90, area.y + 85, 60, 24, 0, 0, Math.PI * 2); ctx.fill();
+                        ctx.strokeStyle = '#fde68a'; ctx.stroke();
+                    }
+                    if(area.icon === '🏮') {
+                        for(let i=0;i<5;i++) {
+                            let lx = area.x + 20 + i*40;
+                            let ly = area.y + 60 + (i%2)*20;
+                            ctx.fillStyle = '#f97316';
+                            ctx.fillRect(lx, ly, 14, 22);
+                            ctx.strokeStyle = '#fb923c'; ctx.strokeRect(lx, ly, 14, 22);
+                        }
+                    }
+                    ctx.restore();
+                });
                 ctx.restore();
-            });
-            ctx.restore();
+            }
+        }
+
+        function drawPortalsAndEntrances() {
+            let px = player.x;
+            let py = player.y;
+            let timeTick = Date.now() / 300;
+            
+            if (window.currentMapId === 'world') {
+                PORTALS.forEach(portal => {
+                    let sx = portal.x - camera.x;
+                    let sy = portal.y - camera.y;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 35, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(34, 211, 238, 0.08)';
+                    ctx.fill();
+                    ctx.strokeStyle = portal.color;
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 12]);
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 25, timeTick, timeTick + Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 8 + Math.sin(timeTick * 2) * 3, 0, Math.PI * 2);
+                    ctx.fillStyle = portal.color;
+                    ctx.fill();
+                    ctx.font = "bold 11px 'Baloo 2'";
+                    ctx.fillStyle = "#fff";
+                    ctx.textAlign = "center";
+                    ctx.fillText("🌀 " + portal.name, sx, sy - 40);
+                    ctx.restore();
+                });
+
+                DUNGEON_ENTRANCES.forEach(ent => {
+                    let sx = ent.x - camera.x;
+                    let sy = ent.y - camera.y;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 40, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+                    ctx.fill();
+                    ctx.strokeStyle = ent.color;
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([12, 8]);
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 30, -timeTick, -timeTick + Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 12 + Math.cos(timeTick) * 3, 0, Math.PI * 2);
+                    ctx.fillStyle = ent.color;
+                    ctx.fill();
+                    ctx.font = "bold 12px 'Baloo 2'";
+                    ctx.fillStyle = "#fca5a5";
+                    ctx.textAlign = "center";
+                    ctx.fillText("🔮 " + ent.name, sx, sy - 45);
+                    ctx.restore();
+                });
+
+                BUILDING_ENTRANCES.forEach(ent => {
+                    let sx = ent.x - camera.x;
+                    let sy = ent.y - camera.y;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.ellipse(sx, sy, 20, 8, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(234, 179, 8, 0.4)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#eab308';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.font = "bold 11px 'Baloo 2'";
+                    ctx.fillStyle = "#fef08a";
+                    ctx.textAlign = "center";
+                    ctx.fillText("🚪 " + ent.name, sx, sy - 15);
+                    ctx.restore();
+                });
+            } else {
+                if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest') {
+                    let sx = 2000 - camera.x;
+                    let sy = 2600 - camera.y;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 40, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(34, 211, 238, 0.1)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#22d3ee';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 12]);
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 28, timeTick, timeTick + Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 10, 0, Math.PI * 2);
+                    ctx.fillStyle = '#22d3ee';
+                    ctx.fill();
+                    ctx.font = "bold 13px 'Baloo 2'";
+                    ctx.fillStyle = "#fff";
+                    ctx.textAlign = "center";
+                    ctx.fillText("🌀 Cổng Về Làng", sx, sy - 45);
+                    ctx.restore();
+                } else {
+                    let sx = 300 - camera.x;
+                    let sy = 550 - camera.y;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.ellipse(sx, sy, 20, 8, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#ef4444';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.font = "bold 12px 'Baloo 2'";
+                    ctx.fillStyle = "#fca5a5";
+                    ctx.textAlign = "center";
+                    ctx.fillText("🚪 Ra Ngoài", sx, sy - 15);
+                    ctx.restore();
+                }
+            }
         }
 
         function renderWorldGraphicsLayers() {
-            // Reset buffer clean slate clear rect
             ctx.fillStyle = "#111625";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             renderWorldThemeAreas();
 
-            // Layer 1: Render procedural bounding limits grid squares background grid
             ctx.strokeStyle = "rgba(255,215,0,0.06)";
             ctx.lineWidth = 1;
             let spacing = 100;
@@ -3258,116 +3516,256 @@ function toggleAutoFarm() {
                 ctx.stroke();
             }
 
-            // Draw total boundaries outline edge wall
             ctx.strokeStyle = "rgba(239,68,68,0.4)";
             ctx.lineWidth = 4;
             ctx.strokeRect(0 - camera.x, 0 - camera.y, WORLD_SIZE, WORLD_SIZE);
 
             renderClickMarker();
             renderSkillTargetPreview();
+            drawPortalsAndEntrances();
 
-            // Layer 2: Draw Interactive Map NPCs
+            const drawList = [];
+
+            // Add NPCs
             for(let nKey in NPC_DATA) {
                 let npc = NPC_DATA[nKey];
-                let sx = npc.x - camera.x;
-                let sy = npc.y - camera.y;
-
-                // Glow ring indicator surrounding villager standing point
-                ctx.beginPath();
-                ctx.arc(sx, sy, npc.radius, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(255,215,0,0.1)";
-                ctx.fill();
-                ctx.strokeStyle = "rgba(255,215,0,0.5)";
-                ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
-
-                // Draw Text Emojis
-                ctx.font = "32px Arial";
-                ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                ctx.fillText(npc.emoji, sx, sy - 5);
-
-                // Titles tags
-                ctx.font = "bold 13px 'Baloo 2'";
-                ctx.fillStyle = "var(--gold)";
-                ctx.fillText(npc.name, sx, sy + 25);
-                ctx.font = "10px sans-serif";
-                ctx.fillStyle = "#4fc3f7";
-                ctx.fillText(` Quy Tộc: ${npc.role}`, sx, sy + 38);
-
-                // Exclamation quest prompt above Elder
-                if(nKey === 'elder') {
-                    ctx.font = "bold 20px Arial"; ctx.fillStyle = "#ffeb3b";
-                    ctx.fillText("❓", sx, sy - 35);
+                
+                if (window.currentMapId !== 'world') {
+                    let targetMap = '';
+                    if (nKey === 'elder') targetMap = 'communal_house';
+                    else if (nKey === 'blacksmith') targetMap = 'blacksmith_shop';
+                    else if (nKey === 'merchant') targetMap = 'village_temple';
+                    else if (nKey === 'barber') targetMap = 'school';
+                    
+                    if (window.currentMapId !== targetMap) continue;
+                } else {
+                    if (nKey === 'dirtyPond' || nKey === 'richMaze') continue;
                 }
+
+                drawList.push({
+                    y: npc.y,
+                    draw: () => {
+                        let sx = npc.x - camera.x;
+                        let sy = npc.y - camera.y;
+
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, npc.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = "rgba(255,215,0,0.06)";
+                        ctx.fill();
+                        ctx.strokeStyle = "rgba(255,215,0,0.3)";
+                        ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+
+                        ctx.font = "32px Arial";
+                        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                        ctx.fillText(npc.emoji, sx, sy - 5);
+
+                        ctx.font = "bold 13px 'Baloo 2'";
+                        ctx.fillStyle = "var(--gold)";
+                        ctx.fillText(npc.name, sx, sy + 25);
+                        ctx.font = "10px sans-serif";
+                        ctx.fillStyle = "#4fc3f7";
+                        ctx.fillText(npc.role, sx, sy + 38);
+
+                        if(nKey === 'elder') {
+                            ctx.font = "bold 20px Arial"; ctx.fillStyle = "#ffeb3b";
+                            ctx.fillText("❓", sx, sy - 35);
+                        }
+
+                        if (npc.speechBubble && Date.now() < npc.speechBubbleTime) {
+                            ctx.save();
+                            ctx.font = "12px sans-serif";
+                            let textW = ctx.measureText(npc.speechBubble).width;
+                            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                            ctx.strokeStyle = "rgba(255, 215, 0, 0.7)";
+                            ctx.lineWidth = 1;
+                            let bx = sx - textW / 2 - 8;
+                            let by = sy - 65;
+                            let bw = textW + 16;
+                            let bh = 24;
+                            ctx.beginPath();
+                            ctx.roundRect(bx, by, bw, bh, 6);
+                            ctx.fill(); ctx.stroke();
+
+                            ctx.beginPath();
+                            ctx.moveTo(sx - 4, by + bh);
+                            ctx.lineTo(sx + 4, by + bh);
+                            ctx.lineTo(sx, by + bh + 4);
+                            ctx.closePath();
+                            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                            ctx.fill();
+                            ctx.beginPath();
+                            ctx.moveTo(sx - 4, by + bh);
+                            ctx.lineTo(sx, by + bh + 4);
+                            ctx.lineTo(sx + 4, by + bh);
+                            ctx.stroke();
+
+                            ctx.fillStyle = "#fff";
+                            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                            ctx.fillText(npc.speechBubble, sx, by + bh / 2);
+                            ctx.restore();
+                        }
+                    }
+                });
             }
 
-            // Layer 3: Render Spawned Roster Monsters
+            // Add Monsters
             monsters.forEach(m => {
-                let sx = m.x - camera.x;
-                let sy = m.y - camera.y;
+                drawList.push({
+                    y: m.y,
+                    draw: () => {
+                        let sx = m.x - camera.x;
+                        let sy = m.y - camera.y;
 
-                // Boss specialized indicator ring
-                if(m.isBoss) {
-                    ctx.beginPath(); ctx.arc(sx, sy, 40, 0, Math.PI*2);
-                    ctx.fillStyle = "rgba(229,57,53,0.15)"; ctx.fill();
-                    ctx.strokeStyle = "#e53935"; ctx.lineWidth = 2; ctx.stroke();
-                }
+                        if(m.isBoss) {
+                            ctx.beginPath(); ctx.arc(sx, sy, 40, 0, Math.PI*2);
+                            ctx.fillStyle = "rgba(229,57,53,0.15)"; ctx.fill();
+                            ctx.strokeStyle = "#e53935"; ctx.lineWidth = 2; ctx.stroke();
+                        }
 
-                let drawn = false;
-                if (window.drawHelbreathMonster) {
-                    drawn = window.drawHelbreathMonster(ctx, sx, sy, m);
-                }
-                if (!drawn) {
-                    ctx.save();
-                    ctx.font = m.isBoss ? "48px Arial" : "28px Arial";
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                    ctx.shadowBlur = m.isBoss ? 16 : 8;
-                    ctx.shadowColor = m.isBoss ? "#ef4444" : "rgba(0, 0, 0, 0.7)";
-                    ctx.strokeStyle = "#000000";
-                    ctx.lineWidth = 4;
-                    ctx.strokeText(m.emoji, sx, sy);
-                    ctx.fillText(m.emoji, sx, sy);
-                    ctx.restore();
-                }
+                        let drawn = false;
+                        if (window.drawHelbreathMonster) {
+                            drawn = window.drawHelbreathMonster(ctx, sx, sy, m);
+                        }
+                        if (!drawn) {
+                            ctx.save();
+                            ctx.font = m.isBoss ? "48px Arial" : "28px Arial";
+                            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                            ctx.shadowBlur = m.isBoss ? 16 : 8;
+                            ctx.shadowColor = m.isBoss ? "#ef4444" : "rgba(0, 0, 0, 0.7)";
+                            ctx.strokeStyle = "#000000";
+                            ctx.lineWidth = 4;
+                            ctx.strokeText(m.emoji, sx, sy);
+                            ctx.fillText(m.emoji, sx, sy);
+                            ctx.restore();
+                        }
 
-                // Individual Mini health tracking ticks status bar
-                let barW = m.isBoss ? 80 : 40;
-                let barH = m.isBoss ? 7 : 4;
-                ctx.fillStyle = "#333";
-                ctx.fillRect(sx - barW/2, sy - 30, barW, barH);
-                ctx.fillStyle = m.isBoss ? "#e53935" : "#4caf50";
-                ctx.fillRect(sx - barW/2, sy - 30, barW * (m.hp / m.maxHp), barH);
+                        let barW = m.isBoss ? 80 : 40;
+                        let barH = m.isBoss ? 7 : 4;
+                        ctx.fillStyle = "#333";
+                        ctx.fillRect(sx - barW/2, sy - 30, barW, barH);
+                        ctx.fillStyle = m.isBoss ? "#e53935" : "#4caf50";
+                        ctx.fillRect(sx - barW/2, sy - 30, barW * (m.hp / m.maxHp), barH);
 
-                // Text details label tags
-                ctx.font = "11px 'Baloo 2'"; ctx.fillStyle = m.isBoss ? "var(--red)" : "#aaa";
-                ctx.fillText(m.name, sx, sy - 36);
+                        ctx.font = "11px 'Baloo 2'"; ctx.fillStyle = m.isBoss ? "var(--red)" : "#aaa";
+                        ctx.textAlign = "center";
+                        ctx.fillText(m.name, sx, sy - 36);
+                    }
+                });
             });
+
+            // Add Remote players
+            for(let id in networkPlayers) {
+                let p = networkPlayers[id];
+                if (p.mapId !== window.currentMapId) continue;
+
+                drawList.push({
+                    y: p.y,
+                    draw: () => {
+                        let sx = p.x - camera.x;
+                        let sy = p.y - camera.y;
+
+                        if (window.drawBeautifulRPGChibi) {
+                            window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, false, 0.9, 'right');
+                        } else {
+                            ctx.font = "30px Arial"; ctx.textAlign = "center";
+                            ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
+                        }
+                        
+                        ctx.font = "bold 12px 'Baloo 2'"; ctx.fillStyle = "#f43f5e";
+                        ctx.textAlign = "center";
+                        ctx.fillText(`⚔️ ${p.name} (Lv.${p.level})`, sx, sy + 25);
+                        
+                        ctx.fillStyle = "red"; ctx.fillRect(sx-20, sy-22, 40, 3);
+                        ctx.fillStyle = "green"; ctx.fillRect(sx-20, sy-22, 40 * (p.hp / p.maxHp), 3);
+                    }
+                });
+            }
+
+            // Add Self Player
+            drawList.push({
+                y: player.y,
+                draw: () => {
+                    let px = player.x - camera.x;
+                    let py = player.y - camera.y;
+
+                    if(player.hp > 0 && window.spawnAura && Math.random() < 0.25) {
+                        let auraColor = '#fbbf24';
+                        if(player.classId === 'cop') auraColor = '#38bdf8'; 
+                        else if(player.classId === 'teacher') auraColor = '#ef4444'; 
+                        else if(player.classId === 'merchant') auraColor = '#fbbf24';
+                        else if(player.classId === 'engineer') auraColor = '#a855f7';
+                        window.spawnAura(player.x, player.y, auraColor);
+                    }
+
+                    ctx.save();
+                    let auraRadius = 42 + Math.sin(Date.now() / 180) * 4;
+                    ctx.beginPath();
+                    ctx.arc(px, py, auraRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(79, 195, 247, 0.14)';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.28)';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.restore();
+
+                    if(player.isMoving) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.24;
+                        ctx.fillStyle = 'rgba(34, 197, 94, 0.18)';
+                        ctx.beginPath();
+                        ctx.ellipse(px, py + 36, 32, 10, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    if (window.drawBeautifulRPGChibi) {
+                        let faceDir = 'right';
+                        let dx = 0;
+                        if (window.pressedKeys) {
+                            if (window.pressedKeys['a'] || window.pressedKeys['arrowleft']) dx = -1;
+                            if (window.pressedKeys['d'] || window.pressedKeys['arrowright']) dx = 1;
+                        }
+                        if (dx === 0 && window.joystickActive && window.joystickVector) {
+                            dx = window.joystickVector.x;
+                        }
+                        if (dx < -0.1) faceDir = 'left';
+                        else if (dx > 0.1) faceDir = 'right';
+                        
+                        window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir);
+                    } else {
+                        ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                        ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);
+                    }
+
+                    ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff";
+                    ctx.textAlign = "center";
+                    ctx.fillText(player.name, px, py + 26);
+
+                    renderAttackEffect();
+                }
+            });
+
+            // Add Map Decorations
+            window.mapDecorations.forEach(dec => {
+                drawList.push({
+                    y: dec.y,
+                    draw: () => {
+                        if (window.drawDecoration) {
+                            window.drawDecoration(ctx, dec, camera);
+                        }
+                    }
+                });
+            });
+
+            // Sort all by Y pivot position
+            drawList.sort((a, b) => a.y - b.y);
+
+            // Draw Y-Sorted items
+            drawList.forEach(item => item.draw());
 
             renderMonsterProjectiles();
             renderSkillEffects();
             renderSkillActionPopups();
-
-            // Layer 4: Render Remote Inter-Tab PvP Competitors network players
-            for(let id in networkPlayers) {
-                let p = networkPlayers[id];
-                let sx = p.x - camera.x;
-                let sy = p.y - camera.y;
-
-                // Base avatar skin frame: Chibi RPG vector
-                if (window.drawBeautifulRPGChibi) {
-                    window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, false, 0.9, 'right');
-                } else {
-                    ctx.font = "30px Arial"; ctx.textAlign = "center";
-                    ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
-                }
-                
-                // Name text tags label
-                ctx.font = "bold 12px 'Baloo 2'"; ctx.fillStyle = "#f43f5e";
-                ctx.fillText(`⚔️ ${p.name} (Lv.${p.level})`, sx, sy + 25);
-                
-                // Simple health metric dot
-                ctx.fillStyle = "red"; ctx.fillRect(sx-20, sy-22, 40, 3);
-                ctx.fillStyle = "green"; ctx.fillRect(sx-20, sy-22, 40 * (p.hp / p.maxHp), 3);
-            }
 
             // Layer 5: Target Reticle Selection Highlights Line Indicators
             if(player.targetMonster) {
@@ -3381,70 +3779,9 @@ function toggleAutoFarm() {
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // Target text crosshair lock square box overlay ring
                 ctx.strokeStyle = "#f43f5e";
                 ctx.strokeRect(m.x - camera.x - 22, m.y - camera.y - 22, 44, 44);
             }
-
-            // Layer 6: Render Self Client Core Main Player Character
-            let px = player.x - camera.x;
-            let py = player.y - camera.y;
-
-            if(player.hp > 0 && window.spawnAura && Math.random() < 0.25) {
-                let auraColor = '#fbbf24'; // Super Saiyan yellow
-                if(player.classId === 'cop') auraColor = '#38bdf8'; 
-                else if(player.classId === 'teacher') auraColor = '#ef4444'; 
-                else if(player.classId === 'merchant') auraColor = '#fbbf24';
-                else if(player.classId === 'engineer') auraColor = '#a855f7';
-                window.spawnAura(player.x, player.y, auraColor);
-            }
-
-            ctx.save();
-            let auraRadius = 42 + Math.sin(Date.now() / 180) * 4;
-            ctx.beginPath();
-            ctx.arc(px, py, auraRadius, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(79, 195, 247, 0.14)';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255, 215, 0, 0.28)';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-            ctx.restore();
-
-            if(player.isMoving) {
-                ctx.save();
-                ctx.globalAlpha = 0.24;
-                ctx.fillStyle = 'rgba(34, 197, 94, 0.18)';
-                ctx.beginPath();
-                ctx.ellipse(px, py + 36, 32, 10, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-
-            // Client Character Render: Chibi RPG vector
-            if (window.drawBeautifulRPGChibi) {
-                let faceDir = 'right';
-                let dx = 0;
-                if (window.pressedKeys) {
-                    if (window.pressedKeys['a'] || window.pressedKeys['arrowleft']) dx = -1;
-                    if (window.pressedKeys['d'] || window.pressedKeys['arrowright']) dx = 1;
-                }
-                if (dx === 0 && window.joystickActive && window.joystickVector) {
-                    dx = window.joystickVector.x;
-                }
-                if (dx < -0.1) faceDir = 'left';
-                else if (dx > 0.1) faceDir = 'right';
-                
-                window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir);
-            } else {
-                ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);
-            }
-
-            // Self text label tag name
-            ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff";
-            ctx.fillText(player.name, px, py + 26);
-
-            renderAttackEffect();
 
             // Layer 7: Render Floating Particle elements array
             particles.forEach(p => {
@@ -3455,7 +3792,6 @@ function toggleAutoFarm() {
                 let py = p.y - camera.y;
                 
                 if (p.emoji === "⚔️" || p.emoji === "💥" || p.emoji === "🔥") {
-                    // Draw a blood splatter or bright spark line
                     ctx.shadowBlur = 10;
                     ctx.shadowColor = "#ef4444";
                     ctx.strokeStyle = "#f87171";
@@ -3465,7 +3801,6 @@ function toggleAutoFarm() {
                     ctx.lineTo(px + p.vx * 3, py + p.vy * 3);
                     ctx.stroke();
                 } else if (p.emoji === "🧪") {
-                    // Draw rising green bubble glows
                     ctx.shadowBlur = 12;
                     ctx.shadowColor = "#22c55e";
                     ctx.fillStyle = "#4ade80";
@@ -3473,7 +3808,6 @@ function toggleAutoFarm() {
                     ctx.arc(px, py, 4 + p.life % 4, 0, Math.PI * 2);
                     ctx.fill();
                 } else if (p.emoji === "❤️") {
-                    // Draw glowing heart shape or red pulsing circle
                     ctx.shadowBlur = 15;
                     ctx.shadowColor = "#f43f5e";
                     ctx.fillStyle = "#fda4af";
@@ -3481,7 +3815,6 @@ function toggleAutoFarm() {
                     ctx.arc(px, py, 6, 0, Math.PI * 2);
                     ctx.fill();
                 } else if (p.emoji === "✨" || p.emoji === "⭐") {
-                    // Draw glowing golden star/diamond shape
                     ctx.shadowBlur = 15;
                     ctx.shadowColor = "#eab308";
                     ctx.fillStyle = "#fef08a";
@@ -3497,7 +3830,6 @@ function toggleAutoFarm() {
                     ctx.closePath();
                     ctx.fill();
                 } else if (p.emoji === "💀") {
-                    // Draw dark soul particles
                     ctx.shadowBlur = 8;
                     ctx.shadowColor = "#7c3aed";
                     ctx.fillStyle = "#c084fc";
@@ -3505,7 +3837,6 @@ function toggleAutoFarm() {
                     ctx.arc(px, py, 5, 0, Math.PI * 2);
                     ctx.fill();
                 } else if (p.emoji === "💰") {
-                    // Draw shiny yellow coin circles
                     ctx.shadowBlur = 8;
                     ctx.shadowColor = "#fbbf24";
                     ctx.fillStyle = "#fbbf24";
@@ -3516,7 +3847,6 @@ function toggleAutoFarm() {
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
                 } else {
-                    // Fallback to text emojis for other particles
                     ctx.font = "20px Arial";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
@@ -3526,7 +3856,6 @@ function toggleAutoFarm() {
                 ctx.restore();
             });
             
-            // Periodically force UI update synchronization
             if(!window.uiTicks) window.uiTicks = 0;
             if(window.uiTicks++ % 8 === 0) refreshHudDisplay();
         }
@@ -3559,3 +3888,333 @@ function toggleAutoFarm() {
             mCtx.strokeStyle = "rgba(34,197,94,0.5)";
             mCtx.strokeRect(player.x * scale - 4, player.y * scale - 4, 8, 8);
         }
+
+        // --- MULTI-MAP PORTALS & TRANSITIONS ---
+        const PORTALS = [
+            { name: "Làng Trung Tâm", mapId: "world", x: 1520, y: 1450, color: '#22d3ee' },
+            { name: "Rừng U Minh", mapId: "world", x: 600, y: 2800, color: '#10b981' },
+            { name: "Hồ Sen Tĩnh Lặng", mapId: "world", x: 2800, y: 2800, color: '#3b82f6' },
+            { name: "Đồi Cỏ Mặt Trời", mapId: "world", x: 3300, y: 800, color: '#eab308' },
+            { name: "Bãi Luyện Cấp (Dị Biến)", mapId: "world", x: 1200, y: 3500, color: '#f43f5e' },
+            { name: "Chợ Quê Xóm Dưới", mapId: "world", x: 2800, y: 3600, color: '#a855f7' }
+        ];
+
+        const DUNGEON_ENTRANCES = [
+            { name: "Cổng Vào Hang Quỷ (Cấp 15+)", targetMapId: "demon_cave", parentMapId: "world", x: 400, y: 2500, spawnX: 2000, spawnY: 2500, color: '#ef4444' },
+            { name: "Cổng Vào Nghĩa Địa (Cấp 25+)", targetMapId: "cemetery", parentMapId: "world", x: 800, y: 3400, spawnX: 2000, spawnY: 2500, color: '#6b7280' },
+            { name: "Cổng Vào Rừng Ma (Cấp 35+)", targetMapId: "ghost_forest", parentMapId: "world", x: 3500, y: 500, spawnX: 2000, spawnY: 2500, color: '#a855f7' },
+            { name: "Cổng Vào Đền Cổ (Cấp 45+)", targetMapId: "ancient_temple", parentMapId: "world", x: 3100, y: 2500, spawnX: 2000, spawnY: 2500, color: '#eab308' },
+            { name: "Cổng Vào Hầm Ngục Tối (Cấp 55+)", targetMapId: "dungeon", parentMapId: "world", x: 2900, y: 3700, spawnX: 2000, spawnY: 2500, color: '#f97316' }
+        ];
+
+        const BUILDING_ENTRANCES = [
+            { name: "Cửa Vào Ủy Ban Xã", targetMapId: "communal_house", parentMapId: "world", x: 1800, y: 1600, spawnX: 300, spawnY: 500, color: '#f43f5e' },
+            { name: "Cửa Vào Trường Học", targetMapId: "school", parentMapId: "world", x: 2000, y: 1600, spawnX: 300, spawnY: 500, color: '#38bdf8' },
+            { name: "Cửa Vào Trạm Công An", targetMapId: "police_station", parentMapId: "world", x: 2200, y: 1600, spawnX: 300, spawnY: 500, color: '#fbbf24' },
+            { name: "Cửa Vào Lò Rèn", targetMapId: "blacksmith_shop", parentMapId: "world", x: 2300, y: 1550, spawnX: 300, spawnY: 500, color: '#fb923c' },
+            { name: "Cửa Vào Đình Làng", targetMapId: "village_temple", parentMapId: "world", x: 2500, y: 1550, spawnX: 300, spawnY: 500, color: '#e2e8f0' }
+        ];
+
+        function spawnMonstersForMap(mapId) {
+            monsters = [];
+            if (mapId === 'world') {
+                spawnInitialMonsters();
+            } else if (mapId === 'demon_cave') {
+                spawnBoss('demon_cave', 'Quỷ Vương Khổng Lồ (Cyclops Lord)', '🐗', 2500, 2000, 2000);
+                for (let i = 0; i < 15; i++) {
+                    spawnMinion('cyc', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
+                }
+            } else if (mapId === 'cemetery') {
+                spawnBoss('cemetery', 'Chúa Tể Thây Ma (Zombie Lord)', '🐕', 3500, 2000, 2000);
+                for (let i = 0; i < 15; i++) {
+                    spawnMinion('zom', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
+                }
+            } else if (mapId === 'dungeon') {
+                spawnBoss('dungeon', 'Ma Vương Rực Lửa (Barlog King)', '👹', 5000, 2000, 2000);
+                for (let i = 0; i < 15; i++) {
+                    spawnMinion('barlog', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
+                }
+            } else if (mapId === 'ghost_forest') {
+                spawnBoss('ghost_forest', 'Ác Quỷ Bóng Đêm', '👹', 3000, 2000, 2000);
+                for (let i = 0; i < 12; i++) {
+                    spawnMinion('ant', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
+                }
+            } else if (mapId === 'ancient_temple') {
+                spawnBoss('ancient_temple', 'Hộ Vệ Đền Cổ', '🐗', 4000, 2000, 2000);
+                for (let i = 0; i < 12; i++) {
+                    spawnMinion('cyc', 2000 + (Math.random()-0.5)*800, 2000 + (Math.random()-0.5)*800);
+                }
+            }
+        }
+
+        function spawnBoss(mapId, name, emoji, hp, x, y) {
+            monsters.push({
+                name: name,
+                emoji: emoji,
+                hp: hp,
+                maxHp: hp,
+                atk: 45,
+                def: 25,
+                speed: 2.2,
+                isBoss: true,
+                xpReward: 1200,
+                goldReward: 2500,
+                x: x,
+                y: y,
+                vx: 0,
+                vy: 0,
+                lastAttack: 0,
+                id: "BOSS_" + mapId
+            });
+        }
+
+        function spawnMinion(type, x, y) {
+            let template = null;
+            if (type === 'ant') template = MONSTER_POOL[0];
+            else if (type === 'slm') template = MONSTER_POOL[1];
+            else if (type === 'zom') template = MONSTER_POOL[2];
+            else if (type === 'cyc') template = MONSTER_POOL[3];
+            else if (type === 'barlog') {
+                template = { name: "Quỷ Lửa Nhỏ", emoji: "👹", hp: 350, maxHp: 350, atk: 28, exp: 160, gold: 60 };
+            }
+            if (!template) template = MONSTER_POOL[0];
+            
+            monsters.push({
+                ...JSON.parse(JSON.stringify(template)),
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5,
+                lastAttack: 0,
+                id: "MINION_" + Math.random()
+            });
+        }
+
+        window.changeMap = function(mapId, spawnX, spawnY) {
+            if (window.currentMapId === mapId) return;
+            
+            audio.play('C23');
+            
+            const fadeDiv = document.createElement('div');
+            fadeDiv.style.position = 'fixed';
+            fadeDiv.style.inset = '0';
+            fadeDiv.style.background = '#000';
+            fadeDiv.style.opacity = '0';
+            fadeDiv.style.transition = 'opacity 0.4s ease';
+            fadeDiv.style.zIndex = '99999';
+            document.body.appendChild(fadeDiv);
+            
+            setTimeout(() => { fadeDiv.style.opacity = '1'; }, 50);
+            
+            setTimeout(() => {
+                window.currentMapId = mapId;
+                player.x = spawnX;
+                player.y = spawnY;
+                player.destinationX = undefined;
+                player.destinationY = undefined;
+                player.targetMonster = null;
+                
+                if (window.generateMapDecorations) {
+                    window.generateMapDecorations(mapId);
+                }
+                spawnMonstersForMap(mapId);
+                
+                let targetBgm = 'aresden';
+                if (mapId === 'demon_cave' || mapId === 'dungeon') targetBgm = 'dungeon';
+                else if (mapId === 'cemetery') targetBgm = 'apocalypse';
+                else if (mapId.includes('house') || mapId.includes('school') || mapId.includes('shop')) targetBgm = 'elvine';
+                audio.playBgm(targetBgm);
+                
+                showToast(`🔮 Đã chuyển sang bản đồ: ${mapId.toUpperCase()}`);
+                
+                fadeDiv.style.opacity = '0';
+                setTimeout(() => { fadeDiv.remove(); }, 400);
+            }, 450);
+        };
+
+        function teleportToPortal(portal) {
+            audio.play('C23');
+            
+            const fadeDiv = document.createElement('div');
+            fadeDiv.style.position = 'fixed';
+            fadeDiv.style.inset = '0';
+            fadeDiv.style.background = '#000';
+            fadeDiv.style.opacity = '0';
+            fadeDiv.style.transition = 'opacity 0.3s ease';
+            fadeDiv.style.zIndex = '99999';
+            document.body.appendChild(fadeDiv);
+            
+            setTimeout(() => { fadeDiv.style.opacity = '1'; }, 50);
+            
+            setTimeout(() => {
+                window.currentMapId = portal.mapId;
+                player.x = portal.x;
+                player.y = portal.y + 40;
+                player.destinationX = undefined;
+                player.destinationY = undefined;
+                player.targetMonster = null;
+                
+                if (window.generateMapDecorations) {
+                    window.generateMapDecorations(window.currentMapId);
+                }
+                spawnMonstersForMap(window.currentMapId);
+                
+                showToast(`🌀 Đã dịch chuyển tới ${portal.name}`);
+                
+                for (let i = 0; i < 30; i++) {
+                    let vx = (Math.random() - 0.5) * 8;
+                    let vy = (Math.random() - 0.5) * 8 - 4;
+                    window.spawnParticle(player.x, player.y, portal.color, Math.random()*6+2, 25, vx, vy, 'glow');
+                }
+                
+                fadeDiv.style.opacity = '0';
+                setTimeout(() => { fadeDiv.remove(); }, 300);
+            }, 350);
+        }
+
+        function openTeleportMenu() {
+            if (document.getElementById('teleportMenu')) return;
+            
+            const menu = document.createElement('div');
+            menu.id = 'teleportMenu';
+            menu.style.position = 'fixed';
+            menu.style.left = '50%';
+            menu.style.top = '50%';
+            menu.style.transform = 'translate(-50%, -50%)';
+            menu.style.width = '320px';
+            menu.style.zIndex = '1000';
+            menu.style.background = '#1a120b';
+            menu.style.border = '2px solid #d4af37';
+            menu.style.borderRadius = '12px';
+            menu.style.boxShadow = '0 0 25px rgba(0,0,0,0.8)';
+            menu.style.fontFamily = '"Baloo 2", sans-serif';
+            menu.style.color = '#f5f5f5';
+            
+            const header = document.createElement('div');
+            header.style.background = '#3c2a21';
+            header.style.padding = '12px';
+            header.style.display = 'flex';
+            header.style.justifyContent = 'space-between';
+            header.style.alignItems = 'center';
+            header.style.borderBottom = '1px solid #d4af37';
+            header.style.borderTopLeftRadius = '10px';
+            header.style.borderTopRightRadius = '10px';
+            
+            const title = document.createElement('span');
+            title.textContent = '🌀 DỊCH CHUYỂN NHANH';
+            title.style.fontWeight = 'bold';
+            title.style.color = '#d4af37';
+            
+            const closeBtn = document.createElement('span');
+            closeBtn.innerHTML = '✖';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.onclick = () => { menu.remove(); };
+            
+            header.appendChild(title);
+            header.appendChild(closeBtn);
+            menu.appendChild(header);
+            
+            const body = document.createElement('div');
+            body.style.padding = '15px';
+            body.style.display = 'flex';
+            body.style.flexDirection = 'column';
+            body.style.gap = '10px';
+            
+            PORTALS.forEach(p => {
+                const btn = document.createElement('button');
+                btn.textContent = p.name;
+                btn.style.width = '100%';
+                btn.style.padding = '10px';
+                btn.style.background = '#543d2b';
+                btn.style.border = '1px solid #d4af37';
+                btn.style.borderRadius = '6px';
+                btn.style.color = '#fff';
+                btn.style.fontWeight = 'bold';
+                btn.style.cursor = 'pointer';
+                
+                btn.onclick = () => {
+                    menu.remove();
+                    teleportToPortal(p);
+                };
+                body.appendChild(btn);
+            });
+            
+            menu.appendChild(body);
+            document.body.appendChild(menu);
+        }
+
+        window.checkPortalTriggers = function() {
+            let px = player.x;
+            let py = player.y;
+            
+            if (window.currentMapId === 'world') {
+                let currentStandingPortal = null;
+                for (let portal of PORTALS) {
+                    let dist = Math.sqrt((px - portal.x)**2 + (py - portal.y)**2);
+                    if (dist < 30) {
+                        currentStandingPortal = portal;
+                        break;
+                    }
+                }
+                
+                if (currentStandingPortal) {
+                    if (window.lastPortalVisited !== currentStandingPortal) {
+                        window.lastPortalVisited = currentStandingPortal;
+                        openTeleportMenu();
+                    }
+                    return;
+                } else {
+                    window.lastPortalVisited = null;
+                }
+
+                for (let entrance of DUNGEON_ENTRANCES) {
+                    let dist = Math.sqrt((px - entrance.x)**2 + (py - entrance.y)**2);
+                    if (dist < 40) {
+                        let reqLevel = 1;
+                        if (entrance.targetMapId === 'demon_cave') reqLevel = 15;
+                        else if (entrance.targetMapId === 'cemetery') reqLevel = 25;
+                        else if (entrance.targetMapId === 'ghost_forest') reqLevel = 35;
+                        else if (entrance.targetMapId === 'ancient_temple') reqLevel = 45;
+                        else if (entrance.targetMapId === 'dungeon') reqLevel = 55;
+                        
+                        if (player.level < reqLevel) {
+                            showToast(`⚠️ Cần đạt cấp ${reqLevel} để đi vào hầm ngục này!`, '#ef4444');
+                            player.x -= (player.x - entrance.x) * 0.5;
+                            player.y -= (player.y - entrance.y) * 0.5;
+                            return;
+                        }
+                        
+                        window.changeMap(entrance.targetMapId, entrance.spawnX, entrance.spawnY);
+                        return;
+                    }
+                }
+                
+                for (let entrance of BUILDING_ENTRANCES) {
+                    let dist = Math.sqrt((px - entrance.x)**2 + (py - entrance.y)**2);
+                    if (dist < 35) {
+                        window.changeMap(entrance.targetMapId, entrance.spawnX, entrance.spawnY);
+                        return;
+                    }
+                }
+            } else {
+                if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest') {
+                    let dist = Math.sqrt((px - 2000)**2 + (py - 2600)**2);
+                    if (dist < 40) {
+                        let ent = DUNGEON_ENTRANCES.find(e => e.targetMapId === window.currentMapId);
+                        let rx = ent ? ent.x : 1520;
+                        let ry = ent ? ent.y + 50 : 1450;
+                        window.changeMap('world', rx, ry);
+                        return;
+                    }
+                } else {
+                    let dist = Math.sqrt((px - 300)**2 + (py - 550)**2);
+                    if (dist < 35) {
+                        let ent = BUILDING_ENTRANCES.find(e => e.targetMapId === window.currentMapId);
+                        let rx = ent ? ent.x : 1520;
+                        let ry = ent ? ent.y + 50 : 1450;
+                        window.changeMap('world', rx, ry);
+                        return;
+                    }
+                }
+            }
+        };
