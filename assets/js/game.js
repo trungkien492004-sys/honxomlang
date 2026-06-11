@@ -147,6 +147,7 @@
             potion_mp: { id: "potion_mp", name: "Bình Nước Suối MP", emoji: "💧", type: "usable", desc: "Hồi phục ngay lập tức 30 Linh Lực (MP)", value: 30, price: 15 },
             iron_ore:  { id: "iron_ore", name: "Quặng Sắt Thô", emoji: "🪨", type: "material", desc: "Quặng đá sắt dùng làm phôi chế tạo vũ khí trang bị", price: 10 },
             magic_crystal: { id: "magic_crystal", name: "Pha Lê Ma Thuật", emoji: "🔮", type: "material", desc: "Tinh thể ma pháp quý hiếm rớt ra từ quái vật", price: 30 },
+            skin_cong_chua: { id: "skin_cong_chua", name: "Công Chúa Cầu Vồng", emoji: "👗", type: "skin", desc: "Trang phục Công Chúa Cầu Vồng với hiệu ứng lấp lánh (Quà Tân Thủ)", price: 0 },
             
             // Weapons
             wp_wooden: { id: "wp_wooden", name: "Gậy Gỗ Đầu Thôn", emoji: "🪵", type: "weapon", atk: 4, def: 0, hp: 0, price: 30 },
@@ -252,6 +253,7 @@
             x: 2000, y: 2000, // Coordinates in World Map Space centered at 2000,2000
             targetMonster: null,
             inventory: [
+                { id: "skin_cong_chua", count: 1 },
                 { id: "potion_hp", count: 3 },
                 { id: "potion_mp", count: 2 },
                 { id: "iron_ore", count: 4 }
@@ -259,7 +261,8 @@
             equipment: {
                 weapon: null,
                 armor: null,
-                accessory: null
+                accessory: null,
+                skin: null
             },
             skills: [],
             quests: JSON.parse(JSON.stringify(QUEST_DATA)), // Deep clone quest dictionary
@@ -535,7 +538,7 @@
         function saveGameToLocal() {
             let stateToSave = {
                 name: player.name,
-                classId: player.classId,
+                classId: player.classId, equipment: player.equipment,
                 level: player.level,
                 exp: player.exp,
                 maxExp: player.maxExp,
@@ -2111,7 +2114,7 @@ function toggleAutoFarm() {
                 if(invItem.count <= 0) player.inventory.splice(idx, 1);
                 showToast(`🧪 Đã sử dụng thành công ${itemDef.name}!`);
             } 
-            else if(['weapon', 'armor', 'accessory'].includes(itemDef.type)) {
+            else if(['weapon', 'armor', 'accessory', 'skin'].includes(itemDef.type)) {
                 let slot = itemDef.type;
                 let oldEquipId = player.equipment[slot];
                 
@@ -2515,7 +2518,7 @@ function toggleAutoFarm() {
             if (hudCanvas && window.drawBeautifulRPGChibi) {
                 const hctx = hudCanvas.getContext('2d');
                 hctx.clearRect(0, 0, 60, 60);
-                window.drawBeautifulRPGChibi(hctx, 30, 24, player.classId, false, 0.85, 'right');
+                window.drawBeautifulRPGChibi(hctx, 30, 24, player.classId, false, 0.85, 'right', false, player.equipment.skin);
             } else {
                 document.getElementById('hudAvatar').textContent = cls?.emoji || "👮‍♂️";
             }
@@ -2610,7 +2613,7 @@ function toggleAutoFarm() {
         }
 
         function rebuildEquipmentUI() {
-            let slots = ['weapon', 'armor', 'accessory'];
+            let slots = ['weapon', 'armor', 'accessory', 'skin'];
             slots.forEach(slotName => {
                 let eqBox = document.getElementById(`eq-${slotName}`);
                 let itemId = player.equipment[slotName];
@@ -3426,7 +3429,7 @@ function toggleAutoFarm() {
                         let sy = p.y - camera.y;
 
                         if (window.drawBeautifulRPGChibi) {
-                            window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, false, 0.9, 'right');
+                            window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, false, 0.9, 'right', false, p.equipment?.skin);
                         } else {
                             ctx.font = "30px Arial"; ctx.textAlign = "center";
                             ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
@@ -3492,7 +3495,7 @@ function toggleAutoFarm() {
                         if (dx < -0.1) faceDir = 'left';
                         else if (dx > 0.1) faceDir = 'right';
                         
-                        window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir);
+                        window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir, false, player.equipment.skin);
                     } else {
                         ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                         ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);
@@ -3500,7 +3503,16 @@ function toggleAutoFarm() {
 
                     ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff";
                     ctx.textAlign = "center";
-                    ctx.fillText(player.name, px, py + 26);
+                    if(player.equipment.skin === 'skin_cong_chua') {
+                        ctx.fillStyle = '#fbcfe8';
+                        ctx.font = "bold 11px 'Baloo 2'";
+                        ctx.fillText("✨ Người Khởi Hành May Mắn ✨", px, py + 22);
+                        ctx.fillStyle = '#fff';
+                        ctx.font = "bold 13px 'Baloo 2'";
+                        ctx.fillText(player.name, px, py + 36);
+                    } else {
+                        ctx.fillText(player.name, px, py + 26);
+                    }
 
                     renderAttackEffect();
                 }

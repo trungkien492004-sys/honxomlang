@@ -401,7 +401,7 @@ window.openBoardGame = function(pvpMode = false) {
         pvp: !!pvpMode, hostId: pvpMode ? myNetworkId : null, betPool: betAmount
     };
     boardGame.players.push({
-        idx: 0, name: player.name, networkId: myNetworkId,
+        idx: 0, name: player.name, networkId: myNetworkId, classId: player.classId, skin: player.equipment.skin,
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false, // Core sinh tá»“n
         color: RACE_PLAYER_COLORS[0],
         emoji: CLASS_DATA[player.classId]?.emoji || 'ðŸƒ',
