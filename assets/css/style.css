@@ -237,7 +237,8 @@ input[type="text"], input[type="email"], input[type="password"] {
 
 /* =====================================================
    🏁 CỜ ĐUA — RACING BOARD GAME (Completely Redesigned)
-   ====================================================#boardGameModal {
+   ==================================================== */
+#boardGameModal {
     display: none;
     position: fixed;
     inset: 0;

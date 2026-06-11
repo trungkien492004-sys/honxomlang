@@ -579,9 +579,14 @@
                 player.gold = data.gold;
                 player.x = data.x;
                 player.y = data.y;
-                player.inventory = data.inventory;
-                player.equipment = data.equipment;
+                player.inventory = data.inventory || [];
+                player.equipment = data.equipment || { weapon: null, armor: null, accessory: null, skin: null };
                 player.quests = data.quests;
+
+                if(!player.equipment.skin) player.equipment.skin = null;
+                if(!player.inventory.find(i => i.id === 'skin_cong_chua')) {
+                    player.inventory.push({ id: 'skin_cong_chua', count: 1 });
+                }
 
                 // Re-hydrate skill template based on restored class ID
                 let t = CLASS_DATA[player.classId];
