@@ -1154,9 +1154,11 @@ input[type="text"], input[type="email"], input[type="password"] {
 .skill-slot { pointer-events: auto; }
 
 /* ---- Cờ Đua Survival Additions ---- */
-.board-token-large {\n    width: 32px;\n    height: 32px;\n    background-size: cover !important;\n    background-position: center !important;
-    font-size: 1.8rem;
-    line-height: 1;
+.board-token-large {
+    width: 32px;
+    height: 32px;
+    background-size: cover !important;
+    background-position: center !important;
     background: rgba(255,255,255,0.15);
     border: 2px solid;
     border-radius: 50%;

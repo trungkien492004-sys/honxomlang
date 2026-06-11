@@ -1,4 +1,6 @@
-/* ---- MOBILE UI OVERHAUL ---- */
+const fs = require('fs');
+
+let css = `/* ---- MOBILE UI OVERHAUL ---- */
 /* Hamburger Menu */
 #mobileMenuToggle {
     display: none;
@@ -173,3 +175,7 @@
         font-size: 0.5rem !important;
     }
 }
+`;
+
+fs.writeFileSync('./assets/css/mobile.css', css, 'utf8');
+console.log('mobile.css updated successfully.');
