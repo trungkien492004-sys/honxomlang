@@ -366,13 +366,9 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
 
 window.switchScreen = function(sId) {
     window.currentScreen = sId;
-    if (typeof window.switchScreen === 'function') {
-        window.switchScreen(sId);
-    } else {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        const el = document.getElementById(sId);
-        if(el) el.classList.add('active');
-    }
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById(sId);
+    if(el) el.classList.add('active');
 };
 
 window.loginAsLocalUser = function(username) {
