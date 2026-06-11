@@ -1249,3 +1249,27 @@ input[type="text"], input[type="email"], input[type="password"] {
  
  
  
+
+/* Mobile Responsive Overrides */
+@media (max-width: 768px) {
+    #joystickZone { display: none !important; }
+    .hud-nav-btn { padding: 5px 8px; font-size: 0.7rem; }
+    .mobile-menu-btn { display: flex !important; }
+    #hudNavContainer { display: none; flex-direction: column; position: fixed; top: 60px; right: 10px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; z-index: 1000; }
+    #hudNavContainer.open { display: flex; }
+    .game-panel { width: 95vw !important; left: 2.5vw !important; height: 80vh !important; }
+    
+    /* Board Game Vertical Layout */
+    #boardGameModal .modal-content {
+        width: 98vw; height: 90vh;
+        flex-direction: column;
+    }
+    .board-grid {
+        /* Mobile layout: Transpose the 10x6 to 6x10 */
+        grid-template-columns: repeat(6, 1fr) !important;
+        grid-template-rows: repeat(10, 1fr) !important;
+        gap: 2px !important;
+    }
+    .board-cell { min-height: 40px !important; font-size: 0.7rem !important; }
+    .board-token-large { width: 18px !important; height: 18px !important; font-size: 0.6rem !important; }
+}

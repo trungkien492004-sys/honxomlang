@@ -1845,6 +1845,8 @@ function handleWorldClick(e) {
 
     audio.play('click');
     clickMarker = { x: worldClickX, y: worldClickY, createdAt: Date.now() };
+    player.destinationX = worldClickX;
+    player.destinationY = worldClickY;
 
     // Khi đang chọn skill, ưu tiên thi triển chiêu thức trước
     if(activeSkillSelection) {
