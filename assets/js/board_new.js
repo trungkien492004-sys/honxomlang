@@ -1,8 +1,9 @@
-﻿// ===== ðŸ BOARD_NEW.JS â€” Cá» Äua Sinh Tá»“n v4.0 (Yu-Gi-Oh Style) =====
+// ===== ðŸ   BOARD_NEW.JS â€” Cá»  Ä ua Sinh Tá»“n v4.0 (Yu-Gi-Oh Style) =====
 'use strict';
 var boardGame = null;
+const BOARD_TOTAL_CELLS = 60;
 
-const RACE_DICE_EMOJIS = ['âš€','âš','âš‚','âšƒ','âš„','âš…'];
+const RACE_DICE_EMOJIS = ['âš€','âš ','âš‚','âšƒ','âš„','âš…'];
 const RACE_PLAYER_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b'];
 const NEIGHBORHOOD_NAMES = [
     "NhÃ  HÃ’A", "QuÃ¡n Net THU THáº¢O", "NhÃ  Máº®M", "Háº»m Táº¸T", "Táº¡p hÃ³a THÆ¯Æ NG HIá»€N",
