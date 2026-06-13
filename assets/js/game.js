@@ -147,6 +147,13 @@
             potion_mp: { id: "potion_mp", name: "Bình Nước Suối MP", emoji: "💧", type: "usable", desc: "Hồi phục ngay lập tức 30 Linh Lực (MP)", value: 30, price: 15 },
             iron_ore:  { id: "iron_ore", name: "Quặng Sắt Thô", emoji: "🪨", type: "material", desc: "Quặng đá sắt dùng làm phôi chế tạo vũ khí trang bị", price: 10 },
             magic_crystal: { id: "magic_crystal", name: "Pha Lê Ma Thuật", emoji: "🔮", type: "material", desc: "Tinh thể ma pháp quý hiếm rớt ra từ quái vật", price: 30 },
+            food_com_nam: { id: "food_com_nam", name: "Cơm Nắm Xá Xíu", emoji: "🍙", type: "usable_food", desc: "Hồi 10 HP & 5 MP mỗi 3 giây. Kéo dài 30 giây.", regenHp: 10, regenMp: 5, duration: 30000, price: 50 },
+            food_sua: { id: "food_sua", name: "Sữa Bò Tươi Xóm Giữa", emoji: "🥛", type: "usable_food", desc: "Hồi 15 HP & 10 MP mỗi 3 giây. Kéo dài 30 giây.", regenHp: 15, regenMp: 10, duration: 30000, price: 80 },
+            food_mi_ramen: { id: "food_mi_ramen", name: "Mì Ramen Nóng Hổi", emoji: "🍜", type: "usable_food", desc: "Hồi 25 HP & 15 MP mỗi 3 giây. Kéo dài 30 giây.", regenHp: 25, regenMp: 15, duration: 30000, price: 100 },
+            food_ca_nuong: { id: "food_ca_nuong", name: "Cá Lóc Nướng Trui", emoji: "🐟", type: "usable_food", desc: "Hồi 50 HP & 30 MP mỗi 3 giây. Kéo dài 30 giây.", regenHp: 50, regenMp: 30, duration: 30000, price: 200 },
+            food_nuoc_tang_luc: { id: "food_nuoc_tang_luc", name: "Nước Tăng Lực Rồng Đỏ", emoji: "🥤", type: "usable_food", desc: "Hồi 100 HP & 60 MP mỗi 3 giây. Kéo dài 30 giây.", regenHp: 100, regenMp: 60, duration: 30000, price: 400 },
+            stone_enhance: { id: "stone_enhance", name: "Đá Cường Hóa", emoji: "💎", type: "material", desc: "Dùng để cường hóa trang bị tại Bác Thợ Rèn", price: 300 },
+            card_summon: { id: "card_summon", name: "Thẻ Triệu Hồi Boss", emoji: "🃏", type: "usable", desc: "Triệu hồi Boss Thần Trùng lập tức tại Bản Đồ Thế Giới!", price: 1000 },
             
             // Weapons
             wp_wooden: { id: "wp_wooden", name: "Gậy Gỗ Đầu Thôn", emoji: "🪵", type: "weapon", atk: 4, def: 0, hp: 0, price: 30 },
@@ -227,6 +234,12 @@
         let autoSkillIds = new Set();
         let lastAutoCombatAction = 0;
 
+        window.autoLoot = true;
+        window.autoUseHp = false;
+        window.autoUseMp = false;
+        window.autoUseFood = false;
+        window.autoSkillsSelected = [null, null, null];
+
         let activeSkillSelection = null;
         let skillCursor = null;
         let clickMarker = null;
@@ -253,9 +266,13 @@
             targetMonster: null,
             inventory: [
                 { id: "skin_cong_chua", count: 1 },
-                { id: "potion_hp", count: 3 },
-                { id: "potion_mp", count: 2 },
-                { id: "iron_ore", count: 4 }
+                { id: "potion_hp", count: 5 },
+                { id: "potion_mp", count: 5 },
+                { id: "iron_ore", count: 4 },
+                { id: "food_com_nam", count: 5 },
+                { id: "food_mi_ramen", count: 5 },
+                { id: "food_ca_nuong", count: 2 },
+                { id: "food_sua", count: 2 }
             ],
             equipment: {
                 weapon: null,
@@ -264,12 +281,15 @@
                 skin: null
             },
             skills: [],
+            assignedSkills: [null, null, null],
+            activeBuffs: { hp: null, mp: null },
             quests: JSON.parse(JSON.stringify(QUEST_DATA)), // Deep clone quest dictionary
             attackEffect: { active: false, sx: 0, sy: 0, targetX: 0, targetY: 0, startAt: 0 }
         };
 
         let camera = { x: 0, y: 0 };
         let monsters = [];
+        let groundItems = [];
         let particles = [];
         let skillEffects = [];
         let monsterProjectiles = [];
@@ -435,6 +455,7 @@
             setInterval(autosaveGameProcess, 30000);
             
             window.addEventListener('beforeunload', () => {
+                saveGameToLocal();
                 if(typeof db !== 'undefined' && myNetworkId) {
                     db.collection('active_players').doc(myNetworkId).delete().catch(()=>{});
                 }
@@ -492,6 +513,8 @@
             player.baseDef = t.def;
             player.baseSpeed = t.speed;
             player.skills = JSON.parse(JSON.stringify(t.skills));
+            player.assignedSkills = [t.skills[0].id, t.skills[1].id, t.skills[2].id];
+            player.activeBuffs = { hp: null, mp: null };
 
             // Run lore/story overview intro sequence
             showLoreOverlay();
@@ -533,7 +556,7 @@
         const switchScreen = window.switchScreen;
 
         // --- LOCAL STORAGE CORE SAVE/LOAD ENGINE ---
-        function autosaveGameProcess() {
+        function autosaveGameProcess(silent = false) {
             if(currentScreen !== 'gameScreen') return;
             saveGameToLocal();
             
@@ -542,9 +565,13 @@
                 window.saveGameToCloud(window.player);
             }
             
-            let ind = document.getElementById('saveIndicator');
-            ind.style.display = "block";
-            setTimeout(() => ind.style.display = "none", 2500);
+            if (!silent) {
+                let ind = document.getElementById('saveIndicator');
+                if (ind) {
+                    ind.style.display = "block";
+                    setTimeout(() => ind.style.display = "none", 2500);
+                }
+            }
         }
 
         function triggerManualSave() {
@@ -572,7 +599,14 @@
                 y: player.y,
                 inventory: player.inventory,
                 equipment: player.equipment,
-                quests: player.quests
+                quests: player.quests,
+                autoUseHp: window.autoUseHp,
+                autoUseMp: window.autoUseMp,
+                autoUseFood: window.autoUseFood,
+                autoLoot: window.autoLoot,
+                autoSkillsSelected: window.autoSkillsSelected,
+                assignedSkills: player.assignedSkills,
+                activeBuffs: player.activeBuffs
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave));
         }
@@ -600,6 +634,24 @@
                 player.inventory = data.inventory || [];
                 player.equipment = data.equipment || { weapon: null, armor: null, accessory: null, skin: null };
                 player.quests = data.quests;
+
+                window.autoUseHp = !!data.autoUseHp;
+                window.autoUseMp = !!data.autoUseMp;
+                window.autoUseFood = !!data.autoUseFood;
+                window.autoLoot = data.autoLoot !== undefined ? !!data.autoLoot : true;
+                window.autoSkillsSelected = data.autoSkillsSelected || [null, null, null];
+                player.assignedSkills = data.assignedSkills || [null, null, null];
+                player.activeBuffs = data.activeBuffs || { hp: null, mp: null };
+
+                // Sync UI Checkboxes
+                let hpCheck = document.getElementById('chkAutoHp');
+                if(hpCheck) hpCheck.checked = window.autoUseHp;
+                let mpCheck = document.getElementById('chkAutoMp');
+                if(mpCheck) mpCheck.checked = window.autoUseMp;
+                let foodCheck = document.getElementById('chkAutoFood');
+                if(foodCheck) foodCheck.checked = window.autoUseFood;
+                let lootCheck = document.getElementById('chkAutoLoot');
+                if(lootCheck) lootCheck.checked = window.autoLoot;
 
                 if(!player.equipment.skin) player.equipment.skin = null;
                 if(!player.inventory.find(i => i.id === 'skin_cong_chua')) {
@@ -1327,17 +1379,30 @@
             return skill && Date.now() - skill.lastUsed >= skill.cd && player.mp >= skill.mp;
         }
 
+        let currentAutoSkillIndex = 0;
         function runAutoSkillCombatCycle(monster, now) {
-            if(!monster || monster.hp <= 0 || autoSkillIds.size === 0) return false;
-            if(now - lastAutoCombatAction < 900) return false;
-            let selected = player.skills.find(skill => autoSkillIds.has(skill.id) && canUseSkillNow(skill));
-            if(selected) {
-                lastAutoCombatAction = now;
-                if(selected.type === 'self' || selected.type === 'instant') executeActiveSkillUsage(selected.id);
-                else if(selected.type === 'target' || selected.type === 'point') executeSkillAtTarget(selected.id, monster);
-                else if(selected.type === 'aoe') executeSkillAtLocation(selected.id, monster.x, monster.y);
-                rebuildQuickSkillBarUI();
-                return true;
+            if(!monster || monster.hp <= 0) return false;
+            if(now - lastAutoCombatAction < 1000) return false;
+
+            let selectedIds = window.autoSkillsSelected;
+            if(!selectedIds || selectedIds.every(id => !id)) return false;
+
+            for (let i = 0; i < 3; i++) {
+                let checkIdx = (currentAutoSkillIndex + i) % 3;
+                let sId = selectedIds[checkIdx];
+                if (sId) {
+                    let skill = player.skills.find(s => s.id === sId);
+                    if (skill && canUseSkillNow(skill)) {
+                        lastAutoCombatAction = now;
+                        if(skill.type === 'self' || skill.type === 'instant') executeActiveSkillUsage(skill.id);
+                        else if(skill.type === 'target' || skill.type === 'point') executeSkillAtTarget(skill.id, monster);
+                        else if(skill.type === 'aoe') executeSkillAtLocation(skill.id, monster.x, monster.y);
+                        
+                        currentAutoSkillIndex = (checkIdx + 1) % 3;
+                        rebuildQuickSkillBarUI();
+                        return true;
+                    }
+                }
             }
             return false;
         }
@@ -1713,6 +1778,18 @@ function updateAndRenderParticles() {
             ctx.restore();
         }
 
+        function dropItemOnGround(itemId, count, x, y) {
+            let rx = x + (Math.random() - 0.5) * 35;
+            let ry = y + (Math.random() - 0.5) * 35;
+            groundItems.push({
+                id: itemId,
+                count: count,
+                x: rx,
+                y: ry,
+                spawnedAt: Date.now()
+            });
+        }
+
         function handleMonsterDefeated(m) {
             audio.play('gold');
             player.gold += m.gold;
@@ -1724,82 +1801,68 @@ function updateAndRenderParticles() {
             // Share XP/Gold with party
             partySystem.broadcastXpShare(m.gold, m.exp);
 
-            // Drop material system roll (Chance based loot mechanics)
-            let dropRoll = Math.random();
-            let spawnedMap = m.spawnedMapId || 'world';
-            
-            if (spawnedMap === 'world') {
-                // World drops
-                if (m.isBoss) {
-                    // World Boss drops 1 random key 100%
-                    let keys = ['key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
-                    let dropId = keys[Math.floor(Math.random() * keys.length)];
-                    addItemToInventory(dropId, 1);
-                    showToast(`🎁 Tiêu diệt Boss thế giới! Nhặt được: ${ITEMS[dropId].emoji} ${ITEMS[dropId].name}!`, '#fbbf24');
-                } else {
-                    // Normal world monsters drop material or 5% key
-                    if (dropRoll < 0.45) {
-                        let dropId = "iron_ore";
-                        let roll = Math.random();
-                        if (roll < 0.3) {
-                            dropId = "magic_crystal";
-                        } else if (roll < 0.35) {
-                            let keys = ['key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
-                            dropId = keys[Math.floor(Math.random() * keys.length)];
-                        }
-                        addItemToInventory(dropId, 1);
-                        showToast(`🎁 Nhặt được: ${ITEMS[dropId].emoji} ${ITEMS[dropId].name}!`);
-                    }
-                }
-            } else {
-                // Dungeon drops based on difficulty
-                let diff = window.dungeonDifficulty || 'easy';
-                if (m.isBoss) {
-                    // Boss drops
-                    let keyId = 'key_' + spawnedMap;
-                    if (diff === 'easy') {
-                        addItemToInventory(keyId, 1);
-                        showToast(`🎁 Nhặt được: ${ITEMS[keyId].emoji} ${ITEMS[keyId].name}!`);
-                    } else if (diff === 'medium') {
-                        addItemToInventory(keyId, 1);
-                        if (Math.random() < 0.5) addItemToInventory(keyId, 1); // chance for 2nd key
-                        showToast(`🎁 Nhặt được Chìa Khóa Hầm Ngục!`);
-                    } else if (diff === 'hard') {
-                        // Drops 1 key + 15% Epic item
-                        addItemToInventory(keyId, 1);
+            let spawnedMap = m.spawnedMapId || window.currentMapId || 'world';
+
+            if (m.isBoss) {
+                // Boss Drops: Roll 2 to 4 items on the ground
+                let dropCount = 2 + Math.floor(Math.random() * 3);
+                for (let i = 0; i < dropCount; i++) {
+                    let roll = Math.random();
+                    if (roll < 0.40) {
+                        dropItemOnGround('stone_enhance', 1, m.x, m.y);
+                    } else if (roll < 0.65) {
+                        let keys = ['key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
+                        let keyId = keys[Math.floor(Math.random() * keys.length)];
+                        dropItemOnGround(keyId, 1, m.x, m.y);
+                    } else if (roll < 0.80) {
+                        dropItemOnGround('card_summon', 1, m.x, m.y);
+                    } else if (roll < 0.92) {
                         let epics = ['wp_hellfire', 'ar_guardian', 'ac_phoenix'];
                         let epicId = epics[Math.floor(Math.random() * epics.length)];
-                        if (Math.random() < 0.15) {
-                            addItemToInventory(epicId, 1);
-                            showToast(`🔥 SIÊU PHẨM SỬ THI: Nhặt được ${ITEMS[epicId].emoji} ${ITEMS[epicId].name}!`, '#a855f7');
-                        } else {
-                            showToast(`🎁 Nhặt được: ${ITEMS[keyId].emoji} ${ITEMS[keyId].name}!`);
-                        }
-                    } else if (diff === 'hell') {
-                        // Drops 2 keys + 10% Legendary item
-                        addItemToInventory(keyId, 2);
+                        dropItemOnGround(epicId, 1, m.x, m.y);
+                    } else {
                         let legendaries = ['wp_barlog', 'ar_god', 'ac_god_eye'];
                         let legId = legendaries[Math.floor(Math.random() * legendaries.length)];
-                        if (Math.random() < 0.10) {
-                            addItemToInventory(legId, 1);
-                            showToast(`👑 BẢO VẬT TRUYỀN THUYẾT: Nhặt được ${ITEMS[legId].emoji} ${ITEMS[legId].name}!`, '#f97316');
+                        dropItemOnGround(legId, 1, m.x, m.y);
+                    }
+                }
+                // Always drop 1 high-tier food
+                dropItemOnGround('food_nuoc_tang_luc', 1, m.x, m.y);
+                showToast(`👑 Boss [${m.name}] đã ngã xuống! Kho báu quý giá đã rơi ra quanh gốc!`, '#f59e0b');
+            } else {
+                // Minion Drops on the Ground
+                let dropRoll = Math.random();
+                if (spawnedMap === 'world') {
+                    if (dropRoll < 0.45) {
+                        let roll = Math.random();
+                        if (roll < 0.50) {
+                            dropItemOnGround('iron_ore', 1, m.x, m.y);
+                        } else if (roll < 0.75) {
+                            dropItemOnGround('magic_crystal', 1, m.x, m.y);
+                        } else if (roll < 0.90) {
+                            let foods = ['food_com_nam', 'food_sua'];
+                            dropItemOnGround(foods[Math.floor(Math.random() * foods.length)], 1, m.x, m.y);
                         } else {
-                            showToast(`🎁 Nhặt được: 2x ${ITEMS[keyId].name}!`);
+                            let keys = ['key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
+                            let keyId = keys[Math.floor(Math.random() * keys.length)];
+                            dropItemOnGround(keyId, 1, m.x, m.y);
                         }
                     }
                 } else {
-                    // Minion drops in dungeon
-                    if (dropRoll < 0.50) {
-                        let dropId = "iron_ore";
+                    // Dungeon minion drops
+                    if (dropRoll < 0.55) {
                         let roll = Math.random();
-                        if (roll < 0.35) dropId = "magic_crystal";
-                        // Medium/Hard/Hell minions have chance to drop key
-                        else if ((diff === 'medium' && roll < 0.45) || (diff === 'hard' && roll < 0.55) || (diff === 'hell' && roll < 0.65)) {
+                        if (roll < 0.40) {
+                            dropItemOnGround('iron_ore', 1, m.x, m.y);
+                        } else if (roll < 0.70) {
+                            dropItemOnGround('magic_crystal', 1, m.x, m.y);
+                        } else if (roll < 0.85) {
+                            let foods = ['food_mi_ramen', 'food_ca_nuong'];
+                            dropItemOnGround(foods[Math.floor(Math.random() * foods.length)], 1, m.x, m.y);
+                        } else {
                             let keyId = 'key_' + spawnedMap;
-                            dropId = keyId;
+                            if (ITEMS[keyId]) dropItemOnGround(keyId, 1, m.x, m.y);
                         }
-                        addItemToInventory(dropId, 1);
-                        showToast(`🎁 Nhặt được: ${ITEMS[dropId].emoji} ${ITEMS[dropId].name}!`);
                     }
                 }
             }
@@ -1883,6 +1946,21 @@ function handleWorldClick(e) {
     clickMarker = { x: worldClickX, y: worldClickY, createdAt: Date.now() };
     player.destinationX = worldClickX;
     player.destinationY = worldClickY;
+
+    // Check if clicked near a ground item
+    for(let gi of groundItems) {
+        let dx = worldClickX - gi.x;
+        let dy = worldClickY - gi.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist <= 35) {
+            player.destinationX = gi.x;
+            player.destinationY = gi.y;
+            player.targetMonster = null;
+            let itemDef = ITEMS[gi.id];
+            showToast(`💎 Đang di chuyển đến nhặt: ${itemDef?.name || gi.id}`);
+            return;
+        }
+    }
 
     // Khi đang chọn skill, ưu tiên thi triển chiêu thức trước
     if(activeSkillSelection) {
@@ -2147,10 +2225,37 @@ function toggleAutoFarm() {
                     if(player.mp >= getEffectiveMaxMp()) { showToast("💧 Thanh năng lượng của bạn đã đầy sẵn!"); return; }
                     player.mp = Math.min(getEffectiveMaxMp(), player.mp + itemDef.value);
                     createFloatingText(`+${itemDef.value} MP`, player.x, player.y, '#2196f3');
+                } else if(itemId === 'card_summon') {
+                    if (window.currentMapId !== 'world') {
+                        showToast("⚠️ Chỉ có thể triệu hồi Boss ở Bản Đồ Thế Giới!");
+                        return;
+                    }
+                    let boss = spawnBossMonsterAt(player.x + 50, player.y + 50);
+                    if (boss) {
+                        showToast("😈 BÁO ĐỘNG: Boss Thần Trùng đã được triệu hồi ngay bên cạnh!", "#dc2626");
+                    } else {
+                        return;
+                    }
                 }
                 invItem.count--;
                 if(invItem.count <= 0) player.inventory.splice(idx, 1);
                 showToast(`🧪 Đã sử dụng thành công ${itemDef.name}!`);
+            } 
+            else if(itemDef.type === 'usable_food') {
+                let now = Date.now();
+                player.activeBuffs.hp = {
+                    itemId: itemId,
+                    expiresAt: now + itemDef.duration,
+                    value: itemDef.regenHp
+                };
+                player.activeBuffs.mp = {
+                    itemId: itemId,
+                    expiresAt: now + itemDef.duration,
+                    value: itemDef.regenMp
+                };
+                invItem.count--;
+                if(invItem.count <= 0) player.inventory.splice(idx, 1);
+                showToast(`😋 Thưởng thức ${itemDef.name}! Kích hoạt buff hồi phục sinh lực.`);
             } 
             else if(['weapon', 'armor', 'accessory', 'skin'].includes(itemDef.type)) {
                 let slot = itemDef.type;
@@ -2307,7 +2412,7 @@ function toggleAutoFarm() {
             // Populate Buy Tab
             let buyBox = document.getElementById('shopTabBuy');
             buyBox.innerHTML = "";
-            let buyables = ['potion_hp', 'potion_mp', 'wp_wooden', 'ar_cloth', 'ac_ring', 'key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
+            let buyables = ['potion_hp', 'potion_mp', 'food_com_nam', 'food_sua', 'food_mi_ramen', 'food_ca_nuong', 'stone_enhance', 'card_summon', 'wp_wooden', 'ar_cloth', 'ac_ring', 'key_demon_cave', 'key_cemetery', 'key_ghost_forest', 'key_ancient_temple', 'key_dungeon'];
             buyables.forEach(id => {
                 let item = ITEMS[id];
                 let d = document.createElement('div');
@@ -2523,6 +2628,198 @@ function toggleAutoFarm() {
             });
         }
 
+        window.toggleMainMenu = function() {
+            let popup = document.getElementById('mainMenuPopup');
+            if (!popup) return;
+            if (popup.style.display === 'none' || popup.style.display === '') {
+                popup.style.display = 'flex';
+                // Update checkboxes to match current state
+                let fCheck = document.getElementById('chkAutoFight');
+                if(fCheck) fCheck.checked = isAutoFarming;
+                let lCheck = document.getElementById('chkAutoLoot');
+                if(lCheck) lCheck.checked = window.autoLoot;
+                let hpCheck = document.getElementById('chkAutoHp');
+                if(hpCheck) hpCheck.checked = window.autoUseHp;
+                let mpCheck = document.getElementById('chkAutoMp');
+                if(mpCheck) mpCheck.checked = window.autoUseMp;
+                let foodCheck = document.getElementById('chkAutoFood');
+                if(foodCheck) foodCheck.checked = window.autoUseFood;
+
+                window.populateAutoSkillsUI();
+            } else {
+                popup.style.display = 'none';
+            }
+        };
+
+        window.toggleAutoFightFromMenu = function(checked) {
+            if(isAutoFarming !== checked) {
+                toggleAutoFarm();
+            }
+        };
+
+        window.menuAction = function(action) {
+            // Close menu
+            let popup = document.getElementById('mainMenuPopup');
+            if (popup) popup.style.display = 'none';
+            
+            if (action === 'logout') {
+                if(typeof logoutPlayerSystem === 'function') {
+                    logoutPlayerSystem();
+                } else {
+                    location.reload();
+                }
+            } else {
+                togglePanel(action);
+            }
+        };
+
+        window.populateAutoSkillsUI = function() {
+            let s1 = document.getElementById('selAutoSkill1');
+            let s2 = document.getElementById('selAutoSkill2');
+            let s3 = document.getElementById('selAutoSkill3');
+            if(!s1 || !s2 || !s3) return;
+
+            [s1, s2, s3].forEach((selectEl, index) => {
+                selectEl.innerHTML = `<option value="">Không dùng</option>`;
+                player.skills.forEach(s => {
+                    selectEl.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+                });
+                selectEl.value = window.autoSkillsSelected[index] || "";
+            });
+        };
+
+        window.updateAutoSkillSelect = function(index, value) {
+            window.autoSkillsSelected[index] = value || null;
+            saveGameToLocal();
+        };
+
+        function spawnBossMonsterAt(x, y) {
+            let template = BOSS_POOL[0];
+            if (!template) return null;
+            let boss = {
+                ...JSON.parse(JSON.stringify(template)),
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5,
+                lastAttack: 0,
+                id: "M_" + Math.random(),
+                spawnedMapId: window.currentMapId
+            };
+            monsters.push(boss);
+            return boss;
+        }
+
+        let lastFoodTick = 0;
+        function tickFoodBuffs() {
+            let now = Date.now();
+            if (now - lastFoodTick < 3000) return;
+            lastFoodTick = now;
+
+            let healedAny = false;
+            let hpBuff = player.activeBuffs?.hp;
+            let mpBuff = player.activeBuffs?.mp;
+
+            if (hpBuff && now < hpBuff.expiresAt) {
+                player.hp = Math.min(getEffectiveMaxHp(), player.hp + hpBuff.value);
+                healedAny = true;
+                createParticle("💚", player.x, player.y);
+            } else if (hpBuff) {
+                player.activeBuffs.hp = null;
+            }
+
+            if (mpBuff && now < mpBuff.expiresAt) {
+                player.mp = Math.min(getEffectiveMaxMp(), player.mp + mpBuff.value);
+                healedAny = true;
+                createParticle("💙", player.x, player.y);
+            } else if (mpBuff) {
+                player.activeBuffs.mp = null;
+            }
+
+            if (healedAny) {
+                refreshHudDisplay();
+            }
+
+            updateBuffIconsUI();
+        }
+
+        function updateBuffIconsUI() {
+            let container = document.getElementById('buffContainer');
+            if (!container) return;
+            container.innerHTML = "";
+            let now = Date.now();
+
+            let hpBuff = player.activeBuffs?.hp;
+            if (hpBuff && now < hpBuff.expiresAt) {
+                let remaining = Math.ceil((hpBuff.expiresAt - now) / 1000);
+                let itemDef = ITEMS[hpBuff.itemId];
+                let itemEmoji = itemDef?.emoji || "🍱";
+                container.innerHTML += `
+                    <div class="buff-icon" style="background:rgba(22,163,74,0.3); border:1.5px solid #16a34a; border-radius:4px; padding:2px 6px; font-size:0.75rem; color:#fff; display:flex; align-items:center; gap:3px;">
+                        <span>${itemEmoji}</span> <span>${remaining}s</span>
+                    </div>
+                `;
+            }
+
+            let mpBuff = player.activeBuffs?.mp;
+            if (mpBuff && now < mpBuff.expiresAt) {
+                let remaining = Math.ceil((mpBuff.expiresAt - now) / 1000);
+                let itemDef = ITEMS[mpBuff.itemId];
+                let itemEmoji = itemDef?.emoji || "🥛";
+                container.innerHTML += `
+                    <div class="buff-icon" style="background:rgba(59,130,246,0.3); border:1.5px solid #3b82f6; border-radius:4px; padding:2px 6px; font-size:0.75rem; color:#fff; display:flex; align-items:center; gap:3px;">
+                        <span>${itemEmoji}</span> <span>${remaining}s</span>
+                    </div>
+                `;
+            }
+        }
+
+        let lastAutoPotionTime = 0;
+        function processAutoPotionAndFood() {
+            let now = Date.now();
+            if (now - lastAutoPotionTime < 1000) return;
+            lastAutoPotionTime = now;
+
+            // 1. Auto HP
+            if (window.autoUseHp) {
+                let maxHp = getEffectiveMaxHp();
+                if (player.hp < maxHp * 0.5) {
+                    let hpPots = player.inventory.filter(i => i.id === 'potion_hp');
+                    if (hpPots.length > 0 && hpPots[0].count > 0) {
+                        useOrEquipInventoryItem('potion_hp');
+                    }
+                }
+            }
+
+            // 2. Auto MP
+            if (window.autoUseMp) {
+                let maxMp = getEffectiveMaxMp();
+                if (player.mp < maxMp * 0.3) {
+                    let mpPots = player.inventory.filter(i => i.id === 'potion_mp');
+                    if (mpPots.length > 0 && mpPots[0].count > 0) {
+                        useOrEquipInventoryItem('potion_mp');
+                    }
+                }
+            }
+
+            // 3. Auto Food
+            if (window.autoUseFood) {
+                let hpBuffActive = player.activeBuffs?.hp && (now < player.activeBuffs.hp.expiresAt);
+                let mpBuffActive = player.activeBuffs?.mp && (now < player.activeBuffs.mp.expiresAt);
+                if (!hpBuffActive && !mpBuffActive) {
+                    // Try to eat best food
+                    let foodTypes = ['food_ca_nuong', 'food_mi_ramen', 'food_sua', 'food_com_nam'];
+                    for (let fId of foodTypes) {
+                        let invItem = player.inventory.find(i => i.id === fId);
+                        if (invItem && invItem.count > 0) {
+                            useOrEquipInventoryItem(fId);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         // --- 11. UI HUB LAYER RENDERING MANAGERS ---
         function togglePanel(panelId) {
             audio.play('click');
@@ -2573,7 +2870,12 @@ function toggleAutoFarm() {
             document.getElementById('txtMp').textContent = `LINH LỰC: ${player.mp}/${maxMp}`;
 
             document.getElementById('barExp').style.width = `${(player.exp / player.maxExp) * 100}%`;
-            document.getElementById('txtExp').textContent = `EXP: ${player.exp}/${player.maxExp} (${Math.round(player.exp/player.maxExp*100)}%)`;
+            let expPct = Math.round((player.exp / player.maxExp) * 100);
+            document.getElementById('txtExp').textContent = `EXP: ${player.exp}/${player.maxExp} (${expPct}%)`;
+            let expSub = document.getElementById('txtExpSubtitle');
+            if (expSub) {
+                expSub.textContent = `LV ${player.level} (${expPct}%)`;
+            }
 
             document.getElementById('hudStats').innerHTML = `⚔️ TẤN CÔNG: ${getEffectiveAtk()} | 🛡️ PHÒNG THỦ: ${getEffectiveDef()} | 💰 NGÂN LƯỢNG: ${player.gold}`;
             document.getElementById('invGoldText').textContent = `💰 Tài Sản: ${player.gold} Vàng`;
@@ -2817,6 +3119,40 @@ function toggleAutoFarm() {
                     else if (currentArea.name === 'Chợ Quê Xóm Dưới') targetBgm = 'middleland';
                 }
                 audio.playBgm(targetBgm);
+            }
+
+            // Food Regeneration buffs tick
+            tickFoodBuffs();
+
+            // Auto Potions & Foods check
+            processAutoPotionAndFood();
+
+            // Auto Loot & Manual pickup proximity check
+            for (let i = groundItems.length - 1; i >= 0; i--) {
+                let gi = groundItems[i];
+                let dx = player.x - gi.x;
+                let dy = player.y - gi.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (window.autoLoot && dist <= 250) {
+                    // Magnet pull speed
+                    gi.x += (dx / dist) * 6;
+                    gi.y += (dy / dist) * 6;
+                }
+                
+                if (dist <= 45) {
+                    addItemToInventory(gi.id, gi.count);
+                    audio.play('gold');
+                    
+                    let itemDef = ITEMS[gi.id];
+                    let label = itemDef ? `${itemDef.emoji} ${itemDef.name}` : gi.id;
+                    createFloatingText(`+${gi.count} ${label}`, player.x, player.y - 10, '#4ade80');
+                    showToast(`🎁 Nhặt được: ${label} x${gi.count}`);
+                    
+                    autosaveGameProcess(true);
+                    
+                    groundItems.splice(i, 1);
+                }
             }
 
             // A. AI Auto Farm logic targeting closest enemy routine
@@ -3605,6 +3941,43 @@ function toggleAutoFarm() {
                 });
             }
 
+            // Add Ground Items to draw list
+            groundItems.forEach(gi => {
+                let d = Math.hypot(gi.x - player.x, gi.y - player.y);
+                if (d < 800) {
+                    drawList.push({
+                        y: gi.y,
+                        draw: () => {
+                            let sx = gi.x - camera.x;
+                            let sy = gi.y - camera.y;
+                            let itemDef = ITEMS[gi.id];
+                            let emoji = itemDef?.emoji || "🎁";
+                            let bounce = Math.sin((Date.now() - gi.spawnedAt) / 200) * 4;
+                            
+                            ctx.save();
+                            if (gi.id.startsWith('wp_') || gi.id.startsWith('ar_') || gi.id.startsWith('ac_') || gi.id === 'stone_enhance' || gi.id === 'card_summon') {
+                                ctx.shadowBlur = 12;
+                                ctx.shadowColor = gi.id.includes('god') || gi.id === 'card_summon' ? '#f59e0b' : '#c084fc';
+                            }
+                            ctx.font = "24px Arial";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(emoji, sx, sy + bounce);
+                            ctx.restore();
+
+                            ctx.font = "bold 9px 'Baloo 2'";
+                            ctx.fillStyle = "#fff";
+                            ctx.strokeStyle = "#000";
+                            ctx.lineWidth = 2;
+                            ctx.textAlign = "center";
+                            let nameText = itemDef?.name || gi.id;
+                            ctx.strokeText(nameText, sx, sy + bounce + 16);
+                            ctx.fillText(nameText, sx, sy + bounce + 16);
+                        }
+                    });
+                }
+            });
+
             // Sort all by Y pivot position
             drawList.sort((a, b) => a.y - b.y);
 
@@ -3814,6 +4187,7 @@ function toggleAutoFarm() {
                 audio.playBgm(targetBgm);
                 
                 showToast(`🔮 Đã chuyển sang bản đồ: ${mapId.toUpperCase()}`);
+                autosaveGameProcess(true);
                 
                 fadeDiv.style.opacity = '0';
                 setTimeout(() => { fadeDiv.remove(); }, 400);

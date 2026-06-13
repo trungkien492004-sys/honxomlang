@@ -103,10 +103,10 @@
         <canvas id="gameCanvas"></canvas>
 
         <div class="top-hud">
-            <div class="player-info">
+            <div class="player-info" style="cursor: pointer;" onclick="togglePanel('status')">
                 <div class="avatar" id="hudAvatar" style="padding:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); border:2px solid var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.2);"><canvas id="hudAvatarCanvas" width="60" height="60" style="width:60px; height:60px; display:block; image-rendering: -webkit-optimize-contrast;"></canvas></div>
                 <div>
-                    <div style="font-weight: 800; font-size: 1.1rem;" id="hudName">Player (Lv.1)</div>
+                    <div style="font-weight: 800; font-size: 1.05rem; color:var(--gold);" id="hudName">Player (Lv.1)</div>
                     <div class="bars">
                         <div class="bar-container">
                             <div class="bar-fill hp" id="barHp" style="width: 100%;"></div>
@@ -116,21 +116,24 @@
                             <div class="bar-fill mp" id="barMp" style="width: 100%;"></div>
                             <div class="bar-text" id="txtMp">MP: 50/50</div>
                         </div>
-                        <div class="bar-container">
+                        <div style="font-size:0.75rem; font-weight:bold; color:#f4e4c1; margin-top:2px;" id="txtExpSubtitle">Cấp 1 (0%)</div>
+                        <div class="bar-container" style="display: none;">
                             <div class="bar-fill exp" id="barExp" style="width: 0%;"></div>
                             <div class="bar-text" id="txtExp">EXP: 0%</div>
                         </div>
                     </div>
-                    <div class="stats-text" id="hudStats">⚔️ ATK: 10 | 🛡️ DEF: 5 | 💰 Vàng: 500</div>
+                    <div class="stats-text" id="hudStats" style="display: none;">⚔️ ATK: 10 | 🛡️ DEF: 5 | 💰 Vàng: 500</div>
                 </div>
             </div>
+            <div id="buffContainer" style="display:flex; gap:6px; margin-top:8px; pointer-events:none;"></div>
         </div>
+
+        <button id="mainMenuBtn" onclick="toggleMainMenu()" style="position:fixed; top:12px; right:12px; z-index:99999; background:#8b5a2b; border:2.5px solid #d4af37; border-radius:8px; width:45px; height:45px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; font-size:1.5rem; font-family:'Baloo 2', sans-serif; box-shadow:0 4px 8px rgba(0,0,0,0.5);">☰</button>
 
         <div class="right-top-box">
             <canvas id="minimap"></canvas>
             <div class="quick-actions">
                 <button class="btn-sm" id="autoFarmBtn">🤖 Tự Động Đánh: TẮT</button>
-                <button class="btn-sm" onclick="triggerManualSave()" style="background:#059669;">💾 Lưu Game</button>
             </div>
         </div>
 
@@ -186,7 +189,12 @@
                 <div class="game-panel" id="panel-inventory">
                     <div class="panel-header"><span>🎒 HÀNH TRANG Anh Hùng</span><span class="panel-close" onclick="togglePanel('inventory')">✖</span></div>
                     <div class="panel-body">
-                        <div class="inventory-info">
+                        <div class="tab-headers" style="display:flex; gap:5px; margin-bottom:10px;">
+                            <button class="tab-btn active" id="invTabEquip" onclick="switchInventoryTab('equip')" style="flex:1; padding:8px; font-size:0.85rem;">Trang Bị</button>
+                            <button class="tab-btn" id="invTabUsable" onclick="switchInventoryTab('usable')" style="flex:1; padding:8px; font-size:0.85rem;">Tiêu Hao</button>
+                            <button class="tab-btn" id="invTabMaterial" onclick="switchInventoryTab('material')" style="flex:1; padding:8px; font-size:0.85rem;">N.Liệu</button>
+                        </div>
+                        <div class="inventory-info" style="margin-bottom:8px;">
                             <span>Sức chứa túi đồ</span>
                             <span id="invGoldText">💰 0 Vàng</span>
                         </div>
@@ -463,6 +471,108 @@
             </div>
         </div>
 
+        <!-- ===== PANEL TRẠNG THÁI NHÂN VẬT (STATUS PANEL) ===== -->
+        <div class="game-panel" id="panel-status">
+            <div class="panel-header"><span>📊 TRẠNG THÁI ANH HÙNG</span><span class="panel-close" onclick="togglePanel('status')">✖</span></div>
+            <div class="panel-body" style="padding: 12px; font-family:'Baloo 2', sans-serif;">
+                <div style="display:flex; gap:12px; align-items:center; border-bottom:1.5px solid #704214; padding-bottom:10px; margin-bottom:10px;">
+                    <div class="avatar" id="statusAvatar" style="width:55px; height:55px; padding:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); border:2px solid var(--gold); border-radius:50%;"><canvas id="statusAvatarCanvas" width="60" height="60" style="width:55px; height:55px; image-rendering: -webkit-optimize-contrast;"></canvas></div>
+                    <div>
+                        <h3 id="statusName" style="color:var(--gold); margin:0; font-size:1.15rem;">Cảnh Sát</h3>
+                        <p id="statusClass" style="color:#b87333; margin:0; font-size:0.85rem;">Anh Cảnh Sát</p>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; font-size:0.88rem;" id="statusStatsContainer">
+                    <div>❤️ Máu: <span id="statHp" style="font-weight:bold;color:#ff4444;">100/100</span></div>
+                    <div>💧 Linh lực: <span id="statMp" style="font-weight:bold;color:#4488ff;">50/50</span></div>
+                    <div>⚔️ Tấn công: <span id="statAtk" style="font-weight:bold;color:#ffbb00;">10</span></div>
+                    <div>🛡️ Phòng thủ: <span id="statDef" style="font-weight:bold;color:#ffaa44;">5</span></div>
+                    <div>🏃 Tốc độ: <span id="statSpeed" style="font-weight:bold;color:#44ff88;">4.5</span></div>
+                    <div>✨ Exp: <span id="statExp" style="font-weight:bold;color:#aa88ff;">0/100 (0%)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== POPUP THÔNG TIN CHI TIẾT KỸ NĂNG (DETAILED SKILL POPUP) ===== -->
+        <div id="detailedSkillPopup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100000; justify-content:center; align-items:center; padding:20px;">
+            <div style="width:330px; background:#2d1810; border:3.5px solid #d4af37; border-radius:12px; padding:18px; color:white; box-shadow:0 0 25px rgba(0,0,0,0.9); font-family:'Baloo 2', sans-serif;" class="rpg-popup-box">
+                <h2 id="detSkillName" style="color:#d4af37; border-bottom:2px solid #704214; padding-bottom:6px; font-size:1.25rem; margin-bottom:10px; text-align:center;">Tên Kỹ Năng</h2>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:0.88rem;" id="detSkillStats">
+                    <div>🔥 <b>Loại sát thương:</b> <span id="detSkillType" style="color:#ffbb00;">Vật Lý</span></div>
+                    <div>💧 <b>Linh lực tiêu hao:</b> <span id="detSkillMp" style="color:#3b82f6;font-weight:bold;">10 MP</span></div>
+                    <div>⏳ <b>Thời gian hồi chiêu:</b> <span id="detSkillCd" style="color:#a855f7;">3 giây</span></div>
+                    <div>🎯 <b>Tầm đánh:</b> <span id="detSkillRange" style="color:#10b981;">180px</span></div>
+                    <div>✨ <b>Hiệu ứng đặc biệt:</b> <span id="detSkillEffect" style="color:#ec4899;">Làm Chậm (Slow)</span></div>
+                </div>
+                <p id="detSkillDesc" style="margin-top:10px; color:#ddd; font-size:0.8rem; border-top:1.5px solid #704214; padding-top:8px; line-height:1.45; max-height:80px; overflow-y:auto;">Mô tả kỹ năng...</p>
+                <button class="board-btn close-board" style="margin-top:15px; width:100%; padding:10px 0; font-size:1rem; cursor:pointer;" onclick="document.getElementById('detailedSkillPopup').style.display='none'">✖ ĐÓNG</button>
+            </div>
+        </div>
+
+        <!-- ===== FULLSCREEN MENU POPUP ===== -->
+        <div id="mainMenuPopup" style="display:none; position:fixed; inset:0; background:rgba(26,15,10,0.95); z-index:99998; justify-content:center; align-items:center; flex-direction:column; padding:20px; font-family:'Baloo 2', sans-serif;">
+            <div style="background:#2d1810; border:4px solid #d4af37; border-radius:16px; width:min(90vw, 400px); max-height:85vh; display:flex; flex-direction:column; box-shadow:0 0 30px rgba(0,0,0,0.9); padding:20px;" class="rpg-popup-box">
+                <h1 style="color:#d4af37; font-size:1.6rem; text-align:center; border-bottom:3px solid #704214; padding-bottom:8px; margin-bottom:12px; letter-spacing:1px;">📜 BẢNG MENU CHÍNH</h1>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; overflow-y:auto; flex:1; padding-right:5px;" id="menuButtonsGrid">
+                    <button class="menu-popup-btn" onclick="menuAction('inventory')">🎒 Hành Trang</button>
+                    <button class="menu-popup-btn" onclick="menuAction('skills')">⚡ Kỹ Năng</button>
+                    <button class="menu-popup-btn" onclick="menuAction('equipment')">🛡️ Trang Bị</button>
+                    <button class="menu-popup-btn" onclick="menuAction('status')">📊 Trạng Thái</button>
+                    <button class="menu-popup-btn" onclick="menuAction('quests')">📜 Nhiệm Vụ</button>
+                    <button class="menu-popup-btn" onclick="menuAction('party')">🤝 Tổ Đội</button>
+                    <button class="menu-popup-btn" onclick="menuAction('pvp')">⚔️ Đấu Trường</button>
+                    <button class="menu-popup-btn" onclick="menuAction('chat')">💬 Chat Tổng</button>
+                    <button class="menu-popup-btn" onclick="menuAction('board')">🏁 Cờ Đua</button>
+                    <button class="menu-popup-btn" onclick="menuAction('bet')">🏟️ Cược Bóng</button>
+                </div>
+                
+                <!-- Auto Battle Settings Grid -->
+                <div style="margin-top:12px; background:rgba(0,0,0,0.3); border:2px solid #704214; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                    <div style="font-size:0.85rem; color:var(--gold); font-weight:bold; border-bottom:1px solid #704214; padding-bottom:3px; text-align:center;">🤖 TỰ ĐỘNG (AUTO BATTLE)</div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.82rem;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
+                            <input type="checkbox" id="chkAutoFight" onchange="window.toggleAutoFightFromMenu(this.checked)"> Tự Đánh
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
+                            <input type="checkbox" id="chkAutoLoot" checked onchange="window.autoLoot=this.checked"> Tự Nhặt Đồ
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
+                            <input type="checkbox" id="chkAutoHp" onchange="window.autoUseHp=this.checked"> Tự Dùng HP
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
+                            <input type="checkbox" id="chkAutoMp" onchange="window.autoUseMp=this.checked"> Tự Dùng MP
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1; grid-column: span 2;">
+                            <input type="checkbox" id="chkAutoFood" onchange="window.autoUseFood=this.checked"> Tự Dùng Thức Ăn
+                        </label>
+                    </div>
+                    
+                    <div style="font-size:0.85rem; color:var(--gold); font-weight:bold; margin-top:8px; border-top:1px solid #704214; padding-top:6px; text-align:center;">⚡ XOAY VÒNG CHIÊU (AUTO SKILL)</div>
+                    <div style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem; color:#f4e4c1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Chiêu 1:</span>
+                            <select id="selAutoSkill1" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:3px; font-size:0.8rem; width:160px;" onchange="window.updateAutoSkillSelect(0, this.value)"></select>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Chiêu 2:</span>
+                            <select id="selAutoSkill2" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:3px; font-size:0.8rem; width:160px;" onchange="window.updateAutoSkillSelect(1, this.value)"></select>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Chiêu 3:</span>
+                            <select id="selAutoSkill3" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:3px; font-size:0.8rem; width:160px;" onchange="window.updateAutoSkillSelect(2, this.value)"></select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                    <button class="menu-popup-btn" onclick="menuAction('logout')" style="background:#dc2626; border-color:#ef4444; flex:1; padding:8px 0; font-size:0.9rem;">🚪 Đăng Xuất</button>
+                    <button class="menu-popup-btn" onclick="toggleMainMenu()" style="background:#475569; border-color:#64748b; flex:1; padding:8px 0; font-size:0.9rem;">✖ Đóng</button>
+                </div>
+            </div>
+        </div>
+        
         <!-- ===== 🔥 BẢNG THÔNG BÁO SỰ KIỆN LỚN ===== -->
         <div id="bigEventOverlay" onclick="closeBigEvent()" style="display:none; position:fixed; inset:0; background:rgba(10,10,15,0.95); z-index:99999; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px; cursor:pointer;">
             <div id="bigEventTitle" style="font-family:'Orbitron', monospace; font-size:2.5rem; color:#fca5a5; text-shadow:0 0 20px #ef4444; margin-bottom:10px; font-weight:900; transform:scale(0); animation:popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">SỰ KIỆN</div>
