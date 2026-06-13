@@ -1,3 +1,12 @@
+/* Khóa cuộn trang hoàn toàn trên Mobile */
+html, body {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none !important;
+}
+
 /* ---- MOBILE UI OVERHAUL ---- */
 /* Hamburger Menu */
 #mobileMenuToggle {
@@ -70,7 +79,18 @@
     
     .top-hud { transform: scale(0.85); transform-origin: top left; top: 10px; left: 10px; z-index: 99996; }
     
-    #minimap { width: 75px; height: 75px; }
+    #minimap {
+        width: 60px !important;
+        height: 60px !important;
+        cursor: pointer !important;
+        transition: width 0.25s ease, height 0.25s ease !important;
+        border-radius: 12px !important;
+        z-index: 99996 !important;
+    }
+    #minimap.expanded {
+        width: 130px !important;
+        height: 130px !important;
+    }
     .right-top-box { right: 70px !important; top: 12px !important; width: 75px; gap: 4px; }
     .right-top-box .btn-sm { font-size: 0.6rem; padding: 3px; }
     
@@ -85,32 +105,98 @@
     .toast { width: 220px !important; font-size: 0.75rem !important; padding: 5px 10px !important; }
     
     .skill-hotbar {
-        left: auto !important;
-        right: 30px !important;
-        bottom: 30px !important;
-        transform: none !important;
-        background: none !important;
-        border: none !important;
-        width: 240px !important;
-        height: 240px !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-        display: block !important;
+        position: fixed !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        bottom: 12px !important;
+        width: 92vw !important;
+        max-width: 440px !important;
+        height: auto !important;
+        background: rgba(26, 15, 10, 0.72) !important;
+        border: 2px solid #fbbf24 !important;
+        border-radius: 20px !important;
+        padding: 6px 12px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.8), inset 0 0 10px rgba(251, 191, 36, 0.2) !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
         z-index: 99995 !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
     }
-    .skill-hotbar h3 { display: none; }
-    #skillButtons { position: relative; width: 100%; height: 100%; display: block; justify-content: unset; }
-    .skill-slot { position: absolute; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.6); background: rgba(0,0,0,0.5); }
-    .skill-slot .skill-circle, .skill-slot .skill-circle img { width: 100%; height: 100%; }
-    .skill-slot .cooldown-ring svg { width: 100%; height: 100%; }
-    .skill-slot .cooldown-text { font-size: 0.8rem; }
+    .skill-hotbar h3 { display: none !important; }
+    #skillButtons {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        width: 100% !important;
+        height: auto !important;
+        gap: 10px !important;
+        position: relative !important;
+    }
+    .skill-slot {
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        top: auto !important;
+        width: 50px !important;
+        height: 50px !important;
+        border: 2.2px solid #fbbf24 !important;
+        border-radius: 50% !important;
+        background: radial-gradient(circle, #2d1810 0%, #170a05 100%) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important;
+        overflow: visible !important;
+    }
+    .skill-slot .skill-circle {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .skill-slot .skill-circle img {
+        width: 80% !important;
+        height: 80% !important;
+    }
+    .skill-slot .skill-icon {
+        font-size: 1.45rem !important;
+    }
+    .skill-slot .cooldown-ring {
+        position: absolute !important;
+        inset: 0 !important;
+        border-radius: 50% !important;
+    }
+    .skill-slot .cooldown-ring svg {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .skill-slot .cooldown-text {
+        font-size: 1.05rem !important;
+        font-weight: 900 !important;
+        color: #ef4444 !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 10 !important;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+    }
     .skill-slot .skill-auto-toggle { display: none !important; }
 
-    .skill-slot[data-slot="1"] { width: 95px !important; height: 95px !important; bottom: 5px !important; right: 5px !important; border: 2.5px solid #fbbf24 !important; }
-    .skill-slot[data-slot="1"] .cooldown-text { font-size: 1.1rem !important; }
-    .skill-slot[data-slot="2"] { width: 70px !important; height: 70px !important; bottom: 120px !important; right: 10px !important; }
-    .skill-slot[data-slot="3"] { width: 70px !important; height: 70px !important; bottom: 90px !important; right: 95px !important; }
-    .skill-slot[data-slot="4"] { width: 70px !important; height: 70px !important; bottom: 15px !important; right: 145px !important; }
+    .skill-slot[data-slot="1"] {
+        width: 62px !important;
+        height: 62px !important;
+        border: 2.5px solid #fbbf24 !important;
+        box-shadow: 0 0 14px rgba(251, 191, 36, 0.6) !important;
+    }
+    .skill-slot[data-slot="1"] .skill-icon {
+        font-size: 1.8rem !important;
+    }
+    .skill-slot[data-slot="1"] .cooldown-text {
+        font-size: 1.25rem !important;
+    }
 
     /* ---- BOARD GAME MOBILE PORTRAIT ADJUSTMENTS ---- */
     #boardGameModal {
@@ -226,38 +312,4 @@
 }
 .top-hud {
     z-index: 100 !important;
-}
-.skill-hotbar {
-    z-index: 90 !important;
-}
-.skill-slot[data-slot="1"] {
-    width: 35px !important;
-    height: 35px !important;
-    bottom: 5px !important;
-    right: 5px !important;
-    border: 1.5px solid #fbbf24 !important;
-}
-.skill-slot[data-slot="2"] {
-    width: 25px !important;
-    height: 25px !important;
-    bottom: 65px !important;
-    right: 10px !important;
-}
-.skill-slot[data-slot="3"] {
-    width: 25px !important;
-    height: 25px !important;
-    bottom: 50px !important;
-    right: 55px !important;
-}
-.skill-slot[data-slot="4"] {
-    width: 25px !important;
-    height: 25px !important;
-    bottom: 10px !important;
-    right: 80px !important;
-}
-.skill-slot[data-slot="1"] .cooldown-text {
-    font-size: 0.8rem !important;
-}
-.skill-slot:not([data-slot="1"]) .cooldown-text {
-    font-size: 0.65rem !important;
 }

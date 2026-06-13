@@ -632,6 +632,97 @@
             { name: "THẦN TRÙNG ĐẠI QUỶ (SIÊU BOSS)", emoji: "👹", hp: 1200, maxHp: 1200, atk: 55, exp: 1000, gold: 500, isBoss: true }
         ];
 
+        const MAP_MONSTER_CONFIGS = {
+            'world': {
+                monsters: [
+                    { name: "Muỗi Vằn Sốt Xuất Huyết", emoji: "🦟", hp: 45, maxHp: 45, atk: 6, exp: 15, gold: 5 },
+                    { name: "Gà Con Tinh Nghịch", emoji: "🐔", hp: 35, maxHp: 35, atk: 4, exp: 10, gold: 3 },
+                    { name: "Chuột Cống Đột Biến", emoji: "🐀", hp: 80, maxHp: 80, atk: 10, exp: 28, gold: 12 },
+                    { name: "Chó Hoang Lên Cơn Dại", emoji: "🐕", hp: 140, maxHp: 140, atk: 16, exp: 50, gold: 22 },
+                    { name: "Lợn Rừng Phá Hoa Màu", emoji: "🐗", hp: 250, maxHp: 250, atk: 25, exp: 110, gold: 45 }
+                ],
+                bosses: [
+                    { name: "THẦN TRÙNG ĐẠI QUỶ (SIÊU BOSS)", emoji: "👹", hp: 1200, maxHp: 1200, atk: 55, exp: 1000, gold: 500, isBoss: true }
+                ]
+            },
+            'bamboo_forest': {
+                monsters: [
+                    { name: "Tinh Linh Rừng Xanh", emoji: "🧚", hp: 220, maxHp: 220, atk: 22, exp: 90, gold: 40 },
+                    { name: "Sói Xám Đói Ăn", emoji: "🐺", hp: 280, maxHp: 280, atk: 26, exp: 110, gold: 50 }
+                ],
+                bosses: [
+                    { name: "SÓI VƯƠNG THÔN VĨ (BOSS)", emoji: "🐺", hp: 2000, maxHp: 2000, atk: 40, exp: 800, gold: 400, isBoss: true }
+                ]
+            },
+            'beach': {
+                monsters: [
+                    { name: "Cua Đá Cương Lực", emoji: "🦀", hp: 350, maxHp: 350, atk: 30, exp: 140, gold: 65 },
+                    { name: "Cướp Biển Vùng Bờ Ao", emoji: "🥷", hp: 420, maxHp: 420, atk: 35, exp: 170, gold: 80 }
+                ],
+                bosses: [
+                    { name: "ĐẠI TẶC BIỂN ĐÔNG (BOSS)", emoji: "🥷", hp: 3000, maxHp: 3000, atk: 55, exp: 1200, gold: 600, isBoss: true }
+                ]
+            },
+            'bat_cave': {
+                monsters: [
+                    { name: "Dơi Hút Máu Đêm", emoji: "🦇", hp: 480, maxHp: 480, atk: 40, exp: 200, gold: 95 },
+                    { name: "Zombie Đầm Lầy", emoji: "🧟", hp: 550, maxHp: 550, atk: 46, exp: 240, gold: 110 }
+                ],
+                bosses: [
+                    { name: "DƠI QUỶ CHÚA (BOSS)", emoji: "🦇", hp: 4000, maxHp: 4000, atk: 65, exp: 1600, gold: 800, isBoss: true }
+                ]
+            },
+            'citadel': {
+                monsters: [
+                    { name: "Yêu Quái Dạ Xoa", emoji: "👺", hp: 650, maxHp: 650, atk: 55, exp: 300, gold: 140 },
+                    { name: "Chiến Binh Đất Nung", emoji: "🧱", hp: 700, maxHp: 700, atk: 60, exp: 350, gold: 160 }
+                ],
+                bosses: [
+                    { name: "DẠ XOA TƯỚNG QUÂN (BOSS)", emoji: "👺", hp: 5000, maxHp: 5000, atk: 80, exp: 2200, gold: 1200, isBoss: true }
+                ]
+            },
+            'demon_cave': {
+                monsters: [
+                    { name: "Quỷ Lửa", emoji: "👹", hp: 400, maxHp: 400, atk: 30, exp: 180, gold: 70 }
+                ],
+                bosses: [
+                    { name: "Quỷ Vương Khổng Lồ (Cyclops Lord)", emoji: "🐗", hp: 2500, maxHp: 2500, atk: 45, exp: 1200, gold: 2500, isBoss: true }
+                ]
+            },
+            'cemetery': {
+                monsters: [
+                    { name: "Thây Ma Sống", emoji: "🧟", hp: 500, maxHp: 500, atk: 35, exp: 220, gold: 90 }
+                ],
+                bosses: [
+                    { name: "Chúa Tể Thây Ma (Zombie Lord)", emoji: "🐕", hp: 3500, maxHp: 3500, atk: 45, exp: 1200, gold: 2500, isBoss: true }
+                ]
+            },
+            'ghost_forest': {
+                monsters: [
+                    { name: "Ma Trơi Bóng Tối", emoji: "👻", hp: 450, maxHp: 450, atk: 32, exp: 200, gold: 80 }
+                ],
+                bosses: [
+                    { name: "Ác Quỷ Bóng Đêm", emoji: "👹", hp: 3000, maxHp: 3000, atk: 45, exp: 1200, gold: 2500, isBoss: true }
+                ]
+            },
+            'ancient_temple': {
+                monsters: [
+                    { name: "Hộ Vệ Đá Cổ", emoji: "🗿", hp: 600, maxHp: 600, atk: 40, exp: 260, gold: 110 }
+                ],
+                bosses: [
+                    { name: "Hộ Vệ Đền Cổ", emoji: "🐗", hp: 4000, maxHp: 4000, atk: 45, exp: 1200, gold: 2500, isBoss: true }
+                ]
+            },
+            'dungeon': {
+                monsters: [
+                    { name: "Quỷ Lửa Nhỏ", emoji: "👹", hp: 350, maxHp: 350, atk: 28, exp: 160, gold: 60 }
+                ],
+                bosses: [
+                    { name: "Ma Vương Rực Lửa (Barlog King)", emoji: "👹", hp: 5000, maxHp: 5000, atk: 45, exp: 1200, gold: 2500, isBoss: true }
+                ]
+            }
+        };
+
         const QUEST_DATA = [
             { id: "q_kill_rats", title: "Diệt Chuột Cống Đột Biến", desc: "Tiêu diệt 3 con chuột cống tại bờ mương phía Bắc làng.", type: "kill", target: "🐀", req: 3, progress: 0, rewardGold: 80, rewardExp: 100, done: false },
             { id: "q_craft_sword", title: "Rèn Kiếm Kim Cương", desc: "Thu thập đủ nguyên liệu chế tạo Kiếm Kim Cương từ Thợ Rèn.", type: "craft", target: "🗡️", req: 1, progress: 0, rewardGold: 200, rewardExp: 250, done: false }
@@ -1289,7 +1380,7 @@
                 audio.play('quest');
                 if(partySystem.partyId) {
                     pvpChannel.postMessage({ type: 'PARTY_INVITE_REPLY', id: myNetworkId, targetId: msg.id, accepted: false, name: player.name, reason: 'already_in_party' });
-                    showToast('?? B?n ?? c? t? ??i, kh?ng th? nh?n l?i m?i kh?c.');
+                    showToast('⚠️ Bạn đã có tổ đội, không thể nhận lời mời khác.');
                     return;
                 }
                 // Auto-accept setting
@@ -1315,16 +1406,16 @@
                 if(msg.accepted) {
                     if(partySystem.leaderId !== myNetworkId || !partySystem.partyId) return;
                     partySystem.addMember(msg.id, msg.name);
-                    showToast(`?? ${msg.name} ?? gia nh?p ??i c?a b?n!`);
+                    showToast(`👥 ${msg.name} đã gia nhập tổ đội của bạn!`);
                     rebuildPartyPanel();
                 } else {
                     let reason = msg.reason === 'already_in_party' ? ' v? h? ?? c? t? ??i.' : '.';
-                    showToast(`?? ${msg.name} t? ch?i l?i m?i v?o ??i${reason}`);
+                    showToast(`❌ ${msg.name} từ chối lời mời vào tổ đội${reason}`);
                 }
             }
             else if(msg.type === 'PARTY_DISBAND' && msg.partyId === partySystem.partyId) {
                 partySystem.partyId = null; partySystem.leaderId = null; partySystem.members = {};
-                showToast(`?? Tr??ng ??i ${msg.name || ''} ?? gi?i t?n t? ??i.`);
+                showToast(`❌ Trưởng đội ${msg.name || ''} đã giải tán tổ đội.`);
                 rebuildPartyPanel(); updatePartyHud();
             }
             else if(msg.type === 'PARTY_LEAVE') {
@@ -1628,11 +1719,11 @@
             },
 
             invite(targetId) {
-                if(this.partyId && this.leaderId !== myNetworkId) { showToast('?? Ch? tr??ng ??i m?i ???c m?i th?nh vi?n.'); return; }
+                if(this.partyId && this.leaderId !== myNetworkId) { showToast('⚠️ Chỉ trưởng đội mới được mời thành viên.'); return; }
                 if(!this.partyId) this.create();
                 let opp = networkPlayers[targetId];
                 if(!opp) return;
-                if(opp.partyId && opp.partyId !== this.partyId) { showToast('?? Ng??i ch?i n?y ?ang ? t? ??i kh?c.'); return; }
+                if(opp.partyId && opp.partyId !== this.partyId) { showToast('⚠️ Người chơi này đang ở tổ đội khác.'); return; }
                 pvpChannel.postMessage({
                     type: 'PARTY_INVITE', id: myNetworkId, targetId,
                     partyId: this.partyId, senderName: player.name
@@ -1641,7 +1732,7 @@
             },
 
             joinParty(partyId, leaderId, leaderName) {
-                if(this.partyId && this.partyId !== partyId) { showToast('?? B?n ?? c? t? ??i. H?y r?i ??i hi?n t?i tr??c.'); return false; }
+                if(this.partyId && this.partyId !== partyId) { showToast('⚠️ Bạn đã có tổ đội. Hãy rời đội hiện tại trước.'); return false; }
                 this.partyId = partyId;
                 this.leaderId = leaderId;
                 this.members = {};
@@ -1680,11 +1771,11 @@
 
             disband() {
                 if(!this.partyId) return;
-                if(this.leaderId !== myNetworkId) { showToast('?? Ch? tr??ng ??i m?i ???c gi?i t?n t? ??i.'); return; }
+                if(this.leaderId !== myNetworkId) { showToast('⚠️ Chỉ trưởng đội mới được giải tán tổ đội.'); return; }
                 let oldPartyId = this.partyId;
                 pvpChannel.postMessage({ type: 'PARTY_DISBAND', id: myNetworkId, partyId: oldPartyId, name: player.name });
                 this.partyId = null; this.leaderId = null; this.members = {};
-                showToast('?? ?? gi?i t?n t? ??i.');
+                showToast('❌ Đã giải tán tổ đội.');
                 rebuildPartyPanel(); updatePartyHud();
             },
 
@@ -1738,7 +1829,7 @@
                     <div style="background:rgba(34,197,94,0.1);border:1px solid #22c55e;border-radius:10px;padding:10px;margin-bottom:10px;">
                         <div style="color:#4ade80;font-weight:800;margin-bottom:6px;">🤝 TỔ ĐỘI HIỆN TẠI (${Object.keys(members).length} người)</div>
                         ${memberHtml}
-                        ${partySystem.leaderId===myNetworkId ? '<button class="btn-sm" style="background:#b91c1c;width:100%;margin-top:8px;" onclick="partySystem.disband()">?? Gi?i T?n ??i</button>' : '<button class="btn-sm" style="background:#dc2626;width:100%;margin-top:8px;" onclick="partySystem.leave()">?? R?i ??i</button>'}
+                        ${partySystem.leaderId===myNetworkId ? '<button class="btn-sm" style="background:#b91c1c;width:100%;margin-top:8px;" onclick="partySystem.disband()">❌ Giải Tán Đội</button>' : '<button class="btn-sm" style="background:#dc2626;width:100%;margin-top:8px;" onclick="partySystem.leave()">🚪 Rời Đội</button>'}
                     </div>`;
             } else {
                 statusBox.innerHTML = `<div style="color:#888;text-align:center;padding:10px;font-size:0.85rem;">Bạn chưa ở trong tổ đội nào.<br>Mời người chơi khác để bắt đầu!</div>`;
@@ -1819,7 +1910,7 @@
                 if(!msg) return;
                 if(!partySystem.joinParty(msg.partyId, msg.id, msg.senderName)) return;
                 pvpChannel.postMessage({ type: 'PARTY_INVITE_REPLY', id: myNetworkId, targetId: msg.id, accepted: true, name: player.name });
-                showToast(`?? ?? gia nh?p ??i c?a ${msg.senderName}!`);
+                showToast(`👥 Đã gia nhập tổ đội của ${msg.senderName}!`);
                 rebuildPartyPanel();
             };
             // Party reject
@@ -1855,10 +1946,26 @@
 
         function spawnSingleMonster(isBoss = false, mapId = window.currentMapId) {
             let template = null;
-            let mx, my;
+            let mx = 2000, my = 2000;
             
+            const config = MAP_MONSTER_CONFIGS[mapId] || MAP_MONSTER_CONFIGS['world'];
+            
+            if (isBoss) {
+                if (config.bosses && config.bosses.length > 0) {
+                    template = config.bosses[Math.floor(Math.random() * config.bosses.length)];
+                }
+            } else {
+                if (config.monsters && config.monsters.length > 0) {
+                    template = config.monsters[Math.floor(Math.random() * config.monsters.length)];
+                }
+            }
+
+            if (!template) return;
+            
+            template = JSON.parse(JSON.stringify(template));
+
+            // Determine spawn location
             if (mapId === 'world') {
-                template = isBoss ? BOSS_POOL[0] : MONSTER_POOL[Math.floor(Math.random() * MONSTER_POOL.length)];
                 let angle = Math.random() * Math.PI * 2;
                 if (isBoss) {
                     let bossSpots = [
@@ -1874,66 +1981,37 @@
                     my = 2000 + Math.sin(angle) * dist;
                 }
             } else {
-                // Dungeon specific spawning
-                if (mapId === 'demon_cave') {
-                    if (isBoss) {
-                        template = { name: 'Quỷ Vương Khổng Lồ (Cyclops Lord)', emoji: '🐗', hp: 2500, maxHp: 2500, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
-                        mx = 2000; my = 2000;
-                    } else {
-                        template = MONSTER_POOL[3]; // Cyclops
-                        mx = 2000 + (Math.random() - 0.5) * 800;
-                        my = 2000 + (Math.random() - 0.5) * 800;
-                    }
-                } else if (mapId === 'cemetery') {
-                    if (isBoss) {
-                        template = { name: 'Chúa Tể Thây Ma (Zombie Lord)', emoji: '🐕', hp: 3500, maxHp: 3500, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
-                        mx = 2000; my = 2000;
-                    } else {
-                        template = MONSTER_POOL[2]; // Zombie
-                        mx = 2000 + (Math.random() - 0.5) * 800;
-                        my = 2000 + (Math.random() - 0.5) * 800;
-                    }
-                } else if (mapId === 'dungeon') {
-                    if (isBoss) {
-                        template = { name: 'Ma Vương Rực Lửa (Barlog King)', emoji: '👹', hp: 5000, maxHp: 5000, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
-                        mx = 2000; my = 2000;
-                    } else {
-                        template = { name: "Quỷ Lửa Nhỏ", emoji: "👹", hp: 350, maxHp: 350, atk: 28, exp: 160, gold: 60 };
-                        mx = 2000 + (Math.random() - 0.5) * 800;
-                        my = 2000 + (Math.random() - 0.5) * 800;
-                    }
-                } else if (mapId === 'ghost_forest') {
-                    if (isBoss) {
-                        template = { name: 'Ác Quỷ Bóng Đêm', emoji: '👹', hp: 3000, maxHp: 3000, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
-                        mx = 2000; my = 2000;
-                    } else {
-                        template = MONSTER_POOL[0]; // Ant
-                        mx = 2000 + (Math.random() - 0.5) * 800;
-                        my = 2000 + (Math.random() - 0.5) * 800;
-                    }
-                } else if (mapId === 'ancient_temple') {
-                    if (isBoss) {
-                        template = { name: 'Hộ Vệ Đền Cổ', emoji: '🐗', hp: 4000, maxHp: 4000, atk: 45, def: 25, speed: 2.2, isBoss: true, xpReward: 1200, goldReward: 2500 };
-                        mx = 2000; my = 2000;
-                    } else {
-                        template = MONSTER_POOL[3]; // Cyclops
-                        mx = 2000 + (Math.random() - 0.5) * 800;
-                        my = 2000 + (Math.random() - 0.5) * 800;
-                    }
+                // In other maps, spawn around the center (2000, 2000)
+                mx = 2000 + (Math.random() - 0.5) * 1200;
+                my = 2000 + (Math.random() - 0.5) * 1200;
+                if (isBoss) {
+                    mx = 2000;
+                    my = 2000;
                 }
             }
 
-            if (!template) return;
-            
-            // Apply difficulty stat modifiers
-            if (mapId !== 'world') {
+            // Implement Elite monster logic (15% chance for normal monsters)
+            let isElite = false;
+            if (!isBoss && Math.random() < 0.15) {
+                isElite = true;
+                template.isElite = true;
+                template.name = template.name + " [Tinh Anh]";
+                template.hp = (template.hp || template.maxHp) * 2;
+                template.maxHp = template.hp;
+                template.atk = template.atk * 2;
+                template.exp = template.exp * 2;
+                template.gold = template.gold * 2;
+            }
+
+            // Apply difficulty stat modifiers for non-outer maps (dungeons)
+            const outerMaps = ['world', 'bamboo_forest', 'beach', 'bat_cave', 'citadel'];
+            if (!outerMaps.includes(mapId)) {
                 let diff = window.dungeonDifficulty || 'easy';
                 let mult = 1.0;
                 if (diff === 'medium') mult = 1.5;
                 else if (diff === 'hard') mult = 2.5;
                 else if (diff === 'hell') mult = 4.0;
                 
-                template = JSON.parse(JSON.stringify(template));
                 template.hp = Math.round((template.hp || template.maxHp) * mult);
                 template.maxHp = template.hp;
                 template.atk = Math.round(template.atk * (1 + (mult - 1) * 0.5));
@@ -1944,7 +2022,7 @@
             }
 
             monsters.push({
-                ...JSON.parse(JSON.stringify(template)),
+                ...template,
                 x: Math.max(50, Math.min(WORLD_SIZE - 50, mx)),
                 y: Math.max(50, Math.min(WORLD_SIZE - 50, my)),
                 vx: (Math.random() - 0.5) * 1.5,
@@ -2168,7 +2246,7 @@
             if(enabled) autoSkillIds.add(skillId); else autoSkillIds.delete(skillId);
             rebuildQuickSkillBarUI();
             rebuildSkillsPanelUI();
-            showToast(`${enabled ? '? B?t' : '?? T?t'} t? ??ng d?ng k? n?ng`);
+            showToast(`${enabled ? '🟢 Bật' : '🔴 Tắt'} tự động dùng kỹ năng`);
         }
 
         function canUseSkillNow(skill) {
@@ -2312,7 +2390,7 @@
             `;
             normalBtn.onpointerdown = (ev) => { stopUiEvent(ev); triggerNormalAttack(); };
             normalBtn.onclick = stopUiEvent;
-            normalBtn.onmouseenter = () => showSkillTooltip('??nh th??ng', '??n ??nh c? b?n kh?ng t?n MP. Ch?n qu?i tr??c r?i b?m ?? ??nh.', 'Kh?ng t?n MP');
+            normalBtn.onmouseenter = () => showSkillTooltip('Đánh thường', 'Đòn đánh cơ bản không tốn MP. Chọn quái trước rồi bấm để đánh.', 'Không tốn MP');
             normalBtn.onmousemove = moveSkillTooltip;
             normalBtn.onmouseleave = hideSkillTooltip;
             container.appendChild(makeSlot(normalBtn, null, 1));
@@ -2349,7 +2427,7 @@ ${s.desc}`;
                 let autoBox = document.createElement('input');
                 autoBox.type = 'checkbox';
                 autoBox.className = 'skill-auto-toggle';
-                autoBox.title = 'T? ??ng spam k? n?ng n?y';
+                autoBox.title = 'Tự động spam kỹ năng này';
                 autoBox.checked = autoChecked;
                 autoBox.onpointerdown = stopUiEvent;
                 autoBox.onclick = (ev) => { ev.stopPropagation(); };
@@ -2748,7 +2826,14 @@ function updateAndRenderParticles() {
             }
 
             // Respawn replacement immediately to retain population scale
-            setTimeout(() => { spawnSingleMonster(m.isBoss, m.spawnedMapId || 'world'); }, 6000);
+            // Respawn replacement based on monster class to retain population scale
+            let respawnDelay = 5000 + Math.random() * 5000; // Default normal monster: 5-10s
+            if (m.isBoss) {
+                respawnDelay = 120000 + Math.random() * 180000; // Boss: 2-5 minutes
+            } else if (m.isElite) {
+                respawnDelay = 20000 + Math.random() * 10000; // Elite: 20-30s
+            }
+            setTimeout(() => { spawnSingleMonster(m.isBoss, m.spawnedMapId || 'world'); }, respawnDelay);
             refreshHudDisplay();
         }
 
@@ -4138,7 +4223,7 @@ function toggleAutoFarm() {
                             <div class="skill-desc">${s.desc}</div>
                         </div>
                     </div>
-                    <label class="skill-action" onclick="event.stopPropagation()" title="T? ??ng spam k? n?ng n?y">
+                    <label class="skill-action" onclick="event.stopPropagation()" title="Tự động spam kỹ năng này">
                         <input type="checkbox" ${autoSkillIds.has(s.id) ? 'checked' : ''} onchange="toggleAutoSkill('${s.id}', this.checked)"> AUTO
                     </label>
                     <span class="skill-action">${status}</span>
@@ -4793,6 +4878,62 @@ function toggleAutoFarm() {
                             ctx.strokeStyle = "#09090b";
                             ctx.lineWidth = 2;
                             ctx.strokeRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                        } else if (mapId === 'bamboo_forest') {
+                            // Bamboo forest
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#1e3a1e";
+                            } else {
+                                ctx.fillStyle = "#142d14";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            // Stylized bamboo stalks
+                            ctx.fillStyle = "#4d7c0f";
+                            ctx.fillRect(wx - camera.x + 80, wy - camera.y + 40, 8, 120);
+                            ctx.fillRect(wx - camera.x + 120, wy - camera.y + 60, 6, 100);
+                        } else if (mapId === 'beach') {
+                            // Sandy beach
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#fef08a";
+                            } else {
+                                ctx.fillStyle = "#fde047";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            // Stylized shells
+                            ctx.fillStyle = "#fb7185";
+                            ctx.fillRect(wx - camera.x + 60, wy - camera.y + 60, 6, 6);
+                        } else if (mapId === 'bat_cave') {
+                            // Dark bat cave
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#111827";
+                            } else {
+                                ctx.fillStyle = "#1f2937";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            // Purple crystal clusters
+                            ctx.fillStyle = "#c084fc";
+                            ctx.fillRect(wx - camera.x + 100, wy - camera.y + 80, 8, 8);
+                        } else if (mapId === 'citadel') {
+                            // Stone Citadel
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#334155";
+                            } else {
+                                ctx.fillStyle = "#475569";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            ctx.strokeStyle = "#1e293b";
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                        } else if (mapId === 'pvp_arena') {
+                            // PVP Arena concrete/stone tiles
+                            if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
+                                ctx.fillStyle = "#27272a";
+                            } else {
+                                ctx.fillStyle = "#18181b";
+                            }
+                            ctx.fillRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
+                            ctx.strokeStyle = "#3f3f46";
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(wx - camera.x, wy - camera.y, tileSize, tileSize);
                         } else {
                             // Building interiors (wooden floorboards)
                             if(((Math.abs(wx) + Math.abs(wy)) / tileSize) % 2 === 0) {
@@ -4935,7 +5076,67 @@ function toggleAutoFarm() {
                     ctx.restore();
                 });
             } else {
-                if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest') {
+                if (window.currentMapId === 'bamboo_forest') {
+                    let sx = 1900 - camera.x;
+                    let sy = 1000 - camera.y;
+                    ctx.save();
+                    ctx.beginPath(); ctx.arc(sx, sy, 35, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(234, 179, 8, 0.08)'; ctx.fill();
+                    ctx.strokeStyle = '#eab308'; ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 12]);
+                    ctx.beginPath(); ctx.arc(sx, sy, 25, timeTick, timeTick + Math.PI * 2); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#eab308'; ctx.fill();
+                    ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff"; ctx.textAlign = "center";
+                    ctx.fillText("🌉 Cầu Dẫn (Sang Bãi Biển)", sx, sy - 40);
+                    ctx.restore();
+                } else if (window.currentMapId === 'beach') {
+                    let sx = 1900 - camera.x;
+                    let sy = 1000 - camera.y;
+                    ctx.save();
+                    ctx.beginPath(); ctx.arc(sx, sy, 35, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.08)'; ctx.fill();
+                    ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 12]);
+                    ctx.beginPath(); ctx.arc(sx, sy, 25, timeTick, timeTick + Math.PI * 2); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#3b82f6'; ctx.fill();
+                    ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff"; ctx.textAlign = "center";
+                    ctx.fillText("⛵ Thuyền Dịch Chuyển (Sang Động Dơi)", sx, sy - 40);
+                    ctx.restore();
+                } else if (window.currentMapId === 'bat_cave') {
+                    let sx = 1900 - camera.x;
+                    let sy = 1000 - camera.y;
+                    ctx.save();
+                    ctx.beginPath(); ctx.arc(sx, sy, 35, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(168, 85, 247, 0.08)'; ctx.fill();
+                    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 12]);
+                    ctx.beginPath(); ctx.arc(sx, sy, 25, timeTick, timeTick + Math.PI * 2); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#a855f7'; ctx.fill();
+                    ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff"; ctx.textAlign = "center";
+                    ctx.fillText("🕳️ Cửa Hang (Sang Thành Trấn)", sx, sy - 40);
+                    ctx.restore();
+                } else if (window.currentMapId === 'citadel') {
+                    let sx = 1000 - camera.x;
+                    let sy = 100 - camera.y;
+                    ctx.save();
+                    ctx.beginPath(); ctx.arc(sx, sy, 35, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(34, 211, 238, 0.08)'; ctx.fill();
+                    ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 12]);
+                    ctx.beginPath(); ctx.arc(sx, sy, 25, timeTick, timeTick + Math.PI * 2); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#22d3ee'; ctx.fill();
+                    ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff"; ctx.textAlign = "center";
+                    ctx.fillText("🌀 Cổng Dịch Chuyển (Về Làng)", sx, sy - 40);
+                    ctx.restore();
+                } else if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest') {
                     let sx = 2000 - camera.x;
                     let sy = 2600 - camera.y;
                     ctx.save();
@@ -5618,7 +5819,7 @@ function toggleAutoFarm() {
         // --- MULTI-MAP PORTALS & TRANSITIONS ---
         const PORTALS = [
             { name: "Làng Trung Tâm", mapId: "world", x: 1520, y: 1450, color: '#22d3ee' },
-            { name: "Rừng U Minh", mapId: "world", x: 600, y: 2800, color: '#10b981' },
+            { name: "Rừng Tre", mapId: "world", x: 600, y: 2800, color: '#10b981' },
             { name: "Hồ Sen Tĩnh Lặng", mapId: "world", x: 2800, y: 2800, color: '#3b82f6' },
             { name: "Đồi Cỏ Mặt Trời", mapId: "world", x: 3300, y: 800, color: '#eab308' },
             { name: "Bãi Luyện Cấp (Dị Biến)", mapId: "world", x: 1200, y: 3500, color: '#f43f5e' },
@@ -5689,12 +5890,30 @@ function toggleAutoFarm() {
                 spawnMonstersForMap(mapId);
                 
                 let targetBgm = 'aresden';
-                if (mapId === 'demon_cave' || mapId === 'dungeon') targetBgm = 'dungeon';
+                if (mapId === 'demon_cave' || mapId === 'dungeon' || mapId === 'bat_cave') targetBgm = 'dungeon';
                 else if (mapId === 'cemetery') targetBgm = 'apocalypse';
                 else if (mapId.includes('house') || mapId.includes('school') || mapId.includes('shop')) targetBgm = 'elvine';
                 audio.playBgm(targetBgm);
                 
-                showToast(`🔮 Đã chuyển sang bản đồ: ${mapId.toUpperCase()}`);
+                const mapNames = {
+                    'world': 'Làng Tân Thủ',
+                    'bamboo_forest': 'Rừng Tre',
+                    'beach': 'Bãi Biển',
+                    'bat_cave': 'Động Dơi',
+                    'citadel': 'Thành Trấn',
+                    'demon_cave': 'Hang Quỷ',
+                    'cemetery': 'Nghĩa Địa',
+                    'ghost_forest': 'Rừng Ma',
+                    'ancient_temple': 'Đền Cổ',
+                    'dungeon': 'Hầm Ngục Tối',
+                    'communal_house': 'Ủy Ban Xã',
+                    'school': 'Trường Học',
+                    'police_station': 'Trạm Công An',
+                    'blacksmith_shop': 'Lò Rèn',
+                    'village_temple': 'Đình Làng',
+                    'pvp_arena': 'Đấu Trường PvP'
+                };
+                showToast(`🔮 Đã chuyển sang bản đồ: ${mapNames[mapId] || mapId.toUpperCase()}`);
                 autosaveGameProcess(true);
                 
                 fadeDiv.style.opacity = '0';
@@ -5967,6 +6186,11 @@ function toggleAutoFarm() {
                 }
                 
                 if (currentStandingPortal) {
+                    // Bamboo forest transition portal
+                    if (currentStandingPortal.x === 600 && currentStandingPortal.y === 2800) {
+                        window.changeMap('bamboo_forest', 200, 200);
+                        return;
+                    }
                     if (window.lastPortalVisited !== currentStandingPortal) {
                         window.lastPortalVisited = currentStandingPortal;
                         openTeleportMenu();
@@ -6013,7 +6237,31 @@ function toggleAutoFarm() {
                     }
                 }
             } else {
-                if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest') {
+                if (window.currentMapId === 'bamboo_forest') {
+                    let dist = Math.sqrt((px - 1900)**2 + (py - 1000)**2);
+                    if (dist < 40) {
+                        window.changeMap('beach', 200, 200);
+                        return;
+                    }
+                } else if (window.currentMapId === 'beach') {
+                    let dist = Math.sqrt((px - 1900)**2 + (py - 1000)**2);
+                    if (dist < 40) {
+                        window.changeMap('bat_cave', 200, 200);
+                        return;
+                    }
+                } else if (window.currentMapId === 'bat_cave') {
+                    let dist = Math.sqrt((px - 1900)**2 + (py - 1000)**2);
+                    if (dist < 40) {
+                        window.changeMap('citadel', 200, 200);
+                        return;
+                    }
+                } else if (window.currentMapId === 'citadel') {
+                    let dist = Math.sqrt((px - 1000)**2 + (py - 100)**2);
+                    if (dist < 40) {
+                        window.changeMap('world', 1520, 1450); // back to town center
+                        return;
+                    }
+                } else if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest') {
                     let dist = Math.sqrt((px - 2000)**2 + (py - 2600)**2);
                     if (dist < 40) {
                         let ent = DUNGEON_ENTRANCES.find(e => e.targetMapId === window.currentMapId);
@@ -6033,495 +6281,4 @@ function toggleAutoFarm() {
                     }
                 }
             }
-            
-            // ==========================================
-            // PVP ARENA HELPERS & LOGIC
-            // ==========================================
-            window.isPlayerInBush = function(p) {
-                if (!window.pvpArena || !window.pvpArena.obstacles) return false;
-                for (let obs of window.pvpArena.obstacles) {
-                    if (obs.type === 'bush') {
-                        let dist = Math.hypot(p.x - obs.x, p.y - obs.y);
-                        if (dist < obs.radius) return true;
-                    }
-                }
-                return false;
-            };
-
-            window.isPlayerInSameBush = function(p1, p2) {
-                if (!window.pvpArena || !window.pvpArena.obstacles) return false;
-                for (let obs of window.pvpArena.obstacles) {
-                    if (obs.type === 'bush') {
-                        let d1 = Math.hypot(p1.x - obs.x, p1.y - obs.y);
-                        let d2 = Math.hypot(p2.x - obs.x, p2.y - obs.y);
-                        if (d1 < obs.radius && d2 < obs.radius) return true;
-                    }
-                }
-                return false;
-            };
-
-            window.canObserverSeePlayer = function(viewer, target) {
-                if (viewer.id === target.id || viewer === target) return true;
-                if (window.pvpArena && window.pvpArena.active && window.pvpArena.spectating) return true;
-                if (window.isPlayerInBush(target)) {
-                    if (window.isPlayerInSameBush(viewer, target)) return true;
-                    if (target.lastAttackTime && (Date.now() - target.lastAttackTime < 1500)) return true;
-                    return false;
-                }
-                return true;
-            };
-
-            window.spawnPvpProjectileLocally = function(projId, ownerId, targetId, skillId, damage, isCrit) {
-                window.pvpArena = window.pvpArena || {};
-                window.pvpArena.projectiles = window.pvpArena.projectiles || [];
-                
-                let owner = (ownerId === myNetworkId) ? player : networkPlayers[ownerId];
-                if (!owner) return;
-                
-                let clsId = owner.classId;
-                let emoji = "✨";
-                let speed = 10;
-                let maxRange = 300;
-                
-                if (skillId === 'basic') {
-                    if (clsId === 'cop') { emoji = "🤜"; speed = 16; maxRange = 120; }
-                    else if (clsId === 'teacher') { emoji = "✨"; speed = 10; maxRange = 300; }
-                    else if (clsId === 'merchant') { emoji = "🪙"; speed = 11; maxRange = 300; }
-                    else if (clsId === 'engineer') { emoji = "⚙️"; speed = 12; maxRange = 320; }
-                } else {
-                    let sk = owner.skills?.find(s => s.id === skillId) || CLASS_DATA[clsId]?.skills?.find(s => s.id === skillId);
-                    if (sk) {
-                        emoji = sk.icon || "✨";
-                        maxRange = sk.range || 300;
-                        speed = (clsId === 'cop') ? 15 : 12;
-                    }
-                }
-                
-                window.pvpArena.projectiles.push({
-                    id: projId,
-                    ownerId: ownerId,
-                    targetId: targetId,
-                    skillId: skillId,
-                    damage: damage,
-                    isCrit: isCrit,
-                    x: owner.x,
-                    y: owner.y,
-                    emoji: emoji,
-                    speed: speed,
-                    maxRange: maxRange,
-                    distanceTraveled: 0
-                });
-            };
-
-            window.updatePvpProjectiles = function() {
-                if (!window.pvpArena || !window.pvpArena.projectiles) return;
-                
-                for (let i = window.pvpArena.projectiles.length - 1; i >= 0; i--) {
-                    let proj = window.pvpArena.projectiles[i];
-                    let target = (proj.targetId === myNetworkId) ? player : networkPlayers[proj.targetId];
-                    if (!target || target.hp <= 0) {
-                        window.pvpArena.projectiles.splice(i, 1);
-                        continue;
-                    }
-                    
-                    let dx = target.x - proj.x;
-                    let dy = target.y - proj.y;
-                    let dist = Math.hypot(dx, dy);
-                    
-                    if (dist < 15) {
-                        window.handlePvpProjectileImpact(proj);
-                        window.pvpArena.projectiles.splice(i, 1);
-                        continue;
-                    }
-                    
-                    let ux = dx / dist;
-                    let uy = dy / dist;
-                    proj.x += ux * proj.speed;
-                    proj.y += uy * proj.speed;
-                    proj.distanceTraveled += proj.speed;
-                    
-                    if (proj.distanceTraveled >= proj.maxRange) {
-                        window.pvpArena.projectiles.splice(i, 1);
-                        continue;
-                    }
-                    
-                    let hitObstacle = false;
-                    if (window.pvpArena.obstacles) {
-                        for (let obs of window.pvpArena.obstacles) {
-                            if (obs.isSolid) {
-                                let distObs = Math.hypot(proj.x - obs.x, proj.y - obs.y);
-                                if (distObs < obs.radius) {
-                                    hitObstacle = true;
-                                    createParticle("💥", proj.x, proj.y);
-                                    createFloatingText("Cản!", proj.x, proj.y, "#94a3b8");
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (hitObstacle) {
-                        window.pvpArena.projectiles.splice(i, 1);
-                    }
-                }
-            };
-
-            window.handlePvpProjectileImpact = function(proj) {
-                createParticle("💥", proj.x, proj.y);
-                audio.play('hit');
-                if (proj.targetId === myNetworkId) {
-                    window.applyPvpDamageToMe(proj.damage, proj.isCrit, proj.ownerId);
-                }
-            };
-
-            window.applyPvpDamageToMe = function(dmg, isCrit, attackerId) {
-                if (player.hp <= 0) return;
-                let def = getEffectiveDef();
-                let finalDmg = Math.max(5, Math.round(dmg - def * 0.5));
-                player.hp = Math.max(0, player.hp - finalDmg);
-                
-                player.playerHitFlashUntil = Date.now() + 250;
-                window.screenShake = { time: 200, magnitude: 6 };
-                createParticle("💥", player.x, player.y);
-                createFloatingText(`-${finalDmg}${isCrit ? ' 💥CRIT' : ''}`, player.x, player.y, isCrit ? '#ef4444' : '#f97316');
-                
-                pvpChannel.postMessage({
-                    type: 'PVP_HP_UPDATE',
-                    id: myNetworkId,
-                    hp: player.hp,
-                    maxHp: getEffectiveMaxHp()
-                });
-                
-                if (player.hp <= 0) {
-                    let attackerName = networkPlayers[attackerId]?.name || "Đối thủ";
-                    showToast(`💀 Bạn đã bị hạ gục bởi ${attackerName}!`);
-                    pvpChannel.postMessage({
-                        type: 'PVP_MATCH_OVER',
-                        id: myNetworkId,
-                        winnerId: attackerId,
-                        loserName: player.name
-                    });
-                    window.endPvpArenaMatch(attackerId);
-                }
-            };
-
-            window.applyPvpBuff = function(type) {
-                audio.play('levelup');
-                if (type === 'hp') {
-                    let heal = Math.round(getEffectiveMaxHp() * 0.3);
-                    player.hp = Math.min(getEffectiveMaxHp(), player.hp + heal);
-                    createFloatingText(`+${heal} HP ❤️`, player.x, player.y - 15, '#22c55e');
-                    refreshHudDisplay();
-                } else if (type === 'mp') {
-                    let mpVal = Math.round(getEffectiveMaxMp() * 0.3);
-                    player.mp = Math.min(getEffectiveMaxMp(), player.mp + mpVal);
-                    createFloatingText(`+${mpVal} MP 💙`, player.x, player.y - 15, '#3b82f6');
-                    refreshHudDisplay();
-                } else if (type === 'speed') {
-                    window.pvpSpeedBuffEndTime = Date.now() + 10000;
-                    createFloatingText("Tốc Độ +50% ⚡", player.x, player.y - 15, '#eab308');
-                } else if (type === 'damage') {
-                    window.pvpDamageBuffEndTime = Date.now() + 10000;
-                    createFloatingText("Sát Thương +50% 🔥", player.x, player.y - 15, '#a855f7');
-                }
-            };
-
-            window.spawnPvpBuffLocally = function(buffId, type, x, y) {
-                window.pvpArena = window.pvpArena || {};
-                window.pvpArena.buffs = window.pvpArena.buffs || [];
-                window.pvpArena.buffs.push({
-                    id: buffId,
-                    type: type,
-                    x: x,
-                    y: y
-                });
-            };
-
-            window.spectatePvpArena = function(targetId) {
-                let opp = networkPlayers[targetId];
-                if (!opp) return;
-                
-                audio.play('click');
-                window.pvpArenaSeed = opp.pvpSeed || 12345;
-                window.pvpArenaTheme = opp.pvpTheme || 'bamboo';
-                window.pvpArena = {
-                    active: true,
-                    spectating: true,
-                    spectateFollowId: targetId,
-                    seed: opp.pvpSeed || 12345,
-                    theme: opp.pvpTheme || 'bamboo',
-                    state: 'fight',
-                    obstacles: [],
-                    buffs: [],
-                    projectiles: []
-                };
-                
-                if (!window.prePvpMapState) {
-                    window.prePvpMapState = {
-                        mapId: window.currentMapId,
-                        x: player.x,
-                        y: player.y
-                    };
-                }
-                
-                window.currentMapId = 'pvp_arena';
-                player.destinationX = undefined;
-                player.destinationY = undefined;
-                player.targetMonster = null;
-                player.targetPvpPlayerId = null;
-                
-                if (window.generateMapDecorations) {
-                    window.generateMapDecorations('pvp_arena');
-                }
-                
-                if (!document.getElementById('exitSpectateBtn')) {
-                    const exitBtn = document.createElement('button');
-                    exitBtn.id = 'exitSpectateBtn';
-                    exitBtn.innerText = '❌ Thoát Xem Đấu';
-                    exitBtn.style.position = 'fixed';
-                    exitBtn.style.top = '70px';
-                    exitBtn.style.right = '12px';
-                    exitBtn.style.zIndex = '999999';
-                    exitBtn.style.background = 'rgba(239, 68, 68, 0.9)';
-                    exitBtn.style.color = '#fff';
-                    exitBtn.style.border = '2px solid #fff';
-                    exitBtn.style.borderRadius = '8px';
-                    exitBtn.style.padding = '8px 12px';
-                    exitBtn.style.fontWeight = 'bold';
-                    exitBtn.style.cursor = 'pointer';
-                    exitBtn.onclick = () => {
-                        window.exitSpectateMode();
-                    };
-                    document.body.appendChild(exitBtn);
-                }
-                
-                showToast('👀 Đang xem trận đấu của ' + opp.name);
-            };
-
-            window.exitSpectateMode = function() {
-                let btn = document.getElementById('exitSpectateBtn');
-                if (btn) btn.remove();
-                
-                window.pvpArena = null;
-                if (window.prePvpMapState) {
-                    window.currentMapId = window.prePvpMapState.mapId;
-                    player.x = window.prePvpMapState.x;
-                    player.y = window.prePvpMapState.y;
-                    window.prePvpMapState = null;
-                } else {
-                    window.currentMapId = 'world';
-                    player.x = 1520;
-                    player.y = 1450;
-                }
-                player.destinationX = undefined;
-                player.destinationY = undefined;
-                player.targetMonster = null;
-                player.targetPvpPlayerId = null;
-                
-                if (window.generateMapDecorations) {
-                    window.generateMapDecorations(window.currentMapId);
-                }
-                spawnMonstersForMap(window.currentMapId);
-                showToast('🔮 Đã thoát chế độ xem đấu.');
-            };
-
-            window.executeSkillAtLocationPvp = function(skillId, x, y) {
-                let oppId = null;
-                for (let id in networkPlayers) {
-                    let p = networkPlayers[id];
-                    if (p.mapId === 'pvp_arena' && Math.hypot(p.x - x, p.y - y) <= 150) {
-                        oppId = id;
-                        break;
-                    }
-                }
-                if (oppId) {
-                    player.targetPvpPlayerId = oppId;
-                    executeActiveSkillUsage(skillId);
-                } else {
-                    showToast("🎯 Không tìm thấy đối thủ ở vị trí đã chọn!");
-                }
-            };
-
-            window.endPvpArenaMatch = function(winnerId) {
-                if (!window.pvpArena || !window.pvpArena.active) return;
-                
-                let isWinner = (winnerId === myNetworkId);
-                let isSpectator = window.pvpArena.spectating;
-                let winnerName = (winnerId === myNetworkId) ? player.name : (networkPlayers[winnerId]?.name || "Đối thủ");
-                
-                if (isWinner) {
-                    audio.play('levelup');
-                    player.gold += 200;
-                    showToast("🏆 CHIẾN THẮNG! Nhận 200 Vàng!");
-                } else if (!isSpectator) {
-                    audio.play('quest');
-                    showToast("🏳️ Thất bại! Hẹn gặp lại lần sau.");
-                }
-                
-                if (!isSpectator) {
-                    player.hp = getEffectiveMaxHp();
-                    player.mp = getEffectiveMaxMp();
-                    refreshHudDisplay();
-                }
-                
-                let pvpOverlay = document.createElement('div');
-                pvpOverlay.id = 'pvpResultOverlay';
-                pvpOverlay.style.position = 'fixed';
-                pvpOverlay.style.inset = '0';
-                pvpOverlay.style.background = 'rgba(0,0,0,0.8)';
-                pvpOverlay.style.display = 'flex';
-                pvpOverlay.style.alignItems = 'center';
-                pvpOverlay.style.justifyContent = 'center';
-                pvpOverlay.style.zIndex = '9999999';
-                
-                pvpOverlay.innerHTML = `
-                    <div style="background: linear-gradient(135deg, #1e1b4b, #311042); border: 3px solid #fbbf24; border-radius: 16px; padding: 30px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 0 30px rgba(251,191,36,0.3); color: #fff;">
-                        <h2 style="font-family:'Baloo 2', sans-serif; font-size: 2rem; color: #fbbf24; margin-bottom: 15px;">🏁 KẾT THÚC QUYẾT ĐẤU</h2>
-                        <div style="font-size: 4.5rem; margin: 15px 0;">\${isWinner ? '🏆' : isSpectator ? '⚔️' : '💀'}</div>
-                        <p style="font-size: 1.15rem; margin-bottom: 20px; line-height: 1.6;">
-                            \${isSpectator ? \`Anh hùng <b>\${winnerName}</b> đã giành chiến thắng thuyết phục trong đấu trường!\` : isWinner ? \`Chúc mừng! Bạn đã đánh bại đối thủ và giành phần thưởng <b>200 Vàng</b>!\` : \`Bạn đã hi sinh anh dũng dưới tay đối thủ! Hồi phục sinh lực và phục thù sau.\`}
-                        </p>
-                        <button class="btn" id="pvpResultCloseBtn" style="padding: 10px 24px; font-weight: bold; background: #fbbf24; color: #000; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s;">Đóng (10s)</button>
-                    </div>
-                `;
-                document.body.appendChild(pvpOverlay);
-                
-                let autoCloseTimer = setTimeout(() => {
-                    closePvpOverlay();
-                }, 10000);
-                
-                function closePvpOverlay() {
-                    clearTimeout(autoCloseTimer);
-                    let overlay = document.getElementById('pvpResultOverlay');
-                    if (overlay) overlay.remove();
-                    
-                    let sBtn = document.getElementById('exitSpectateBtn');
-                    if (sBtn) sBtn.remove();
-                    
-                    window.pvpArena = null;
-                    if (window.prePvpMapState) {
-                        window.currentMapId = window.prePvpMapState.mapId;
-                        player.x = window.prePvpMapState.x;
-                        player.y = window.prePvpMapState.y;
-                        window.prePvpMapState = null;
-                    } else {
-                        window.currentMapId = 'world';
-                        player.x = 1520;
-                        player.y = 1450;
-                    }
-                    player.destinationX = undefined;
-                    player.destinationY = undefined;
-                    player.targetMonster = null;
-                    player.targetPvpPlayerId = null;
-                    
-                    if (window.generateMapDecorations) {
-                        window.generateMapDecorations(window.currentMapId);
-                    }
-                    spawnMonstersForMap(window.currentMapId);
-                    autosaveGameProcess(true);
-                }
-                
-                pvpOverlay.querySelector('#pvpResultCloseBtn').onclick = closePvpOverlay;
-            };
-
-            window.updatePvpArenaLogic = function() {
-                if (!window.pvpArena || !window.pvpArena.active) return;
-                
-                if (window.pvpArena.state === 'countdown') {
-                    let elapsed = Date.now() - window.pvpArena.countdownStart;
-                    if (elapsed >= 3000) {
-                        window.pvpArena.state = 'fight';
-                        window.pvpArena.startTime = Date.now();
-                        showToast('⚔️ GIAO TRANH BẮT ĐẦU!');
-                    }
-                    return;
-                }
-                
-                let timeElapsed = (Date.now() - window.pvpArena.startTime) / 1000;
-                let boRadius = 700;
-                if (timeElapsed > 60) {
-                    let shrinkTime = timeElapsed - 60;
-                    boRadius = Math.max(100, 700 - shrinkTime * 10);
-                }
-                window.pvpArena.boRadius = boRadius;
-                
-                if (!window.pvpArena.spectating && player.hp > 0) {
-                    let dist = Math.hypot(player.x - 500, player.y - 500);
-                    if (dist > boRadius) {
-                        let now = Date.now();
-                        if (!window.lastBoDamageTime) window.lastBoDamageTime = 0;
-                        if (now - window.lastBoDamageTime > 1000) {
-                            window.lastBoDamageTime = now;
-                            let dmg = Math.round(getEffectiveMaxHp() * 0.08);
-                            player.hp = Math.max(0, player.hp - dmg);
-                            createParticle("⚡", player.x, player.y);
-                            createFloatingText(`-${dmg} Vòng Bo`, player.x, player.y, '#ef4444');
-                            audio.play('hit');
-                            
-                            pvpChannel.postMessage({
-                                type: 'PVP_HP_UPDATE',
-                                id: myNetworkId,
-                                hp: player.hp,
-                                maxHp: getEffectiveMaxHp()
-                            });
-                            
-                            if (player.hp <= 0) {
-                                let oppId = player.targetPvpPlayerId || Object.keys(networkPlayers).find(id => networkPlayers[id].mapId === 'pvp_arena') || myNetworkId;
-                                pvpChannel.postMessage({
-                                    type: 'PVP_MATCH_OVER',
-                                    id: myNetworkId,
-                                    winnerId: oppId,
-                                    loserName: player.name
-                                });
-                                window.endPvpArenaMatch(oppId);
-                            }
-                        }
-                    }
-                }
-                
-                let isHost = (window.pvpArena.challengerId === myNetworkId);
-                if (isHost) {
-                    let now = Date.now();
-                    if (!window.lastBuffSpawnTime) window.lastBuffSpawnTime = now;
-                    if (now - window.lastBuffSpawnTime > 15000) {
-                        window.lastBuffSpawnTime = now;
-                        let buffId = 'buff_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-                        let types = ['hp', 'mp', 'speed', 'damage'];
-                        let type = types[Math.floor(Math.random() * types.length)];
-                        let bx = 400 + Math.random() * 200;
-                        let by = 400 + Math.random() * 200;
-                        
-                        pvpChannel.postMessage({
-                            type: 'PVP_BUFF_SPAWN',
-                            id: myNetworkId,
-                            buffId: buffId,
-                            buffType: type,
-                            x: bx,
-                            y: by
-                        });
-                        window.spawnPvpBuffLocally(buffId, type, bx, by);
-                    }
-                }
-                
-                if (!window.pvpArena.spectating && window.pvpArena.buffs) {
-                    for (let i = window.pvpArena.buffs.length - 1; i >= 0; i--) {
-                        let buff = window.pvpArena.buffs[i];
-                        let d = Math.hypot(player.x - buff.x, player.y - buff.y);
-                        if (d < 30) {
-                            pvpChannel.postMessage({
-                                type: 'PVP_BUFF_PICKUP',
-                                id: myNetworkId,
-                                buffId: buff.id,
-                                pickerId: myNetworkId,
-                                pickerName: player.name,
-                                buffType: buff.type
-                            });
-                            window.applyPvpBuff(buff.type);
-                            window.pvpArena.buffs.splice(i, 1);
-                        }
-                    }
-                }
-                
-                window.updatePvpProjectiles();
-            };
         };

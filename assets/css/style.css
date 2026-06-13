@@ -1535,3 +1535,56 @@ input[type="text"], input[type="email"], input[type="password"] {
 .skill-circle .cooldown-ring {
     inset: 1px !important;
 }
+
+/* Center Notification Container & Animation */
+#centerNotificationContainer {
+    position: fixed;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+    width: 90%;
+    max-width: 420px;
+}
+.center-notice-item {
+    background: rgba(15, 23, 42, 0.85);
+    border: 2px solid rgba(245, 158, 11, 0.7);
+    border-radius: 14px;
+    padding: 14px 22px;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 15px rgba(245, 158, 11, 0.2);
+    animation: centerNoticeFadeIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    width: 100%;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+.center-notice-item.fade-out {
+    animation: centerNoticeFadeOut 0.4s ease forwards;
+}
+.center-notice-title {
+    font-family: 'Baloo 2', 'Boogaloo', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #fbbf24;
+    text-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+    margin-bottom: 4px;
+}
+.center-notice-body {
+    font-size: 1.05rem;
+    color: #f1f5f9;
+    line-height: 1.4;
+}
+@keyframes centerNoticeFadeIn {
+    0% { opacity: 0; transform: scale(0.7) translateY(-30px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes centerNoticeFadeOut {
+    0% { opacity: 1; transform: scale(1) translateY(0); }
+    100% { opacity: 0; transform: scale(0.75) translateY(30px); }
+}

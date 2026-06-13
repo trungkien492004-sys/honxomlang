@@ -279,3 +279,28 @@ window.renderVFXOverlays = function(ctx, camera) {
         ctx.restore();
     }
 };
+
+// 6. Hiển thị thông báo ở giữa màn hình (Center Notification)
+window.showCenterNotification = function(title, body, duration = 2800) {
+    let container = document.getElementById('centerNotificationContainer');
+    if(!container) {
+        container = document.createElement('div');
+        container.id = 'centerNotificationContainer';
+        document.body.appendChild(container);
+    }
+    
+    let item = document.createElement('div');
+    item.className = 'center-notice-item';
+    item.innerHTML = `
+        <div class="center-notice-title">${title}</div>
+        <div class="center-notice-body">${body}</div>
+    `;
+    container.appendChild(item);
+    
+    setTimeout(() => {
+        item.classList.add('fade-out');
+        setTimeout(() => {
+            item.remove();
+        }, 400);
+    }, duration);
+};

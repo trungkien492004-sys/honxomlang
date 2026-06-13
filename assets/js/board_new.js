@@ -266,6 +266,11 @@ window._bigEventTimer = null;
 window._bigEventCallback = null;
 
 window.boardShowBigNotice = function(title, desc, extra = '', callback, persist = false) {
+    let curPlayer = boardGame && boardGame.players && boardGame.players[boardGame.currentTurn];
+    if (curPlayer && curPlayer.isBot) {
+        if(callback) callback();
+        return;
+    }
     const overlay = document.getElementById('bigEventOverlay');
     if(!overlay) {
         if(callback) callback();
@@ -294,7 +299,7 @@ window.boardShowBigNotice = function(title, desc, extra = '', callback, persist 
     if(!persist) {
         window._bigEventTimer = setTimeout(() => {
             window.closeBigEvent();
-        }, 10000);
+        }, 2000);
     }
 };
 
@@ -494,41 +499,59 @@ window.closeBoardInviteModal = function() {
     try { audio.play('click'); } catch(e){}
     const modal = document.getElementById('boardInviteModal');
     if(modal) modal.classList.remove('active');
+    if(window._boardInviteRefreshInterval) {
+        clearInterval(window._boardInviteRefreshInterval);
+        window._boardInviteRefreshInterval = null;
+    }
 };
 
 window.openBoardInviteModal = function() {
     try { audio.play('click'); } catch(e){}
     const modal = document.getElementById('boardInviteModal');
-    const list = document.getElementById('boardInvitePlayerList');
-    if(!modal || !list) return;
+    if(!modal) return;
     
-    list.innerHTML = '';
-    let players = window.networkPlayers || {};
-    let count = 0;
-    
-    for(let id in players) {
-        let p = players[id];
-        if(id === myNetworkId || (Date.now() - p.lastSeen > 12000)) continue;
-        count++;
-        let div = document.createElement('div');
-        div.className = 'pvp-player-row';
-        div.innerHTML = `
-            <div style="flex:1; display:flex; align-items:center; gap:8px;">
-                <span style="font-size:1.5rem;">${window.CLASS_DATA && window.CLASS_DATA[p.classId] ? window.CLASS_DATA[p.classId].emoji : '👤'}</span>
-                <div>
-                    <div style="font-weight:bold; color:var(--gold);">${p.name}</div>
-                    <div style="font-size:0.75rem; color:#aaa;">Lv.${p.level || 1}</div>
+    const refreshList = () => {
+        const list = document.getElementById('boardInvitePlayerList');
+        if(!list || !modal.classList.contains('active')) {
+            if(window._boardInviteRefreshInterval) {
+                clearInterval(window._boardInviteRefreshInterval);
+                window._boardInviteRefreshInterval = null;
+            }
+            return;
+        }
+        list.innerHTML = '';
+        let players = window.networkPlayers || {};
+        let count = 0;
+        
+        for(let id in players) {
+            let p = players[id];
+            if(id === myNetworkId || (Date.now() - p.lastSeen > 12000)) continue;
+            count++;
+            let div = document.createElement('div');
+            div.className = 'pvp-player-row';
+            div.innerHTML = `
+                <div style="flex:1; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1.5rem;">${window.CLASS_DATA && window.CLASS_DATA[p.classId] ? window.CLASS_DATA[p.classId].emoji : '👤'}</span>
+                    <div>
+                        <div style="font-weight:bold; color:var(--gold);">${p.name}</div>
+                        <div style="font-size:0.75rem; color:#aaa;">Lv.${p.level || 1}</div>
+                    </div>
                 </div>
-            </div>
-            <button class="btn-sm" style="background:#22c55e;" onclick="sendBoardInvite('${id}', '${p.name}')">Mời</button>
-        `;
-        list.appendChild(div);
-    }
+                <button class="btn-sm" style="background:#22c55e;" onclick="sendBoardInvite('${id}', '${p.name}')">Mời</button>
+            `;
+            list.appendChild(div);
+        }
+        
+        if(count === 0) {
+            list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Không có người chơi online. Mở thêm tab!</div>';
+        }
+    };
     
-    if(count === 0) {
-        list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Không có người chơi online. Mở thêm tab!</div>';
-    }
+    refreshList();
     modal.classList.add('active');
+    
+    if(window._boardInviteRefreshInterval) clearInterval(window._boardInviteRefreshInterval);
+    window._boardInviteRefreshInterval = setInterval(refreshList, 1000);
 };
 
 window.sendBoardInvite = function(targetId, targetName) {
