@@ -642,12 +642,8 @@
             if(!msg || msg.id === myNetworkId) return;
 
             if(msg.type === 'PRESENCE') {
-                if(msg.timestamp && typeof msg.timestamp.toMillis === 'function') {
-                    if(Date.now() - msg.timestamp.toMillis() > 10000) {
-                        if(typeof db !== 'undefined') db.collection('active_players').doc(msg.id).delete().catch(()=>{});
-                        return; // Ignore stale presence and cleanup
-                    }
-                }
+                // Chúng ta không dùng Date.now() - msg.timestamp vì nếu đồng hồ thiết bị của user sai giờ, nó sẽ tự xoá hết người chơi khác!
+                // Thay vào đó chỉ dựa vào lastSeen cục bộ.
                 networkPlayers[msg.id] = { ...msg, lastSeen: Date.now() };
                 partySystem.updateMemberPresence(msg);
                 rebuildPvpLobbyUI();
@@ -844,7 +840,7 @@
             let now = Date.now();
             let changed = false;
             for(let id in networkPlayers) {
-                if(now - networkPlayers[id].lastSeen > 6000) {
+                if(now - networkPlayers[id].lastSeen > 12000) { // Đợi 12s không có tín hiệu thì mới xoá (tránh mạng lag)
                     delete networkPlayers[id];
                     if(typeof partySystem !== 'undefined') partySystem.removeMember(id);
                     changed = true;

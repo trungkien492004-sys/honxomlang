@@ -223,28 +223,20 @@ window.boardProcessTurn = function(p, roll, callback) {
                 } else {
                     handleCombat();
                 }
-        };
 
-        const handleCombat = () => {
-            let combatLog = boardHandleCombat(p);
-            if(combatLog) {
-                window.boardShowBigNotice("⚔️ ĐỤNG ĐỘ", combatLog, `Khu vực: ${cellName}`, handleWinOrCard);
-            } else {
-                handleWinOrCard();
-            }
-        };
-
-        // Xử lý bẫy trên sân
-        if(boardGame.trappedCells[p.pos]) {
-            delete boardGame.trappedCells[p.pos];
-            boardAddLog(`💥 ${p.name} dẫm bẫy! Lùi 3 ô!`, 'special');
-            boardMovePlayer(p.idx, -3, true);
-            window.boardShowBigNotice("💣 DẪM BẪY!", `${p.name} dẫm phải bẫy ở ${cellName} và bị lùi 3 ô!`, "", handleCombat);
-        } else {
-            handleCombat();
+            }, 200);
+            return;
         }
 
-    }, 400);
+        // Move 1 step and animate
+        boardMovePlayer(p.idx, 1, true);
+        try { audio.play('click'); } catch(e){}
+        currentStep++;
+        
+        if (currentStep === 1) {
+            boardAddLog(`🎲 ${p.name} bắt đầu di chuyển ${steps} bước.`);
+        }
+    }, 250);
 };
 
 // PvP khi 2 ng chung 1 ô
