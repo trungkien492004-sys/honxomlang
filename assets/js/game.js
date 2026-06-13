@@ -2378,13 +2378,13 @@
                 ev.stopPropagation();
             }
 
-            let normalBtn = document.createElement('button');
+                        let normalBtn = document.createElement('button');
             normalBtn.type = 'button';
             normalBtn.className = 'skill-circle';
             normalBtn.dataset.action = 'normal';
-            normalBtn.title = '??nh th??ng';
+            normalBtn.title = 'Đánh thường';
             normalBtn.innerHTML = `
-                <span class="skill-icon">???</span>
+                <span class="skill-icon">⚔️</span>
                 <div class="cooldown-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="10"></circle></svg></div>
                 <div class="cooldown-text">ATT</div>
             `;
@@ -2406,7 +2406,7 @@
                 let ready = cooldown === 0;
                 let progress = ready ? 0 : ((s.cd - elapsed) / s.cd) * 100;
                 let icon = s.icon || '?';
-                let statusText = ready ? 'S?n s?ng' : `H?i ${cooldown}s`;
+                let statusText = ready ? 'Sẵn sàng' : `Hồi ${cooldown}s`;
                 let autoChecked = autoSkillIds.has(s.id);
                 btn.title = `${s.name}
 ${s.desc}`;
@@ -2416,11 +2416,11 @@ ${s.desc}`;
                 btn.innerHTML = `
                     <span class="skill-icon">${icon}</span>
                     <div class="cooldown-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="10"></circle><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(59,130,246,0.95)" stroke-width="10" stroke-dasharray="251.2" stroke-dashoffset="${251.2 - (251.2 * progress / 100)}" stroke-linecap="round"></circle></svg></div>
-                    <div class="cooldown-text">${ready ? 'OK' : cooldown + 's'}</div>
+                    <div class="cooldown-text">${ready ? '' : cooldown + 's'}</div>
                 `;
                 btn.onpointerdown = (ev) => { stopUiEvent(ev); prepareSkillCast(s.id); rebuildQuickSkillBarUI(); };
                 btn.onclick = stopUiEvent;
-                btn.onmouseenter = () => showSkillTooltip(s.name, s.desc || 'K? n?ng ch?a c? m? t?.', `MP ${s.mp} ? ${statusText}`);
+                btn.onmouseenter = () => showSkillTooltip(s.name, s.desc || 'Kỹ năng chưa có mô tả.', `MP ${s.mp} - ${statusText}`);
                 btn.onmousemove = moveSkillTooltip;
                 btn.onmouseleave = hideSkillTooltip;
 
@@ -2433,7 +2433,7 @@ ${s.desc}`;
                 autoBox.onclick = (ev) => { ev.stopPropagation(); };
                 autoBox.onchange = (ev) => { ev.stopPropagation(); toggleAutoSkill(s.id, autoBox.checked); };
 
-                container.appendChild(makeSlot(btn, autoBox, sIdx++));
+                container.appendChild(makeSlot(btn, null, sIdx++));
             });
         }
 
@@ -2475,59 +2475,126 @@ function renderAttackEffect() {
         createAttackParticles(player.attackEffect.targetX, player.attackEffect.targetY);
     }
 
-    ctx.save();
-    
-    // Sử dụng chế độ hòa trộn màu "lighter" để tạo hiệu ứng phát sáng neon siêu đỉnh
-    ctx.globalCompositeOperation = 'lighter';
+    if (player.classId === 'cop') {
+        // === COP CLASS: ĐƯỜNG KIẾM CHÉM (SWORD SLASH ARC) ===
+        let angle = Math.atan2(ty - sy, tx - sx);
+        let radius = 25 + progress * 15;
+        ctx.save();
+        ctx.beginPath();
+        // Vẽ vòng cung chém quét quanh mục tiêu
+        ctx.arc(tx, ty, radius, angle - Math.PI / 2.5 + progress * Math.PI, angle + Math.PI / 2.5 - progress * Math.PI, true);
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#38bdf8';
+        ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+        ctx.lineWidth = 4 * (1 - progress) + 1;
+        ctx.stroke();
+        
+        // Lõi chém trắng sắc nét
+        ctx.beginPath();
+        ctx.arc(tx, ty, radius, angle - Math.PI / 3 + progress * Math.PI * 0.8, angle + Math.PI / 3 - progress * Math.PI * 0.8, true);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.lineWidth = 1.5 * (1 - progress) + 0.5;
+        ctx.stroke();
+        ctx.restore();
+    } 
+    else if (player.classId === 'teacher') {
+        // === TEACHER CLASS: ĐẠN MA THUẬT BAY (MAGIC PROJECTILE) ===
+        let px = sx + (tx - sx) * progress;
+        let py = sy + (ty - sy) * progress;
+        
+        ctx.save();
+        // Đường đuôi phép thuật mờ
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(px, py);
+        ctx.strokeStyle = `rgba(236, 72, 153, ${alpha * 0.3})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-    // === LỚP 1: VẼ LUỒNG SÉT CHÍNH (LIGHTNING EFFECT) ===
-    let distance = Math.hypot(tx - sx, ty - sy);
-    let segments = Math.floor(distance / 15); // Cứ mỗi 15px tạo 1 khúc gãy
-    
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    
-    for (let i = 1; i < segments; i++) {
-        let t = i / segments;
-        // Tính toán đường thẳng tuyến tính cơ sở
-        let currX = sx + (tx - sx) * t;
-        let currY = sy + (ty - sy) * t;
+        // Vẽ emoji sao/sách ma thuật
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#ec4899";
+        ctx.fillText("☄️", px, py);
+        ctx.restore();
+    } 
+    else if (player.classId === 'merchant') {
+        // === MERCHANT CLASS: TÊN/VÀNG BAY (ARROW/COIN PROJECTILE) ===
+        let px = sx + (tx - sx) * progress;
+        let py = sy + (ty - sy) * progress;
+        let angle = Math.atan2(ty - sy, tx - sx);
         
-        // Tạo độ giật ngẫu nhiên vuông góc với tia sét (chỉ giật mạnh ở giữa đoạn)
-        let jitterStrength = Math.sin(t * Math.PI) * 12 * (1 - progress);
-        let offset = (Math.random() - 0.5) * jitterStrength;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(angle);
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("🏹", 0, 0);
+        ctx.restore();
+    } 
+    else if (player.classId === 'engineer') {
+        // === ENGINEER CLASS: BÁNH RĂNG/MỎ LẮT XOAY BAY (SPINNING GEAR) ===
+        let px = sx + (tx - sx) * progress;
+        let py = sy + (ty - sy) * progress;
+        let rotAngle = progress * Math.PI * 6; // Xoay 3 vòng
         
-        // Tính góc vuông góc để bù offset vào
-        let angle = Math.atan2(ty - sy, tx - sx) + Math.PI / 2;
-        currX += Math.cos(angle) * offset;
-        currY += Math.sin(angle) * offset;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(rotAngle);
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("⚙️", 0, 0);
+        ctx.restore();
+    } 
+    else {
+        // === FALLBACK: LUỒNG SÉT MA PHÁP GỐC ===
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+
+        let distance = Math.hypot(tx - sx, ty - sy);
+        let segments = Math.floor(distance / 15);
         
-        ctx.lineTo(currX, currY);
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        
+        for (let i = 1; i < segments; i++) {
+            let t = i / segments;
+            let currX = sx + (tx - sx) * t;
+            let currY = sy + (ty - sy) * t;
+            let jitterStrength = Math.sin(t * Math.PI) * 12 * (1 - progress);
+            let offset = (Math.random() - 0.5) * jitterStrength;
+            let angle = Math.atan2(ty - sy, tx - sx) + Math.PI / 2;
+            currX += Math.cos(angle) * offset;
+            currY += Math.sin(angle) * offset;
+            ctx.lineTo(currX, currY);
+        }
+        ctx.lineTo(tx, ty);
+
+        ctx.shadowBlur = 20 * (1 - progress);
+        ctx.shadowColor = `rgba(255, 110, 0, ${alpha})`;
+        ctx.strokeStyle = `rgba(255, 235, 59, ${alpha})`;
+        ctx.lineWidth = 6 * (1 - progress) + 1;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
+        ctx.lineWidth = 2 * (1 - progress) + 0.5;
+        ctx.stroke();
+
+        ctx.restore();
     }
-    ctx.lineTo(tx, ty);
-
-    // Cấu hình phát sáng (Glow) cho tia sét
-    ctx.shadowBlur = 20 * (1 - progress);
-    ctx.shadowColor = `rgba(255, 110, 0, ${alpha})`; // Phát sáng màu cam lửa
-    ctx.strokeStyle = `rgba(255, 235, 59, ${alpha})`; // Thân tia sét màu vàng chói
-    ctx.lineWidth = 6 * (1 - progress) + 1;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-
-    // === LỚP 2: LÕI NĂNG LƯỢNG TRẮNG (TẠO CẢM GIÁC ĐẬM ĐẶC) ===
-    ctx.shadowBlur = 0; // Tắt shadow để vẽ lõi bén hơn
-    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
-    ctx.lineWidth = 2 * (1 - progress) + 0.5;
-    ctx.stroke();
-
-    ctx.restore();
 
     // === LỚP 3: CẬP NHẬT VÀ VẼ CÁC HẠT NĂNG LƯỢNG BẮN TUNG TÓE ===
     updateAndRenderParticles();
 }
 
-// Hàm khởi tạo các hạt năng lượng tại điểm trúng đạn
 function createAttackParticles(targetX, targetY) {
     attackParticles = [];
     const particleCount = 15; // Số lượng tia lửa bắn ra
@@ -4101,6 +4168,38 @@ function toggleAutoFarm() {
         }
 
         // --- 11. UI HUB LAYER RENDERING MANAGERS ---
+        
+        window.rebuildAutoPanelUI = function() {
+            let chkFight = document.getElementById('chkAutoFightPanel');
+            let chkLoot = document.getElementById('chkAutoLootPanel');
+            let chkHp = document.getElementById('chkAutoHpPanel');
+            let chkMp = document.getElementById('chkAutoMpPanel');
+            let chkFood = document.getElementById('chkAutoFoodPanel');
+            
+            if(chkFight) chkFight.checked = isAutoFarming;
+            if(chkLoot) chkLoot.checked = window.autoLoot;
+            if(chkHp) chkHp.checked = window.autoUseHp;
+            if(chkMp) chkMp.checked = window.autoUseMp;
+            if(chkFood) chkFood.checked = window.autoUseFood;
+
+            // Populate skill selectors
+            let s1 = document.getElementById('selAutoSkillPanel1');
+            let s2 = document.getElementById('selAutoSkillPanel2');
+            let s3 = document.getElementById('selAutoSkillPanel3');
+            if(s1 && s2 && s3) {
+                [s1, s2, s3].forEach((selectEl, index) => {
+                    selectEl.innerHTML = '<option value="">-- Trống --</option>';
+                    player.skills.forEach(sk => {
+                        let opt = document.createElement('option');
+                        opt.value = sk.id;
+                        opt.textContent = sk.name;
+                        selectEl.appendChild(opt);
+                    });
+                    selectEl.value = window.autoSkillsSelected[index] || "";
+                });
+            }
+        };
+
         function togglePanel(panelId) {
             audio.play('click');
             let p = document.getElementById(`panel-${panelId}`);
@@ -4115,7 +4214,8 @@ function toggleAutoFarm() {
                 activePanel = panelId;
                 
                 // Refresh specific targeted internal list injectors
-                if(panelId === 'inventory') rebuildInventoryGridUI();
+                if(panelId === 'auto') rebuildAutoPanelUI();
+                else if(panelId === 'inventory') rebuildInventoryGridUI();
                 if(panelId === 'skills') rebuildSkillsPanelUI();
                 if(panelId === 'equipment') rebuildEquipmentUI();
                 if(panelId === 'quests') rebuildQuestsUI();

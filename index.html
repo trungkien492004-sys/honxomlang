@@ -133,7 +133,7 @@
         <div class="right-top-box">
             <canvas id="minimap"></canvas>
             <div class="quick-actions">
-                <button class="btn-sm" id="autoFarmBtn">🤖 Tự Động Đánh: TẮT</button>
+                <button class="btn-sm" id="autoFarmBtn" style="display: none;">🤖 Tự Động Đánh: TẮT</button>
             </div>
         </div>
 
@@ -148,6 +148,7 @@
                 <div style="font-size:1.8rem; pointer-events:none;">☰</div>
             </div>
             <div id="hudNavContainer" class="nav-container">
+                <button class="nav-btn" onclick="togglePanel('auto')" style="background:rgba(16,185,129,0.2); border-color:#10b981;">🤖 Tự Động</button>
                 <button class="nav-btn" onclick="togglePanel('inventory')">🎒 Hành Trang</button>
                 <button class="nav-btn" onclick="togglePanel('skills')">⚡ Kỹ Năng</button>
                 <button class="nav-btn" onclick="togglePanel('equipment')">🛡️ Trang Bị</button>
@@ -181,6 +182,53 @@
 
         <div class="ui-layer">
             <div class="middle-hud">
+
+                                <div class="game-panel" id="panel-auto">
+                    <div class="panel-header"><span>🤖 CÀI ĐẶT TỰ ĐỘNG (AUTO)</span><span class="panel-close" onclick="togglePanel('auto')">✖</span></div>
+                    <div class="panel-body" style="padding: 12px; font-family:'Baloo 2', sans-serif; display:flex; flex-direction:column; gap:10px;">
+                        <!-- Auto Battle Settings Grid -->
+                        <div style="background:rgba(0,0,0,0.3); border:2px solid #704214; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                            <div style="font-size:0.9rem; color:var(--gold); font-weight:bold; border-bottom:1px solid #704214; padding-bottom:3px; text-align:center;">🤖 TỰ ĐỘNG CHIẾN ĐẤU (AUTO)</div>
+                            
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.85rem;">
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
+                                    <input type="checkbox" id="chkAutoFightPanel" onchange="window.toggleAutoFightFromMenu(this.checked)"> Tự Động Đánh
+                                </label>
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
+                                    <input type="checkbox" id="chkAutoLootPanel" onchange="window.autoLoot=this.checked"> Tự Nhặt Đồ
+                                </label>
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
+                                    <input type="checkbox" id="chkAutoHpPanel" onchange="window.autoUseHp=this.checked"> Tự Dùng HP
+                                </label>
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
+                                    <input type="checkbox" id="chkAutoMpPanel" onchange="window.autoUseMp=this.checked"> Tự Dùng MP
+                                </label>
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1; grid-column: span 2;">
+                                    <input type="checkbox" id="chkAutoFoodPanel" onchange="window.autoUseFood=this.checked"> Tự Dùng Thức Ăn
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Auto Skill Setup -->
+                        <div style="background:rgba(0,0,0,0.3); border:2px solid #704214; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                            <div style="font-size:0.9rem; color:var(--gold); font-weight:bold; border-bottom:1px solid #704214; padding-bottom:3px; text-align:center;">⚡ XOAY VÒNG CHIÊU (AUTO SKILL)</div>
+                            <div style="display:flex; flex-direction:column; gap:8px; font-size:0.85rem; color:#f4e4c1;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Chiêu 1:</span>
+                                    <select id="selAutoSkillPanel1" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:4px; font-size:0.82rem; width:160px;" onchange="window.updateAutoSkillSelect(0, this.value)"></select>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Chiêu 2:</span>
+                                    <select id="selAutoSkillPanel2" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:4px; font-size:0.82rem; width:160px;" onchange="window.updateAutoSkillSelect(1, this.value)"></select>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Chiêu 3:</span>
+                                    <select id="selAutoSkillPanel3" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:4px; font-size:0.82rem; width:160px;" onchange="window.updateAutoSkillSelect(2, this.value)"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="game-panel" id="panel-inventory">
                     <div class="panel-header"><span>🎒 HÀNH TRANG Anh Hùng</span><span class="panel-close" onclick="togglePanel('inventory')">✖</span></div>
@@ -511,6 +559,7 @@
                 <h1 style="color:#d4af37; font-size:1.6rem; text-align:center; border-bottom:3px solid #704214; padding-bottom:8px; margin-bottom:12px; letter-spacing:1px;">📜 BẢNG MENU CHÍNH</h1>
                 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; overflow-y:auto; flex:1; padding-right:5px;" id="menuButtonsGrid">
+                    <button class="menu-popup-btn" onclick="menuAction('auto')" style="background:linear-gradient(135deg, #10b981, #047857);">🤖 Tự Động</button>
                     <button class="menu-popup-btn" onclick="menuAction('inventory')">🎒 Hành Trang</button>
                     <button class="menu-popup-btn" onclick="menuAction('skills')">⚡ Kỹ Năng</button>
                     <button class="menu-popup-btn" onclick="menuAction('equipment')">🛡️ Trang Bị</button>
@@ -523,42 +572,7 @@
                     <button class="menu-popup-btn" onclick="menuAction('bet')">🏟️ Cược Bóng</button>
                 </div>
                 
-                <!-- Auto Battle Settings Grid -->
-                <div style="margin-top:12px; background:rgba(0,0,0,0.3); border:2px solid #704214; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
-                    <div style="font-size:0.85rem; color:var(--gold); font-weight:bold; border-bottom:1px solid #704214; padding-bottom:3px; text-align:center;">🤖 TỰ ĐỘNG (AUTO BATTLE)</div>
-                    
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.82rem;">
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
-                            <input type="checkbox" id="chkAutoFight" onchange="window.toggleAutoFightFromMenu(this.checked)"> Tự Đánh
-                        </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
-                            <input type="checkbox" id="chkAutoLoot" checked onchange="window.autoLoot=this.checked"> Tự Nhặt Đồ
-                        </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
-                            <input type="checkbox" id="chkAutoHp" onchange="window.autoUseHp=this.checked"> Tự Dùng HP
-                        </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1;">
-                            <input type="checkbox" id="chkAutoMp" onchange="window.autoUseMp=this.checked"> Tự Dùng MP
-                        </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#f4e4c1; grid-column: span 2;">
-                            <input type="checkbox" id="chkAutoFood" onchange="window.autoUseFood=this.checked"> Tự Dùng Thức Ăn
-                        </label>
-                    </div>
-                    
-                    <div style="font-size:0.85rem; color:var(--gold); font-weight:bold; margin-top:8px; border-top:1px solid #704214; padding-top:6px; text-align:center;">⚡ XOAY VÒNG CHIÊU (AUTO SKILL)</div>
-                    <div style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem; color:#f4e4c1;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Chiêu 1:</span>
-                            <select id="selAutoSkill1" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:3px; font-size:0.8rem; width:160px;" onchange="window.updateAutoSkillSelect(0, this.value)"></select>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Chiêu 2:</span>
-                            <select id="selAutoSkill2" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:3px; font-size:0.8rem; width:160px;" onchange="window.updateAutoSkillSelect(1, this.value)"></select>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Chiêu 3:</span>
-                            <select id="selAutoSkill3" style="background:#2d1810; color:#fff; border:1.5px solid var(--gold); border-radius:4px; padding:3px; font-size:0.8rem; width:160px;" onchange="window.updateAutoSkillSelect(2, this.value)"></select>
-                        </div>
+                
                     </div>
                 </div>
                 
