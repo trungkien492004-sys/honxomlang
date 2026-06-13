@@ -15,45 +15,45 @@ const NEIGHBORHOOD_NAMES = [
 // ── Kho Thẻ Bài (Hơn 20 thẻ, phân loại theo Type) ─────────────
 const RACE_CARDS = [
     // 👾 MONSTER (Quái Vật) - Mất mạng nếu không có vũ khí
-    { name: "Sói Xám Đột Biến", type: 'monster', rarity: 'common', desc: "Gặp quái vật! Trừ 1 mạng nếu không có Vũ Khí.", 
+    { name: "Sói Xám Đột Biến", type: 'monster', rarity: 'common', desc: "Gặp sói xám đột biến chực ăn thịt! Mất 1 mạng nếu tay không bắt giặc.", 
       effect: p => boardFightMonster(p, "Sói Xám", 30) },
-    { name: "Cương Thi Làng", type: 'monster', rarity: 'rare', desc: "Gặp quái vật! Trừ 1 mạng nếu không có Vũ Khí.", 
+    { name: "Cương Thi Làng", type: 'monster', rarity: 'rare', desc: "Cương Thi đói bụng nhảy tưng tưng đòi cắn! Cần 1 Vũ Khí phòng thân.", 
       effect: p => boardFightMonster(p, "Cương Thi", 50) },
-    { name: "Rồng Lửa Cổ Đại", type: 'monster', rarity: 'epic', desc: "Trùm Rồng! Trừ 2 mạng nếu không có Khiên/Vũ khí chặn.", 
+    { name: "Rồng Lửa Cổ Đại", type: 'monster', rarity: 'epic', desc: "Boss Rồng Lửa khè khói mù mịt! Trừ 2 mạng nếu không có hàng nóng/nắp vung chống đỡ.", 
       effect: p => boardFightMonster(p, "Rồng Lửa", 100, 2) },
 
     // 🗡️ EQUIP (Trang bị)
-    { name: "Kiếm Sắt Xóm", type: 'equip', rarity: 'common', desc: "Nhận 1 🗡️ Vũ Khí! Dùng để đánh quái hoặc cướp mạng đối thủ.", 
-      effect: p => { p.weapons++; return 'Nhặt được 1 🗡️ Vũ Khí!'; } },
-    { name: "Cung Gỗ Trắc", type: 'equip', rarity: 'common', desc: "Nhận 1 🗡️ Vũ Khí!", 
-      effect: p => { p.weapons++; return 'Nhặt được Cung! (+1 🗡️)'; } },
-    { name: "Khiên Gỗ Mộc", type: 'equip', rarity: 'common', desc: "Nhận 1 🛡️ Khiên! Chặn 1 đòn chí tử.", 
-      effect: p => { p.shields++; return 'Nhặt được 1 🛡️ Khiên!'; } },
-    { name: "Khiên Thép Đen", type: 'equip', rarity: 'rare', desc: "Nhận 1 🛡️ Khiên siêu cấp!", 
-      effect: p => { p.shields++; return 'Nhận 1 🛡️ Khiên!'; } },
-    { name: "Hộp Cứu Thương", type: 'equip', rarity: 'epic', desc: "Hồi lại 1 ❤️ Mạng (Tối đa 3).", 
-      effect: p => { if(p.lives < 3) { p.lives++; return 'Hồi 1 ❤️ Mạng!'; } return 'Mạng đã đầy, không tác dụng.'; } },
+    { name: "Kiếm Sắt Xóm", type: 'equip', rarity: 'common', desc: "Lượm được Đồ Long Đao bằng sắt vụn! Nhận 1 🗡️ Vũ Khí để xiên quái hoặc cà khịa đứa kế bên.", 
+      effect: p => { p.weapons++; return 'Nhặt được Đồ Long Đao sắt vụn! (+1 🗡️)'; } },
+    { name: "Cung Gỗ Trắc", type: 'equip', rarity: 'common', desc: "Nhặt được Cung thần tình yêu (bắn đau lắm)! Nhận 1 🗡️ Vũ Khí.", 
+      effect: p => { p.weapons++; return 'Lượm được Cung thần bắn chim! (+1 🗡️)'; } },
+    { name: "Khiên Gỗ Mộc", type: 'equip', rarity: 'common', desc: "Nhặt được cái nắp vung nồi cũ làm khiên! Chặn 1 đòn chí tử bảo toàn tính mạng.", 
+      effect: p => { p.shields++; return 'Nhặt được nắp xoong làm khiên! (+1 🛡️)'; } },
+    { name: "Khiên Thép Đen", type: 'equip', rarity: 'rare', desc: "Nhặt được khiên sắt cực xịn từ lò rèn của đại gia! Nhận 1 🛡️ Khiên siêu cấp.", 
+      effect: p => { p.shields++; return 'Nhận Khiên Thép Xịn! (+1 🛡️)'; } },
+    { name: "Hộp Cứu Thương", type: 'equip', rarity: 'epic', desc: "Húp vội bát mì tôm trứng hồi phục sinh lực! Hồi 1 ❤️ Mạng (Tối đa 3).", 
+      effect: p => { if(p.lives < 3) { p.lives++; return 'Húp mì tôm trứng hồi 1 ❤️!'; } return 'Máu đang đầy căng, ăn mì chỉ tổ béo.'; } },
 
     // 🌪️ SPELL (Ma pháp di chuyển / hỗ trợ)
-    { name: "Cuồng Phong", type: 'spell', rarity: 'common', desc: "Tiến thêm 3 ô!", 
-      effect: p => { boardMovePlayer(p.idx, 3, true); return 'Tiến 3 ô.'; } },
-    { name: "Lốc Xoáy", type: 'spell', rarity: 'common', desc: "Lùi 2 ô!", 
-      effect: p => { boardMovePlayer(p.idx, -2, true); return 'Lùi 2 ô.'; } },
-    { name: "Rương Vàng", type: 'spell', rarity: 'rare', desc: "+50 Vàng!", 
-      effect: p => { if(p.isHuman||p.networkId===myNetworkId) { player.gold+=50; refreshHudDisplay(); } return 'Nhận 50 vàng.'; } },
-    { name: "Dịch Chuyển Không Gian", type: 'spell', rarity: 'epic', desc: "Đổi chỗ với người gần nhất!", 
+    { name: "Cuồng Phong", type: 'spell', rarity: 'common', desc: "Gió thổi bay màu! Tiến thẳng 3 ô.", 
+      effect: p => { boardMovePlayer(p.idx, 3, true); return 'Gió thổi bay tới trước 3 ô.'; } },
+    { name: "Lốc Xoáy", type: 'spell', rarity: 'common', desc: "Bị vợ gọi về ăn cơm gấp! Lùi cắm đầu 2 ô.", 
+      effect: p => { boardMovePlayer(p.idx, -2, true); return 'Chạy về nhà gấp lùi 2 ô.'; } },
+    { name: "Rương Vàng", type: 'spell', rarity: 'rare', desc: "Nhặt được ví tiền của Admin rơi! +50 Vàng nóng.", 
+      effect: p => { if(p.isHuman||p.networkId===myNetworkId) { player.gold+=50; refreshHudDisplay(); } return 'Nhặt được ví Admin rơi, húp 50 vàng.'; } },
+    { name: "Dịch Chuyển Không Gian", type: 'spell', rarity: 'epic', desc: "Hố đen vũ trụ hoán đổi vị trí của bạn với đứa gần nhất để kéo nó chịu khổ cùng!", 
       effect: p => boardSwapNearest(p) },
-    { name: "Tăng Tốc Sinh Tồn", type: 'spell', rarity: 'rare', desc: "Tiến 5 ô và nhận 1 Khiên!", 
-      effect: p => { p.shields++; boardMovePlayer(p.idx, 5, true); return 'Tiến 5 ô + 1 🛡️ Khiên.'; } },
+    { name: "Tăng Tốc Sinh Tồn", type: 'spell', rarity: 'rare', desc: "Uống bò cụng tăng lực phóng nhanh vượt ải! Tiến 5 ô và hốt thêm 1 Khiên.", 
+      effect: p => { p.shields++; boardMovePlayer(p.idx, 5, true); return 'Húp nước tăng lực phi thẳng 5 ô + 1 🛡️.'; } },
 
     // 💣 TRAP (Cạm bẫy)
-    { name: "Hố Chông Trừng Phạt", type: 'trap', rarity: 'rare', desc: "Trừ 1 mạng ngay lập tức!", 
-      effect: p => { return boardTakeDamage(p, 1, "Hố Chông"); } },
-    { name: "Sét Đánh", type: 'trap', rarity: 'epic', desc: "Người dẫn đầu mất 1 mạng!", 
+    { name: "Hố Chông Trừng Phạt", type: 'trap', rarity: 'rare', desc: "Mải nhìn gái xinh lọt ngay xuống hố phân! Mất 1 mạng tại chỗ.", 
+      effect: p => { return boardTakeDamage(p, 1, "mải ngắm gái lọt hố phân"); } },
+    { name: "Sét Đánh", type: 'trap', rarity: 'epic', desc: "Trời đánh tránh bữa ăn, sét đánh trúng ngay đứa đang dẫn đầu làm bay màu 1 mạng!", 
       effect: p => { 
           const L = boardGame.players.filter(x=>!x.eliminated).reduce((a,b) => a.pos > b.pos ? a : b); 
-          if(L) return boardTakeDamage(L, 1, "Sét Đánh"); 
-          return 'Không có ai bị sét đánh.';
+          if(L) return boardTakeDamage(L, 1, "bị sét đánh trúng đầu"); 
+          return 'Sét đánh hụt, may cho cả xóm.';
       } 
     },
 ];
@@ -63,9 +63,9 @@ function boardFightMonster(p, mName, reward, damage = 1) {
     if (p.weapons > 0) {
         p.weapons--;
         if(p.isHuman||p.networkId===myNetworkId) { player.gold += reward; refreshHudDisplay(); }
-        return `Dùng 🗡️ diệt ${mName}! Thưởng ${reward}💰`;
+        return `Dùng hàng nóng 🗡️ vả sml ${mName}! Húp trọn ${reward}💰 thưởng.`;
     } else {
-        return boardTakeDamage(p, damage, `Bị ${mName} cắn`);
+        return boardTakeDamage(p, damage, `bị ${mName} cắn cụt mông`);
     }
 }
 
@@ -73,13 +73,13 @@ function boardFightMonster(p, mName, reward, damage = 1) {
 function boardTakeDamage(p, amount, reason) {
     if (p.shields > 0) {
         p.shields--;
-        return `🛡️ Dùng Khiên chặn được đòn (${reason})!`;
+        return `🛡️ Nắp vung thần thánh (Khiên) đã chặn thành công đòn chí tử (${reason})!`;
     }
     p.lives -= amount;
     if (p.lives <= 0) {
         p.eliminated = true;
-        boardAddLog(`💀 ${p.name} đã BỊ LOẠI KHỎI CUỘC CHƠI!`, 'win');
-        return `💀 Hết mạng! BẠN ĐÃ BỊ LOẠI!`;
+        boardAddLog(`💀 ${p.name} ăn hành quá nhiều và ĐÃ BÊN KIA THẾ GIỚI!`, 'win');
+        return `💀 Hết mạng! BẠN ĐÃ ĐĂNG XUẤT KHỎI TRÁI ĐẤT!`;
     }
     return `💔 Mất ${amount} mạng vì ${reason}! (Còn ${p.lives}❤️)`;
 }
@@ -248,13 +248,13 @@ function boardHandleCombat(p) {
             // P đánh Other
             if (p.weapons > 0) {
                 p.weapons--;
-                boardAddLog(`⚔️ ĐỤNG ĐỘ! ${p.name} dùng 🗡️ đâm ${other.name}!`, 'special');
-                let dmgLog = boardTakeDamage(other, 1, `Bị ${p.name} đâm`);
+                boardAddLog(`⚔️ ĐỤNG ĐỘ! ${p.name} rút ngay hàng nóng 🗡️ xiên cụt hứng ${other.name}! Đau đớn vô cùng!`, 'special');
+                let dmgLog = boardTakeDamage(other, 1, `bị ${p.name} xiên bất ngờ`);
                 boardAddLog(dmgLog, 'special');
-                combatHappened += `🤜 ${p.name} chém ${other.name} một nhát!<br>`;
+                combatHappened += `🤜 ${p.name} xiên ${other.name} một nhát đau đẻ!<br>`;
             } else {
-                boardAddLog(`🤜 ${p.name} và ${other.name} đứng chung ô nhưng không có 🗡️ đánh nhau!`);
-                combatHappened += `🤜 ${p.name} và ${other.name} lườm nhau (không có vũ khí)<br>`;
+                boardAddLog(`🤜 ${p.name} và ${other.name} đụng độ ở đầu hẻm nhưng không đứa nào mang hàng 🗡️, chỉ biết trừng mắt kháy đểu nhau!`);
+                combatHappened += `🤜 ${p.name} và ${other.name} đứng trố mắt lườm nguýt nhau (thiếu vũ khí)<br>`;
             }
         }
     });
@@ -294,7 +294,7 @@ window.boardShowBigNotice = function(title, desc, extra = '', callback, persist 
     if(!persist) {
         window._bigEventTimer = setTimeout(() => {
             window.closeBigEvent();
-        }, 3000);
+        }, 10000);
     }
 };
 
@@ -389,8 +389,10 @@ window.boardRenderGrid = function() {
 window.boardRenderPlayers = function() {
     const c = document.getElementById('boardPlayersContainer');
     if(!c) return;
-    c.innerHTML = boardGame.players.map((p, i) => {
-        const isCur  = i === boardGame.currentTurn && !boardGame.gameOver && !p.eliminated;
+    // Nhân bản mảng để sắp xếp hiển thị xếp hạng, tránh đổi thứ tự lượt đi gốc
+    let displayList = [...boardGame.players].sort((a,b) => b.pos - a.pos);
+    c.innerHTML = displayList.map((p) => {
+        const isCur  = p.idx === boardGame.currentTurn && !boardGame.gameOver && !p.eliminated;
         const deadCls = p.eliminated ? 'eliminated-player' : '';
         return `<div class="board-player-row ${isCur ? 'current' : ''} ${deadCls}">
             <div class="player-color-dot" style="background:${p.color};"></div>
@@ -473,9 +475,10 @@ window.boardNextTurn = function() {
         safety++;
     }
     boardGame.currentTurn = nextIdx;
-    boardGame.players.sort((a,b)=>b.pos - a.pos);
     boardRenderPlayers();
     boardUpdateRollBtn();
+    
+    let next = boardGame.players[boardGame.currentTurn];
     if(next && next.isBot && !next.eliminated && !boardGame.gameOver) {
         setTimeout(() => { if(!boardGame.gameOver) boardRollForCurrentPlayer(); }, 900);
     }

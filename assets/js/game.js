@@ -1254,7 +1254,6 @@
             }
         }
 
-        // --- 5. PVP MULTIPLAYER SYSTEM via BROADCAST CHANNEL (Fixed + Team PvP) ---
         function broadcastMyPresence() {
             if(currentScreen !== 'gameScreen') return;
             pvpChannel.postMessage({
@@ -1268,7 +1267,10 @@
                 x: player.x,
                 y: player.y,
                 partyId: partySystem.partyId,
-                leaderId: partySystem.leaderId
+                leaderId: partySystem.leaderId,
+                mapId: window.currentMapId,
+                pvpSeed: window.pvpArena ? window.pvpArena.seed : null,
+                pvpTheme: window.pvpArena ? window.pvpArena.theme : null
             });
         }
 
@@ -1389,49 +1391,141 @@
             }
             else if(msg.type === 'CHALLENGE_REPLY' && msg.targetId === myNetworkId) {
                 if(msg.accepted) {
-                    showToast(`⚔️ ${msg.replierName} CHẤP NHẬN thách đấu! Bắt đầu giao tranh!`);
-                    executePvpAttackStrike(msg.senderId);
-                    // Notify party members to also attack
-                    if(partySystem.partyId) {
-                        pvpChannel.postMessage({ type: 'PARTY_PVP_ATTACK', partyId: partySystem.partyId, targetId: msg.senderId, attackerId: myNetworkId });
-                    }
+                    showToast(`⚔️ ${msg.replierName} CHẤP NHẬN thách đấu! Đang dịch chuyển vào Đấu Trường...`);
+                    let seed = Math.floor(Math.random() * 1000000);
+                    let themes = ['bamboo', 'ruins', 'snow', 'desert', 'citadel', 'rocky'];
+                    let theme = themes[Math.floor(Math.random() * themes.length)];
+                    pvpChannel.postMessage({
+                        type: 'PVP_ARENA_START',
+                        id: myNetworkId,
+                        challengerId: myNetworkId,
+                        targetId: msg.id,
+                        seed: seed,
+                        theme: theme
+                    });
                 } else {
                     showToast(`🏳️ ${msg.replierName} đã từ chối vì khiếp sợ!`);
                 }
             }
-            else if(msg.type === 'ATTACK' && msg.targetId === myNetworkId) {
-                audio.play('hit');
-                let damageTaken = Math.max(5, Math.round(msg.damage - getEffectiveDef() * 0.5));
-                // Reduce damage if party members present (shield bonus)
-                if(partySystem.getMemberCount() > 1) damageTaken = Math.round(damageTaken * 0.75);
-                player.hp = Math.max(0, player.hp - damageTaken);
-                createParticle("💥", player.x, player.y);
-                createFloatingText(`-${damageTaken} PvP`, player.x, player.y, '#ff3d00');
-
-                if(player.hp <= 0) {
-                    showToast(`💀 Bị hạ gục bởi ${msg.senderName}!`);
-                    pvpChannel.postMessage({ type: 'MATCH_RESULT', id: myNetworkId, winnerId: msg.id, loserName: player.name });
-                    setTimeout(() => { respawnPlayerCenter(); showToast("😇 Hồi sinh giữa bản đồ!"); }, 3000);
-                } else {
-                    setTimeout(() => { executePvpAttackStrike(msg.id); }, 1200);
+            else if(msg.type === 'PVP_ARENA_START') {
+                if (window.currentMapId === 'pvp_arena') return;
+                window.pvpArenaSeed = msg.seed;
+                window.pvpArenaTheme = msg.theme;
+                window.pvpArena = {
+                    active: true,
+                    state: 'countdown',
+                    countdownStart: Date.now(),
+                    challengerId: msg.challengerId,
+                    targetId: msg.targetId,
+                    seed: msg.seed,
+                    theme: msg.theme,
+                    spectating: (msg.challengerId !== myNetworkId && msg.targetId !== myNetworkId),
+                    obstacles: [],
+                    buffs: [],
+                    projectiles: []
+                };
+                if (!window.prePvpMapState) {
+                    window.prePvpMapState = {
+                        mapId: window.currentMapId,
+                        x: player.x,
+                        y: player.y
+                    };
                 }
-                refreshHudDisplay();
-            }
-            else if(msg.type === 'PARTY_PVP_ATTACK' && msg.partyId !== partySystem.partyId) {
-                // An enemy party member attacks — we defend
-                if(partySystem.getMemberCount() > 0) {
-                    let dmg = Math.max(3, 8 - getEffectiveDef());
-                    player.hp = Math.max(1, player.hp - dmg);
-                    createFloatingText(`-${dmg} 팀PvP`, player.x, player.y, '#f97316');
+                if (msg.challengerId === myNetworkId) {
+                    player.x = 200;
+                    player.y = 500;
+                } else if (msg.targetId === myNetworkId) {
+                    player.x = 800;
+                    player.y = 500;
+                } else {
+                    player.x = 500;
+                    player.y = 200;
+                    window.pvpArena.spectateFollowId = msg.challengerId;
+                    if (!document.getElementById('exitSpectateBtn')) {
+                        const exitBtn = document.createElement('button');
+                        exitBtn.id = 'exitSpectateBtn';
+                        exitBtn.innerText = '❌ Thoát Xem Đấu';
+                        exitBtn.style.position = 'fixed';
+                        exitBtn.style.top = '70px';
+                        exitBtn.style.right = '12px';
+                        exitBtn.style.zIndex = '999999';
+                        exitBtn.style.background = 'rgba(239, 68, 68, 0.9)';
+                        exitBtn.style.color = '#fff';
+                        exitBtn.style.border = '2px solid #fff';
+                        exitBtn.style.borderRadius = '8px';
+                        exitBtn.style.padding = '8px 12px';
+                        exitBtn.style.fontWeight = 'bold';
+                        exitBtn.style.cursor = 'pointer';
+                        exitBtn.onclick = () => {
+                            window.exitSpectateMode();
+                        };
+                        document.body.appendChild(exitBtn);
+                    }
+                }
+                window.currentMapId = 'pvp_arena';
+                player.destinationX = undefined;
+                player.destinationY = undefined;
+                player.targetMonster = null;
+                player.targetPvpPlayerId = null;
+                if (window.generateMapDecorations) {
+                    window.generateMapDecorations('pvp_arena');
+                }
+                if (!window.pvpArena.spectating) {
+                    player.hp = getEffectiveMaxHp();
+                    player.mp = getEffectiveMaxMp();
                     refreshHudDisplay();
                 }
+                audio.playBgm('apocalypse');
+                showToast('⚔️ Trận đấu Đấu Trường PvP sắp bắt đầu!');
             }
-            else if(msg.type === 'MATCH_RESULT' && msg.winnerId === myNetworkId) {
-                audio.play('levelup');
-                let reward = 100 + partySystem.getMemberCount() * 30;
-                player.gold += reward;
-                showToast(`🏆 CHIẾN THẮNG! Hạ gục ${msg.loserName}, nhận ${reward} Vàng!`);
-                refreshHudDisplay();
+            else if(msg.type === 'PVP_PLAYER_MOVE') {
+                let opp = networkPlayers[msg.id];
+                if (opp) {
+                    opp.x = msg.x;
+                    opp.y = msg.y;
+                    opp.hp = msg.hp;
+                    opp.maxHp = msg.maxHp;
+                    opp.mapId = 'pvp_arena';
+                }
+            }
+            else if(msg.type === 'PVP_PROJECTILE_SPAWN') {
+                if (window.currentMapId === 'pvp_arena') {
+                    window.spawnPvpProjectileLocally(msg.id, msg.ownerId, msg.targetId, msg.skillId, msg.damage, msg.isCrit);
+                }
+            }
+            else if(msg.type === 'PVP_HP_UPDATE') {
+                let opp = networkPlayers[msg.id];
+                if (opp) {
+                    let oldHp = opp.hp || opp.maxHp;
+                    opp.hp = msg.hp;
+                    opp.maxHp = msg.maxHp;
+                    if (msg.hp < oldHp) {
+                        opp.playerHitFlashUntil = Date.now() + 250;
+                        let diff = oldHp - msg.hp;
+                        createParticle("💥", opp.x, opp.y);
+                        createFloatingText(`-${diff}`, opp.x, opp.y, '#f97316');
+                    }
+                }
+            }
+            else if(msg.type === 'PVP_BUFF_SPAWN') {
+                if (window.currentMapId === 'pvp_arena') {
+                    window.spawnPvpBuffLocally(msg.buffId, msg.buffType, msg.x, msg.y);
+                }
+            }
+            else if(msg.type === 'PVP_BUFF_PICKUP') {
+                if (window.pvpArena && window.pvpArena.buffs) {
+                    window.pvpArena.buffs = window.pvpArena.buffs.filter(b => b.id !== msg.buffId);
+                    let pickerName = (msg.pickerId === myNetworkId) ? player.name : (networkPlayers[msg.pickerId]?.name || "Đối thủ");
+                    let typeName = "Bùa Lợi";
+                    if (msg.buffType === 'hp') typeName = "Hồi HP ❤️";
+                    else if (msg.buffType === 'mp') typeName = "Hồi MP 💙";
+                    else if (msg.buffType === 'speed') typeName = "Tăng Tốc Chạy ⚡";
+                    else if (msg.buffType === 'damage') typeName = "Tăng Sát Thương 🔥";
+                    showToast(`🎁 ${pickerName} đã nhặt bùa: ${typeName}`);
+                }
+            }
+            else if(msg.type === 'PVP_MATCH_OVER') {
+                window.endPvpArenaMatch(msg.winnerId);
             }
         }
 
@@ -1709,7 +1803,6 @@
                 if(!msg) return;
                 pvpChannel.postMessage({ type: 'CHALLENGE_REPLY', id: myNetworkId, senderId: msg.id, targetId: msg.id, accepted: true, replierName: player.name });
                 showToast(`⚔️ Chấp nhận thách đấu! Nghênh chiến ${msg.senderName}!`);
-                setTimeout(() => executePvpAttackStrike(msg.id), 500);
             };
             // PvP reject
             document.getElementById('rejectPvpBtn').onclick = function() {
@@ -1901,6 +1994,74 @@
             if(now - sk.lastUsed < sk.cd) { showToast("⏳ Kỹ năng đang trong thời gian hồi chiêu!"); return; }
             if(player.mp < sk.mp) { showToast("💧 Không đủ điểm Linh Lực (MP) để kích hoạt!"); return; }
 
+            if (window.currentMapId === 'pvp_arena') {
+                if (sk.type === 'self') {
+                    audio.play('skill');
+                    player.mp -= sk.mp;
+                    sk.lastUsed = now;
+                    let healAmount = sk.id === 'cop_shield' ? 70 : sk.id === 'eng_overclock' ? 120 : 50;
+                    player.hp = Math.min(getEffectiveMaxHp(), player.hp + healAmount);
+                    if(sk.id === 'eng_overclock') player.mp = Math.min(getEffectiveMaxMp(), player.mp + 100);
+                    createFloatingText(`+${healAmount} HP`, player.x, player.y, '#4caf50');
+                    createParticle("✨", player.x, player.y);
+                    showToast(`✨ Kích hoạt ${sk.name}!`);
+                    refreshHudDisplay();
+                    rebuildSkillsPanelUI();
+                    return;
+                } else if (sk.id === 'cop_bastion') {
+                    audio.play('skill');
+                    player.mp -= sk.mp;
+                    sk.lastUsed = now;
+                    player.hp = getEffectiveMaxHp();
+                    createFloatingText(`+${getEffectiveMaxHp()} HP`, player.x, player.y, '#4caf50');
+                    createParticle('🏰', player.x, player.y);
+                    showToast("🏰 Thành Lũy Công Lý: Hồi 100% HP!");
+                    refreshHudDisplay();
+                    rebuildSkillsPanelUI();
+                    return;
+                } else if (sk.type === 'target' || sk.type === 'point' || sk.type === 'aoe' || sk.type === 'ultimate') {
+                    if(!player.targetPvpPlayerId) {
+                        showToast("🎯 Hãy chọn mục tiêu đối thủ để xuất chiêu!");
+                        return;
+                    }
+                    let opp = networkPlayers[player.targetPvpPlayerId];
+                    if (!opp || opp.mapId !== 'pvp_arena') {
+                        return;
+                    }
+                    let dist = Math.hypot(opp.x - player.x, opp.y - player.y);
+                    let rangeLimit = sk.range || 300;
+                    if (dist > rangeLimit) {
+                        showToast("⚠️ Mục tiêu ngoài phạm vi kỹ năng!");
+                        return;
+                    }
+                    
+                    audio.play('skill');
+                    player.mp -= sk.mp;
+                    sk.lastUsed = now;
+                    
+                    let skillDmg = Math.round(getEffectiveAtk() * (sk.multiplier || 1.8));
+                    let isCrit = Math.random() < 0.25;
+                    if (isCrit) skillDmg = Math.round(skillDmg * 1.6);
+                    
+                    let projId = 'proj_' + myNetworkId + '_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                    window.spawnPvpProjectileLocally(projId, myNetworkId, player.targetPvpPlayerId, sk.id, skillDmg, isCrit);
+                    
+                    pvpChannel.postMessage({
+                        type: 'PVP_PROJECTILE_SPAWN',
+                        id: projId,
+                        ownerId: myNetworkId,
+                        targetId: player.targetPvpPlayerId,
+                        skillId: sk.id,
+                        damage: skillDmg,
+                        isCrit: isCrit
+                    });
+                    
+                    refreshHudDisplay();
+                    rebuildSkillsPanelUI();
+                    return;
+                }
+            }
+
             audio.play('skill');
             player.mp -= sk.mp;
             sk.lastUsed = now;
@@ -2073,6 +2234,36 @@
             let now = Date.now();
             if(now - s.lastUsed < s.cd) { showToast('⏳ Kỹ năng này đang hồi chiêu!'); return; }
             if(player.mp < s.mp) { showToast('💧 Không đủ MP để sử dụng!'); return; }
+
+            // Xử lý riêng trong Đấu trường PvP
+            if (window.currentMapId === 'pvp_arena') {
+                if (window.pvpArena && window.pvpArena.state === 'countdown') {
+                    showToast('⏳ Chưa bắt đầu trận đấu!');
+                    return;
+                }
+                if (s.type === 'self' || s.type === 'instant') {
+                    executeActiveSkillUsage(skillId);
+                    rebuildQuickSkillBarUI();
+                    return;
+                }
+                if (player.targetPvpPlayerId) {
+                    let opp = networkPlayers[player.targetPvpPlayerId];
+                    if (opp) {
+                        let rangeLimit = s.range || 200;
+                        let dist = Math.hypot(opp.x - player.x, opp.y - player.y);
+                        if (dist > rangeLimit) {
+                            showToast("⚠️ Mục tiêu ngoài phạm vi.");
+                            return;
+                        }
+                        executeActiveSkillUsage(skillId);
+                        rebuildQuickSkillBarUI();
+                        return;
+                    }
+                }
+                activeSkillSelection = skillId;
+                showToast(`🎯 Nhấp đất hoặc đối thủ để thi triển: ${s.name}`);
+                return;
+            }
 
             if(s.type === 'self' || s.type === 'instant') {
                 executeActiveSkillUsage(skillId);
@@ -2624,16 +2815,35 @@ function handleWorldClick(e) {
     if(activeSkillSelection) {
         let skill = player.skills.find(s => s.id === activeSkillSelection);
         if(skill) {
-            let clickedMonster = monsters.find(m => {
-                let dx = worldClickX - m.x;
-                let dy = worldClickY - m.y;
-                return Math.sqrt(dx*dx + dy*dy) <= 30;
-            });
-
-            if(clickedMonster) {
-                executeSkillAtTarget(skill.id, clickedMonster);
+            if (window.currentMapId === 'pvp_arena') {
+                let clickedOpp = null;
+                for(let id in networkPlayers) {
+                    let p = networkPlayers[id];
+                    if (p.mapId === 'pvp_arena' && Math.hypot(worldClickX - p.x, worldClickY - p.y) <= 40) {
+                        clickedOpp = p;
+                        break;
+                    }
+                }
+                if (clickedOpp) {
+                    player.targetPvpPlayerId = clickedOpp.id;
+                    executeActiveSkillUsage(skill.id);
+                } else {
+                    if (typeof executeSkillAtLocationPvp === 'function') {
+                        executeSkillAtLocationPvp(skill.id, worldClickX, worldClickY);
+                    }
+                }
             } else {
-                executeSkillAtLocation(skill.id, worldClickX, worldClickY);
+                let clickedMonster = monsters.find(m => {
+                    let dx = worldClickX - m.x;
+                    let dy = worldClickY - m.y;
+                    return Math.sqrt(dx*dx + dy*dy) <= 30;
+                });
+
+                if(clickedMonster) {
+                    executeSkillAtTarget(skill.id, clickedMonster);
+                } else {
+                    executeSkillAtLocation(skill.id, worldClickX, worldClickY);
+                }
             }
         }
         activeSkillSelection = null;
@@ -2671,6 +2881,42 @@ function handleWorldClick(e) {
         }
     }
 
+    // Click trúng đối thủ PvP trong Đấu Trường
+    if (window.currentMapId === 'pvp_arena') {
+        for(let id in networkPlayers) {
+            let p = networkPlayers[id];
+            if(p.mapId !== window.currentMapId) continue;
+            let dx = worldClickX - p.x;
+            let dy = worldClickY - p.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist <= 40) {
+                if (typeof canObserverSeePlayer === 'function' && !canObserverSeePlayer(player, p)) continue;
+                
+                player.targetPvpPlayerId = id;
+                player.targetMonster = null;
+                player.destinationX = p.x;
+                player.destinationY = p.y;
+                showToast(`🎯 Đã nhắm mục tiêu PvP: [${p.name}]`);
+                
+                let tInd = document.getElementById('targetIndicator');
+                if(tInd) {
+                    tInd.style.display = 'block';
+                    tInd.style.borderColor = 'rgba(239,68,68,0.6)';
+                    tInd.style.background = 'rgba(239,68,68,0.12)';
+                    document.getElementById('targetName').textContent = `⚔️ ${p.name}`;
+                    document.getElementById('targetHpBar').style.display = 'block';
+                    document.getElementById('targetHpText').textContent = `HP: ${p.hp}/${p.maxHp || 100}`;
+                    let hpPercent = (p.hp / (p.maxHp || 100)) * 100;
+                    let innerBar = document.getElementById('targetHpBarInner');
+                    if (innerBar) innerBar.style.width = `${hpPercent}%`;
+                }
+                refreshHudDisplay();
+                return;
+            }
+        }
+        player.targetPvpPlayerId = null;
+    }
+
     // Click trúng Quái vật thì nhắm mục tiêu và bắt đầu tấn công
     for(let m of monsters) {
         let dx = worldClickX - m.x;
@@ -2688,6 +2934,7 @@ function handleWorldClick(e) {
 
     // Click đất trống sẽ cập nhật đích di chuyển ngay lập tức
     player.targetMonster = null;
+    player.targetPvpPlayerId = null;
     document.getElementById('targetIndicator').style.display = 'none';
     player.destinationX = worldClickX;
     player.destinationY = worldClickY;
@@ -3239,7 +3486,11 @@ function toggleAutoFarm() {
             if(player.equipment.weapon) bon += ITEMS[player.equipment.weapon].atk || 0;
             if(player.equipment.armor) bon += ITEMS[player.equipment.armor].atk || 0;
             if(player.equipment.accessory) bon += ITEMS[player.equipment.accessory].atk || 0;
-            return player.baseAtk + bon;
+            let atk = player.baseAtk + bon;
+            if (window.pvpDamageBuffEndTime && Date.now() < window.pvpDamageBuffEndTime) {
+                atk = Math.round(atk * 1.5);
+            }
+            return atk;
         }
 
         function getEffectiveDef() {
@@ -4040,9 +4291,10 @@ function toggleAutoFarm() {
         }
 
         function createFloatingText(text, wx, wy, color = '#fff') {
-            // Compute localized coordinate mappings inside current camera viewport
-            let sx = canvas.width / 2 + (wx - player.x) + (Math.random() - 0.5) * 20;
-            let sy = canvas.height / 2 + (wy - player.y) - 20;
+            let scale = 1.0;
+            if (window.currentMapId === 'pvp_arena') scale = 1.3;
+            let sx = canvas.width / 2 + (wx - player.x) * scale + (Math.random() - 0.5) * 20;
+            let sy = canvas.height / 2 + (wy - player.y) * scale - 20;
 
             let div = document.createElement('div');
             div.className = 'float-text';
@@ -4180,6 +4432,44 @@ function toggleAutoFarm() {
 
             // B. Movement computation vector calculations
             let speed = player.baseSpeed;
+            if (window.pvpSpeedBuffEndTime && Date.now() < window.pvpSpeedBuffEndTime) {
+                speed *= 1.5; // Tốc độ tăng 50% từ bùa lợi
+            }
+            
+            // Collision check function
+            function checkCollision(x, y, radius = 15) {
+                if (window.currentMapId !== 'pvp_arena') return false;
+                if (!window.pvpArena || !window.pvpArena.obstacles) return false;
+                for (let obs of window.pvpArena.obstacles) {
+                    if (!obs.isSolid) continue;
+                    let dist = Math.hypot(x - obs.x, y - obs.y);
+                    if (dist < (radius + obs.radius)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // Slide movement function
+            function applyPlayerMovement(vx, vy) {
+                if (window.pvpArena && window.pvpArena.active && window.pvpArena.state === 'countdown') {
+                    return; // Không di chuyển khi đang đếm ngược
+                }
+                if (window.currentMapId === 'pvp_arena') {
+                    let nextX = player.x + vx;
+                    let nextY = player.y + vy;
+                    
+                    if (!checkCollision(nextX, player.y, 15)) {
+                        player.x = nextX;
+                    }
+                    if (!checkCollision(player.x, nextY, 15)) {
+                        player.y = nextY;
+                    }
+                } else {
+                    player.x += vx;
+                    player.y += vy;
+                }
+            }
             
             // Tính toán hướng đi bàn phím (WASD / Phím mũi tên)
             let keyVx = 0;
@@ -4194,8 +4484,7 @@ function toggleAutoFarm() {
             // Keyboard Override
             if (keyVx !== 0 || keyVy !== 0) {
                 let len = Math.hypot(keyVx, keyVy);
-                player.x += (keyVx / len) * speed;
-                player.y += (keyVy / len) * speed;
+                applyPlayerMovement((keyVx / len) * speed, (keyVy / len) * speed);
                 player.destinationX = undefined;
                 player.destinationY = undefined;
                 player.targetMonster = null;
@@ -4215,8 +4504,7 @@ function toggleAutoFarm() {
 
                     let stopThreshold = player.targetMonster ? 45 : 6;
                     if(dist > stopThreshold) {
-                        player.x += (dx / dist) * speed;
-                        player.y += (dy / dist) * speed;
+                        applyPlayerMovement((dx / dist) * speed, (dy / dist) * speed);
                     } else {
                         player.x = targetX;
                         player.y = targetY;
@@ -4225,12 +4513,24 @@ function toggleAutoFarm() {
                     }
                 }
             }
-            player.x = Math.max(20, Math.min(WORLD_SIZE - 20, player.x));
-            player.y = Math.max(20, Math.min(WORLD_SIZE - 20, player.y));
+            player.x = Math.max(20, Math.min((window.currentMapId === 'pvp_arena' ? 1000 : WORLD_SIZE) - 20, player.x));
+            player.y = Math.max(20, Math.min((window.currentMapId === 'pvp_arena' ? 1000 : WORLD_SIZE) - 20, player.y));
 
             // Camera smoothly center anchoring system interpolations
-            camera.x = player.x - canvas.width / 2;
-            camera.y = player.y - canvas.height / 2;
+            if (window.pvpArena && window.pvpArena.active && window.pvpArena.spectating) {
+                let followId = window.pvpArena.spectateFollowId;
+                let followPlayer = networkPlayers[followId];
+                if (followPlayer) {
+                    camera.x = followPlayer.x - canvas.width / 2;
+                    camera.y = followPlayer.y - canvas.height / 2;
+                } else {
+                    camera.x = 500 - canvas.width / 2;
+                    camera.y = 500 - canvas.height / 2;
+                }
+            } else {
+                camera.x = player.x - canvas.width / 2;
+                camera.y = player.y - canvas.height / 2;
+            }
 
             // C. Direct auto auto engagement strike loop calculations
             if(player.targetMonster) {
@@ -4260,6 +4560,59 @@ function toggleAutoFarm() {
                             handleMonsterDefeated(m);
                         } else {
                             triggerMonsterCombatAttack(m);
+                        }
+                    }
+                }
+            }
+
+            // PvP auto engagement calculations
+            if (window.currentMapId === 'pvp_arena') {
+                if (typeof updatePvpArenaLogic === 'function') updatePvpArenaLogic();
+                
+                // Phát sóng vị trí tần số cao (60ms) để di chuyển mượt mà
+                let nowBroadcast = Date.now();
+                if (!window.lastPvpBroadcastTime) window.lastPvpBroadcastTime = 0;
+                if (nowBroadcast - window.lastPvpBroadcastTime > 60) {
+                    window.lastPvpBroadcastTime = nowBroadcast;
+                    pvpChannel.postMessage({
+                        type: 'PVP_PLAYER_MOVE',
+                        id: myNetworkId,
+                        x: player.x,
+                        y: player.y,
+                        hp: player.hp,
+                        maxHp: getEffectiveMaxHp()
+                    });
+                }
+                
+                if (player.targetPvpPlayerId && (!window.pvpArena || window.pvpArena.state === 'fight')) {
+                    let opp = networkPlayers[player.targetPvpPlayerId];
+                    if (opp && opp.hp > 0 && opp.mapId === 'pvp_arena') {
+                        let dist = Math.hypot(opp.x - player.x, opp.y - player.y);
+                        let rangeLimit = (player.classId === 'merchant' || player.classId === 'teacher') ? 250 : 100;
+                        if (dist <= rangeLimit) {
+                            let now = Date.now();
+                            if (!player.lastAttackTime) player.lastAttackTime = 0;
+                            if (now - player.lastAttackTime > 1300) {
+                                player.lastAttackTime = now;
+                                
+                                let baseDmg = getEffectiveAtk();
+                                let isCrit = Math.random() < 0.25;
+                                let dmg = isCrit ? Math.round(baseDmg * 1.6) : baseDmg;
+                                let projId = 'proj_' + myNetworkId + '_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                                
+                                if (typeof spawnPvpProjectileLocally === 'function') {
+                                    spawnPvpProjectileLocally(projId, myNetworkId, player.targetPvpPlayerId, 'basic', dmg, isCrit);
+                                    pvpChannel.postMessage({
+                                        type: 'PVP_PROJECTILE_SPAWN',
+                                        id: projId,
+                                        ownerId: myNetworkId,
+                                        targetId: player.targetPvpPlayerId,
+                                        skillId: 'basic',
+                                        damage: dmg,
+                                        isCrit: isCrit
+                                    });
+                                }
+                            }
                         }
                     }
                 }
@@ -4629,6 +4982,15 @@ function toggleAutoFarm() {
         function renderWorldGraphicsLayers() {
             ctx.fillStyle = "#111625";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            let pvpZoom = (window.currentMapId === 'pvp_arena');
+            if (pvpZoom) {
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(1.3, 1.3);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
+            
             renderWorldThemeAreas();
 
             ctx.strokeStyle = "rgba(255,215,0,0.06)";
@@ -4793,6 +5155,9 @@ function toggleAutoFarm() {
             for(let id in networkPlayers) {
                 let p = networkPlayers[id];
                 if (p.mapId !== window.currentMapId) continue;
+                if (window.currentMapId === 'pvp_arena' && typeof canObserverSeePlayer === 'function' && !canObserverSeePlayer(player, p)) {
+                    continue;
+                }
 
                 drawList.push({
                     y: p.y,
@@ -4800,11 +5165,21 @@ function toggleAutoFarm() {
                         let sx = p.x - camera.x;
                         let sy = p.y - camera.y;
 
+                        let isFlashing = (p.playerHitFlashUntil && p.playerHitFlashUntil > Date.now());
+                        if (isFlashing) {
+                            ctx.save();
+                            ctx.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(5)';
+                        }
+
                         if (window.drawBeautifulRPGChibi) {
                             window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, false, 0.9, 'right', false, p.equipment?.skin);
                         } else {
                             ctx.font = "30px Arial"; ctx.textAlign = "center";
                             ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
+                        }
+
+                        if (isFlashing) {
+                            ctx.restore();
                         }
                         
                         ctx.font = "bold 12px 'Baloo 2'"; ctx.fillStyle = "#f43f5e";
@@ -4854,6 +5229,17 @@ function toggleAutoFarm() {
                         ctx.restore();
                     }
 
+                    let inBush = (window.currentMapId === 'pvp_arena' && typeof isPlayerInBush === 'function' && isPlayerInBush(player));
+                    let isFlashing = (player.playerHitFlashUntil && player.playerHitFlashUntil > Date.now());
+                    
+                    ctx.save();
+                    if (inBush) {
+                        ctx.globalAlpha = 0.55;
+                    }
+                    if (isFlashing) {
+                        ctx.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(5)';
+                    }
+
                     if (window.drawBeautifulRPGChibi) {
                         let faceDir = 'right';
                         let dx = 0;
@@ -4872,6 +5258,8 @@ function toggleAutoFarm() {
                         ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                         ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);
                     }
+
+                    ctx.restore();
 
                     ctx.font = "bold 13px 'Baloo 2'"; ctx.fillStyle = "#fff";
                     ctx.textAlign = "center";
@@ -4898,6 +5286,59 @@ function toggleAutoFarm() {
             let startCy = Math.max(0, Math.floor((camera.y - pad) / dChunkSize));
             let endCy = Math.floor((camera.y + canvas.height + pad) / dChunkSize);
 
+            // Add PvP Projectiles to draw list
+            if (window.currentMapId === 'pvp_arena' && window.pvpArena && window.pvpArena.projectiles) {
+                window.pvpArena.projectiles.forEach(proj => {
+                    drawList.push({
+                        y: proj.y,
+                        draw: () => {
+                            let sx = proj.x - camera.x;
+                            let sy = proj.y - camera.y;
+                            ctx.save();
+                            ctx.font = "24px Arial";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(proj.emoji, sx, sy);
+                            ctx.restore();
+                        }
+                    });
+                });
+            }
+
+            // Add PvP Buffs to draw list
+            if (window.currentMapId === 'pvp_arena' && window.pvpArena && window.pvpArena.buffs) {
+                window.pvpArena.buffs.forEach(buff => {
+                    drawList.push({
+                        y: buff.y,
+                        draw: () => {
+                            let sx = buff.x - camera.x;
+                            let sy = buff.y - camera.y;
+                            ctx.save();
+                            let bounce = Math.sin(Date.now() / 150) * 4;
+                            ctx.beginPath();
+                            ctx.arc(sx, sy, 18, 0, Math.PI * 2);
+                            let glowColor = 'rgba(251, 191, 36, 0.3)';
+                            if (buff.type === 'hp') glowColor = 'rgba(239, 68, 68, 0.3)';
+                            else if (buff.type === 'mp') glowColor = 'rgba(59, 130, 246, 0.3)';
+                            else if (buff.type === 'speed') glowColor = 'rgba(234, 179, 8, 0.3)';
+                            else if (buff.type === 'damage') glowColor = 'rgba(168, 85, 247, 0.3)';
+                            ctx.fillStyle = glowColor;
+                            ctx.fill();
+                            ctx.font = "22px Arial";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            let emoji = "❓";
+                            if (buff.type === 'hp') emoji = "❤️";
+                            else if (buff.type === 'mp') emoji = "💙";
+                            else if (buff.type === 'speed') emoji = "⚡";
+                            else if (buff.type === 'damage') emoji = "🔥";
+                            ctx.fillText(emoji, sx, sy + bounce);
+                            ctx.restore();
+                        }
+                    });
+                });
+            }
+
             if (window.mapDecorationsChunks) {
                 for (let cx = startCx; cx <= endCx; cx++) {
                     for (let cy = startCy; cy <= endCy; cy++) {
@@ -4918,7 +5359,6 @@ function toggleAutoFarm() {
                     }
                 }
             } else {
-                // Fallback if chunks not initialized
                 window.mapDecorations.forEach(dec => {
                     drawList.push({
                         y: dec.y,
@@ -5067,6 +5507,81 @@ function toggleAutoFarm() {
                 ctx.restore();
             });
             
+            // Draw bushes on top of players but inside the zoomed world
+            if (window.currentMapId === 'pvp_arena' && window.pvpArena && window.pvpArena.obstacles) {
+                ctx.save();
+                window.pvpArena.obstacles.forEach(obs => {
+                    if (obs.type === 'bush') {
+                        let sx = obs.x - camera.x;
+                        let sy = obs.y - camera.y;
+                        
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, obs.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
+                        ctx.fill();
+                        
+                        ctx.font = '28px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.globalAlpha = 0.55;
+                        
+                        ctx.fillText('🌿', sx, sy);
+                        let offset = 20;
+                        ctx.fillText('🌿', sx - offset, sy - offset);
+                        ctx.fillText('🌿', sx + offset, sy - offset);
+                        ctx.fillText('🌿', sx - offset, sy + offset);
+                        ctx.fillText('🌿', sx + offset, sy + offset);
+                    }
+                });
+                ctx.restore();
+            }
+
+            // Draw bo circle inside zoomed world
+            if (window.currentMapId === 'pvp_arena' && window.pvpArena && window.pvpArena.boRadius) {
+                let sx = 500 - camera.x;
+                let sy = 500 - camera.y;
+                let r = window.pvpArena.boRadius;
+                
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(sx, sy, r, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 6;
+                ctx.setLineDash([15, 10]);
+                ctx.lineDashOffset = -Date.now() / 50;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ef4444';
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            if (pvpZoom) {
+                ctx.restore();
+            }
+
+            // Draw countdown AFTER restore (screen space)
+            if (window.pvpArena && window.pvpArena.active && window.pvpArena.state === 'countdown') {
+                let elapsed = Date.now() - window.pvpArena.countdownStart;
+                let count = 3 - Math.floor(elapsed / 1000);
+                if (count <= 0) {
+                    window.pvpArena.state = 'fight';
+                    window.pvpArena.startTime = Date.now();
+                    showToast('⚔️ GIAO TRANH BẮT ĐẦU!');
+                } else {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.font = "bold 90px 'Baloo 2'";
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#fbbf24';
+                    ctx.fillText(count.toString(), canvas.width / 2, canvas.height / 2);
+                    ctx.restore();
+                }
+            }
+
             if(!window.uiTicks) window.uiTicks = 0;
             if(window.uiTicks++ % 8 === 0) refreshHudDisplay();
         }
@@ -5128,6 +5643,9 @@ function toggleAutoFarm() {
 
         function spawnMonstersForMap(mapId) {
             monsters = [];
+            if (mapId === 'pvp_arena') {
+                return; // Không sinh quái vật trong đấu trường PvP
+            }
             if (mapId === 'world') {
                 spawnInitialMonsters();
             } else {
@@ -5515,4 +6033,495 @@ function toggleAutoFarm() {
                     }
                 }
             }
+            
+            // ==========================================
+            // PVP ARENA HELPERS & LOGIC
+            // ==========================================
+            window.isPlayerInBush = function(p) {
+                if (!window.pvpArena || !window.pvpArena.obstacles) return false;
+                for (let obs of window.pvpArena.obstacles) {
+                    if (obs.type === 'bush') {
+                        let dist = Math.hypot(p.x - obs.x, p.y - obs.y);
+                        if (dist < obs.radius) return true;
+                    }
+                }
+                return false;
+            };
+
+            window.isPlayerInSameBush = function(p1, p2) {
+                if (!window.pvpArena || !window.pvpArena.obstacles) return false;
+                for (let obs of window.pvpArena.obstacles) {
+                    if (obs.type === 'bush') {
+                        let d1 = Math.hypot(p1.x - obs.x, p1.y - obs.y);
+                        let d2 = Math.hypot(p2.x - obs.x, p2.y - obs.y);
+                        if (d1 < obs.radius && d2 < obs.radius) return true;
+                    }
+                }
+                return false;
+            };
+
+            window.canObserverSeePlayer = function(viewer, target) {
+                if (viewer.id === target.id || viewer === target) return true;
+                if (window.pvpArena && window.pvpArena.active && window.pvpArena.spectating) return true;
+                if (window.isPlayerInBush(target)) {
+                    if (window.isPlayerInSameBush(viewer, target)) return true;
+                    if (target.lastAttackTime && (Date.now() - target.lastAttackTime < 1500)) return true;
+                    return false;
+                }
+                return true;
+            };
+
+            window.spawnPvpProjectileLocally = function(projId, ownerId, targetId, skillId, damage, isCrit) {
+                window.pvpArena = window.pvpArena || {};
+                window.pvpArena.projectiles = window.pvpArena.projectiles || [];
+                
+                let owner = (ownerId === myNetworkId) ? player : networkPlayers[ownerId];
+                if (!owner) return;
+                
+                let clsId = owner.classId;
+                let emoji = "✨";
+                let speed = 10;
+                let maxRange = 300;
+                
+                if (skillId === 'basic') {
+                    if (clsId === 'cop') { emoji = "🤜"; speed = 16; maxRange = 120; }
+                    else if (clsId === 'teacher') { emoji = "✨"; speed = 10; maxRange = 300; }
+                    else if (clsId === 'merchant') { emoji = "🪙"; speed = 11; maxRange = 300; }
+                    else if (clsId === 'engineer') { emoji = "⚙️"; speed = 12; maxRange = 320; }
+                } else {
+                    let sk = owner.skills?.find(s => s.id === skillId) || CLASS_DATA[clsId]?.skills?.find(s => s.id === skillId);
+                    if (sk) {
+                        emoji = sk.icon || "✨";
+                        maxRange = sk.range || 300;
+                        speed = (clsId === 'cop') ? 15 : 12;
+                    }
+                }
+                
+                window.pvpArena.projectiles.push({
+                    id: projId,
+                    ownerId: ownerId,
+                    targetId: targetId,
+                    skillId: skillId,
+                    damage: damage,
+                    isCrit: isCrit,
+                    x: owner.x,
+                    y: owner.y,
+                    emoji: emoji,
+                    speed: speed,
+                    maxRange: maxRange,
+                    distanceTraveled: 0
+                });
+            };
+
+            window.updatePvpProjectiles = function() {
+                if (!window.pvpArena || !window.pvpArena.projectiles) return;
+                
+                for (let i = window.pvpArena.projectiles.length - 1; i >= 0; i--) {
+                    let proj = window.pvpArena.projectiles[i];
+                    let target = (proj.targetId === myNetworkId) ? player : networkPlayers[proj.targetId];
+                    if (!target || target.hp <= 0) {
+                        window.pvpArena.projectiles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    let dx = target.x - proj.x;
+                    let dy = target.y - proj.y;
+                    let dist = Math.hypot(dx, dy);
+                    
+                    if (dist < 15) {
+                        window.handlePvpProjectileImpact(proj);
+                        window.pvpArena.projectiles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    let ux = dx / dist;
+                    let uy = dy / dist;
+                    proj.x += ux * proj.speed;
+                    proj.y += uy * proj.speed;
+                    proj.distanceTraveled += proj.speed;
+                    
+                    if (proj.distanceTraveled >= proj.maxRange) {
+                        window.pvpArena.projectiles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    let hitObstacle = false;
+                    if (window.pvpArena.obstacles) {
+                        for (let obs of window.pvpArena.obstacles) {
+                            if (obs.isSolid) {
+                                let distObs = Math.hypot(proj.x - obs.x, proj.y - obs.y);
+                                if (distObs < obs.radius) {
+                                    hitObstacle = true;
+                                    createParticle("💥", proj.x, proj.y);
+                                    createFloatingText("Cản!", proj.x, proj.y, "#94a3b8");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (hitObstacle) {
+                        window.pvpArena.projectiles.splice(i, 1);
+                    }
+                }
+            };
+
+            window.handlePvpProjectileImpact = function(proj) {
+                createParticle("💥", proj.x, proj.y);
+                audio.play('hit');
+                if (proj.targetId === myNetworkId) {
+                    window.applyPvpDamageToMe(proj.damage, proj.isCrit, proj.ownerId);
+                }
+            };
+
+            window.applyPvpDamageToMe = function(dmg, isCrit, attackerId) {
+                if (player.hp <= 0) return;
+                let def = getEffectiveDef();
+                let finalDmg = Math.max(5, Math.round(dmg - def * 0.5));
+                player.hp = Math.max(0, player.hp - finalDmg);
+                
+                player.playerHitFlashUntil = Date.now() + 250;
+                window.screenShake = { time: 200, magnitude: 6 };
+                createParticle("💥", player.x, player.y);
+                createFloatingText(`-${finalDmg}${isCrit ? ' 💥CRIT' : ''}`, player.x, player.y, isCrit ? '#ef4444' : '#f97316');
+                
+                pvpChannel.postMessage({
+                    type: 'PVP_HP_UPDATE',
+                    id: myNetworkId,
+                    hp: player.hp,
+                    maxHp: getEffectiveMaxHp()
+                });
+                
+                if (player.hp <= 0) {
+                    let attackerName = networkPlayers[attackerId]?.name || "Đối thủ";
+                    showToast(`💀 Bạn đã bị hạ gục bởi ${attackerName}!`);
+                    pvpChannel.postMessage({
+                        type: 'PVP_MATCH_OVER',
+                        id: myNetworkId,
+                        winnerId: attackerId,
+                        loserName: player.name
+                    });
+                    window.endPvpArenaMatch(attackerId);
+                }
+            };
+
+            window.applyPvpBuff = function(type) {
+                audio.play('levelup');
+                if (type === 'hp') {
+                    let heal = Math.round(getEffectiveMaxHp() * 0.3);
+                    player.hp = Math.min(getEffectiveMaxHp(), player.hp + heal);
+                    createFloatingText(`+${heal} HP ❤️`, player.x, player.y - 15, '#22c55e');
+                    refreshHudDisplay();
+                } else if (type === 'mp') {
+                    let mpVal = Math.round(getEffectiveMaxMp() * 0.3);
+                    player.mp = Math.min(getEffectiveMaxMp(), player.mp + mpVal);
+                    createFloatingText(`+${mpVal} MP 💙`, player.x, player.y - 15, '#3b82f6');
+                    refreshHudDisplay();
+                } else if (type === 'speed') {
+                    window.pvpSpeedBuffEndTime = Date.now() + 10000;
+                    createFloatingText("Tốc Độ +50% ⚡", player.x, player.y - 15, '#eab308');
+                } else if (type === 'damage') {
+                    window.pvpDamageBuffEndTime = Date.now() + 10000;
+                    createFloatingText("Sát Thương +50% 🔥", player.x, player.y - 15, '#a855f7');
+                }
+            };
+
+            window.spawnPvpBuffLocally = function(buffId, type, x, y) {
+                window.pvpArena = window.pvpArena || {};
+                window.pvpArena.buffs = window.pvpArena.buffs || [];
+                window.pvpArena.buffs.push({
+                    id: buffId,
+                    type: type,
+                    x: x,
+                    y: y
+                });
+            };
+
+            window.spectatePvpArena = function(targetId) {
+                let opp = networkPlayers[targetId];
+                if (!opp) return;
+                
+                audio.play('click');
+                window.pvpArenaSeed = opp.pvpSeed || 12345;
+                window.pvpArenaTheme = opp.pvpTheme || 'bamboo';
+                window.pvpArena = {
+                    active: true,
+                    spectating: true,
+                    spectateFollowId: targetId,
+                    seed: opp.pvpSeed || 12345,
+                    theme: opp.pvpTheme || 'bamboo',
+                    state: 'fight',
+                    obstacles: [],
+                    buffs: [],
+                    projectiles: []
+                };
+                
+                if (!window.prePvpMapState) {
+                    window.prePvpMapState = {
+                        mapId: window.currentMapId,
+                        x: player.x,
+                        y: player.y
+                    };
+                }
+                
+                window.currentMapId = 'pvp_arena';
+                player.destinationX = undefined;
+                player.destinationY = undefined;
+                player.targetMonster = null;
+                player.targetPvpPlayerId = null;
+                
+                if (window.generateMapDecorations) {
+                    window.generateMapDecorations('pvp_arena');
+                }
+                
+                if (!document.getElementById('exitSpectateBtn')) {
+                    const exitBtn = document.createElement('button');
+                    exitBtn.id = 'exitSpectateBtn';
+                    exitBtn.innerText = '❌ Thoát Xem Đấu';
+                    exitBtn.style.position = 'fixed';
+                    exitBtn.style.top = '70px';
+                    exitBtn.style.right = '12px';
+                    exitBtn.style.zIndex = '999999';
+                    exitBtn.style.background = 'rgba(239, 68, 68, 0.9)';
+                    exitBtn.style.color = '#fff';
+                    exitBtn.style.border = '2px solid #fff';
+                    exitBtn.style.borderRadius = '8px';
+                    exitBtn.style.padding = '8px 12px';
+                    exitBtn.style.fontWeight = 'bold';
+                    exitBtn.style.cursor = 'pointer';
+                    exitBtn.onclick = () => {
+                        window.exitSpectateMode();
+                    };
+                    document.body.appendChild(exitBtn);
+                }
+                
+                showToast('👀 Đang xem trận đấu của ' + opp.name);
+            };
+
+            window.exitSpectateMode = function() {
+                let btn = document.getElementById('exitSpectateBtn');
+                if (btn) btn.remove();
+                
+                window.pvpArena = null;
+                if (window.prePvpMapState) {
+                    window.currentMapId = window.prePvpMapState.mapId;
+                    player.x = window.prePvpMapState.x;
+                    player.y = window.prePvpMapState.y;
+                    window.prePvpMapState = null;
+                } else {
+                    window.currentMapId = 'world';
+                    player.x = 1520;
+                    player.y = 1450;
+                }
+                player.destinationX = undefined;
+                player.destinationY = undefined;
+                player.targetMonster = null;
+                player.targetPvpPlayerId = null;
+                
+                if (window.generateMapDecorations) {
+                    window.generateMapDecorations(window.currentMapId);
+                }
+                spawnMonstersForMap(window.currentMapId);
+                showToast('🔮 Đã thoát chế độ xem đấu.');
+            };
+
+            window.executeSkillAtLocationPvp = function(skillId, x, y) {
+                let oppId = null;
+                for (let id in networkPlayers) {
+                    let p = networkPlayers[id];
+                    if (p.mapId === 'pvp_arena' && Math.hypot(p.x - x, p.y - y) <= 150) {
+                        oppId = id;
+                        break;
+                    }
+                }
+                if (oppId) {
+                    player.targetPvpPlayerId = oppId;
+                    executeActiveSkillUsage(skillId);
+                } else {
+                    showToast("🎯 Không tìm thấy đối thủ ở vị trí đã chọn!");
+                }
+            };
+
+            window.endPvpArenaMatch = function(winnerId) {
+                if (!window.pvpArena || !window.pvpArena.active) return;
+                
+                let isWinner = (winnerId === myNetworkId);
+                let isSpectator = window.pvpArena.spectating;
+                let winnerName = (winnerId === myNetworkId) ? player.name : (networkPlayers[winnerId]?.name || "Đối thủ");
+                
+                if (isWinner) {
+                    audio.play('levelup');
+                    player.gold += 200;
+                    showToast("🏆 CHIẾN THẮNG! Nhận 200 Vàng!");
+                } else if (!isSpectator) {
+                    audio.play('quest');
+                    showToast("🏳️ Thất bại! Hẹn gặp lại lần sau.");
+                }
+                
+                if (!isSpectator) {
+                    player.hp = getEffectiveMaxHp();
+                    player.mp = getEffectiveMaxMp();
+                    refreshHudDisplay();
+                }
+                
+                let pvpOverlay = document.createElement('div');
+                pvpOverlay.id = 'pvpResultOverlay';
+                pvpOverlay.style.position = 'fixed';
+                pvpOverlay.style.inset = '0';
+                pvpOverlay.style.background = 'rgba(0,0,0,0.8)';
+                pvpOverlay.style.display = 'flex';
+                pvpOverlay.style.alignItems = 'center';
+                pvpOverlay.style.justifyContent = 'center';
+                pvpOverlay.style.zIndex = '9999999';
+                
+                pvpOverlay.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #1e1b4b, #311042); border: 3px solid #fbbf24; border-radius: 16px; padding: 30px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 0 30px rgba(251,191,36,0.3); color: #fff;">
+                        <h2 style="font-family:'Baloo 2', sans-serif; font-size: 2rem; color: #fbbf24; margin-bottom: 15px;">🏁 KẾT THÚC QUYẾT ĐẤU</h2>
+                        <div style="font-size: 4.5rem; margin: 15px 0;">\${isWinner ? '🏆' : isSpectator ? '⚔️' : '💀'}</div>
+                        <p style="font-size: 1.15rem; margin-bottom: 20px; line-height: 1.6;">
+                            \${isSpectator ? \`Anh hùng <b>\${winnerName}</b> đã giành chiến thắng thuyết phục trong đấu trường!\` : isWinner ? \`Chúc mừng! Bạn đã đánh bại đối thủ và giành phần thưởng <b>200 Vàng</b>!\` : \`Bạn đã hi sinh anh dũng dưới tay đối thủ! Hồi phục sinh lực và phục thù sau.\`}
+                        </p>
+                        <button class="btn" id="pvpResultCloseBtn" style="padding: 10px 24px; font-weight: bold; background: #fbbf24; color: #000; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s;">Đóng (10s)</button>
+                    </div>
+                `;
+                document.body.appendChild(pvpOverlay);
+                
+                let autoCloseTimer = setTimeout(() => {
+                    closePvpOverlay();
+                }, 10000);
+                
+                function closePvpOverlay() {
+                    clearTimeout(autoCloseTimer);
+                    let overlay = document.getElementById('pvpResultOverlay');
+                    if (overlay) overlay.remove();
+                    
+                    let sBtn = document.getElementById('exitSpectateBtn');
+                    if (sBtn) sBtn.remove();
+                    
+                    window.pvpArena = null;
+                    if (window.prePvpMapState) {
+                        window.currentMapId = window.prePvpMapState.mapId;
+                        player.x = window.prePvpMapState.x;
+                        player.y = window.prePvpMapState.y;
+                        window.prePvpMapState = null;
+                    } else {
+                        window.currentMapId = 'world';
+                        player.x = 1520;
+                        player.y = 1450;
+                    }
+                    player.destinationX = undefined;
+                    player.destinationY = undefined;
+                    player.targetMonster = null;
+                    player.targetPvpPlayerId = null;
+                    
+                    if (window.generateMapDecorations) {
+                        window.generateMapDecorations(window.currentMapId);
+                    }
+                    spawnMonstersForMap(window.currentMapId);
+                    autosaveGameProcess(true);
+                }
+                
+                pvpOverlay.querySelector('#pvpResultCloseBtn').onclick = closePvpOverlay;
+            };
+
+            window.updatePvpArenaLogic = function() {
+                if (!window.pvpArena || !window.pvpArena.active) return;
+                
+                if (window.pvpArena.state === 'countdown') {
+                    let elapsed = Date.now() - window.pvpArena.countdownStart;
+                    if (elapsed >= 3000) {
+                        window.pvpArena.state = 'fight';
+                        window.pvpArena.startTime = Date.now();
+                        showToast('⚔️ GIAO TRANH BẮT ĐẦU!');
+                    }
+                    return;
+                }
+                
+                let timeElapsed = (Date.now() - window.pvpArena.startTime) / 1000;
+                let boRadius = 700;
+                if (timeElapsed > 60) {
+                    let shrinkTime = timeElapsed - 60;
+                    boRadius = Math.max(100, 700 - shrinkTime * 10);
+                }
+                window.pvpArena.boRadius = boRadius;
+                
+                if (!window.pvpArena.spectating && player.hp > 0) {
+                    let dist = Math.hypot(player.x - 500, player.y - 500);
+                    if (dist > boRadius) {
+                        let now = Date.now();
+                        if (!window.lastBoDamageTime) window.lastBoDamageTime = 0;
+                        if (now - window.lastBoDamageTime > 1000) {
+                            window.lastBoDamageTime = now;
+                            let dmg = Math.round(getEffectiveMaxHp() * 0.08);
+                            player.hp = Math.max(0, player.hp - dmg);
+                            createParticle("⚡", player.x, player.y);
+                            createFloatingText(`-${dmg} Vòng Bo`, player.x, player.y, '#ef4444');
+                            audio.play('hit');
+                            
+                            pvpChannel.postMessage({
+                                type: 'PVP_HP_UPDATE',
+                                id: myNetworkId,
+                                hp: player.hp,
+                                maxHp: getEffectiveMaxHp()
+                            });
+                            
+                            if (player.hp <= 0) {
+                                let oppId = player.targetPvpPlayerId || Object.keys(networkPlayers).find(id => networkPlayers[id].mapId === 'pvp_arena') || myNetworkId;
+                                pvpChannel.postMessage({
+                                    type: 'PVP_MATCH_OVER',
+                                    id: myNetworkId,
+                                    winnerId: oppId,
+                                    loserName: player.name
+                                });
+                                window.endPvpArenaMatch(oppId);
+                            }
+                        }
+                    }
+                }
+                
+                let isHost = (window.pvpArena.challengerId === myNetworkId);
+                if (isHost) {
+                    let now = Date.now();
+                    if (!window.lastBuffSpawnTime) window.lastBuffSpawnTime = now;
+                    if (now - window.lastBuffSpawnTime > 15000) {
+                        window.lastBuffSpawnTime = now;
+                        let buffId = 'buff_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                        let types = ['hp', 'mp', 'speed', 'damage'];
+                        let type = types[Math.floor(Math.random() * types.length)];
+                        let bx = 400 + Math.random() * 200;
+                        let by = 400 + Math.random() * 200;
+                        
+                        pvpChannel.postMessage({
+                            type: 'PVP_BUFF_SPAWN',
+                            id: myNetworkId,
+                            buffId: buffId,
+                            buffType: type,
+                            x: bx,
+                            y: by
+                        });
+                        window.spawnPvpBuffLocally(buffId, type, bx, by);
+                    }
+                }
+                
+                if (!window.pvpArena.spectating && window.pvpArena.buffs) {
+                    for (let i = window.pvpArena.buffs.length - 1; i >= 0; i--) {
+                        let buff = window.pvpArena.buffs[i];
+                        let d = Math.hypot(player.x - buff.x, player.y - buff.y);
+                        if (d < 30) {
+                            pvpChannel.postMessage({
+                                type: 'PVP_BUFF_PICKUP',
+                                id: myNetworkId,
+                                buffId: buff.id,
+                                pickerId: myNetworkId,
+                                pickerName: player.name,
+                                buffType: buff.type
+                            });
+                            window.applyPvpBuff(buff.type);
+                            window.pvpArena.buffs.splice(i, 1);
+                        }
+                    }
+                }
+                
+                window.updatePvpProjectiles();
+            };
         };

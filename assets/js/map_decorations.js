@@ -220,6 +220,83 @@ window.generateMapDecorations = function(mapId) {
                 addDecoration('sword1', x, y, 1.0);
             }
         }
+    } else if (mapId === 'pvp_arena') {
+        window.pvpArena = window.pvpArena || {};
+        window.pvpArena.obstacles = [];
+        
+        let seed = window.pvpArenaSeed || 12345;
+        function rand() {
+            let x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+        
+        let theme = window.pvpArenaTheme || 'bamboo';
+        
+        let numObstacles = 15 + Math.floor(rand() * 10);
+        for (let i = 0; i < numObstacles; i++) {
+            let ox = 150 + rand() * 700;
+            let oy = 150 + rand() * 700;
+            
+            if (Math.hypot(ox - 200, oy - 500) < 100) continue;
+            if (Math.hypot(ox - 800, oy - 500) < 100) continue;
+            if (Math.hypot(ox - 500, oy - 500) < 80) continue;
+            
+            let type = 'rock1';
+            let category = 'rock';
+            let r = rand();
+            
+            if (theme === 'bamboo') {
+                if (r < 0.3) { type = 'tree1_field'; category = 'tree'; }
+                else if (r < 0.6) { type = 'rock2'; category = 'rock'; }
+                else { type = 'bush'; category = 'bush'; }
+            } else if (theme === 'ruins') {
+                if (r < 0.3) { type = 'wall_a'; category = 'wall'; }
+                else if (r < 0.6) { type = 'rock5'; category = 'rock'; }
+                else if (r < 0.8) { type = 'barrel'; category = 'barrel'; }
+                else { type = 'bush'; category = 'bush'; }
+            } else if (theme === 'snow') {
+                if (r < 0.4) { type = 'tree1_arena'; category = 'tree'; }
+                else if (r < 0.7) { type = 'rock8'; category = 'rock'; }
+                else { type = 'bush'; category = 'bush'; }
+            } else if (theme === 'desert') {
+                if (r < 0.3) { type = 'stump'; category = 'tree'; }
+                else if (r < 0.7) { type = 'rock3'; category = 'rock'; }
+                else { type = 'bush'; category = 'bush'; }
+            } else if (theme === 'citadel') {
+                if (r < 0.3) { type = 'wall_b'; category = 'wall'; }
+                else if (r < 0.5) { type = 'fence1'; category = 'wall'; }
+                else if (r < 0.7) { type = 'target1'; category = 'barrel'; }
+                else { type = 'bush'; category = 'bush'; }
+            } else { // rocky
+                if (r < 0.5) { type = 'rock6'; category = 'rock'; }
+                else if (r < 0.8) { type = 'stump'; category = 'tree'; }
+                else { type = 'bush'; category = 'bush'; }
+            }
+            
+            let scale = 0.8 + rand() * 0.4;
+            let radius = 20;
+            let isSolid = true;
+            
+            if (category === 'tree') { radius = 25 * scale; }
+            else if (category === 'rock') { radius = 20 * scale; }
+            else if (category === 'wall') { radius = 35 * scale; }
+            else if (category === 'barrel') { radius = 15 * scale; }
+            else if (category === 'bush') { radius = 50; isSolid = false; }
+            
+            if (category !== 'bush') {
+                addDecoration(type, ox, oy, scale);
+            }
+            
+            window.pvpArena.obstacles.push({
+                x: ox,
+                y: oy,
+                radius: radius,
+                isSolid: isSolid,
+                type: category,
+                scale: scale,
+                spriteType: type
+            });
+        }
     } else {
         // Building interiors
         addDecoration('table1', 300, 300, 1.2);

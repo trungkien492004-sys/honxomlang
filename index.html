@@ -567,14 +567,15 @@
                     <button class="menu-popup-btn" onclick="toggleMainMenu()" style="background:#475569; border-color:#64748b; flex:1; padding:8px 0; font-size:0.9rem;">✖ Đóng</button>
                 </div>
             </div>
-        </div>
-        
         <!-- ===== 🔥 BẢNG THÔNG BÁO SỰ KIỆN LỚN ===== -->
-        <div id="bigEventOverlay" onclick="closeBigEvent()" style="display:none; position:fixed; inset:0; background:rgba(10,10,15,0.95); z-index:99999; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px; cursor:pointer;">
-            <div id="bigEventTitle" style="font-family:'Orbitron', monospace; font-size:2.5rem; color:#fca5a5; text-shadow:0 0 20px #ef4444; margin-bottom:10px; font-weight:900; transform:scale(0); animation:popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">SỰ KIỆN</div>
-            <div id="bigEventDesc" style="font-size:1.3rem; color:#fff; line-height:1.5; margin-bottom:20px; opacity:0; animation:fadeIn 0.5s 0.2s forwards;">Chi tiết sự kiện...</div>
-            <div id="bigEventExtra" style="font-size:1rem; color:#fbbf24; font-weight:bold; margin-bottom:30px; opacity:0; animation:fadeIn 0.5s 0.4s forwards;"></div>
-            <button class="board-btn close-board" style="padding:10px 30px; font-size:1.2rem; background:#374151; opacity:0; animation:fadeIn 0.5s 0.6s forwards; pointer-events:none;">✖ Bấm để Đóng</button>
+        <div id="bigEventOverlay" style="display:none; position:fixed; inset:0; background:rgba(10,10,15,0.9); z-index:99999; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px;">
+            <div style="background:rgba(30,41,59,0.95); border:3px solid #f59e0b; border-radius:20px; padding:30px; max-width:450px; width:90%; box-shadow:0 15px 35px rgba(0,0,0,0.6); position:relative;">
+                <span onclick="closeBigEvent()" style="position:absolute; top:12px; right:18px; font-size:1.6rem; color:#94a3b8; cursor:pointer; font-weight:bold; transition:color 0.2s;" onmouseover="this.style.color='#f59e0b'" onmouseout="this.style.color='#94a3b8'">✖</span>
+                <div id="bigEventTitle" style="font-family:'Baloo 2', sans-serif; font-size:2.2rem; color:#fcd34d; text-shadow:0 0 15px rgba(245,158,11,0.5); margin-bottom:12px; font-weight:900;">SỰ KIỆN</div>
+                <div id="bigEventDesc" style="font-size:1.15rem; color:#fff; line-height:1.5; margin-bottom:15px;">Chi tiết sự kiện...</div>
+                <div id="bigEventExtra" style="font-size:0.95rem; color:#22c55e; font-weight:bold; margin-bottom:25px;"></div>
+                <button class="board-btn close-board" onclick="closeBigEvent()" style="padding:10px 30px; font-size:1.05rem; background:linear-gradient(135deg, #475569, #334155); color:#fff; border:none; border-radius:10px; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">✖ Đóng</button>
+            </div>
         </div>
 
     </div>
