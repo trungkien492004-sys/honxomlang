@@ -155,7 +155,7 @@
                 <button class="nav-btn" onclick="togglePanel('quests')">📜 Nhiệm Vụ</button>
                 <button class="nav-btn" onclick="togglePanel('pvp')">⚔️ Đấu Trường</button>
                 <button class="nav-btn" onclick="togglePanel('party')">🤝 Tổ Đội</button>
-                <button class="nav-btn" onclick="togglePanel('chat')">💬 Chat Tổng</button>
+                <button class="nav-btn" id="chatNavBtn" onclick="togglePanel('chat')">💬 Chat Tổng</button>
                 <button class="nav-btn" onclick="togglePanel('bet')">🏟️ Cược Bóng</button>
                 <button class="nav-btn" onclick="openBoardGameWithBet()" style="background:linear-gradient(135deg,#f97316,#7c3aed);">🏁 Cờ Đua</button>
                 <button class="btn btn-google" onclick="window.toggleMobileMenu()" style="padding: 5px 10px; margin-left: 10px;">☰</button>
@@ -473,7 +473,7 @@
                     <div class="bet-option" onclick="selectBetAmount(500)">500 💰</div>
                 </div>
                 <div class="bet-custom-row">
-                    <input type="number" id="betCustomInput" placeholder="Tự nhập số vàng..." min="10" max="9999">
+                    <input type="number" id="customBetAmount" placeholder="Tự nhập số vàng..." min="10" max="9999">
                 </div>
                 <div style="display:flex;gap:8px;">
                     <button class="board-btn place-bet-btn" style="flex:1;" onclick="confirmBetAndStart()">🚀 Bắt Đầu Đua!</button>
@@ -572,17 +572,14 @@
                     <button class="menu-popup-btn" onclick="menuAction('bet')">🏟️ Cược Bóng</button>
                 </div>
                 
-                
-                    </div>
-                </div>
-                
                 <div style="display:flex; gap:8px; margin-top:12px;">
                     <button class="menu-popup-btn" onclick="menuAction('logout')" style="background:#dc2626; border-color:#ef4444; flex:1; padding:8px 0; font-size:0.9rem;">🚪 Đăng Xuất</button>
                     <button class="menu-popup-btn" onclick="toggleMainMenu()" style="background:#475569; border-color:#64748b; flex:1; padding:8px 0; font-size:0.9rem;">✖ Đóng</button>
                 </div>
             </div>
+        </div>
         <!-- ===== 🔥 BẢNG THÔNG BÁO SỰ KIỆN LỚN ===== -->
-        <div id="bigEventOverlay" style="display:none; position:fixed; inset:0; background:rgba(10,10,15,0.9); z-index:99999; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px;">
+        <div id="bigEventOverlay" style="display:none; position:fixed; inset:0; background:rgba(10,10,15,0.9); z-index:100010; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px;">
             <div style="background:rgba(30,41,59,0.95); border:3px solid #f59e0b; border-radius:20px; padding:30px; max-width:450px; width:90%; box-shadow:0 15px 35px rgba(0,0,0,0.6); position:relative;">
                 <span onclick="closeBigEvent()" style="position:absolute; top:12px; right:18px; font-size:1.6rem; color:#94a3b8; cursor:pointer; font-weight:bold; transition:color 0.2s;" onmouseover="this.style.color='#f59e0b'" onmouseout="this.style.color='#94a3b8'">✖</span>
                 <div id="bigEventTitle" style="font-family:'Baloo 2', sans-serif; font-size:2.2rem; color:#fcd34d; text-shadow:0 0 15px rgba(245,158,11,0.5); margin-bottom:12px; font-weight:900;">SỰ KIỆN</div>

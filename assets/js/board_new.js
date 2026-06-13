@@ -1,5 +1,22 @@
 // ===== 🏁 BOARD_NEW.JS — Cờ Đua Sinh Tồn v4.0 (Yu-Gi-Oh Style) =====
 'use strict';
+
+// Resolve myNetworkId and networkPlayers globally
+if (!('myNetworkId' in window)) {
+    Object.defineProperty(window, 'myNetworkId', {
+        get() { return window._myNetworkId; },
+        set(v) { window._myNetworkId = v; },
+        configurable: true
+    });
+}
+if (!('networkPlayers' in window)) {
+    Object.defineProperty(window, 'networkPlayers', {
+        get() { return window._networkPlayers; },
+        set(v) { window._networkPlayers = v; },
+        configurable: true
+    });
+}
+
 var boardGame = null;
 const BOARD_TOTAL_CELLS = 60;
 
@@ -141,7 +158,6 @@ window.boardDoRollAnimation = function(boardPlayer, callback) {
 // ── Logic đi lượt hoàn toàn mới ───────────────────────────────
 window.boardProcessTurn = function(p, roll, callback) {
     if(p.eliminated) {
-        boardNextTurn();
         if(callback) callback();
         return;
     }
@@ -166,7 +182,10 @@ window.boardProcessTurn = function(p, roll, callback) {
             clearInterval(moveInterval);
             
             setTimeout(() => {
-                if(p.eliminated) return;
+                if(p.eliminated) {
+                    if(callback) callback();
+                    return;
+                }
 
                 let cellName = NEIGHBORHOOD_NAMES[p.pos % NEIGHBORHOOD_NAMES.length];
 

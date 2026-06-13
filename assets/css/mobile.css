@@ -261,6 +261,8 @@ html, body {
     }
     .board-cell {
         border-width: 0.5px !important;
+        min-height: unset !important;
+        height: 100% !important;
     }
     .board-cell .cell-num {
         font-size: 0.4rem !important;

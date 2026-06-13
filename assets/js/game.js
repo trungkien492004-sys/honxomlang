@@ -856,7 +856,7 @@
             baseDef: 5,
             baseSpeed: 4.5,
             gold: 150,
-            x: 2000, y: 2000, // Coordinates in World Map Space centered at 2000,2000
+            x: 1000, y: 1000, // Coordinates in World Map Space centered at 1000,1000
             targetMonster: null,
             inventory: [
                 { id: "skin_cong_chua", count: 1 },
@@ -1364,6 +1364,192 @@
                 pvpTheme: window.pvpArena ? window.pvpArena.theme : null
             });
         }
+
+        window.getMapSize = function(mapId) {
+            if (mapId === 'world') return 2000;
+            if (mapId === 'beach') return 1400;
+            if (mapId === 'pvp_arena') return 1000;
+            return 1200;
+        };
+
+        window.isInsideMapBoundary = function(mapId, x, y) {
+            let size = window.getMapSize(mapId);
+            let cx = size / 2;
+            let cy = size / 2;
+            if (x < 40 || x > size - 40 || y < 40 || y > size - 40) return false;
+            if (mapId === 'world') {
+                let dist = Math.hypot(x - cx, y - cy);
+                return dist < (cx - 60);
+            }
+            if (mapId === 'beach') {
+                let rx = cx - 60;
+                let ry = cy - 60;
+                let norm = Math.pow((x - cx) / rx, 2) + Math.pow((y - cy) / ry, 2);
+                return norm < 1.0;
+            }
+            if (mapId === 'bamboo_forest' || mapId === 'ghost_forest') {
+                let dist = Math.hypot(x - cx, y - cy);
+                return dist < (cx - 80);
+            }
+            if (mapId === 'demon_cave' || mapId === 'bat_cave' || mapId === 'dungeon') {
+                let dist = Math.hypot(x - cx, y - cy);
+                if (dist < 250) return true;
+                if (Math.hypot(x - cx, y - (cy - 300)) < 200) return true;
+                if (Math.hypot(x - cx, y - (cy + 300)) < 200) return true;
+                if (Math.hypot(x - (cx - 300), y - cy) < 200) return true;
+                if (Math.hypot(x - (cx + 300), y - cy) < 200) return true;
+                if (Math.abs(x - cx) < 80 && Math.abs(y - cy) < 400) return true;
+                if (Math.abs(y - cy) < 80 && Math.abs(x - cx) < 400) return true;
+                return false;
+            }
+            if (mapId === 'cemetery' || mapId === 'ancient_temple' || mapId === 'citadel') {
+                let dx = Math.abs(x - cx);
+                let dy = Math.abs(y - cy);
+                return (dx + dy) < (size - 120);
+            }
+            return true;
+        };
+
+        window.constrainToMapBoundary = function(mapId, x, y) {
+            let size = window.getMapSize(mapId);
+            let cx = size / 2;
+            let cy = size / 2;
+            if (mapId === 'pvp_arena') {
+                return {
+                    x: Math.max(40, Math.min(960, x)),
+                    y: Math.max(40, Math.min(960, y))
+                };
+            }
+            x = Math.max(40, Math.min(size - 40, x));
+            y = Math.max(40, Math.min(size - 40, y));
+            if (mapId === 'world') {
+                let R = cx - 60;
+                let dx = x - cx;
+                let dy = y - cy;
+                let dist = Math.hypot(dx, dy);
+                if (dist > R) {
+                    return { x: cx + (dx / dist) * R, y: cy + (dy / dist) * R };
+                }
+            } else if (mapId === 'beach') {
+                let rx = cx - 60;
+                let ry = cy - 60;
+                let dx = x - cx;
+                let dy = y - cy;
+                let norm = Math.pow(dx / rx, 2) + Math.pow(dy / ry, 2);
+                if (norm > 1.0) {
+                    let angle = Math.atan2(dy, dx);
+                    return { x: cx + Math.cos(angle) * rx, y: cy + Math.sin(angle) * ry };
+                }
+            } else if (mapId === 'bamboo_forest' || mapId === 'ghost_forest') {
+                let R = cx - 80;
+                let dx = x - cx;
+                let dy = y - cy;
+                let dist = Math.hypot(dx, dy);
+                if (dist > R) {
+                    return { x: cx + (dx / dist) * R, y: cy + (dy / dist) * R };
+                }
+            } else if (mapId === 'demon_cave' || mapId === 'bat_cave' || mapId === 'dungeon') {
+                if (window.isInsideMapBoundary(mapId, x, y)) {
+                    return { x, y };
+                }
+                let dx = cx - x;
+                let dy = cy - y;
+                let dist = Math.hypot(dx, dy);
+                let steps = Math.ceil(dist / 10);
+                for (let i = 1; i <= steps; i++) {
+                    let tx = x + (dx / dist) * (i * 10);
+                    let ty = y + (dy / dist) * (i * 10);
+                    if (window.isInsideMapBoundary(mapId, tx, ty)) {
+                        return { x: tx, y: ty };
+                    }
+                }
+                return { x: cx, y: cy };
+            } else if (mapId === 'cemetery' || mapId === 'ancient_temple' || mapId === 'citadel') {
+                let R = size - 120;
+                let dx = x - cx;
+                let dy = y - cy;
+                let absX = Math.abs(dx);
+                let absY = Math.abs(dy);
+                if (absX + absY > R) {
+                    let sum = absX + absY;
+                    let ratio = R / sum;
+                    return { x: cx + dx * ratio, y: cy + dy * ratio };
+                }
+            }
+            return { x, y };
+        };
+
+        window.startPvpArena = function(msg) {
+            if (window.currentMapId === 'pvp_arena') return;
+            window.pvpArenaSeed = msg.seed;
+            window.pvpArenaTheme = msg.theme;
+            window.pvpArena = {
+                active: true,
+                state: 'countdown',
+                countdownStart: Date.now(),
+                challengerId: msg.challengerId,
+                targetId: msg.targetId,
+                seed: msg.seed,
+                theme: msg.theme,
+                spectating: (msg.challengerId !== window.myNetworkId && msg.targetId !== window.myNetworkId),
+                obstacles: [],
+                buffs: [],
+                projectiles: []
+            };
+            if (!window.prePvpMapState) {
+                window.prePvpMapState = {
+                    mapId: window.currentMapId,
+                    x: player.x,
+                    y: player.y
+                };
+            }
+            if (msg.challengerId === window.myNetworkId) {
+                player.x = 200;
+                player.y = 500;
+            } else if (msg.targetId === window.myNetworkId) {
+                player.x = 800;
+                player.y = 500;
+            } else {
+                player.x = 500;
+                player.y = 200;
+                window.pvpArena.spectateFollowId = msg.challengerId;
+                if (!document.getElementById('exitSpectateBtn')) {
+                    const exitBtn = document.createElement('button');
+                    exitBtn.id = 'exitSpectateBtn';
+                    exitBtn.innerText = '❌ Thoát Xem Đấu';
+                    exitBtn.style.position = 'fixed';
+                    exitBtn.style.top = '70px';
+                    exitBtn.style.right = '12px';
+                    exitBtn.style.zIndex = '999999';
+                    exitBtn.style.background = 'rgba(239, 68, 68, 0.9)';
+                    exitBtn.style.color = '#fff';
+                    exitBtn.style.border = '2px solid #fff';
+                    exitBtn.style.borderRadius = '8px';
+                    exitBtn.style.padding = '8px 12px';
+                    exitBtn.style.fontWeight = 'bold';
+                    exitBtn.style.cursor = 'pointer';
+                    exitBtn.onclick = () => {
+                        window.exitSpectateMode();
+                    };
+                    document.body.appendChild(exitBtn);
+                }
+            }
+            window.currentMapId = 'pvp_arena';
+            player.destinationX = undefined;
+            player.destinationY = undefined;
+            player.targetMonster = null;
+            player.targetPvpPlayerId = null;
+            if (window.generateMapDecorations) {
+                window.generateMapDecorations('pvp_arena');
+            }
+            if (!window.pvpArena.spectating) {
+                player.hp = getEffectiveMaxHp();
+                player.mp = getEffectiveMaxMp();
+                refreshHudDisplay();
+            }
+            audio.playBgm('apocalypse');
+            showToast('⚔️ Trận đấu Đấu Trường PvP sắp bắt đầu!');
+        };
 
         function handleNetworkMessage(msg) {
             if(!msg || msg.id === myNetworkId) return;
@@ -1965,29 +2151,40 @@
             template = JSON.parse(JSON.stringify(template));
 
             // Determine spawn location
-            if (mapId === 'world') {
-                let angle = Math.random() * Math.PI * 2;
-                if (isBoss) {
-                    let bossSpots = [
-                        { x: 600, y: 3400 },
-                        { x: 3300, y: 700 }
-                    ];
-                    let spot = bossSpots[Math.floor(Math.random() * bossSpots.length)];
-                    mx = spot.x + (Math.random() - 0.5) * 200;
-                    my = spot.y + (Math.random() - 0.5) * 200;
+            let size = window.getMapSize(mapId);
+            let cx = size / 2;
+            let cy = size / 2;
+            
+            let attempts = 0;
+            while (attempts < 100) {
+                if (mapId === 'world') {
+                    if (isBoss) {
+                        let angle = Math.random() * Math.PI * 2;
+                        let dist = 500 + Math.random() * 300;
+                        mx = cx + Math.cos(angle) * dist;
+                        my = cy + Math.sin(angle) * dist;
+                    } else {
+                        let angle = Math.random() * Math.PI * 2;
+                        let dist = 150 + Math.random() * 700;
+                        mx = cx + Math.cos(angle) * dist;
+                        my = cy + Math.sin(angle) * dist;
+                    }
+                } else if (mapId === 'pvp_arena') {
+                    mx = cx + (Math.random() - 0.5) * 600;
+                    my = cy + (Math.random() - 0.5) * 600;
                 } else {
-                    let dist = 180 + Math.random() * 1600;
-                    mx = 2000 + Math.cos(angle) * dist;
-                    my = 2000 + Math.sin(angle) * dist;
+                    mx = cx + (Math.random() - 0.5) * (size - 160);
+                    my = cy + (Math.random() - 0.5) * (size - 160);
                 }
-            } else {
-                // In other maps, spawn around the center (2000, 2000)
-                mx = 2000 + (Math.random() - 0.5) * 1200;
-                my = 2000 + (Math.random() - 0.5) * 1200;
-                if (isBoss) {
-                    mx = 2000;
-                    my = 2000;
+                
+                if (window.isInsideMapBoundary(mapId, mx, my)) {
+                    break;
                 }
+                attempts++;
+            }
+            if (attempts >= 100) {
+                mx = cx;
+                my = cy;
             }
 
             // Implement Elite monster logic (15% chance for normal monsters)
@@ -2023,8 +2220,8 @@
 
             monsters.push({
                 ...template,
-                x: Math.max(50, Math.min(WORLD_SIZE - 50, mx)),
-                y: Math.max(50, Math.min(WORLD_SIZE - 50, my)),
+                x: Math.max(50, Math.min(size - 50, mx)),
+                y: Math.max(50, Math.min(size - 50, my)),
                 vx: (Math.random() - 0.5) * 1.5,
                 vy: (Math.random() - 0.5) * 1.5,
                 lastAttack: 0,
@@ -3847,7 +4044,7 @@ function toggleAutoFarm() {
             if(!message) return;
             audio.play('click');
             appendChatMessage(player.name || 'Bạn', message, false);
-            chatChannel.postMessage({ type: 'CHAT_MESSAGE', sender: player.name || 'Bạn', message });
+            chatChannel.postMessage({ type: 'CHAT_MESSAGE', id: myNetworkId, sender: player.name || 'Bạn', message });
             input.value = '';
         }
 
@@ -4222,7 +4419,11 @@ function toggleAutoFarm() {
                 if(panelId === 'shop') switchShopTab('buy');
                 if(panelId === 'pvp') rebuildPvpLobbyUI();
                 if(panelId === 'party') { rebuildPartyPanel(); }
-                if(panelId === 'chat') rebuildChatUI();
+                if(panelId === 'chat') {
+                    rebuildChatUI();
+                    window.unreadChatCount = 0;
+                    window.updateChatBadgeUI();
+                }
                 if(panelId === 'bet') loadFootballFixtures();
             }
         }
@@ -5237,8 +5438,8 @@ function toggleAutoFarm() {
                     ctx.fillText("🌀 Cổng Dịch Chuyển (Về Làng)", sx, sy - 40);
                     ctx.restore();
                 } else if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest') {
-                    let sx = 2000 - camera.x;
-                    let sy = 2600 - camera.y;
+                    let sx = 600 - camera.x;
+                    let sy = 1100 - camera.y;
                     ctx.save();
                     ctx.beginPath();
                     ctx.arc(sx, sy, 40, 0, Math.PI * 2);
@@ -6358,15 +6559,15 @@ function toggleAutoFarm() {
                 } else if (window.currentMapId === 'citadel') {
                     let dist = Math.sqrt((px - 1000)**2 + (py - 100)**2);
                     if (dist < 40) {
-                        window.changeMap('world', 1520, 1450); // back to town center
+                        window.changeMap('world', 760, 725); // back to town center
                         return;
                     }
                 } else if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest') {
-                    let dist = Math.sqrt((px - 2000)**2 + (py - 2600)**2);
+                    let dist = Math.sqrt((px - 600)**2 + (py - 1100)**2);
                     if (dist < 40) {
                         let ent = DUNGEON_ENTRANCES.find(e => e.targetMapId === window.currentMapId);
-                        let rx = ent ? ent.x : 1520;
-                        let ry = ent ? ent.y + 50 : 1450;
+                        let rx = ent ? ent.x : 760;
+                        let ry = ent ? ent.y + 50 : 725;
                         window.changeMap('world', rx, ry);
                         return;
                     }
@@ -6374,8 +6575,8 @@ function toggleAutoFarm() {
                     let dist = Math.sqrt((px - 300)**2 + (py - 550)**2);
                     if (dist < 35) {
                         let ent = BUILDING_ENTRANCES.find(e => e.targetMapId === window.currentMapId);
-                        let rx = ent ? ent.x : 1520;
-                        let ry = ent ? ent.y + 50 : 1450;
+                        let rx = ent ? ent.x : 760;
+                        let ry = ent ? ent.y + 50 : 725;
                         window.changeMap('world', rx, ry);
                         return;
                     }
