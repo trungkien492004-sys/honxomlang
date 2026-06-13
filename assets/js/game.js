@@ -147,7 +147,6 @@
             potion_mp: { id: "potion_mp", name: "Bình Nước Suối MP", emoji: "💧", type: "usable", desc: "Hồi phục ngay lập tức 30 Linh Lực (MP)", value: 30, price: 15 },
             iron_ore:  { id: "iron_ore", name: "Quặng Sắt Thô", emoji: "🪨", type: "material", desc: "Quặng đá sắt dùng làm phôi chế tạo vũ khí trang bị", price: 10 },
             magic_crystal: { id: "magic_crystal", name: "Pha Lê Ma Thuật", emoji: "🔮", type: "material", desc: "Tinh thể ma pháp quý hiếm rớt ra từ quái vật", price: 30 },
-            skin_cong_chua: { id: "skin_cong_chua", name: "Công Chúa Cầu Vồng", emoji: "👗", type: "skin", desc: "Trang phục Công Chúa Cầu Vồng với hiệu ứng lấp lánh (Quà Tân Thủ)", price: 0 },
             
             // Weapons
             wp_wooden: { id: "wp_wooden", name: "Gậy Gỗ Đầu Thôn", emoji: "🪵", type: "weapon", atk: 4, def: 0, hp: 0, price: 30 },
@@ -319,10 +318,17 @@
             if(typeof db !== 'undefined') {
                 // 1. Presence Sync
                 db.collection('active_players').onSnapshot(snap => {
-                    snap.forEach(doc => {
-                        const msg = doc.data();
-                        if(msg.id && msg.id !== myNetworkId) {
-                            handleNetworkMessage(msg);
+                    snap.docChanges().forEach(change => {
+                        if(change.type === 'removed') {
+                            const id = change.doc.id;
+                            delete networkPlayers[id];
+                            if(typeof partySystem !== 'undefined') partySystem.updateMemberPresence({ id: id, offline: true });
+                            rebuildPvpLobbyUI();
+                        } else {
+                            const msg = change.doc.data();
+                            if(msg.id && msg.id !== myNetworkId) {
+                                handleNetworkMessage(msg);
+                            }
                         }
                     });
                 });
@@ -427,6 +433,12 @@
             setInterval(cleanupNetworkPlayers, 4000);
             // Setup Autosave Interval (Every 30 seconds)
             setInterval(autosaveGameProcess, 30000);
+            
+            window.addEventListener('beforeunload', () => {
+                if(typeof db !== 'undefined' && myNetworkId) {
+                    db.collection('active_players').doc(myNetworkId).delete().catch(()=>{});
+                }
+            });
         };
 
         function setupCanvasSize() {
@@ -524,6 +536,12 @@
         function autosaveGameProcess() {
             if(currentScreen !== 'gameScreen') return;
             saveGameToLocal();
+            
+            // Nếu có cloud save, thử auto-sync nhẹ
+            if(window._cloudSaveEnabled && window.player && window.currentFirebaseUser && window.saveGameToCloud) {
+                window.saveGameToCloud(window.player);
+            }
+            
             let ind = document.getElementById('saveIndicator');
             ind.style.display = "block";
             setTimeout(() => ind.style.display = "none", 2500);
@@ -538,7 +556,7 @@
         function saveGameToLocal() {
             let stateToSave = {
                 name: player.name,
-                classId: player.classId, equipment: player.equipment,
+                classId: player.classId,
                 level: player.level,
                 exp: player.exp,
                 maxExp: player.maxExp,
@@ -624,6 +642,12 @@
             if(!msg || msg.id === myNetworkId) return;
 
             if(msg.type === 'PRESENCE') {
+                if(msg.timestamp && typeof msg.timestamp.toMillis === 'function') {
+                    if(Date.now() - msg.timestamp.toMillis() > 10000) {
+                        if(typeof db !== 'undefined') db.collection('active_players').doc(msg.id).delete().catch(()=>{});
+                        return; // Ignore stale presence and cleanup
+                    }
+                }
                 networkPlayers[msg.id] = { ...msg, lastSeen: Date.now() };
                 partySystem.updateMemberPresence(msg);
                 rebuildPvpLobbyUI();
@@ -684,7 +708,7 @@
                 if(sharedGold > 0) createFloatingText(`+${sharedGold}g đội`, player.x, player.y - 20, '#ffd700');
                 refreshHudDisplay();
             }
-            else if(msg.type === 'BOARD_INVITE' && msg.targetId === myNetworkId) { audio.play('quest'); if(confirm('?? ' + msg.senderName + ' r? b?n choi C? �ua! B?n c� tham gia kh�ng?')) { pvpChannel.postMessage({type: 'BOARD_INVITE_REPLY', id: myNetworkId, targetId: msg.id, accepted: true, name: player.name}); showToast('�ang k?t n?i...'); } else { pvpChannel.postMessage({type: 'BOARD_INVITE_REPLY', id: myNetworkId, targetId: msg.id, accepted: false, name: player.name}); } } else if(msg.type === 'BOARD_INVITE_REPLY' && msg.targetId === myNetworkId) { if(msg.accepted) { showToast('?? ' + msg.name + ' d� ch?p nh?n! H�y Tung X�c X?c.'); if(window.openBoardGame) window.openBoardGame(true); } else { showToast('? ' + msg.name + ' d� t? ch?i choi C? �ua.'); } } else if(msg.type === 'BOARD_PVP_START') {
+            else if(msg.type === 'BOARD_PVP_START') {
                 if (window.boardApplyNetworkState) window.boardApplyNetworkState(msg);
                 showToast('🎮 Đã vào phòng PvP Cờ Đua.');
             }
@@ -722,6 +746,16 @@
                     `⚔️ <b>${msg.senderName || 'Người chơi'}</b> (Lv.${msg.senderLevel || '?'}) muốn tỉ thí với bạn!${teamText}`;
                 document.getElementById('pvpAutoHint').textContent = '💡 Bật "Tự động" trong tab Đấu Trường để không cần xác nhận.';
                 document.getElementById('pvpChallengeModal').style.display = 'flex';
+            }
+            else if(msg.type === 'BOARD_PVP_INVITE' && msg.targetId === myNetworkId) {
+                if(window.showBoardInvite) window.showBoardInvite(msg);
+            }
+            else if(msg.type === 'BOARD_PVP_REPLY' && msg.targetId === myNetworkId) {
+                if(msg.accepted) {
+                    showToast(`✅ ${msg.replierName} đã CHẤP NHẬN vào Cờ Đua!`);
+                } else {
+                    showToast(`❌ ${msg.replierName} đã TỪ CHỐI lời mời Cờ Đua.`);
+                }
             }
             else if(msg.type === 'CHALLENGE_REPLY' && msg.targetId === myNetworkId) {
                 if(msg.accepted) {
@@ -812,8 +846,9 @@
             for(let id in networkPlayers) {
                 if(now - networkPlayers[id].lastSeen > 6000) {
                     delete networkPlayers[id];
-                    partySystem.removeMember(id);
+                    if(typeof partySystem !== 'undefined') partySystem.removeMember(id);
                     changed = true;
+                    if(typeof db !== 'undefined') db.collection('active_players').doc(id).delete().catch(()=>{});
                 }
             }
             if(changed) { rebuildPvpLobbyUI(); rebuildPartyPanel(); }
@@ -2726,8 +2761,16 @@ function toggleAutoFarm() {
         }
 
         // --- 12. GRAPHICS CANVAS RENDERING ENGINE LOOP (50FPS) ---
-        function mainGameLoop() {
+        let lastGameLoopTime = 0;
+        function mainGameLoop(timestamp) {
             if(currentScreen !== 'gameScreen') return;
+            
+            // Giới hạn FPS ở mức ~30-40 để giảm lag giật
+            if (timestamp - lastGameLoopTime < 25) {
+                requestAnimationFrame(mainGameLoop);
+                return;
+            }
+            lastGameLoopTime = timestamp;
 
             // Apply camera shake
             let sx = 0, sy = 0;
@@ -4113,5 +4156,3 @@ function toggleAutoFarm() {
                 }
             }
         };
-
-window.toggleMobileMenu = function() { let c = document.getElementById('hudNavContainer'); if(c) c.classList.toggle('open'); };

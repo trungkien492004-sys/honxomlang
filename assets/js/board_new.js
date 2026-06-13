@@ -160,45 +160,69 @@ window.boardProcessTurn = function(p, roll, callback) {
         steps = (BOARD_TOTAL_CELLS - 1) - p.pos; // Dừng ở đích
     }
 
-    boardMovePlayer(p.idx, steps, false);
-    boardAddLog(`🏃 ${p.name} tiến lên ô ${p.pos + 1}.`);
+    let currentStep = 0;
+    let moveInterval = setInterval(() => {
+        if(currentStep >= steps || p.eliminated) {
+            clearInterval(moveInterval);
+            
+            setTimeout(() => {
+                if(p.eliminated) return;
 
-    setTimeout(() => {
-        if(p.eliminated) return;
+                let cellName = NEIGHBORHOOD_NAMES[p.pos % NEIGHBORHOOD_NAMES.length];
 
-        let cellName = NEIGHBORHOOD_NAMES[p.pos % NEIGHBORHOOD_NAMES.length];
+                const finalizeTurn = () => {
+                    // Kiem tra xem chi con 1 nguoi song khong
+                    const alive = boardGame.players.filter(x => !x.eliminated);
+                    if(alive.length === 1 && boardGame.players.length > 1) {
+                        boardGame.gameOver = true;
+                        let prize = 200 + (boardGame.betPool||0);
+                        boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
+                        if(alive[0].networkId === myNetworkId || alive[0].isHuman) {
+                            player.gold += prize;
+                            refreshHudDisplay();
+                        }
+                        window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${alive[0].name} là người sống sót cuối cùng!`, `Thưởng: ${prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, () => {}, true);
+                    }
+                    boardRenderGrid(); 
+                    boardRenderPlayers();
+                    if(callback) callback();
+                };
 
-        const finalizeTurn = () => {
-            // Kiem tra xem chi con 1 nguoi song khong
-            const alive = boardGame.players.filter(x => !x.eliminated);
-            if(alive.length === 1 && boardGame.players.length > 1) {
-                boardGame.gameOver = true;
-                let prize = 200 + (boardGame.betPool||0);
-                boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
-                if(alive[0].networkId === myNetworkId || alive[0].isHuman) { player.gold += prize; refreshHudDisplay(); }
-                window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${alive[0].name} là người sống sót cuối cùng!`, `Thưởng: ${prize} 💰<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, () => {}, true);
-            }
-            boardRenderGrid(); 
-            boardRenderPlayers();
-            if(callback) callback();
-        };
+                const handleWinOrCard = () => {
+                    if(p.pos >= BOARD_TOTAL_CELLS - 1) {
+                        boardGame.gameOver = true;
+                        let prize = boardGame.betPool || 0;
+                        if(p.networkId === myNetworkId || p.isHuman) {
+                            player.gold += (200 + prize);
+                            refreshHudDisplay();
+                        }
+                        boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
+                        window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, finalizeTurn, true);
+                        try { audio.play('levelup'); } catch(e){}
+                    } else {
+                        // Rút bài nếu chưa win
+                        boardDrawRandomCard(p, cellName, finalizeTurn);
+                    }
+                };
 
-        const handleWinOrCard = () => {
-            if(p.pos >= BOARD_TOTAL_CELLS - 1) {
-                boardGame.gameOver = true;
-                let prize = boardGame.betPool || 0;
-                if(p.networkId === myNetworkId || p.isHuman) {
-                    player.gold += (200 + prize);
-                    refreshHudDisplay();
+                const handleCombat = () => {
+                    let combatLog = boardHandleCombat(p);
+                    if(combatLog) {
+                        window.boardShowBigNotice("⚔️ ĐỤNG ĐỘ", combatLog, `Khu vực: ${cellName}`, handleWinOrCard);
+                    } else {
+                        handleWinOrCard();
+                    }
+                };
+
+                // Xử lý bẫy trên sân
+                if(boardGame.trappedCells[p.pos]) {
+                    delete boardGame.trappedCells[p.pos];
+                    boardAddLog(`💣 ${p.name} dẫm bẫy! Lùi 3 ô!`, 'special');
+                    boardMovePlayer(p.idx, -3, true);
+                    window.boardShowBigNotice("💣 DẪM BẪY!", `${p.name} dẫm phải bẫy ở ${cellName} và bị lùi 3 ô!`, "", handleCombat);
+                } else {
+                    handleCombat();
                 }
-                boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
-                document.getElementById('diceResultText').textContent = `🏆 ${p.name} CHIẾN THẮNG!`;
-                window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 💰<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, finalizeTurn, true);
-                audio.play('levelup');
-            } else {
-                // Rút bài nếu chưa win
-                boardDrawRandomCard(p, cellName, finalizeTurn);
-            }
         };
 
         const handleCombat = () => {
@@ -261,9 +285,16 @@ window.boardShowBigNotice = function(title, desc, extra = '', callback, persist 
     document.getElementById('bigEventExtra').innerHTML = extra;
     overlay.style.display = 'flex';
     
-    // Reset animations
-    const els = [document.getElementById('bigEventTitle'), document.getElementById('bigEventDesc'), document.getElementById('bigEventExtra'), overlay.querySelector('button')];
-    els.forEach(el => { if(el) { el.style.animation = 'none'; el.offsetHeight; el.style.animation = ''; }});
+    // Reset and apply animations via inline styles
+    const titleEl = document.getElementById('bigEventTitle');
+    const descEl = document.getElementById('bigEventDesc');
+    const extraEl = document.getElementById('bigEventExtra');
+    const btnEl = overlay.querySelector('button');
+
+    if(titleEl) { titleEl.style.animation = 'none'; titleEl.offsetHeight; titleEl.style.animation = 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'; }
+    if(descEl) { descEl.style.animation = 'none'; descEl.offsetHeight; descEl.style.animation = 'fadeIn 0.5s 0.2s forwards'; }
+    if(extraEl) { extraEl.style.animation = 'none'; extraEl.offsetHeight; extraEl.style.animation = 'fadeIn 0.5s 0.4s forwards'; }
+    if(btnEl) { btnEl.style.animation = 'none'; btnEl.offsetHeight; btnEl.style.animation = 'fadeIn 0.5s 0.6s forwards'; }
     
     if(window._bigEventTimer) clearTimeout(window._bigEventTimer);
     window._bigEventCallback = callback;
@@ -450,12 +481,93 @@ window.boardNextTurn = function() {
         safety++;
     }
     boardGame.currentTurn = nextIdx;
-    let next = boardGame.players[boardGame.currentTurn];
+    boardGame.players.sort((a,b)=>b.pos - a.pos);
     boardRenderPlayers();
     boardUpdateRollBtn();
     if(next && next.isBot && !next.eliminated && !boardGame.gameOver) {
         setTimeout(() => { if(!boardGame.gameOver) boardRollForCurrentPlayer(); }, 900);
     }
+};
+
+window.closeBoardGame = function() {
+    try { audio.play('click'); } catch(e){}
+    const modal = document.getElementById('boardGameModal');
+    if(modal) modal.classList.remove('active');
+};
+
+window.closeBoardInviteModal = function() {
+    try { audio.play('click'); } catch(e){}
+    const modal = document.getElementById('boardInviteModal');
+    if(modal) modal.classList.remove('active');
+};
+
+window.openBoardInviteModal = function() {
+    try { audio.play('click'); } catch(e){}
+    const modal = document.getElementById('boardInviteModal');
+    const list = document.getElementById('boardInvitePlayerList');
+    if(!modal || !list) return;
+    
+    list.innerHTML = '';
+    let players = window.networkPlayers || {};
+    let count = 0;
+    
+    for(let id in players) {
+        let p = players[id];
+        if(id === myNetworkId || (Date.now() - p.lastSeen > 12000)) continue;
+        count++;
+        let div = document.createElement('div');
+        div.className = 'pvp-player-row';
+        div.innerHTML = `
+            <div style="flex:1; display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.5rem;">${window.CLASS_DATA && window.CLASS_DATA[p.classId] ? window.CLASS_DATA[p.classId].emoji : '👤'}</span>
+                <div>
+                    <div style="font-weight:bold; color:var(--gold);">${p.name}</div>
+                    <div style="font-size:0.75rem; color:#aaa;">Lv.${p.level || 1}</div>
+                </div>
+            </div>
+            <button class="btn-sm" style="background:#22c55e;" onclick="sendBoardInvite('${id}', '${p.name}')">Mời</button>
+        `;
+        list.appendChild(div);
+    }
+    
+    if(count === 0) {
+        list.innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Không có người chơi online. Mở thêm tab!</div>';
+    }
+    modal.classList.add('active');
+};
+
+window.sendBoardInvite = function(targetId, targetName) {
+    try { audio.play('click'); } catch(e){}
+    if(typeof pvpChannel !== 'undefined') {
+        pvpChannel.postMessage({
+            type: 'BOARD_PVP_INVITE',
+            id: myNetworkId,
+            targetId: targetId,
+            senderName: player.name
+        });
+        showToast(`Đã gửi lời mời Cờ Đua tới ${targetName}!`);
+        closeBoardInviteModal();
+    }
+};
+
+window.showBoardInvite = function(msg) {
+    if(window.currentScreen === 'boardGame' || document.getElementById('boardGameModal').classList.contains('active')) return;
+    document.getElementById('pvpChallengeText').innerHTML = 
+        `🎲 <b>${msg.senderName}</b> mời bạn chơi Cờ Đua Sinh Tồn!`;
+    document.getElementById('pvpAutoHint').textContent = '';
+    
+    document.getElementById('acceptPvpBtn').onclick = () => {
+        document.getElementById('pvpChallengeModal').style.display = 'none';
+        if(typeof pvpChannel !== 'undefined') pvpChannel.postMessage({ type: 'BOARD_PVP_REPLY', id: myNetworkId, senderId: msg.id, targetId: msg.id, accepted: true, replierName: player.name });
+        if(window.openBoardGameWithBet) window.openBoardGameWithBet();
+    };
+    
+    document.getElementById('rejectPvpBtn').onclick = () => {
+        document.getElementById('pvpChallengeModal').style.display = 'none';
+        if(typeof pvpChannel !== 'undefined') pvpChannel.postMessage({ type: 'BOARD_PVP_REPLY', id: myNetworkId, senderId: msg.id, targetId: msg.id, accepted: false, replierName: player.name });
+    };
+    
+    document.getElementById('pvpChallengeModal').style.display = 'flex';
 };
 
 console.log('🏁 [board_new.js] Cờ Đua Sinh Tồn v4 loaded!');
