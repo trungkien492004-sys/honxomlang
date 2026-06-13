@@ -162,11 +162,7 @@
             </div>
         </div>
 
-        <!-- ===== VIRTUAL JOYSTICK (MOBILE) ===== -->
-        <div id="joystickZone">
-            <div id="joystickBase">
-                <div id="joystickStick"></div>
-            </div>
+        <!-- ===== VIRTUAL JOYSTICK REMOVED ===== -->
         </div>
 
         <div id="targetIndicator" style="
@@ -328,7 +324,7 @@
         </div>
 
         <div class="npc-dialog-layer" id="npcDialogLayer">
-            <div class="dialog-box">
+            <div class="dialog-box" style="position: relative;"><button type="button" class="btn-close-npc" onclick="window.closeNpcDialogue()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: #ffd54f; font-size: 1.6rem; cursor: pointer; line-height: 1; z-index: 100;">✖</button>
                 <div class="npc-header">
                     <div class="npc-avatar" id="dialogNpcAvatar">🧙‍♂️</div>
                     <div class="npc-title">
@@ -600,7 +596,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
     <script src="assets/js/firebase.js?v=3"></script>
-    <script src="assets/js/joystick.js?v=3"></script>
+    
     <script src="assets/js/board_new.js?v=3"></script>
     <script src="assets/js/vfx.js?v=3"></script>
     <script src="assets/js/sprites_data.js?v=3"></script>

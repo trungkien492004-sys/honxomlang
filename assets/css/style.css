@@ -1447,3 +1447,91 @@ input[type="text"], input[type="email"], input[type="password"] {
 .bottom-hud {
     display: none !important;
 }
+
+/* --- ANTIGRAVITY UPGRADE OVERRIDES --- */
+.npc-dialog-layer {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0,0,0,0.65) !important;
+    z-index: 100010 !important;
+    display: none;
+    justify-content: center !important;
+    align-items: center !important;
+    padding-bottom: 0 !important;
+    backdrop-filter: blur(4px) !important;
+}
+.dialog-box {
+    background: #2d1810 !important;
+    border: 3.5px solid #d4af37 !important;
+    border-radius: 12px !important;
+    width: min(90vw, 400px) !important;
+    padding: 22px !important;
+    box-shadow: 0 10px 45px rgba(0,0,0,0.9) !important;
+}
+.game-panel {
+    z-index: 99990 !important;
+}
+.top-hud {
+    z-index: 100 !important;
+}
+.right-top-box {
+    z-index: 50 !important;
+}
+#boardBetModal, #pvpChallengeModal, #boardInviteModal, #boardGameModal {
+    z-index: 100000 !important;
+}
+
+/* Hotbar background cleanup */
+.skill-hotbar {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    pointer-events: none !important;
+}
+.skill-buttons {
+    pointer-events: none !important;
+}
+.skill-slot {
+    pointer-events: auto !important;
+}
+
+/* Scaling skill buttons: Att is 35px, skills 25px */
+.skill-slot[data-slot="1"], .skill-slot[data-slot="1"] .skill-circle {
+    width: 35px !important;
+    height: 35px !important;
+}
+.skill-slot:not([data-slot="1"]), .skill-slot:not([data-slot="1"]) .skill-circle {
+    width: 25px !important;
+    height: 25px !important;
+}
+.skill-circle .skill-icon {
+    font-size: 0.85rem !important;
+}
+.skill-slot[data-slot="1"] .skill-circle .skill-icon {
+    font-size: 1.1rem !important;
+}
+
+/* Cooldown text absolutely centered horizontally and vertically */
+.skill-circle .cooldown-text {
+    position: absolute !important;
+    inset: 0 !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.65rem !important;
+    font-weight: 900 !important;
+    color: #ef4444 !important;
+    z-index: 5 !important;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+    margin: 0 !important;
+}
+.skill-slot[data-slot="1"] .skill-circle .cooldown-text {
+    font-size: 0.8rem !important;
+}
+.skill-circle .cooldown-ring {
+    inset: 1px !important;
+}

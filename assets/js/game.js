@@ -95,32 +95,527 @@
         const audio = new AudioSynthEngine();
 
         // --- 2. DATA DICTIONARIES (CLASSES, MONSTERS, ITEMS, RECIPES, NPCS) ---
-        const CLASS_DATA = {
-            cop: { name: "Anh Cảnh Sát", emoji: "👮‍♂️", hp: 160, mp: 40, atk: 12, def: 8, speed: 4.5, skills: [
-                { id: "cop_bash", name: "Dùi Cùi Trấn Áp", icon: "🔨", desc: "Đập mạnh gây sát thương vật lý và làm chậm mục tiêu.", mp: 8, cd: 3000, type: 'target', range: 180, multiplier: 1.6, lastUsed: 0 },
+        
+        // --- STORY SYSTEM AND OPTIONAL QUESTS ---
+        const STORY_QUESTS = [
+            {
+                id: "story_1",
+                title: "Đặt chân tới Xóm Anh Hùng",
+                desc: "Đến gặp Cụ Trưởng Làng để bắt đầu hành trình cứu thôn cứu xóm.",
+                type: "talk",
+                target: "elder",
+                reqLevel: 1,
+                rewardGold: 50,
+                rewardExp: 20,
+                dialogStart: "Trưởng Làng: Ta chờ con từ rất lâu rồi... Một vị anh hùng dũng cảm mới đặt chân đến làng. Xóm Anh Hùng đang gặp nạn bởi quái thú. Con có sẵn lòng giúp đỡ không?",
+                dialogFinish: "Trưởng Làng: Cảm ơn sự dũng cảm của con! Hãy cầm lấy ít vàng làm lộ phí, và bắt đầu làm quen với bà con nhé."
+            },
+            {
+                id: "story_2",
+                title: "Làm quen với Lão Thợ Rèn",
+                desc: "Đến trò chuyện với Bác Thợ Rèn Hùng Hổ để tìm hiểu cách đúc trang bị.",
+                type: "talk",
+                target: "blacksmith",
+                reqLevel: 1,
+                rewardGold: 60,
+                rewardExp: 30,
+                dialogStart: "Bác Thợ Rèn: Keng! Keng! Chào cậu bé. Nếu muốn mạnh mẽ hơn để diệt quỷ, hãy chăm chỉ rèn luyện và rèn đúc trang bị nhé! Hãy nói chuyện với Cô Ba Tạp Hóa để kiếm thêm nguyên liệu.",
+                dialogFinish: "Bác Thợ Rèn: Rất tốt, khi có quặng sắt thô và đá ma thuật, hãy mang tới đây ta sẽ rèn cho ngươi những vũ khí cực phẩm!"
+            },
+            {
+                id: "story_3",
+                title: "Hỗ trợ Cô Ba Tạp Hóa",
+                desc: "Gặp Cô Ba Tạp Hóa để xem cô ấy có cần giúp gì không.",
+                type: "talk",
+                target: "merchant",
+                reqLevel: 1,
+                rewardGold: 70,
+                rewardExp: 40,
+                dialogStart: "Cô Ba Tạp Hóa: Ôi may quá, có hiệp khách trẻ tuổi! Lũ chuột trong kho lương đang phá hoại hết lúa gạo của ta. Ngươi mau đi diệt trừ chúng giúp ta với!",
+                dialogFinish: "Cô Ba Tạp Hóa: Cảm ơn ngươi nhiều nhé! Kho lương tạm thời đã an toàn rồi."
+            },
+            {
+                id: "story_4",
+                title: "Tiêu diệt Chuột Phá Kho",
+                desc: "Tiêu diệt 3 con Chuột Cống Đột Biến đang quấy phá kho lương thực.",
+                type: "kill",
+                target: "Chuột Cống Đột Biến",
+                req: 3,
+                reqLevel: 1,
+                rewardGold: 150,
+                rewardExp: 100,
+                npcAccept: "merchant",
+                npcFinish: "merchant",
+                dialogStart: "Cô Ba Tạp Hóa: Mau ra bãi đất trống phía Bắc, tiêu diệt 3 con Chuột Cống Đột Biến phá hoại kho lương giúp ta!",
+                dialogFinish: "Cô Ba Tạp Hóa: Tuyệt vời! Ngươi quả thực rất tài năng. Đây là phần thưởng của ngươi."
+            },
+            {
+                id: "story_5",
+                title: "Sự cố mất tích lương thực",
+                desc: "Gặp Trưởng Làng để báo cáo tình hình và tìm cách sửa sang lại xóm.",
+                type: "talk",
+                target: "elder",
+                reqLevel: 3,
+                rewardGold: 200,
+                rewardExp: 200,
+                dialogStart: "Trưởng Làng: Nghe nói ngươi vừa giúp Cô Ba diệt chuột? Tốt lắm. Nhưng lũ chuột ấy chỉ là thuộc hạ của một sinh vật khổng lồ đáng sợ. Ta nghi ngờ Chuột Chúa Khổng Lồ đang ẩn náu ở phía Đông.",
+                dialogFinish: "Trưởng Làng: Trước khi đối phó với nó, ta cần ngươi giúp dân làng sửa chữa lại một số nhà cửa đổ nát."
+            },
+            {
+                id: "story_6",
+                title: "Tiêu diệt Chuột Chúa Khổng Lồ",
+                desc: "Tiêu diệt Siêu Boss Thần Trùng Đại Quỷ (Chuột Chúa Khổng Lồ) ở giữa bản đồ.",
+                type: "kill",
+                target: "THẦN TRÙNG ĐẠI QUỶ (SIÊU BOSS)",
+                req: 1,
+                reqLevel: 5,
+                rewardGold: 600,
+                rewardExp: 500,
+                rewardItem: "wp_steel",
+                npcAccept: "elder",
+                npcFinish: "elder",
+                dialogStart: "Trưởng Làng: Chuột Chúa Khổng Lồ chính là đầu sỏ tàn phá làng. Ngươi hãy thu thập sức mạnh và tiêu diệt nó ở trung tâm bản đồ cứu nguy dân lành!",
+                dialogFinish: "Trưởng Làng: Ôi trời đất ơi! Ngươi đã hạ gục được ác thú! Dân làng vô cùng biết ơn ngươi. Đây là thú cưỡi Ngựa Tân Thủ cùng Đao Thép cực mạnh ta tặng ngươi!"
+            },
+            {
+                id: "story_7",
+                title: "Khám phá Bí Ẩn Khu Rừng",
+                desc: "Đạt cấp 10 và đi sâu vào Rừng Cổ Thụ, tiêu diệt 5 con Chó Hoang Lên Cơn Dại.",
+                type: "kill",
+                target: "Chó Hoang Lên Cơn Dại",
+                req: 5,
+                reqLevel: 10,
+                rewardGold: 500,
+                rewardExp: 1000,
+                npcAccept: "elder",
+                npcFinish: "elder",
+                dialogStart: "Trưởng Làng: Gần đây, dân làng đi vào Rừng Cổ Thụ liên tục mất tích bí ẩn. Hãy vào rừng tiêu diệt 5 con Chó Hoang để dọn đường điều tra xem sao.",
+                dialogFinish: "Trưởng Làng: Ngươi đã dọn sạch lũ chó dại, nhưng tổ ấm của chúng dường như đang bị điều khiển bởi ác dơi."
+            },
+            {
+                id: "story_8",
+                title: "Đại chiến Thủ Lĩnh Dơi Đêm",
+                desc: "Xâm nhập Đầm Lầy Độc, tiêu diệt Boss Quỷ Vương Khổng Lồ (đóng vai Thủ Lĩnh Dơi Đêm).",
+                type: "kill",
+                target: "Quỷ Vương Khổng Lồ (Cyclops Lord)",
+                req: 1,
+                reqLevel: 15,
+                rewardGold: 1000,
+                rewardExp: 2500,
+                rewardItem: "key_cemetery",
+                npcAccept: "elder",
+                npcFinish: "elder",
+                dialogStart: "Trưởng Làng: Thủ Lĩnh Dơi Đêm đang ẩn mình dưới Đầm Lầy Độc và bắt giữ dân làng. Hãy tiêu diệt nó để giải cứu mọi người và tìm manh mối!",
+                dialogFinish: "Trưởng Làng: Cứu được dân làng rồi! Và ngươi nhặt được một Mảnh Bản Đồ Cổ từ xác con quỷ. Để ta nghiên cứu mảnh bản đồ này."
+            },
+            {
+                id: "story_9",
+                title: "Khám phá Bản Đồ Cổ",
+                desc: "Gặp Bác Thợ Rèn để giải mã Mảnh Bản Đồ Cổ vừa tìm thấy.",
+                type: "talk",
+                target: "blacksmith",
+                reqLevel: 20,
+                rewardGold: 800,
+                rewardExp: 3500,
+                dialogStart: "Bác Thợ Rèn: Hừm, mảnh bản đồ cổ này... Nó vẽ lối vào mật thất Nghĩa Địa của Tổ chức Hắc Ảnh! Chúng đang âm mưu giải phóng Ma Thần bóng tối!",
+                dialogFinish: "Bác Thợ Rèn: Ngươi phải lập tức đột nhập Nghĩa Địa và chặn đứng âm mưu của chúng!"
+            },
+            {
+                id: "story_10",
+                title: "Xâm nhập Căn cứ Hắc Ảnh",
+                desc: "Tiêu diệt 8 con Lợn Rừng Phá Hoa Màu (quái canh gác Nghĩa Địa) bảo vệ căn cứ địch.",
+                type: "kill",
+                target: "Lợn Rừng Phá Hoa Màu",
+                req: 8,
+                reqLevel: 25,
+                rewardGold: 1500,
+                rewardExp: 8000,
+                npcAccept: "blacksmith",
+                npcFinish: "blacksmith",
+                dialogStart: "Bác Thợ Rèn: Hãy tiêu diệt 8 tên lính gác ngoài Nghĩa Địa để xâm nhập căn cứ bí mật của chúng.",
+                dialogFinish: "Bác Thợ Rèn: Tốt lắm, lối vào mật thất đã mở rộng. Hãy cẩn thận tên đầu sỏ bên trong."
+            },
+            {
+                id: "story_11",
+                title: "Tiêu diệt Pháp Sư Bóng Tối",
+                desc: "Tiêu diệt Boss Chúa Tể Thây Ma (Pháp Sư Bóng Tối) ẩn sâu trong hầm mộ Nghĩa Địa.",
+                type: "kill",
+                target: "Chúa Tể Thây Ma (Zombie Lord)",
+                req: 1,
+                reqLevel: 35,
+                rewardGold: 3000,
+                rewardExp: 25000,
+                rewardItem: "wp_diamond",
+                npcAccept: "blacksmith",
+                npcFinish: "elder",
+                dialogStart: "Bác Thợ Rèn: Pháp Sư Bóng Tối đang thực hiện nghi thức tế đàn ở sâu trong hầm mộ. Hãy tiêu diệt hắn trước khi quá muộn!",
+                dialogFinish: "Trưởng Làng: Hắn đã chết, nhưng phong ấn Ma Thần đã bị nứt vỡ! Chiến tranh liên thôn cũng đang nổ ra làm suy giảm nguyên khí chính đạo!"
+            },
+            {
+                id: "story_12",
+                title: "Đại Chiến Liên Thôn - Chọn Phe",
+                desc: "Trò chuyện với Trưởng Làng để tuyên thệ gia nhập hàng ngũ chiến đấu liên thôn.",
+                type: "talk",
+                target: "elder",
+                reqLevel: 40,
+                rewardGold: 2000,
+                rewardExp: 50000,
+                dialogStart: "Trưởng Làng: Làng của chúng ta và các thôn lân cận đang tranh chấp dữ dội vì hiểu lầm của tổ chức Hắc Ảnh gieo rắc. Hãy gia nhập lực lượng để ổn định tình hình liên thôn!",
+                dialogFinish: "Trưởng Làng: Tốt lắm! Bây giờ chúng ta phải dẹp loạn tên Tướng Quân Phản Loạn đang thừa cơ trục lợi chiến tranh."
+            },
+            {
+                id: "story_13",
+                title: "Dẹp loạn Tướng Quân Phản Loạn",
+                desc: "Tiêu diệt Boss Tướng Quân Phản Loạn (Ác Quỷ Bóng Đêm) tại khu vực chiến trường.",
+                type: "kill",
+                target: "Ác Quỷ Bóng Đêm",
+                req: 1,
+                reqLevel: 50,
+                rewardGold: 6000,
+                rewardExp: 200000,
+                rewardItem: "ar_guardian",
+                npcAccept: "elder",
+                npcFinish: "elder",
+                dialogStart: "Trưởng Làng: Tướng Quân Phản Loạn đang đóng quân ở chiến trường phía Tây. Ngươi hãy tiêu diệt hắn để lập lại hòa bình liên thôn!",
+                dialogFinish: "Trưởng Làng: Hòa bình đã lập lại! Các thôn đã đồng lòng phong ấn Ma Thần. Nhưng phong ấn cần có các Thánh Khí cổ xưa."
+            },
+            {
+                id: "story_14",
+                title: "Thu thập Thánh Khí Phong Ấn",
+                desc: "Tiêu diệt Boss Hộ Vệ Đền Cổ tại Đền Cổ để thu thập mảnh Thánh Khí bảo vật.",
+                type: "kill",
+                target: "Hộ Vệ Đền Cổ",
+                req: 1,
+                reqLevel: 65,
+                rewardGold: 10000,
+                rewardExp: 1000000,
+                rewardItem: "ac_phoenix",
+                npcAccept: "elder",
+                npcFinish: "elder",
+                dialogStart: "Trưởng Làng: Hãy tới Đền Cổ cổ xưa, tiêu diệt Thần thú Hộ Vệ Đền Cổ để lấy lại Thánh Khí Phong Ấn Ma Thần!",
+                dialogFinish: "Trưởng Làng: Tuyệt vời! Thánh khí đã trong tay chúng ta. Giờ là lúc đi tới Hầm Ngục Tối để phong ấn Ma Thần mãi mãi."
+            },
+            {
+                id: "story_15",
+                title: "Phong Ấn Ma Thần - Trận Cuối",
+                desc: "Tiêu diệt Siêu Boss Ma Vương Rực Lửa (Ma Thần) ẩn sâu dưới Hầm Ngục Tối.",
+                type: "kill",
+                target: "Ma Vương Rực Lửa (Barlog King)",
+                req: 1,
+                reqLevel: 80,
+                rewardGold: 25000,
+                rewardExp: 8000000,
+                rewardItem: "wp_barlog",
+                npcAccept: "elder",
+                npcFinish: "elder",
+                dialogStart: "Trưởng Làng: Ma Thần đã thức tỉnh tại Hầm Ngục Tối! Đây là vận mệnh của cả thế giới, hãy tiêu diệt hắn cứu lấy muôn dân!",
+                dialogFinish: "Trưởng Làng: Hòa bình vĩnh hằng đã trở lại với thế giới Xóm Anh Hùng! Ngươi chính là vị cứu thế vĩ đại nhất lịch sử xóm làng!"
+            }
+        ];
+
+        // Functions to generate optional quests
+        function generateDailyQuest() {
+            let roll = Math.random();
+            if(roll < 0.5) {
+                return {
+                    title: "📅 Diệt Muỗi Làng Bên",
+                    desc: "Tiêu diệt 3 con Muỗi Vằn Sốt Xuất Huyết ở bờ ruộng phía Đông.",
+                    type: "kill",
+                    target: "Muỗi Vằn Sốt Xuất Huyết",
+                    req: 3,
+                    progress: 0,
+                    rewardGold: 200,
+                    rewardExp: 400
+                };
+            } else {
+                return {
+                    title: "📅 Diệt Chó Dại Bảo Vệ Dân",
+                    desc: "Tiêu diệt 2 con Chó Hoang Lên Cơn Dại bảo vệ làng quê.",
+                    type: "kill",
+                    target: "Chó Hoang Lên Cơn Dại",
+                    req: 2,
+                    progress: 0,
+                    rewardGold: 300,
+                    rewardExp: 600
+                };
+            }
+        }
+
+        function generateGuildQuest() {
+            let roll = Math.random();
+            if(roll < 0.5) {
+                return {
+                    title: "🛡️ Quyên Góp Sắt Thô",
+                    desc: "Thu thập và mang 2 Quặng Sắt Thô quyên góp vào kho bang.",
+                    type: "collect",
+                    target: "iron_ore",
+                    req: 2,
+                    progress: 0,
+                    rewardGold: 250,
+                    rewardExp: 500
+                };
+            } else {
+                return {
+                    title: "🛡️ Quyên Góp Pha Lê",
+                    desc: "Thu thập và quyên góp 1 Pha Lê Ma Thuật cho bang hội.",
+                    type: "collect",
+                    target: "magic_crystal",
+                    req: 1,
+                    progress: 0,
+                    rewardGold: 400,
+                    rewardExp: 800
+                };
+            }
+        }
+
+        function generateCoupleQuest() {
+            let roll = Math.random();
+            if(roll < 0.5) {
+                return {
+                    title: "💖 Tặng Cơm Nắm Xá Xíu",
+                    desc: "Thu thập 2 Cơm Nắm Xá Xíu để cùng người thương dã ngoại.",
+                    type: "collect",
+                    target: "food_com_nam",
+                    req: 2,
+                    progress: 0,
+                    rewardGold: 200,
+                    rewardExp: 400
+                };
+            } else {
+                return {
+                    title: "💖 Trò Chuyện Lãng Mạn",
+                    desc: "Gặp gỡ Cô Ba Tạp Hóa để mua tặng hoa hồng tình duyên.",
+                    type: "talk",
+                    target: "merchant",
+                    req: 1,
+                    progress: 0,
+                    rewardGold: 150,
+                    rewardExp: 300
+                };
+            }
+        }
+
+        // Real-time skill cooldown update tick
+        function updateSkillCooldownsTick() {
+            if(!window.player || !player.skills) return;
+            player.skills.forEach(s => {
+                let btn = document.querySelector(`.skill-circle[data-skill-id="${s.id}"]`);
+                if(!btn) return;
+                let elapsed = Date.now() - s.lastUsed;
+                let cooldownMs = s.cd - elapsed;
+                let ready = cooldownMs <= 0;
+                let cooldownSec = Math.max(0, cooldownMs / 1000);
+                
+                // Toggle cooling class
+                if(!ready) {
+                    btn.classList.add('cooling');
+                } else {
+                    btn.classList.remove('cooling');
+                }
+                
+                // Update SVG progress ring
+                let ring = btn.querySelector('.cooldown-ring circle:nth-child(2)');
+                if(ring) {
+                    let progress = ready ? 0 : (cooldownMs / s.cd) * 100;
+                    ring.setAttribute('stroke-dashoffset', 251.2 - (251.2 * progress / 100));
+                }
+                
+                // Update Cooldown Text
+                let txt = btn.querySelector('.cooldown-text');
+                if(txt) {
+                    if(ready) {
+                        txt.textContent = 'OK';
+                        txt.style.color = '#f8fafc';
+                    } else {
+                        if(cooldownSec < 2.0) {
+                            txt.textContent = cooldownSec.toFixed(1);
+                            txt.style.color = '#ef4444';
+                        } else {
+                            txt.textContent = Math.ceil(cooldownSec) + 's';
+                            txt.style.color = '#ffd54f';
+                        }
+                    }
+                }
+            });
+        }
+
+        // Quest Directions Pointer UI Canvas Drawer
+        function renderQuestDirectionGuide() {
+            if(currentScreen !== 'gameScreen') return;
+            
+            // Get coordinates of active target based on current accepted quest
+            let targetX = null;
+            let targetY = null;
+            let targetName = "";
+            let targetMap = "world"; // default
+            
+            if (player.currentQuestIdx !== undefined && STORY_QUESTS[player.currentQuestIdx]) {
+                let sQuest = STORY_QUESTS[player.currentQuestIdx];
+                if (!player.questAccepted) {
+                    // Go accept quest from accept NPC
+                    let npcKey = sQuest.npcAccept || sQuest.target;
+                    let npc = NPC_DATA[npcKey];
+                    if (npc) {
+                        targetX = npc.x;
+                        targetY = npc.y;
+                        targetName = "📜 " + npc.name;
+                    }
+                } else {
+                    // Accepted, go to target
+                    if (sQuest.type === 'talk') {
+                        let npc = NPC_DATA[sQuest.target];
+                        if (npc) {
+                            targetX = npc.x;
+                            targetY = npc.y;
+                            targetName = "💬 " + npc.name;
+                        }
+                    } else if (sQuest.type === 'kill') {
+                        // Find if target monster exists on map
+                        let match = monsters.find(m => m.name === sQuest.target);
+                        if (match) {
+                            targetX = match.x;
+                            targetY = match.y;
+                            targetName = "⚔️ " + match.name;
+                        } else {
+                            // Point to spawn region coordinate estimation
+                            if (sQuest.target.includes('Chuột')) { targetX = 1800; targetY = 1800; }
+                            else if (sQuest.target.includes('Chó')) { targetX = 1200; targetY = 2000; }
+                            else if (sQuest.target.includes('Muỗi')) { targetX = 1000; targetY = 1000; }
+                            else if (sQuest.target.includes('Lợn')) { targetX = 2500; targetY = 2500; }
+                            else if (sQuest.target.includes('Hộ Vệ')) { targetX = 2000; targetY = 2000; }
+                            else if (sQuest.target.includes('Thần Trùng')) { targetX = 2200; targetY = 2200; }
+                            else if (sQuest.target.includes('Barlog')) { targetX = 3500; targetY = 500; }
+                            else { targetX = 2000; targetY = 2000; }
+                            targetName = "🔍 Vùng: " + sQuest.target;
+                        }
+                    } else if (sQuest.type === 'collect') {
+                        // Point to drop items or spawn regions
+                        let match = groundItems.find(gi => {
+                            let itemDef = ITEMS[gi.id];
+                            return gi.id === sQuest.target || (itemDef && itemDef.name === sQuest.target);
+                        });
+                        if (match) {
+                            targetX = match.x;
+                            targetY = match.y;
+                            targetName = "💎 Vật Phẩm Rơi";
+                        } else {
+                            targetX = 1800; targetY = 1800; // General central farm spot
+                            targetName = "🌾 Tìm: " + sQuest.target;
+                        }
+                    }
+                }
+            } else if (player.dailyQuest) {
+                let dq = player.dailyQuest;
+                let match = monsters.find(m => m.name === dq.target);
+                if (match) { targetX = match.x; targetY = match.y; }
+                else { targetX = 1500; targetY = 1500; }
+                targetName = dq.title;
+            }
+
+            if (targetX === null || targetY === null) return;
+
+            // Draw arrow
+            let sx = canvas.width / 2 + (targetX - player.x);
+            let sy = canvas.height / 2 + (targetY - player.y);
+
+            let isOnScreen = (sx >= 10 && sx <= canvas.width - 10 && sy >= 10 && sy <= canvas.height - 10);
+
+            if (isOnScreen) {
+                // Draw bouncing arrow pointing down above target
+                let bounce = Math.sin(Date.now() / 150) * 8;
+                ctx.save();
+                ctx.fillStyle = "#ffd54f";
+                ctx.strokeStyle = "#ff8f00";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                let ax = sx;
+                let ay = sy - 60 + bounce;
+                ctx.moveTo(ax, ay + 12);
+                ctx.lineTo(ax - 8, ay);
+                ctx.lineTo(ax - 3, ay);
+                ctx.lineTo(ax - 3, ay - 12);
+                ctx.lineTo(ax + 3, ay - 12);
+                ctx.lineTo(ax + 3, ay);
+                ctx.lineTo(ax + 8, ay);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            } else {
+                // Draw edge indicator arrow pointing to direction
+                let angle = Math.atan2(targetY - player.y, targetX - player.x);
+                let border = 28;
+                let arrowX = canvas.width / 2 + Math.cos(angle) * (canvas.width / 2 - border);
+                let arrowY = canvas.height / 2 + Math.sin(angle) * (canvas.height / 2 - border);
+                arrowX = Math.max(border, Math.min(canvas.width - border, arrowX));
+                arrowY = Math.max(border, Math.min(canvas.height - border, arrowY));
+
+                ctx.save();
+                ctx.translate(arrowX, arrowY);
+                ctx.rotate(angle);
+                ctx.fillStyle = "#ffd54f";
+                ctx.strokeStyle = "#ff8f00";
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(12, 0);
+                ctx.lineTo(-6, -8);
+                ctx.lineTo(-2, -3);
+                ctx.lineTo(-14, -3);
+                ctx.lineTo(-14, 3);
+                ctx.lineTo(-2, 3);
+                ctx.lineTo(-6, 8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+
+                // Draw Distance Label Text
+                let distM = Math.round(Math.hypot(targetX - player.x, targetY - player.y) / 10);
+                ctx.save();
+                ctx.font = "bold 11px 'Baloo 2'";
+                ctx.fillStyle = "#ffffff";
+                ctx.strokeStyle = "#000000";
+                ctx.lineWidth = 3;
+                ctx.textAlign = arrowX < canvas.width / 2 ? "left" : "right";
+                let textX = arrowX + (arrowX < canvas.width / 2 ? 16 : -16);
+                let textY = arrowY + 4;
+                ctx.strokeText(`${targetName} (${distM}m)`, textX, textY);
+                ctx.fillText(`${targetName} (${distM}m)`, textX, textY);
+                ctx.restore();
+            }
+        }
+        
+        window.closeNpcDialogue = function() {
+            let layer = document.getElementById('npcDialogLayer');
+            if (layer) layer.style.display = 'none';
+        };
+
+	const CLASS_DATA = {
+            cop: { name: "Anh Cảnh Sát", emoji: "👮‍♂️", hp: 160, mp: 40, atk: 12, def: 8, speed: 6.3, skills: [
+                { id: "cop_bash", name: "Dùi Cùi Trấn Áp", icon: "🔨", desc: "Đập mạnh gây sát thương vật lý và làm chậm mục tiêu.", mp: 8, cd: 3000, type: 'target', range: 180, multiplier: 3.2, lastUsed: 0 },
                 { id: "cop_shield", name: "Khiên Công Lý", icon: "🛡️", desc: "Tạo khiên hấp thụ sát thương và hồi HP tức thời.", mp: 12, cd: 6000, type: 'self', lastUsed: 0 },
-                { id: "cop_charge", name: "Tăng Tốc Đột Kích", icon: "⚡", desc: "Phóng tới cường kích mục tiêu, tạo choáng nhẹ.", mp: 14, cd: 5200, type: 'target', range: 220, multiplier: 1.9, lastUsed: 0 },
-                { id: "cop_siren", name: "Âm Thanh Kiểm Soát", icon: "📯", desc: "Gây hiệu ứng diện rộng làm chậm quái và giảm sát thương.", mp: 22, cd: 9000, type: 'aoe', range: 200, multiplier: 1.2, lastUsed: 0 },
+                { id: "cop_charge", name: "Tăng Tốc Đột Kích", icon: "⚡", desc: "Phóng tới cường kích mục tiêu, tạo choáng nhẹ.", mp: 14, cd: 5200, type: 'target', range: 220, multiplier: 3.8, lastUsed: 0 },
+                { id: "cop_siren", name: "Âm Thanh Kiểm Soát", icon: "📯", desc: "Gây hiệu ứng diện rộng làm chậm quái và giảm sát thương.", mp: 22, cd: 9000, type: 'aoe', range: 200, multiplier: 2.4, lastUsed: 0 },
                 { id: "cop_bastion", name: "Thành Lũy Công Lý", icon: "🏰", desc: "Mở vùng phòng thủ, phản lại sát thương và hồi HP lớn.", mp: 30, cd: 14000, type: 'ultimate', lastUsed: 0 }
             ]},
-            teacher: { name: "Cô Giáo Làng", emoji: "👩‍🏫", hp: 90, mp: 100, atk: 18, def: 3, speed: 4.2, skills: [
-                { id: "teach_quiz", name: "Kiểm Tra Bài Cũ", icon: "✏️", desc: "Tung phấn ma thuật gây sát thương phép và làm choáng.", mp: 15, cd: 2500, type: 'target', range: 200, multiplier: 2.2, lastUsed: 0 },
-                { id: "teach_silence", name: "Cả Lớp Trật Tự!", icon: "🔇", desc: "Khống chế một vùng kẻ địch và làm chậm lại toàn bộ quái.", mp: 25, cd: 7000, type: 'aoe', range: 180, multiplier: 1.3, lastUsed: 0 },
-                { id: "teach_meteor", name: "Thiên Thạch Phấn", icon: "☄️", desc: "Gọi thiên thạch giáng xuống điểm đã chọn gây sát thương lớn.", mp: 28, cd: 9500, type: 'point', range: 240, multiplier: 2.5, lastUsed: 0 },
+            teacher: { name: "Cô Giáo Làng", emoji: "👩‍🏫", hp: 90, mp: 100, atk: 18, def: 3, speed: 5.9, skills: [
+                { id: "teach_quiz", name: "Kiểm Tra Bài Cũ", icon: "✏️", desc: "Tung phấn ma thuật gây sát thương phép và làm choáng.", mp: 15, cd: 2500, type: 'target', range: 200, multiplier: 4.4, lastUsed: 0 },
+                { id: "teach_silence", name: "Cả Lớp Trật Tự!", icon: "🔇", desc: "Khống chế một vùng kẻ địch và làm chậm lại toàn bộ quái.", mp: 25, cd: 7000, type: 'aoe', range: 180, multiplier: 2.6, lastUsed: 0 },
+                { id: "teach_meteor", name: "Thiên Thạch Phấn", icon: "☄️", desc: "Gọi thiên thạch giáng xuống điểm đã chọn gây sát thương lớn.", mp: 28, cd: 9500, type: 'point', range: 240, multiplier: 5.0, lastUsed: 0 },
                 { id: "teach_barrier", name: "Hào Quang Tri Thức", icon: "📚", desc: "Tạo lá chắn hồi phục cho bản thân và giảm sát thương.", mp: 20, cd: 10000, type: 'self', lastUsed: 0 },
                 { id: "teach_grace", name: "Ánh Sao Tinh Tú", icon: "🌟", desc: "Kỹ năng tối thượng gây bão ma thuật lớn lên vùng mục tiêu.", mp: 35, cd: 14500, type: 'ultimate', lastUsed: 0 }
             ]},
-            merchant: { name: "Chú Buôn Lậu", emoji: "🕵️‍♂️", hp: 110, mp: 60, atk: 15, def: 5, speed: 5.2, skills: [
-                { id: "merch_slash", name: "Đoản Đao Cắt Lỗ", icon: "🗡️", desc: "Chém lén chí mạng gây sát thương lớn và tăng bạo kích.", mp: 10, cd: 2000, type: 'target', range: 180, multiplier: 1.9, lastUsed: 0 },
+            merchant: { name: "Chú Buôn Lậu", emoji: "🕵️‍♂️", hp: 110, mp: 60, atk: 15, def: 5, speed: 7.3, skills: [
+                { id: "merch_slash", name: "Đoản Đao Cắt Lỗ", icon: "🗡️", desc: "Chém lén chí mạng gây sát thương lớn và tăng bạo kích.", mp: 10, cd: 2000, type: 'target', range: 180, multiplier: 3.8, lastUsed: 0 },
                 { id: "merch_bribe", name: "Đút Lót Tăng Tốc", icon: "💰", desc: "Hồi MP và tăng tốc độ đánh nhanh chóng.", mp: 0, cd: 5000, type: 'self', lastUsed: 0 },
-                { id: "merch_trap", name: "Bẫy Siêu Lợi", icon: "🪤", desc: "Đặt bẫy vùng gây sát thương và làm chậm địch.", mp: 18, cd: 7500, type: 'aoe', range: 190, multiplier: 1.4, lastUsed: 0 },
-                { id: "merch_dash", name: "Lướt Bóng Tiếp", icon: "🏃", desc: "Lướt tới mục tiêu và đánh thương mạnh.", mp: 12, cd: 4700, type: 'target', range: 220, multiplier: 2.0, lastUsed: 0 },
+                { id: "merch_trap", name: "Bẫy Siêu Lợi", icon: "🪤", desc: "Đặt bẫy vùng gây sát thương và làm chậm địch.", mp: 18, cd: 7500, type: 'aoe', range: 190, multiplier: 5.6, lastUsed: 0 },
+                { id: "merch_dash", name: "Lướt Bóng Tiếp", icon: "🏃", desc: "Lướt tới mục tiêu và đánh thương mạnh.", mp: 12, cd: 4700, type: 'target', range: 220, multiplier: 4.0, lastUsed: 0 },
                 { id: "merch_midas", name: "Bàn Tay Midas", icon: "💎", desc: "Kỹ năng tối thượng gây vàng và sát thương phép cho kẻ địch.", mp: 32, cd: 13200, type: 'ultimate', lastUsed: 0 }
             ]},
-            engineer: { name: "Anh Kỹ Sư", emoji: "👨‍💻", hp: 120, mp: 80, atk: 13, def: 6, speed: 4.6, skills: [
-                { id: "eng_turret", name: "Ụ Súng Công Nghệ", icon: "🛠️", desc: "Triệu hồi súng laze bắn mục tiêu trong tầm.", mp: 20, cd: 4000, type: 'target', range: 220, multiplier: 1.7, lastUsed: 0 },
+            engineer: { name: "Anh Kỹ Sư", emoji: "👨‍💻", hp: 120, mp: 80, atk: 13, def: 6, speed: 6.4, skills: [
+                { id: "eng_turret", name: "Ụ Súng Công Nghệ", icon: "🛠️", desc: "Triệu hồi súng laze bắn mục tiêu trong tầm.", mp: 20, cd: 4000, type: 'target', range: 220, multiplier: 3.4, lastUsed: 0 },
                 { id: "eng_overclock", name: "Ép Xung Phần Cứng", icon: "⚡", desc: "Hồi HP/MP và tăng tốc độ đánh trong vài giây.", mp: 30, cd: 9000, type: 'self', lastUsed: 0 },
-                { id: "eng_missile", name: "Tên Lửa Lăn Quân", icon: "🚀", desc: "Bắn tên lửa vào vị trí đã chọn gây nổ diện rộng.", mp: 25, cd: 8500, type: 'point', range: 240, multiplier: 2.3, lastUsed: 0 },
+                { id: "eng_missile", name: "Tên Lửa Lăn Quân", icon: "🚀", desc: "Bắn tên lửa vào vị trí đã chọn gây nổ diện rộng.", mp: 25, cd: 8500, type: 'point', range: 240, multiplier: 4.6, lastUsed: 0 },
                 { id: "eng_shield", name: "Lá Chắn Nano", icon: "🔧", desc: "Kích hoạt lá chắn công nghệ, hấp thụ sát thương và hồi ít HP.", mp: 18, cd: 7200, type: 'self', lastUsed: 0 },
                 { id: "eng_core", name: "Phóng Năng Lượng", icon: "💥", desc: "Kỹ năng tối thượng bắn luồng năng lượng chém qua nhiều kẻ địch.", mp: 38, cd: 14500, type: 'ultimate', lastUsed: 0 }
             ]}
@@ -249,6 +744,14 @@
         window.lastPortalVisited = null;
 
         window.player = {
+            currentQuestIdx: 0,
+            questAccepted: false,
+            questProgress: 0,
+            questDone: false,
+            dailyQuest: null,
+            guildQuest: null,
+            coupleQuest: null,
+            hasMount: false,
             name: "",
             classId: "",
             level: 1,
@@ -421,10 +924,66 @@
             window.addEventListener('resize', setupCanvasSize);
 
             // Canvas nhận click trực tiếp - tất cả UI dùng position:fixed bên ngoài
-            canvas.addEventListener('click', handleWorldClick);
-            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleWorldClick(e.touches[0]); }, {passive:false});
-            canvas.addEventListener('mousemove', handleSkillCursor);
-            canvas.addEventListener('mouseout', () => { skillCursor = null; });
+            // Canvas nhận click trực tiếp - Drag-to-move / Touch-to-move liên tục
+            let isDragging = false;
+
+            const updateDestinationFromEvent = (e) => {
+                let rect = canvas.getBoundingClientRect();
+                let clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+                let clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+                if (clientX === null || clientY === null) return;
+                let clickX = clientX - rect.left;
+                let clickY = clientY - rect.top;
+                let worldClickX = clickX + camera.x;
+                let worldClickY = clickY + camera.y;
+                
+                player.destinationX = worldClickX;
+                player.destinationY = worldClickY;
+                player.targetMonster = null; // Bỏ tự động tấn công khi kéo
+                clickMarker = { x: worldClickX, y: worldClickY, createdAt: Date.now() };
+            };
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                handleWorldClick(e);
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                handleSkillCursor(e);
+                if (isDragging && !activeSkillSelection) {
+                    updateDestinationFromEvent(e);
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                handleWorldClick(e.touches[0]);
+            }, {passive:false});
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (isDragging && !activeSkillSelection) {
+                    updateDestinationFromEvent(e.touches[0]);
+                }
+            }, {passive:false});
+
+            canvas.addEventListener('touchend', (e) => {
+                isDragging = false;
+            });
+            
+            canvas.addEventListener('touchcancel', (e) => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('mouseout', () => {
+                skillCursor = null;
+                isDragging = false;
+            });
 
             // Lắng nghe bàn phím di chuyển (WASD / Phím mũi tên) và phím tắt menu
             window.addEventListener('keydown', (e) => {
@@ -432,6 +991,11 @@
                 let key = e.key.toLowerCase();
                 window.pressedKeys[key] = true;
                 handleKeyDown(e);
+                // ESC Key support to close NPC Dialog & open Game Panels
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    window.closeNpcDialogue();
+                    document.querySelectorAll('.game-panel').forEach(p => p.style.display = 'none');
+                }
             });
             window.addEventListener('keyup', (e) => {
                 let key = e.key.toLowerCase();
@@ -599,7 +1163,16 @@
                 y: player.y,
                 inventory: player.inventory,
                 equipment: player.equipment,
+                
                 quests: player.quests,
+                currentQuestIdx: player.currentQuestIdx,
+                questAccepted: player.questAccepted,
+                questProgress: player.questProgress,
+                questDone: player.questDone,
+                dailyQuest: player.dailyQuest,
+                guildQuest: player.guildQuest,
+                coupleQuest: player.coupleQuest,
+                hasMount: player.hasMount,
                 autoUseHp: window.autoUseHp,
                 autoUseMp: window.autoUseMp,
                 autoUseFood: window.autoUseFood,
@@ -633,7 +1206,16 @@
                 player.y = data.y;
                 player.inventory = data.inventory || [];
                 player.equipment = data.equipment || { weapon: null, armor: null, accessory: null, skin: null };
+                
                 player.quests = data.quests;
+                player.currentQuestIdx = data.currentQuestIdx !== undefined ? data.currentQuestIdx : 0;
+                player.questAccepted = data.questAccepted !== undefined ? !!data.questAccepted : false;
+                player.questProgress = data.questProgress !== undefined ? data.questProgress : 0;
+                player.questDone = data.questDone !== undefined ? !!data.questDone : false;
+                player.dailyQuest = data.dailyQuest !== undefined ? data.dailyQuest : null;
+                player.guildQuest = data.guildQuest !== undefined ? data.guildQuest : null;
+                player.coupleQuest = data.coupleQuest !== undefined ? data.coupleQuest : null;
+                player.hasMount = data.hasMount !== undefined ? !!data.hasMount : false;
 
                 window.autoUseHp = !!data.autoUseHp;
                 window.autoUseMp = !!data.autoUseMp;
@@ -1325,9 +1907,9 @@
             createSkillEffect(skillId, player.x, player.y);
 
             if(sk.type === 'self') {
-                let healAmount = sk.id === 'cop_shield' ? 25 : sk.id === 'eng_overclock' ? 50 : 20;
+                let healAmount = sk.id === 'cop_shield' ? 70 : sk.id === 'eng_overclock' ? 120 : 50;
                 player.hp = Math.min(getEffectiveMaxHp(), player.hp + healAmount);
-                if(sk.id === 'eng_overclock') player.mp = Math.min(getEffectiveMaxMp(), player.mp + 40);
+                if(sk.id === 'eng_overclock') player.mp = Math.min(getEffectiveMaxMp(), player.mp + 100);
                 createFloatingText(`+${healAmount} HP`, player.x, player.y, '#4caf50');
                 createParticle("✨", player.x, player.y);
                 showToast(`✨ Kích hoạt ${sk.name}!`);
@@ -1340,6 +1922,7 @@
                 if(!player.targetMonster) {
                     showToast("🎯 Hãy nhấp chọn một mục tiêu trên bản đồ để sử dụng kỹ năng!");
                     player.mp += sk.mp;
+                    sk.lastUsed = 0;
                     return;
                 }
                 let target = player.targetMonster;
@@ -1358,6 +1941,61 @@
             if(sk.type === 'aoe') {
                 showToast(`🎯 ${sk.name} đã sẵn sàng, hãy nhấp chọn vị trí để thi triển.`);
                 player.mp += sk.mp;
+                sk.lastUsed = 0;
+                return;
+            }
+
+            if (sk.type === 'ultimate') {
+                if (sk.id === 'cop_bastion') {
+                    player.hp = getEffectiveMaxHp();
+                    showToast("🏰 Thành Lũy Công Lý: Hồi 100% HP & tăng giáp cực đại!");
+                } else if (sk.id === 'teach_grace') {
+                    let uDmg = Math.round(getEffectiveAtk() * 5.0);
+                    let hit = 0;
+                    monsters.forEach(m => {
+                        let d = Math.hypot(m.x - player.x, m.y - player.y);
+                        if (d <= 600) {
+                            m.hp = Math.max(0, m.hp - uDmg);
+                            createFloatingText(`💥 ${uDmg}`, m.x, m.y, '#f59e0b');
+                            createParticle('🌟', m.x, m.y);
+                            if(m.hp <= 0) setTimeout(() => handleMonsterDefeated(m), 50);
+                            hit++;
+                        }
+                    });
+                    showToast(`🌟 Ánh Sao Tinh Tú quét sạch ${hit} kẻ địch trong tầm!`);
+                } else if (sk.id === 'merch_midas') {
+                    if (player.targetMonster) {
+                        let tm = player.targetMonster;
+                        let uDmg = Math.round(getEffectiveAtk() * 6.0);
+                        tm.hp = Math.max(0, tm.hp - uDmg);
+                        createFloatingText(`💎 ${uDmg}`, tm.x, tm.y, '#e5c158');
+                        createParticle('💎', tm.x, tm.y);
+                        player.gold += 1000;
+                        showToast(`💎 Bàn Tay Midas đập trúng quái! Nhận ngay +1000 vàng!`);
+                        if(tm.hp <= 0) handleMonsterDefeated(tm);
+                    } else {
+                        showToast("🎯 Hãy nhắm mục tiêu quái vật để thi triển Bàn Tay Midas!");
+                        player.mp += sk.mp;
+                        sk.lastUsed = 0;
+                        return;
+                    }
+                } else if (sk.id === 'eng_core') {
+                    let uDmg = Math.round(getEffectiveAtk() * 5.5);
+                    let hit = 0;
+                    monsters.forEach(m => {
+                        let d = Math.hypot(m.x - player.x, m.y - player.y);
+                        if (d <= 200) {
+                            m.hp = Math.max(0, m.hp - uDmg);
+                            createFloatingText(`💥 ${uDmg}`, m.x, m.y, '#ec4899');
+                            createParticle('💥', m.x, m.y);
+                            if(m.hp <= 0) setTimeout(() => handleMonsterDefeated(m), 50);
+                            hit++;
+                        }
+                    });
+                    showToast(`💥 Phóng Năng Lượng ép hạt nhân tiêu diệt ${hit} quái vật xung quanh!`);
+                }
+                refreshHudDisplay();
+                rebuildSkillsPanelUI();
                 return;
             }
 
@@ -1365,9 +2003,6 @@
             refreshHudDisplay();
             rebuildSkillsPanelUI();
         }
-
-
-
         function toggleAutoSkill(skillId, enabled) {
             if(enabled) autoSkillIds.add(skillId); else autoSkillIds.delete(skillId);
             rebuildQuickSkillBarUI();
@@ -1868,10 +2503,33 @@ function updateAndRenderParticles() {
             }
 
             // Update quest objectives instantly
+            // Update quest objectives instantly
             player.quests.forEach(q => {
                 if(!q.done && q.type === 'kill' && q.target === m.emoji) {
                     q.progress = Math.min(q.req, q.progress + 1);
                     showToast(`📜 Tiến trình: ${q.title} (${q.progress}/${q.req})`);
+                }
+            });
+
+            // Cập nhật nhiệm vụ cốt truyện chính tuyến
+            if (player.currentQuestIdx !== undefined && STORY_QUESTS[player.currentQuestIdx]) {
+                let sQuest = STORY_QUESTS[player.currentQuestIdx];
+                if (player.questAccepted && sQuest.type === 'kill' && (m.name.includes(sQuest.target) || sQuest.target === m.name)) {
+                    player.questProgress = Math.min(sQuest.req, (player.questProgress || 0) + 1);
+                    showToast(`📜 NV Cốt Truyện: ${sQuest.title} (${player.questProgress}/${sQuest.req})`);
+                    if (player.questProgress >= sQuest.req) {
+                        showToast(`💡 Hoàn thành mục tiêu! Hãy về gặp ${NPC_DATA[sQuest.npcFinish || sQuest.target]?.name || sQuest.npcFinish || 'Trưởng Làng'} để trả nhiệm vụ.`);
+                    }
+                    saveGameToLocal();
+                }
+            }
+
+            // Cập nhật nhiệm vụ phụ hằng ngày / bang hội / cặp đôi
+            [player.dailyQuest, player.guildQuest, player.coupleQuest].forEach(q => {
+                if (q && !q.done && q.type === 'kill' && (m.name.includes(q.target) || q.target === m.name)) {
+                    q.progress = Math.min(q.req, (q.progress || 0) + 1);
+                    showToast(`📜 Tiến trình ${q.title}: (${q.progress}/${q.req})`);
+                    saveGameToLocal();
                 }
             });
 
@@ -2064,27 +2722,49 @@ function executeSkillAtTarget(skillId, target) {
 }
 
 function executeSkillAtLocation(skillId, x, y) {
-    let skill = player.skills.find(s => s.id === skillId);
-    if(!skill) return;
-    let now = Date.now();
-    if(now - skill.lastUsed < skill.cd) { showToast('⏳ Kỹ năng vẫn đang hồi chiêu!'); return; }
-    if(player.mp < skill.mp) { showToast('💧 Không đủ MP để thi triển!'); return; }
-    if(skill.range && Math.hypot(x - player.x, y - player.y) > skill.range) {
-        showToast('🚫 Vượt quá tầm kỹ năng! Hãy chọn vị trí gần hơn.');
-        return;
-    }
+            let skill = player.skills.find(s => s.id === skillId);
+            if(!skill) return;
+            let now = Date.now();
+            if(now - skill.lastUsed < skill.cd) { showToast('⏳ Kỹ năng vẫn đang hồi chiêu!'); return; }
+            if(player.mp < skill.mp) { showToast('💧 Không đủ MP để thi triển!'); return; }
+            if(skill.range && Math.hypot(x - player.x, y - player.y) > skill.range) {
+                showToast('🚫 Vượt quá tầm kỹ năng! Hãy chọn vị trí gần hơn.');
+                return;
+            }
 
-    player.mp -= skill.mp;
-    skill.lastUsed = now;
-    createSkillEffect(skillId, x, y);
-    createFloatingText(`✨ ${skill.name}`, x, y, '#7c3aed');
-    createParticle('✨', x, y);
-    showToast(`⚡ ${skill.name} đã được thi triển!`);
-    refreshHudDisplay();
-}
-/**
- * Bật/Tắt chế độ tự động farm quái (AI Auto Farming)
- */
+            player.mp -= skill.mp;
+            skill.lastUsed = now;
+            createSkillEffect(skillId, x, y);
+            createFloatingText(`✨ ${skill.name}`, x, y, '#7c3aed');
+            createParticle('✨', x, y);
+            
+            // Gây sát thương diện rộng thực tế cho quái vật xung quanh tọa độ x,y
+            let radius = 130;
+            let baseAtk = getEffectiveAtk();
+            let mult = skill.multiplier || 1.8;
+            let skillDmg = Math.round(baseAtk * mult);
+            let hitCount = 0;
+
+            monsters.forEach(m => {
+                let dist = Math.hypot(m.x - x, m.y - y);
+                if (dist <= radius) {
+                    m.hp = Math.max(0, m.hp - skillDmg);
+                    createFloatingText(`💥 ${skillDmg}`, m.x, m.y, '#e040fb');
+                    createParticle('⚡', m.x, m.y);
+                    if(m.hp <= 0) {
+                        setTimeout(() => handleMonsterDefeated(m), 50);
+                    }
+                    hitCount++;
+                }
+            });
+
+            if (hitCount > 0) {
+                showToast(`💥 ${skill.name} sát thương diện rộng trúng ${hitCount} quái vật!`);
+            } else {
+                showToast(`⚡ ${skill.name} đã được thi triển!`);
+            }
+            refreshHudDisplay();
+        }
 function handleSkillCursor(e) {
     if(!activeSkillSelection || currentScreen !== 'gameScreen') return;
     let rect = canvas.getBoundingClientRect();
@@ -2117,6 +2797,7 @@ function toggleAutoFarm() {
         function openNpcDialogueSystem(npcKey) {
             let npc = NPC_DATA[npcKey];
             let layer = document.getElementById('npcDialogLayer');
+            if(!npc || !layer) return;
             
             document.getElementById('dialogNpcAvatar').textContent = npc.emoji;
             document.getElementById('dialogNpcName').textContent = npc.name;
@@ -2126,72 +2807,327 @@ function toggleAutoFarm() {
             let optBox = document.getElementById('dialogNpcOptions');
             optBox.innerHTML = "";
 
-            if(npcKey === 'elder') {
-                txtBox.textContent = `Chào mừng con, ${player.name}. Làng của chúng ta bị quỷ dữ bao vây tàn bạo, may có con dũng cảm đứng lên. Hãy hỗ trợ bà con diệt quái và chuẩn bị sắm đồ diệt quỷ vương Thần Trùng cứu nguy bờ cõi!`;
+            // Khởi tạo các trường cốt truyện nếu chưa có
+            if (player.currentQuestIdx === undefined) player.currentQuestIdx = 0;
+            if (player.questAccepted === undefined) player.questAccepted = false;
+            if (player.questProgress === undefined) player.questProgress = 0;
+            if (player.questDone === undefined) player.questDone = false;
+
+            let hasQuestOption = false;
+
+            // Kiểm tra nhiệm vụ cốt truyện hiện tại
+            if (player.currentQuestIdx < STORY_QUESTS.length) {
+                let sQuest = STORY_QUESTS[player.currentQuestIdx];
                 
-                // Offer interactive questing lines
-                player.quests.forEach(q => {
-                    if(!q.done) {
+                // Nếu NPC này liên quan đến nhiệm vụ cốt truyện hiện tại và chưa nhận
+                if (!player.questAccepted && (sQuest.npcAccept === npcKey || sQuest.target === npcKey || (sQuest.type === 'talk' && sQuest.target === npcKey))) {
+                    if (player.level >= sQuest.reqLevel) {
+                        txtBox.textContent = sQuest.dialogStart;
                         let btn = document.createElement('button');
                         btn.className = "opt-btn";
-                        if(q.progress >= q.req) {
-                            btn.innerHTML = `🎁 <b>Trả Nhiệm Vụ:</b> ${q.title} (XONG)`;
-                            btn.onclick = () => { completeQuestReward(q.id); openNpcDialogueSystem('elder'); };
-                        } else {
-                            btn.innerHTML = `📜 <b>Nhận / Theo Dõi:</b> ${q.title} (${q.progress}/${q.req})`;
-                            btn.onclick = () => { alert(`Hãy cố gắng tích cực hoàn thành mục tiêu: ${q.desc}`); };
-                        }
+                        btn.innerHTML = `📜 <b>Nhận NV Cốt Truyện:</b> ${sQuest.title}`;
+                        btn.onclick = () => {
+                            player.questAccepted = true;
+                            player.questProgress = 0;
+                            player.questDone = false;
+                            showToast(`📜 Nhận nhiệm vụ cốt truyện: ${sQuest.title}`);
+                            saveGameToLocal(); 
+                            openNpcDialogueSystem(npcKey);
+                        };
                         optBox.appendChild(btn);
+                        hasQuestOption = true;
+                    } else {
+                        txtBox.textContent = `[Cốt Truyện] Con cần đạt cấp độ ${sQuest.reqLevel} để nhận nhiệm vụ tiếp theo: "${sQuest.title}". Tích cực rèn luyện thêm nhé!`;
+                    }
+                }
+                // Đang làm nhiệm vụ cốt truyện và nói chuyện với NPC hoàn thành
+                else if (player.questAccepted && (sQuest.npcFinish === npcKey || sQuest.target === npcKey || (sQuest.type === 'talk' && sQuest.target === npcKey))) {
+                    let isFinished = false;
+                    if (sQuest.type === 'talk') {
+                        isFinished = true; 
+                    } else if (sQuest.type === 'kill' && player.questProgress >= sQuest.req) {
+                        isFinished = true;
+                    } else if (sQuest.type === 'collect' && player.questProgress >= sQuest.req) {
+                        isFinished = true;
+                    }
+
+                    if (isFinished) {
+                        txtBox.textContent = sQuest.dialogFinish;
+                        let btn = document.createElement('button');
+                        btn.className = "opt-btn";
+                        btn.innerHTML = `🎁 <b>Trả NV Cốt Truyện:</b> ${sQuest.title} (XONG)`;
+                        btn.onclick = () => {
+                            player.gold += sQuest.rewardGold;
+                            player.exp += sQuest.rewardExp;
+                            
+                            if (sQuest.rewardItem && ITEMS[sQuest.rewardItem]) {
+                                addItemToInventory(sQuest.rewardItem, 1);
+                                showToast(`🎒 Nhận trang bị: ${ITEMS[sQuest.rewardItem].name}`);
+                            }
+
+                            if (sQuest.id === 'story_6') {
+                                player.hasMount = true;
+                                player.baseSpeed += 1.5; 
+                                showToast(`🐎 Nhận Thú Cưỡi Ngựa Tân Thủ (Tăng tốc chạy!)`);
+                            }
+                            
+                            showToast(`🎉 Hoàn thành: ${sQuest.title}! +${sQuest.rewardGold} vàng, +${sQuest.rewardExp} EXP`);
+                            
+                            player.currentQuestIdx++;
+                            player.questAccepted = false;
+                            player.questProgress = 0;
+                            player.questDone = false;
+                            
+                            saveGameToLocal(); 
+                            refreshHudDisplay();
+                            openNpcDialogueSystem(npcKey);
+                        };
+                        optBox.appendChild(btn);
+                        hasQuestOption = true;
+                    } else {
+                        txtBox.textContent = `[ĐANG LÀM] ${sQuest.desc} (Tiến độ: ${player.questProgress || 0}/${sQuest.req || 1})`;
+                    }
+                }
+            }
+
+            // Giao nhiệm vụ Hằng Ngày (elder)
+            if (npcKey === 'elder' && !hasQuestOption) {
+                if (!player.dailyQuest) {
+                    txtBox.textContent = "Chào con! Ta có một số công việc hằng ngày cần giúp đỡ. Con có muốn nhận không?";
+                    let btn = document.createElement('button');
+                    btn.className = "opt-btn";
+                    btn.innerHTML = "📅 Nhận Nhiệm Vụ Hằng Ngày";
+                    btn.onclick = () => {
+                        player.dailyQuest = generateDailyQuest();
+                        showToast(`📅 Nhận nhiệm vụ hằng ngày: ${player.dailyQuest.title}`);
+                        saveGameToLocal();
+                        openNpcDialogueSystem(npcKey);
+                    };
+                    optBox.appendChild(btn);
+                } else {
+                    let dq = player.dailyQuest;
+                    if (dq.progress >= dq.req && !dq.done) {
+                        txtBox.textContent = "Con làm tốt lắm! Đây là phần thưởng cống hiến hằng ngày của con.";
+                        let btn = document.createElement('button');
+                        btn.className = "opt-btn";
+                        btn.innerHTML = "🎁 Trả Nhiệm Vụ Hằng Ngày (XONG)";
+                        btn.onclick = () => {
+                            player.gold += dq.rewardGold;
+                            player.exp += dq.rewardExp;
+                            dq.done = true;
+                            showToast(`🎉 Hoàn thành Nhiệm Vụ Hằng Ngày! +${dq.rewardGold} vàng`);
+                            player.dailyQuest = null;
+                            saveGameToLocal();
+                            refreshHudDisplay();
+                            openNpcDialogueSystem(npcKey);
+                        };
+                        optBox.appendChild(btn);
+                    } else if (!dq.done) {
+                        txtBox.textContent = `Nhiệm vụ hằng ngày: ${dq.desc} (Tiến độ: ${dq.progress}/${dq.req})`;
+                    }
+                }
+            }
+
+            // Giao nhiệm vụ Bang Hội (blacksmith)
+            if (npcKey === 'blacksmith' && !hasQuestOption) {
+                let craftBtn = document.createElement('button');
+                craftBtn.className = "opt-btn";
+                craftBtn.textContent = "🏪 Mở Giao Diện Lò Rèn Chế Tạo";
+                craftBtn.onclick = () => { closeNpcDialog(); togglePanel('shop'); switchShopTab('craft'); };
+                optBox.appendChild(craftBtn);
+
+                if (!player.guildQuest) {
+                    let btn = document.createElement('button');
+                    btn.className = "opt-btn";
+                    btn.innerHTML = "🛡️ Nhận Nhiệm Vụ Bang Hội";
+                    btn.onclick = () => {
+                        player.guildQuest = generateGuildQuest();
+                        showToast(`🛡️ Nhận nhiệm vụ bang hội: ${player.guildQuest.title}`);
+                        saveGameToLocal();
+                        openNpcDialogueSystem(npcKey);
+                    };
+                    optBox.appendChild(btn);
+                } else {
+                    let gq = player.guildQuest;
+                    // Kiểm tra nếu là collect thì check trực tiếp số lượng trong hành trang
+                    if (gq.type === 'collect' && !gq.done) {
+                        let totalCount = 0;
+                        player.inventory.forEach(inv => {
+                            if (inv.id === gq.target) totalCount += inv.count;
+                        });
+                        gq.progress = Math.min(gq.req, totalCount);
+                    }
+
+                    if (gq.progress >= gq.req && !gq.done) {
+                        txtBox.textContent = "Thành viên bang hội thật là tuyệt vời! Cảm ơn con đóng góp nguyên liệu.";
+                        let btn = document.createElement('button');
+                        btn.className = "opt-btn";
+                        btn.innerHTML = "🎁 Trả Nhiệm Vụ Bang Hội (XONG)";
+                        btn.onclick = () => {
+                            // Trừ nguyên liệu nếu là collect
+                            if (gq.type === 'collect') {
+                                let invItem = player.inventory.find(inv => inv.id === gq.target);
+                                if (invItem) invItem.count -= gq.req;
+                                player.inventory = player.inventory.filter(inv => inv.count > 0);
+                            }
+                            player.gold += gq.rewardGold;
+                            player.exp += gq.rewardExp;
+                            gq.done = true;
+                            showToast(`🎉 Hoàn thành Nhiệm Vụ Bang Hội! +${gq.rewardGold} vàng`);
+                            player.guildQuest = null;
+                            saveGameToLocal();
+                            refreshHudDisplay();
+                            openNpcDialogueSystem(npcKey);
+                        };
+                        optBox.appendChild(btn);
+                    } else if (!gq.done) {
+                        txtBox.textContent = `Nhiệm vụ bang hội: ${gq.desc} (Tiến độ: ${gq.progress}/${gq.req})`;
+                    }
+                }
+            }
+
+            // Giao nhiệm vụ Cặp Đôi (merchant)
+            if (npcKey === 'merchant' && !hasQuestOption) {
+                let shopBtn = document.createElement('button');
+                shopBtn.className = "opt-btn";
+                shopBtn.textContent = "🏪 Mở Cửa Hàng Mua Bán Vật Phẩm";
+                shopBtn.onclick = () => { closeNpcDialog(); togglePanel('shop'); switchShopTab('buy'); };
+                optBox.appendChild(shopBtn);
+
+                if (!player.coupleQuest) {
+                    let btn = document.createElement('button');
+                    btn.className = "opt-btn";
+                    btn.innerHTML = "💖 Nhận Nhiệm Vụ Cặp Đôi";
+                    btn.onclick = () => {
+                        player.coupleQuest = generateCoupleQuest();
+                        showToast(`💖 Nhận nhiệm vụ cặp đôi: ${player.coupleQuest.title}`);
+                        saveGameToLocal();
+                        openNpcDialogueSystem(npcKey);
+                    };
+                    optBox.appendChild(btn);
+                } else {
+                    let cq = player.coupleQuest;
+                    if (cq.type === 'collect' && !cq.done) {
+                        let totalCount = 0;
+                        player.inventory.forEach(inv => {
+                            if (inv.id === cq.target) totalCount += inv.count;
+                        });
+                        cq.progress = Math.min(cq.req, totalCount);
+                    }
+
+                    if (cq.progress >= cq.req && !cq.done) {
+                        txtBox.textContent = "Tình yêu đôi lứa thật là đẹp! Cảm ơn con đã chia sẻ.";
+                        let btn = document.createElement('button');
+                        btn.className = "opt-btn";
+                        btn.innerHTML = "🎁 Trả Nhiệm Vụ Cặp Đôi (XONG)";
+                        btn.onclick = () => {
+                            if (cq.type === 'collect') {
+                                let invItem = player.inventory.find(inv => inv.id === cq.target);
+                                if (invItem) invItem.count -= cq.req;
+                                player.inventory = player.inventory.filter(inv => inv.count > 0);
+                            }
+                            player.gold += cq.rewardGold;
+                            player.exp += cq.rewardExp;
+                            cq.done = true;
+                            showToast(`🎉 Hoàn thành Nhiệm Vụ Cặp Đôi! +${cq.rewardGold} vàng`);
+                            player.coupleQuest = null;
+                            saveGameToLocal();
+                            refreshHudDisplay();
+                            openNpcDialogueSystem(npcKey);
+                        };
+                        optBox.appendChild(btn);
+                    } else if (!cq.done) {
+                        txtBox.textContent = `Nhiệm vụ cặp đôi: ${cq.desc} (Tiến độ: ${cq.progress}/${cq.req})`;
+                    }
+                }
+            }
+
+            // Thêm các lựa chọn mặc định nếu không có thoại nhiệm vụ
+            if (!hasQuestOption && optBox.innerHTML === "") {
+                if (npcKey === 'elder') {
+                    txtBox.textContent = "Chào con! Ta là trưởng làng. Chúc con một ngày phiêu lưu nhiều may mắn.";
+                } else if (npcKey === 'blacksmith') {
+                    txtBox.textContent = "Keng! Keng! Chào người anh em, hôm nay có rèn gì không?";
+                } else if (npcKey === 'merchant') {
+                    txtBox.textContent = "Hàng mới về, mua gì cứ tự nhiên nhé hiệp khách!";
+                } else {
+                    txtBox.textContent = npc.role || "Chào ngươi! Ta có thể giúp gì?";
+                }
+            }
+
+            // Thêm sự kiện bấm click ra ngoài layer để đóng
+            if(!layer.dataset.closeBound) {
+                layer.dataset.closeBound = 'true';
+                layer.addEventListener('click', (e) => {
+                    if (e.target === layer) {
+                        window.closeNpcDialogue();
                     }
                 });
             }
-            else if(npcKey === 'blacksmith') {
-                txtBox.textContent = `Keng! Keng! Chào người anh em! Tôi có thể rèn phôi sắt vụn và đá ma pháp thành vũ khí, áo giáp cực kỳ thượng hạng cho cậu đây. Vào xem công thức chế tác lò rèn đi!`;
-                let btn = document.createElement('button');
-                btn.className = "opt-btn";
-                btn.textContent = "🏪 Mở Giao Diện Lò Rèn Chế Tạo";
-                btn.onclick = () => { closeNpcDialog(); togglePanel('shop'); switchShopTab('craft'); };
-                optBox.appendChild(btn);
-            }
-            else if(npcKey === 'merchant') {
-                txtBox.textContent = `Ai thuốc tiên trị thương, nước lọc hồi mana đi! Mua bán sòng phẳng không lo lỗ vốn nhé hiệp khách đại tài.`;
-                let btn = document.createElement('button');
-                btn.className = "opt-btn";
-                btn.textContent = "🏪 Mở Cửa Hàng Mua Bán Vật Phẩm";
-                btn.onclick = () => { closeNpcDialog(); togglePanel('shop'); switchShopTab('buy'); };
-                optBox.appendChild(btn);
-            }
 
-            // Universal escape option button
             let exitBtn = document.createElement('button');
             exitBtn.className = "opt-btn";
             exitBtn.textContent = "🚪 Tạm biệt, con đi làm nhiệm vụ tiếp!";
             exitBtn.style.background = "#3f3f5f";
-            exitBtn.onclick = closeNpcDialog;
+            exitBtn.onclick = () => { layer.style.display = "none"; };
             optBox.appendChild(exitBtn);
 
             layer.style.display = "flex";
         }
 
         function closeNpcDialog() {
-            document.getElementById('npcDialogLayer').style.display = "none";
+            let layer = document.getElementById('npcDialogLayer');
+            if (layer) layer.style.display = "none";
         }
 
         function completeQuestReward(qId) {
             let q = player.quests.find(item => item.id === qId);
             if(!q || q.done || q.progress < q.req) return;
-
             audio.play('quest');
             q.done = true;
             player.gold += q.rewardGold;
             player.exp += q.rewardExp;
-
-            showToast(`🎉 HOÀN THÀNH NHIỆM VỤ: Nhận ngay ${q.rewardGold} Vàng và ${q.rewardExp} EXP!`);
+            showToast(`🎉 HOÀN THÀNH NV: +${q.rewardGold} Vàng, +${q.rewardExp} EXP!`);
+            saveGameToLocal();
             refreshHudDisplay();
         }
 
-        // --- 9. INVENTORY & EQUIPMENT & CRAFTING ENGINE ---
         function addItemToInventory(itemId, amount) {
+
+            // Cập nhật nhiệm vụ cốt truyện thu thập vật phẩm
+            if (player.currentQuestIdx !== undefined && STORY_QUESTS[player.currentQuestIdx]) {
+                let sQuest = STORY_QUESTS[player.currentQuestIdx];
+                if (player.questAccepted && sQuest.type === 'collect') {
+                    let itemDef = ITEMS[itemId];
+                    if (sQuest.target === itemId || (itemDef && itemDef.name === sQuest.target)) {
+                        let totalCount = 0;
+                        player.inventory.forEach(inv => {
+                            if (inv.id === sQuest.target || (ITEMS[inv.id] && ITEMS[inv.id].name === sQuest.target)) {
+                                totalCount += inv.count;
+                            }
+                        });
+                        player.questProgress = Math.min(sQuest.req, totalCount + amount);
+                        showToast(`📜 NV Cốt Truyện: ${sQuest.title} (${player.questProgress}/${sQuest.req})`);
+                    }
+                }
+            }
+
+            // Cập nhật nhiệm vụ phụ thu thập vật phẩm
+            [player.dailyQuest, player.guildQuest, player.coupleQuest].forEach(q => {
+                if (q && !q.done && q.type === 'collect') {
+                    let itemDef = ITEMS[itemId];
+                    if (q.target === itemId || (itemDef && itemDef.name === q.target)) {
+                        let totalCount = 0;
+                        player.inventory.forEach(inv => {
+                            if (inv.id === q.target || (ITEMS[inv.id] && ITEMS[inv.id].name === q.target)) {
+                                totalCount += inv.count;
+                            }
+                        });
+                        q.progress = Math.min(q.req, totalCount + amount);
+                        showToast(`📜 Tiến trình ${q.title}: (${q.progress}/${q.req})`);
+                    }
+                }
+            });
             let existing = player.inventory.find(i => i.id === itemId);
             if(existing) {
                 existing.count += amount;
@@ -2669,7 +3605,15 @@ function toggleAutoFarm() {
                     location.reload();
                 }
             } else {
+            if (action === 'board') {
+                if (typeof openBoardGameWithBet === 'function') {
+                    openBoardGameWithBet();
+                } else {
+                    showToast("⚠️ Tính năng Đua Cờ chưa sẵn sàng!");
+                }
+            } else {
                 togglePanel(action);
+            }
             }
         };
 
@@ -2981,7 +3925,74 @@ function toggleAutoFarm() {
 
         function rebuildQuestsUI() {
             let qBox = document.getElementById('questsList');
+            if(!qBox) return;
             qBox.innerHTML = "";
+
+            // 1. Vẽ Nhiệm Vụ Cốt Truyện hiện tại
+            if (player.currentQuestIdx !== undefined && STORY_QUESTS[player.currentQuestIdx]) {
+                let s = STORY_QUESTS[player.currentQuestIdx];
+                let div = document.createElement('div');
+                div.className = "shop-item";
+                div.style.border = "2px dashed #ffd54f";
+                div.style.background = "rgba(253, 224, 71, 0.05)";
+                
+                let isDone = player.questAccepted && (s.type === 'talk' || player.questProgress >= s.req);
+                let statusTxt = "";
+                if (!player.questAccepted) {
+                    statusTxt = "<b style='color:#fb7185;'>[CHƯA NHẬN] Gặp NPC</b>";
+                } else if (isDone) {
+                    statusTxt = "<b style='color:#4caf50;'>[XONG] Trả NPC</b>";
+                } else {
+                    statusTxt = `Tiến độ: <b>${player.questProgress || 0}/${s.req || 1}</b>`;
+                }
+
+                div.innerHTML = `
+                    <div class="item-meta">
+                        <div style="font-size:1.6rem; color:#f59e0b;">👑</div>
+                        <div class="item-details">
+                            <h4 style="color:#f59e0b;">[Cốt Truyện] ${s.title}</h4>
+                            <p>${s.desc}</p>
+                            <span style="font-size:0.8rem; color:#ffd54f;">Thưởng: ${s.rewardGold} vàng / +${s.rewardExp} exp ${s.rewardItem ? '(Trang Bị)' : ''}</span>
+                        </div>
+                    </div>
+                    <div style="font-size:0.9rem;">${statusTxt}</div>
+                `;
+                qBox.appendChild(div);
+            }
+
+            // 2. Vẽ các Nhiệm Vụ Phụ (Hằng Ngày, Bang Hội, Cặp Đôi)
+            let optionals = [
+                { q: player.dailyQuest, icon: "📅", label: "Hằng Ngày" },
+                { q: player.guildQuest, icon: "🛡️", label: "Bang Hội" },
+                { q: player.coupleQuest, icon: "💖", label: "Cặp Đôi" }
+            ];
+
+            optionals.forEach(opt => {
+                if (opt.q) {
+                    let s = opt.q;
+                    let div = document.createElement('div');
+                    div.className = "shop-item";
+                    div.style.border = "1.5px solid #60a5fa";
+                    
+                    let isDone = s.progress >= s.req;
+                    let statusTxt = isDone ? "<b style='color:#4caf50;'>[XONG] Trả NPC</b>" : `Tiến độ: <b>${s.progress}/${s.req}</b>`;
+
+                    div.innerHTML = `
+                        <div class="item-meta">
+                            <div style="font-size:1.6rem;">${opt.icon}</div>
+                            <div class="item-details">
+                                <h4 style="color:#60a5fa;">[${opt.label}] ${s.title}</h4>
+                                <p>${s.desc}</p>
+                                <span style="font-size:0.8rem; color:#ffd54f;">Thưởng: ${s.rewardGold} vàng / +${s.rewardExp} exp</span>
+                            </div>
+                        </div>
+                        <div style="font-size:0.9rem;">${statusTxt}</div>
+                    `;
+                    qBox.appendChild(div);
+                }
+            });
+
+            // 3. Vẽ các nhiệm vụ phụ của làng cũ
             player.quests.forEach(q => {
                 let div = document.createElement('div');
                 div.className = "shop-item";
@@ -3000,7 +4011,6 @@ function toggleAutoFarm() {
                 qBox.appendChild(div);
             });
         }
-
         function showToast(text, isPvp = false) {
             let container = document.getElementById('toastContainer');
             let t = document.createElement('div');
@@ -3082,7 +4092,9 @@ function toggleAutoFarm() {
             camera.y += sy;
 
             updateGameLogicState();
+            updateSkillCooldownsTick();
             renderWorldGraphicsLayers();
+            renderQuestDirectionGuide();
             
             // Revert camera shake
             camera.x -= sx;
@@ -3187,20 +4199,11 @@ function toggleAutoFarm() {
                 player.destinationX = undefined;
                 player.destinationY = undefined;
                 player.targetMonster = null;
-                window.joystickActive = false; // Tắt di chuyển joystick nếu bấm phím
-            }
-            // Joystick Override
-            else if(window.joystickActive && window.joystickVector && (window.joystickVector.x !== 0 || window.joystickVector.y !== 0)) {
-                player.x += window.joystickVector.x * speed;
-                player.y += window.joystickVector.y * speed;
-                player.destinationX = undefined;
-                player.destinationY = undefined;
             } else {
                 let targetX = player.destinationX;
                 let targetY = player.destinationY;
 
                 if(player.targetMonster) {
-                    // Adjust vector position towards target monster bounding edge
                     targetX = player.targetMonster.x;
                     targetY = player.targetMonster.y;
                 }
@@ -3210,31 +4213,18 @@ function toggleAutoFarm() {
                     let dy = targetY - player.y;
                     let dist = Math.sqrt(dx*dx + dy*dy);
 
-                let stopThreshold = player.targetMonster ? 45 : 6;
-                if(dist > stopThreshold) {
-                    player.x += (dx / dist) * speed;
-                    player.y += (dy / dist) * speed;
-                } else {
-                    player.x = targetX;
-                    player.y = targetY;
-                    if(!player.targetMonster) {
-                        // Reset single spot navigation parameters
-                        player.destinationX = undefined;
-                        player.destinationY = undefined;
+                    let stopThreshold = player.targetMonster ? 45 : 6;
+                    if(dist > stopThreshold) {
+                        player.x += (dx / dist) * speed;
+                        player.y += (dy / dist) * speed;
                     } else {
-                        // Lock onto target and stop jittering around it
+                        player.x = targetX;
+                        player.y = targetY;
                         player.destinationX = undefined;
                         player.destinationY = undefined;
                     }
                 }
-                // Close if(targetX !== undefined && targetY !== undefined)
             }
-            } // Close the 'else' block from Joystick Override
-
-            player.isMoving = (keyVx !== 0 || keyVy !== 0) || (window.joystickActive) || (player.destinationX !== undefined || (player.targetMonster && player.targetMonster.hp > 0)) && !(player.destinationX === undefined && !player.targetMonster);
-            player.animationState = player.isMoving ? 'run' : 'idle';
-
-            // Bound checking limits protection
             player.x = Math.max(20, Math.min(WORLD_SIZE - 20, player.x));
             player.y = Math.max(20, Math.min(WORLD_SIZE - 20, player.y));
 
