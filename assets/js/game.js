@@ -959,7 +959,7 @@
             maxMp: 50,
             baseAtk: 10,
             baseDef: 5,
-            baseSpeed: 4.5,
+            baseSpeed: 6.0,
             gold: 150,
             x: 1000, y: 1000, // Coordinates in World Map Space centered at 1000,1000
             targetMonster: null,
@@ -1873,6 +1873,10 @@
             else if(msg.type === 'PVP_PROJECTILE_SPAWN') {
                 if (window.currentMapId === 'pvp_arena') {
                     window.spawnPvpProjectileLocally(msg.id, msg.ownerId, msg.targetId, msg.skillId, msg.damage, msg.isCrit);
+                    let attacker = networkPlayers[msg.ownerId];
+                    if (attacker) {
+                        attacker.lastAttackTime = Date.now();
+                    }
                 }
             }
             else if(msg.type === 'PVP_HP_UPDATE') {
@@ -5096,13 +5100,23 @@ function toggleAutoFarm() {
                 if (window.pressedKeys['d'] || window.pressedKeys['arrowright']) keyVx = 1;
             }
 
-            // Keyboard Override
-            if (keyVx !== 0 || keyVy !== 0) {
-                let len = Math.hypot(keyVx, keyVy);
-                applyPlayerMovement((keyVx / len) * speed, (keyVy / len) * speed);
+            let isCurrentlyMoving = false;
+
+            // Keyboard or Joystick Override
+            let vx = keyVx;
+            let vy = keyVy;
+            if (vx === 0 && vy === 0 && window.joystickActive && window.joystickVector) {
+                vx = window.joystickVector.x;
+                vy = window.joystickVector.y;
+            }
+
+            if (vx !== 0 || vy !== 0) {
+                let len = Math.hypot(vx, vy);
+                applyPlayerMovement((vx / len) * speed, (vy / len) * speed);
                 player.destinationX = undefined;
                 player.destinationY = undefined;
                 player.targetMonster = null;
+                isCurrentlyMoving = true;
             } else {
                 let targetX = player.destinationX;
                 let targetY = player.destinationY;
@@ -5120,6 +5134,7 @@ function toggleAutoFarm() {
                     let stopThreshold = player.targetMonster ? 45 : 6;
                     if(dist > stopThreshold) {
                         applyPlayerMovement((dx / dist) * speed, (dy / dist) * speed);
+                        isCurrentlyMoving = true;
                     } else {
                         player.x = targetX;
                         player.y = targetY;
@@ -5128,6 +5143,7 @@ function toggleAutoFarm() {
                     }
                 }
             }
+            player.isMoving = isCurrentlyMoving;
 
             // Walking dust particle effects
             if (player.isMoving && Math.random() < 0.25) {
@@ -5979,8 +5995,27 @@ function toggleAutoFarm() {
                             ctx.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(5)';
                         }
 
+                        // Calculate other players' movement and facing direction
+                        if (p.prevX === undefined) {
+                            p.prevX = p.x;
+                            p.prevY = p.y;
+                            p.lastMoveTime = 0;
+                            p.faceDir = 'right';
+                        }
+                        
+                        if (p.x !== p.prevX || p.y !== p.prevY) {
+                            if (p.x < p.prevX) p.faceDir = 'left';
+                            else if (p.x > p.prevX) p.faceDir = 'right';
+                            p.lastMoveTime = Date.now();
+                            p.prevX = p.x;
+                            p.prevY = p.y;
+                        }
+                        
+                        let otherIsMoving = (Date.now() - p.lastMoveTime < 600);
+                        let otherIsAttacking = p.lastAttackTime && (Date.now() - p.lastAttackTime < 350);
+
                         if (window.drawBeautifulRPGChibi) {
-                            window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, false, 0.9, 'right', false, p.equipment?.skin);
+                            window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, otherIsMoving, 0.9, p.faceDir, false, p.equipment?.skin, otherIsAttacking);
                         } else {
                             ctx.font = "30px Arial"; ctx.textAlign = "center";
                             ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
@@ -6061,7 +6096,13 @@ function toggleAutoFarm() {
                         if (dx < -0.1) faceDir = 'left';
                         else if (dx > 0.1) faceDir = 'right';
                         
-                        window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir, false, player.equipment.skin);
+                        let isSelfAttacking = (player.attackEffect && player.attackEffect.active && (Date.now() - player.attackEffect.startAt < 350));
+                        if (isSelfAttacking) {
+                            if (player.attackEffect.targetX < player.x) faceDir = 'left';
+                            else faceDir = 'right';
+                        }
+                        
+                        window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir, false, player.equipment.skin, isSelfAttacking);
                     } else {
                         ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                         ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);

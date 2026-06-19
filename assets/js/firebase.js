@@ -23,10 +23,10 @@ window._cloudSaveData      = null;
 
 // Cache for class sprite sheets
 const classSpriteCache = {
-    cop: { idle: null, walk: null },
-    teacher: { idle: null, walk: null },
-    merchant: { idle: null, walk: null },
-    engineer: { idle: null, walk: null }
+    cop: { idle: null, walk: null, attack: null },
+    teacher: { idle: null, walk: null, attack: null },
+    merchant: { idle: null, walk: null, attack: null },
+    engineer: { idle: null, walk: null, attack: null }
 };
 
 function preloadClassSprites() {
@@ -39,12 +39,16 @@ function preloadClassSprites() {
         let walkImg = new Image();
         walkImg.src = `assets/sprites/classes/${c}/Walk.png`;
         classSpriteCache[c].walk = walkImg;
+
+        let attackImg = new Image();
+        attackImg.src = `assets/sprites/classes/${c}/Attack.png`;
+        classSpriteCache[c].attack = attackImg;
     });
 }
 preloadClassSprites();
 
 const _skinCache = {};
-window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, scale = 1, faceDirection = 'right', isBlinking = false, skinId = null) {
+window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, scale = 1, faceDirection = 'right', isBlinking = false, skinId = null, isAttacking = false) {
     if(skinId === 'skin_cong_chua') {
         ctx.save();
         let tick = Date.now() / 150;
@@ -177,7 +181,7 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
     // Try rendering using sprite sheets if loaded
     let cache = classSpriteCache[classId];
     if (cache) {
-        let spriteImg = (isMoving && cache.walk) ? cache.walk : cache.idle;
+        let spriteImg = (isAttacking && cache.attack) ? cache.attack : ((isMoving && cache.walk) ? cache.walk : cache.idle);
         if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
             ctx.save();
             
@@ -193,7 +197,7 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
             let totalWidth = spriteImg.naturalWidth;
             let totalFrames = Math.max(1, Math.floor(totalWidth / frameWidth));
             
-            let speedDivider = isMoving ? 100 : 150;
+            let speedDivider = isAttacking ? 70 : (isMoving ? 100 : 150);
             let currentFrame = Math.floor(Date.now() / speedDivider) % totalFrames;
             
             let drawW = 80 * scale;
