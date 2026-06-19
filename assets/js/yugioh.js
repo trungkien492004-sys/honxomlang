@@ -273,26 +273,31 @@ function ygoGetCardLimit(cardName) {
 
 // ── KHỞI TẠO GAME & LOBBY ──────────────────────────────────────────
 window.openYugiohGame = function() {
-    try { audio.play('click'); } catch(e){}
-    document.getElementById('yugiohGameModal').style.display = 'block';
-    
-    // Load nhân vật đã chọn
-    let savedChar = localStorage.getItem('ygo_char_save');
-    if (savedChar && ygoCharacters[savedChar]) {
-        ygoGame.myCharacter = savedChar;
-    } else {
-        ygoGame.myCharacter = 'yugi';
+    try {
+        try { audio.play('click'); } catch(e){}
+        document.getElementById('yugiohGameModal').style.display = 'block';
+        
+        // Load nhân vật đã chọn
+        let savedChar = localStorage.getItem('ygo_char_save');
+        if (savedChar && ygoCharacters[savedChar]) {
+            ygoGame.myCharacter = savedChar;
+        } else {
+            ygoGame.myCharacter = 'yugi';
+        }
+        
+        // Nạp bộ bài đã lưu từ LocalStorage hoặc gán starter deck
+        ygoLoadMyDeck();
+        
+        // Khởi tạo giao diện các tab
+        ygoSwitchLobbyTab('play');
+        ygoRenderCharacters();
+        
+        ygoShowScreen('lobby');
+        ygoRefreshPvpList();
+    } catch (err) {
+        console.error("Error opening Yu-Gi-Oh! Game:", err);
+        alert("⚠️ Lỗi khởi tạo Bài Ma Thuật:\n" + err.message + "\n\nHãy tải lại trang (Ctrl + F5) hoặc kiểm tra lại!");
     }
-    
-    // Nạp bộ bài đã lưu từ LocalStorage hoặc gán starter deck
-    ygoLoadMyDeck();
-    
-    // Khởi tạo giao diện các tab
-    ygoSwitchLobbyTab('play');
-    ygoRenderCharacters();
-    
-    ygoShowScreen('lobby');
-    ygoRefreshPvpList();
 };
 
 function ygoCloseGame() {
@@ -452,13 +457,18 @@ function ygoLoadMyDeck() {
     if (saved) {
         try {
             ygoGame.myDeck = JSON.parse(saved);
+            if (!Array.isArray(ygoGame.myDeck)) {
+                ygoGame.myDeck = [];
+            }
         } catch (e) {
             ygoGame.myDeck = [];
         }
+    } else {
+        ygoGame.myDeck = [];
     }
     
     // Nếu chưa có bài, cấp Starter Deck tự động
-    if (!ygoGame.myDeck || ygoGame.myDeck.length < 40) {
+    if (!ygoGame.myDeck || !Array.isArray(ygoGame.myDeck) || ygoGame.myDeck.length < 40) {
         ygoCreateStarterDeck();
     }
 }
