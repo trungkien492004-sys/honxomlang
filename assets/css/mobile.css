@@ -1,0 +1,317 @@
+/* Khóa cuộn trang hoàn toàn trên Mobile */
+html, body {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none !important;
+}
+
+/* ---- MOBILE UI OVERHAUL ---- */
+/* Hamburger Menu */
+#mobileMenuToggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    right: 140px;
+    width: 42px;
+    height: 42px;
+    background: rgba(15,15,35,0.9);
+    border: 2px solid rgba(255,215,0,0.4);
+    border-radius: 10px;
+    z-index: 99995; /* TRÊN CẢ BOARD GAME */
+    color: white;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    user-select: none;
+}
+
+.nav-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+/* Virtual Joystick */
+#joystickZone {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 150px;
+    height: 150px;
+    z-index: 40;
+    touch-action: none;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+#joystickBase {
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#joystickStick {
+    width: 55px;
+    height: 55px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(150,150,150,0.8));
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+    transition: transform 0.1s ease-out;
+}
+#joystickZone.active #joystickStick {
+    transition: none;
+}
+
+@media (max-width: 1024px) {
+    #mobileMenuToggle { display: none !important; }
+    #joystickZone { display: flex !important; bottom: 30px !important; left: 30px !important; z-index: 99995 !important; }
+    
+    .top-hud { transform: scale(0.85); transform-origin: top left; top: 10px; left: 10px; z-index: 99996; }
+    
+    #minimap {
+        width: 60px !important;
+        height: 60px !important;
+        cursor: pointer !important;
+        transition: width 0.25s ease, height 0.25s ease !important;
+        border-radius: 12px !important;
+        z-index: 99996 !important;
+    }
+    #minimap.expanded {
+        width: 130px !important;
+        height: 130px !important;
+    }
+    .right-top-box { right: 70px !important; top: 12px !important; width: 75px; gap: 4px; }
+    .right-top-box .btn-sm { font-size: 0.6rem; padding: 3px; }
+    
+    #toastContainer {
+        top: 80px !important;
+        left: 10px !important;
+        transform: scale(0.85) !important;
+        transform-origin: top left !important;
+        gap: 3px !important;
+        z-index: 99999 !important;
+    }
+    .toast { width: 220px !important; font-size: 0.75rem !important; padding: 5px 10px !important; }
+    
+    .skill-hotbar {
+        position: fixed !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        bottom: 12px !important;
+        width: 92vw !important;
+        max-width: 440px !important;
+        height: auto !important;
+        background: rgba(26, 15, 10, 0.72) !important;
+        border: 2px solid #fbbf24 !important;
+        border-radius: 20px !important;
+        padding: 6px 12px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.8), inset 0 0 10px rgba(251, 191, 36, 0.2) !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        z-index: 99995 !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+    }
+    .skill-hotbar h3 { display: none !important; }
+    #skillButtons {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        width: 100% !important;
+        height: auto !important;
+        gap: 10px !important;
+        position: relative !important;
+    }
+    .skill-slot {
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        top: auto !important;
+        width: 58px !important;
+        height: 58px !important;
+        border: 2.2px solid #fbbf24 !important;
+        border-radius: 50% !important;
+        background: radial-gradient(circle, #2d1810 0%, #170a05 100%) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important;
+        overflow: visible !important;
+    }
+    .skill-slot .skill-circle {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .skill-slot .skill-circle img {
+        width: 80% !important;
+        height: 80% !important;
+    }
+    .skill-slot .skill-icon {
+        font-size: 1.7rem !important;
+    }
+    .skill-slot .cooldown-ring {
+        position: absolute !important;
+        inset: 0 !important;
+        border-radius: 50% !important;
+    }
+    .skill-slot .cooldown-ring svg {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .skill-slot .cooldown-text {
+        font-size: 1.15rem !important;
+        font-weight: 900 !important;
+        color: #ef4444 !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 10 !important;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 !important;
+    }
+    .skill-slot .skill-auto-toggle { display: none !important; }
+
+    .skill-slot[data-slot="1"] {
+        width: 72px !important;
+        height: 72px !important;
+        border: 2.5px solid #fbbf24 !important;
+        box-shadow: 0 0 14px rgba(251, 191, 36, 0.6) !important;
+    }
+    .skill-slot[data-slot="1"] .skill-icon {
+        font-size: 2.1rem !important;
+    }
+    .skill-slot[data-slot="1"] .cooldown-text {
+        font-size: 1.35rem !important;
+    }
+
+    /* ---- BOARD GAME MOBILE PORTRAIT ADJUSTMENTS ---- */
+    #boardGameModal {
+        padding: 5px 0 !important;
+        align-items: flex-start !important;
+    }
+    .board-container {
+        width: 98vw !important;
+        max-height: 98vh !important;
+        height: 98vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        padding: 8px 5px !important;
+        border-radius: 12px !important;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1) !important;
+        overflow-y: hidden !important; /* Block scrolling inside */
+    }
+    .board-title { font-size: 1.1rem !important; margin-top: 2px !important; margin-bottom: 2px !important; }
+    .board-subtitle { display: none !important; } /* Hide subtitle on mobile to save vertical space */
+    .board-bet-pool { margin-bottom: 4px !important; padding: 4px !important; font-size: 0.75rem !important; }
+    
+    .board-info-row {
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 5px !important;
+        margin-bottom: 5px !important;
+    }
+    .board-players-panel, .board-card-panel, .board-dice-panel {
+        padding: 4px !important;
+        font-size: 0.68rem !important;
+    }
+    .board-panel-title {
+        font-size: 0.65rem !important;
+        margin-bottom: 2px !important;
+    }
+    .board-players-panel button.add-bot {
+        display: none !important; /* Hide add bot on mobile to save space */
+    }
+    .dice-face {
+        font-size: 1.5rem !important;
+        line-height: 1 !important;
+    }
+    .dice-result-text {
+        font-size: 0.65rem !important;
+    }
+    .board-card-display {
+        height: 45px !important;
+        padding: 4px !important;
+        font-size: 0.65rem !important;
+    }
+    .drawn-card {
+        padding: 2px !important;
+    }
+    .drawn-card div {
+        margin: 2px 0 !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .track-grid {
+        margin-bottom: 4px !important;
+        max-height: 230px !important; /* Scale down the track grid height on mobile */
+    }
+    .board-cell {
+        border-width: 0.5px !important;
+        min-height: unset !important;
+        height: 100% !important;
+    }
+    .board-cell .cell-num {
+        font-size: 0.4rem !important;
+        top: 1px !important;
+        left: 2px !important;
+    }
+    .board-token-large {
+        width: 14px !important;
+        height: 14px !important;
+        border-width: 1px !important;
+        font-size: 0.7rem !important;
+    }
+    .board-center-title {
+        font-size: 0.75rem !important;
+    }
+    .board-center > div:nth-child(2) {
+        margin-top: 4px !important;
+        gap: 6px !important;
+    }
+    .board-center > div:nth-child(2) > div {
+        min-width: 35px !important;
+        padding: 2px !important;
+    }
+    .board-center > div:nth-child(2) > div > div:first-child {
+        font-size: 0.8rem !important;
+    }
+    .board-center > div:nth-child(2) > div > div:nth-child(2) {
+        font-size: 0.5rem !important;
+    }
+    .board-log {
+        height: 45px !important; /* Shrink the log box height */
+        font-size: 0.65rem !important;
+        margin-bottom: 5px !important;
+        padding: 4px 6px !important;
+    }
+    .board-actions {
+        gap: 4px !important;
+    }
+    .board-btn {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+        border-radius: 8px !important;
+    }
+}
+
+/* --- ANTIGRAVITY MOBILE UPGRADE OVERRIDES --- */
+#joystickZone {
+    display: none !important;
+}
+.top-hud {
+    z-index: 100 !important;
+}

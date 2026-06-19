@@ -1,0 +1,1562 @@
+[
+  {
+    "sheetName": "zom_sheet_0.png",
+    "width": 93,
+    "height": 59,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 59,
+        "pivotX": -13,
+        "pivotY": -58
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 23,
+        "height": 58,
+        "pivotX": -13,
+        "pivotY": -57
+      },
+      {
+        "left": 47,
+        "top": 0,
+        "width": 23,
+        "height": 58,
+        "pivotX": -13,
+        "pivotY": -57
+      },
+      {
+        "left": 70,
+        "top": 0,
+        "width": 23,
+        "height": 58,
+        "pivotX": -13,
+        "pivotY": -57
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_1.png",
+    "width": 99,
+    "height": 60,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 60,
+        "pivotX": -12,
+        "pivotY": -58
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 25,
+        "height": 59,
+        "pivotX": -12,
+        "pivotY": -57
+      },
+      {
+        "left": 49,
+        "top": 0,
+        "width": 25,
+        "height": 59,
+        "pivotX": -12,
+        "pivotY": -57
+      },
+      {
+        "left": 74,
+        "top": 0,
+        "width": 25,
+        "height": 59,
+        "pivotX": -12,
+        "pivotY": -57
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_2.png",
+    "width": 81,
+    "height": 58,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 58,
+        "pivotX": -8,
+        "pivotY": -55
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 20,
+        "height": 57,
+        "pivotX": -8,
+        "pivotY": -54
+      },
+      {
+        "left": 40,
+        "top": 0,
+        "width": 21,
+        "height": 56,
+        "pivotX": -8,
+        "pivotY": -53
+      },
+      {
+        "left": 61,
+        "top": 0,
+        "width": 20,
+        "height": 57,
+        "pivotX": -8,
+        "pivotY": -54
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_3.png",
+    "width": 98,
+    "height": 55,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 25,
+        "height": 55,
+        "pivotX": -10,
+        "pivotY": -52
+      },
+      {
+        "left": 25,
+        "top": 0,
+        "width": 24,
+        "height": 53,
+        "pivotX": -9,
+        "pivotY": -50
+      },
+      {
+        "left": 49,
+        "top": 0,
+        "width": 25,
+        "height": 52,
+        "pivotX": -9,
+        "pivotY": -49
+      },
+      {
+        "left": 74,
+        "top": 0,
+        "width": 24,
+        "height": 53,
+        "pivotX": -9,
+        "pivotY": -50
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_4.png",
+    "width": 93,
+    "height": 55,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 55,
+        "pivotX": -12,
+        "pivotY": -52
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 23,
+        "height": 52,
+        "pivotX": -11,
+        "pivotY": -49
+      },
+      {
+        "left": 47,
+        "top": 0,
+        "width": 23,
+        "height": 51,
+        "pivotX": -11,
+        "pivotY": -48
+      },
+      {
+        "left": 70,
+        "top": 0,
+        "width": 23,
+        "height": 52,
+        "pivotX": -11,
+        "pivotY": -49
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_5.png",
+    "width": 99,
+    "height": 57,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 57,
+        "pivotX": -13,
+        "pivotY": -52
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 25,
+        "height": 55,
+        "pivotX": -14,
+        "pivotY": -50
+      },
+      {
+        "left": 49,
+        "top": 0,
+        "width": 25,
+        "height": 53,
+        "pivotX": -14,
+        "pivotY": -48
+      },
+      {
+        "left": 74,
+        "top": 0,
+        "width": 25,
+        "height": 55,
+        "pivotX": -14,
+        "pivotY": -50
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_6.png",
+    "width": 81,
+    "height": 61,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 61,
+        "pivotX": -13,
+        "pivotY": -55
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 20,
+        "height": 59,
+        "pivotX": -13,
+        "pivotY": -53
+      },
+      {
+        "left": 40,
+        "top": 0,
+        "width": 21,
+        "height": 57,
+        "pivotX": -14,
+        "pivotY": -51
+      },
+      {
+        "left": 61,
+        "top": 0,
+        "width": 20,
+        "height": 59,
+        "pivotX": -13,
+        "pivotY": -53
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_7.png",
+    "width": 98,
+    "height": 62,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 25,
+        "height": 62,
+        "pivotX": -16,
+        "pivotY": -58
+      },
+      {
+        "left": 25,
+        "top": 0,
+        "width": 24,
+        "height": 61,
+        "pivotX": -16,
+        "pivotY": -57
+      },
+      {
+        "left": 49,
+        "top": 0,
+        "width": 25,
+        "height": 60,
+        "pivotX": -17,
+        "pivotY": -56
+      },
+      {
+        "left": 74,
+        "top": 0,
+        "width": 24,
+        "height": 61,
+        "pivotX": -16,
+        "pivotY": -57
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_8.png",
+    "width": 106,
+    "height": 62,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 27,
+        "height": 59,
+        "pivotX": -13,
+        "pivotY": -54
+      },
+      {
+        "left": 27,
+        "top": 0,
+        "width": 26,
+        "height": 61,
+        "pivotX": -15,
+        "pivotY": -58
+      },
+      {
+        "left": 53,
+        "top": 0,
+        "width": 27,
+        "height": 62,
+        "pivotX": -17,
+        "pivotY": -58
+      },
+      {
+        "left": 80,
+        "top": 0,
+        "width": 26,
+        "height": 60,
+        "pivotX": -15,
+        "pivotY": -58
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_9.png",
+    "width": 105,
+    "height": 60,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 28,
+        "height": 58,
+        "pivotX": -13,
+        "pivotY": -53
+      },
+      {
+        "left": 28,
+        "top": 0,
+        "width": 26,
+        "height": 57,
+        "pivotX": -13,
+        "pivotY": -57
+      },
+      {
+        "left": 54,
+        "top": 0,
+        "width": 25,
+        "height": 60,
+        "pivotX": -14,
+        "pivotY": -58
+      },
+      {
+        "left": 79,
+        "top": 0,
+        "width": 26,
+        "height": 60,
+        "pivotX": -13,
+        "pivotY": -58
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_10.png",
+    "width": 87,
+    "height": 59,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 57,
+        "pivotX": -13,
+        "pivotY": -54
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 22,
+        "height": 57,
+        "pivotX": -10,
+        "pivotY": -55
+      },
+      {
+        "left": 45,
+        "top": 0,
+        "width": 26,
+        "height": 58,
+        "pivotX": -13,
+        "pivotY": -55
+      },
+      {
+        "left": 71,
+        "top": 0,
+        "width": 16,
+        "height": 59,
+        "pivotX": -10,
+        "pivotY": -56
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_11.png",
+    "width": 104,
+    "height": 59,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 27,
+        "height": 59,
+        "pivotX": -13,
+        "pivotY": -57
+      },
+      {
+        "left": 27,
+        "top": 0,
+        "width": 25,
+        "height": 59,
+        "pivotX": -10,
+        "pivotY": -54
+      },
+      {
+        "left": 52,
+        "top": 0,
+        "width": 27,
+        "height": 58,
+        "pivotX": -9,
+        "pivotY": -52
+      },
+      {
+        "left": 79,
+        "top": 0,
+        "width": 25,
+        "height": 58,
+        "pivotX": -10,
+        "pivotY": -55
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_12.png",
+    "width": 105,
+    "height": 63,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 27,
+        "height": 63,
+        "pivotX": -15,
+        "pivotY": -58
+      },
+      {
+        "left": 27,
+        "top": 0,
+        "width": 26,
+        "height": 59,
+        "pivotX": -12,
+        "pivotY": -55
+      },
+      {
+        "left": 53,
+        "top": 0,
+        "width": 26,
+        "height": 57,
+        "pivotX": -10,
+        "pivotY": -51
+      },
+      {
+        "left": 79,
+        "top": 0,
+        "width": 26,
+        "height": 59,
+        "pivotX": -12,
+        "pivotY": -56
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_13.png",
+    "width": 105,
+    "height": 65,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 28,
+        "height": 65,
+        "pivotX": -16,
+        "pivotY": -59
+      },
+      {
+        "left": 28,
+        "top": 0,
+        "width": 26,
+        "height": 58,
+        "pivotX": -14,
+        "pivotY": -55
+      },
+      {
+        "left": 54,
+        "top": 0,
+        "width": 25,
+        "height": 56,
+        "pivotX": -12,
+        "pivotY": -52
+      },
+      {
+        "left": 79,
+        "top": 0,
+        "width": 26,
+        "height": 58,
+        "pivotX": -14,
+        "pivotY": -56
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_14.png",
+    "width": 87,
+    "height": 63,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 23,
+        "height": 63,
+        "pivotX": -11,
+        "pivotY": -57
+      },
+      {
+        "left": 23,
+        "top": 0,
+        "width": 22,
+        "height": 62,
+        "pivotX": -13,
+        "pivotY": -57
+      },
+      {
+        "left": 45,
+        "top": 0,
+        "width": 26,
+        "height": 58,
+        "pivotX": -14,
+        "pivotY": -54
+      },
+      {
+        "left": 71,
+        "top": 0,
+        "width": 16,
+        "height": 61,
+        "pivotX": -7,
+        "pivotY": -57
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_15.png",
+    "width": 104,
+    "height": 63,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 27,
+        "height": 59,
+        "pivotX": -15,
+        "pivotY": -55
+      },
+      {
+        "left": 27,
+        "top": 0,
+        "width": 25,
+        "height": 62,
+        "pivotX": -16,
+        "pivotY": -58
+      },
+      {
+        "left": 52,
+        "top": 0,
+        "width": 27,
+        "height": 63,
+        "pivotX": -19,
+        "pivotY": -58
+      },
+      {
+        "left": 79,
+        "top": 0,
+        "width": 25,
+        "height": 63,
+        "pivotX": -16,
+        "pivotY": -59
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_16.png",
+    "width": 125,
+    "height": 60,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 37,
+        "height": 58,
+        "pivotX": -13,
+        "pivotY": -57
+      },
+      {
+        "left": 37,
+        "top": 0,
+        "width": 36,
+        "height": 59,
+        "pivotX": -15,
+        "pivotY": -58
+      },
+      {
+        "left": 73,
+        "top": 0,
+        "width": 24,
+        "height": 60,
+        "pivotX": -16,
+        "pivotY": -59
+      },
+      {
+        "left": 97,
+        "top": 0,
+        "width": 28,
+        "height": 60,
+        "pivotX": -21,
+        "pivotY": -59
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_17.png",
+    "width": 118,
+    "height": 62,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 27,
+        "height": 58,
+        "pivotX": -12,
+        "pivotY": -56
+      },
+      {
+        "left": 27,
+        "top": 0,
+        "width": 41,
+        "height": 60,
+        "pivotX": -11,
+        "pivotY": -58
+      },
+      {
+        "left": 68,
+        "top": 0,
+        "width": 29,
+        "height": 61,
+        "pivotX": -12,
+        "pivotY": -59
+      },
+      {
+        "left": 97,
+        "top": 0,
+        "width": 21,
+        "height": 62,
+        "pivotX": -12,
+        "pivotY": -60
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_18.png",
+    "width": 129,
+    "height": 59,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 33,
+        "height": 57,
+        "pivotX": -17,
+        "pivotY": -54
+      },
+      {
+        "left": 33,
+        "top": 0,
+        "width": 33,
+        "height": 56,
+        "pivotX": -7,
+        "pivotY": -53
+      },
+      {
+        "left": 66,
+        "top": 0,
+        "width": 36,
+        "height": 57,
+        "pivotX": -5,
+        "pivotY": -54
+      },
+      {
+        "left": 102,
+        "top": 0,
+        "width": 27,
+        "height": 59,
+        "pivotX": -5,
+        "pivotY": -56
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_19.png",
+    "width": 132,
+    "height": 58,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 45,
+        "height": 58,
+        "pivotX": -29,
+        "pivotY": -55
+      },
+      {
+        "left": 45,
+        "top": 0,
+        "width": 29,
+        "height": 53,
+        "pivotX": -11,
+        "pivotY": -50
+      },
+      {
+        "left": 74,
+        "top": 0,
+        "width": 27,
+        "height": 52,
+        "pivotX": -7,
+        "pivotY": -49
+      },
+      {
+        "left": 101,
+        "top": 0,
+        "width": 31,
+        "height": 52,
+        "pivotX": -7,
+        "pivotY": -49
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_20.png",
+    "width": 125,
+    "height": 65,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 37,
+        "height": 65,
+        "pivotX": -25,
+        "pivotY": -62
+      },
+      {
+        "left": 37,
+        "top": 0,
+        "width": 36,
+        "height": 55,
+        "pivotX": -22,
+        "pivotY": -50
+      },
+      {
+        "left": 73,
+        "top": 0,
+        "width": 24,
+        "height": 54,
+        "pivotX": -9,
+        "pivotY": -48
+      },
+      {
+        "left": 97,
+        "top": 0,
+        "width": 28,
+        "height": 53,
+        "pivotX": -8,
+        "pivotY": -47
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_21.png",
+    "width": 116,
+    "height": 72,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 26,
+        "height": 72,
+        "pivotX": -15,
+        "pivotY": -67
+      },
+      {
+        "left": 26,
+        "top": 0,
+        "width": 40,
+        "height": 57,
+        "pivotX": -31,
+        "pivotY": -51
+      },
+      {
+        "left": 66,
+        "top": 0,
+        "width": 29,
+        "height": 56,
+        "pivotX": -18,
+        "pivotY": -48
+      },
+      {
+        "left": 95,
+        "top": 0,
+        "width": 21,
+        "height": 55,
+        "pivotX": -10,
+        "pivotY": -47
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_22.png",
+    "width": 129,
+    "height": 73,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 33,
+        "height": 73,
+        "pivotX": -17,
+        "pivotY": -67
+      },
+      {
+        "left": 33,
+        "top": 0,
+        "width": 33,
+        "height": 61,
+        "pivotX": -27,
+        "pivotY": -55
+      },
+      {
+        "left": 66,
+        "top": 0,
+        "width": 36,
+        "height": 58,
+        "pivotX": -32,
+        "pivotY": -52
+      },
+      {
+        "left": 102,
+        "top": 0,
+        "width": 27,
+        "height": 57,
+        "pivotX": -23,
+        "pivotY": -51
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_23.png",
+    "width": 134,
+    "height": 61,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 45,
+        "height": 61,
+        "pivotX": -17,
+        "pivotY": -57
+      },
+      {
+        "left": 45,
+        "top": 0,
+        "width": 29,
+        "height": 61,
+        "pivotX": -19,
+        "pivotY": -59
+      },
+      {
+        "left": 74,
+        "top": 0,
+        "width": 28,
+        "height": 59,
+        "pivotX": -22,
+        "pivotY": -58
+      },
+      {
+        "left": 102,
+        "top": 0,
+        "width": 32,
+        "height": 58,
+        "pivotX": -26,
+        "pivotY": -57
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_24.png",
+    "width": 103,
+    "height": 59,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 59,
+        "pivotX": -13,
+        "pivotY": -58
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 25,
+        "height": 57,
+        "pivotX": -13,
+        "pivotY": -56
+      },
+      {
+        "left": 49,
+        "top": 0,
+        "width": 26,
+        "height": 54,
+        "pivotX": -13,
+        "pivotY": -53
+      },
+      {
+        "left": 75,
+        "top": 0,
+        "width": 28,
+        "height": 50,
+        "pivotX": -14,
+        "pivotY": -49
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_25.png",
+    "width": 101,
+    "height": 60,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 60,
+        "pivotX": -12,
+        "pivotY": -58
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 24,
+        "height": 59,
+        "pivotX": -12,
+        "pivotY": -57
+      },
+      {
+        "left": 48,
+        "top": 0,
+        "width": 26,
+        "height": 56,
+        "pivotX": -14,
+        "pivotY": -54
+      },
+      {
+        "left": 74,
+        "top": 0,
+        "width": 27,
+        "height": 53,
+        "pivotX": -15,
+        "pivotY": -51
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_26.png",
+    "width": 81,
+    "height": 61,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 58,
+        "pivotX": -8,
+        "pivotY": -55
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 19,
+        "height": 60,
+        "pivotX": -9,
+        "pivotY": -57
+      },
+      {
+        "left": 39,
+        "top": 0,
+        "width": 19,
+        "height": 61,
+        "pivotX": -10,
+        "pivotY": -58
+      },
+      {
+        "left": 58,
+        "top": 0,
+        "width": 23,
+        "height": 60,
+        "pivotX": -16,
+        "pivotY": -57
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_27.png",
+    "width": 110,
+    "height": 63,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 25,
+        "height": 55,
+        "pivotX": -10,
+        "pivotY": -52
+      },
+      {
+        "left": 25,
+        "top": 0,
+        "width": 27,
+        "height": 59,
+        "pivotX": -12,
+        "pivotY": -56
+      },
+      {
+        "left": 52,
+        "top": 0,
+        "width": 28,
+        "height": 62,
+        "pivotX": -14,
+        "pivotY": -59
+      },
+      {
+        "left": 80,
+        "top": 0,
+        "width": 30,
+        "height": 63,
+        "pivotX": -16,
+        "pivotY": -60
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_28.png",
+    "width": 103,
+    "height": 63,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 55,
+        "pivotX": -12,
+        "pivotY": -52
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 25,
+        "height": 59,
+        "pivotX": -13,
+        "pivotY": -56
+      },
+      {
+        "left": 49,
+        "top": 0,
+        "width": 26,
+        "height": 61,
+        "pivotX": -14,
+        "pivotY": -58
+      },
+      {
+        "left": 75,
+        "top": 0,
+        "width": 28,
+        "height": 63,
+        "pivotX": -15,
+        "pivotY": -60
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_29.png",
+    "width": 101,
+    "height": 63,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 57,
+        "pivotX": -13,
+        "pivotY": -52
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 24,
+        "height": 60,
+        "pivotX": -13,
+        "pivotY": -55
+      },
+      {
+        "left": 48,
+        "top": 0,
+        "width": 26,
+        "height": 62,
+        "pivotX": -13,
+        "pivotY": -57
+      },
+      {
+        "left": 74,
+        "top": 0,
+        "width": 27,
+        "height": 63,
+        "pivotX": -13,
+        "pivotY": -58
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_30.png",
+    "width": 81,
+    "height": 61,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 61,
+        "pivotX": -13,
+        "pivotY": -55
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 19,
+        "height": 61,
+        "pivotX": -11,
+        "pivotY": -55
+      },
+      {
+        "left": 39,
+        "top": 0,
+        "width": 19,
+        "height": 60,
+        "pivotX": -10,
+        "pivotY": -54
+      },
+      {
+        "left": 58,
+        "top": 0,
+        "width": 23,
+        "height": 58,
+        "pivotX": -8,
+        "pivotY": -52
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_31.png",
+    "width": 110,
+    "height": 62,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 25,
+        "height": 62,
+        "pivotX": -16,
+        "pivotY": -58
+      },
+      {
+        "left": 25,
+        "top": 0,
+        "width": 27,
+        "height": 60,
+        "pivotX": -16,
+        "pivotY": -56
+      },
+      {
+        "left": 52,
+        "top": 0,
+        "width": 28,
+        "height": 57,
+        "pivotX": -15,
+        "pivotY": -53
+      },
+      {
+        "left": 80,
+        "top": 0,
+        "width": 30,
+        "height": 52,
+        "pivotX": -15,
+        "pivotY": -48
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_32.png",
+    "width": 138,
+    "height": 81,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 60,
+        "pivotX": -13,
+        "pivotY": -59
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 28,
+        "height": 81,
+        "pivotX": -16,
+        "pivotY": -82
+      },
+      {
+        "left": 52,
+        "top": 0,
+        "width": 37,
+        "height": 54,
+        "pivotX": -18,
+        "pivotY": -54
+      },
+      {
+        "left": 89,
+        "top": 0,
+        "width": 49,
+        "height": 35,
+        "pivotX": -26,
+        "pivotY": -34
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_33.png",
+    "width": 169,
+    "height": 80,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 59,
+        "pivotX": -11,
+        "pivotY": -58
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 33,
+        "height": 80,
+        "pivotX": -13,
+        "pivotY": -80
+      },
+      {
+        "left": 57,
+        "top": 0,
+        "width": 52,
+        "height": 50,
+        "pivotX": -14,
+        "pivotY": -49
+      },
+      {
+        "left": 109,
+        "top": 0,
+        "width": 60,
+        "height": 33,
+        "pivotX": -16,
+        "pivotY": -30
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_34.png",
+    "width": 175,
+    "height": 72,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 58,
+        "pivotX": -7,
+        "pivotY": -55
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 37,
+        "height": 72,
+        "pivotX": -5,
+        "pivotY": -69
+      },
+      {
+        "left": 57,
+        "top": 0,
+        "width": 53,
+        "height": 35,
+        "pivotX": -2,
+        "pivotY": -31
+      },
+      {
+        "left": 110,
+        "top": 0,
+        "width": 65,
+        "height": 29,
+        "pivotX": -6,
+        "pivotY": -17
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_35.png",
+    "width": 140,
+    "height": 63,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 25,
+        "height": 55,
+        "pivotX": -9,
+        "pivotY": -51
+      },
+      {
+        "left": 25,
+        "top": 0,
+        "width": 28,
+        "height": 63,
+        "pivotX": -7,
+        "pivotY": -60
+      },
+      {
+        "left": 53,
+        "top": 0,
+        "width": 39,
+        "height": 17,
+        "pivotX": -8,
+        "pivotY": -15
+      },
+      {
+        "left": 92,
+        "top": 0,
+        "width": 48,
+        "height": 36,
+        "pivotX": -10,
+        "pivotY": -9
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_36.png",
+    "width": 137,
+    "height": 62,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 54,
+        "pivotX": -12,
+        "pivotY": -51
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 27,
+        "height": 62,
+        "pivotX": -13,
+        "pivotY": -60
+      },
+      {
+        "left": 51,
+        "top": 0,
+        "width": 37,
+        "height": 16,
+        "pivotX": -20,
+        "pivotY": -14
+      },
+      {
+        "left": 88,
+        "top": 0,
+        "width": 49,
+        "height": 35,
+        "pivotX": -24,
+        "pivotY": -6
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_37.png",
+    "width": 171,
+    "height": 67,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 24,
+        "height": 56,
+        "pivotX": -14,
+        "pivotY": -51
+      },
+      {
+        "left": 24,
+        "top": 0,
+        "width": 34,
+        "height": 67,
+        "pivotX": -22,
+        "pivotY": -63
+      },
+      {
+        "left": 58,
+        "top": 0,
+        "width": 52,
+        "height": 26,
+        "pivotX": -39,
+        "pivotY": -21
+      },
+      {
+        "left": 110,
+        "top": 0,
+        "width": 61,
+        "height": 32,
+        "pivotX": -46,
+        "pivotY": -7
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_38.png",
+    "width": 175,
+    "height": 79,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 20,
+        "height": 61,
+        "pivotX": -14,
+        "pivotY": -55
+      },
+      {
+        "left": 20,
+        "top": 0,
+        "width": 37,
+        "height": 79,
+        "pivotX": -33,
+        "pivotY": -73
+      },
+      {
+        "left": 57,
+        "top": 0,
+        "width": 53,
+        "height": 49,
+        "pivotX": -52,
+        "pivotY": -42
+      },
+      {
+        "left": 110,
+        "top": 0,
+        "width": 65,
+        "height": 27,
+        "pivotX": -60,
+        "pivotY": -15
+      }
+    ]
+  },
+  {
+    "sheetName": "zom_sheet_39.png",
+    "width": 140,
+    "height": 84,
+    "frames": [
+      {
+        "left": 0,
+        "top": 0,
+        "width": 25,
+        "height": 61,
+        "pivotX": -17,
+        "pivotY": -58
+      },
+      {
+        "left": 25,
+        "top": 0,
+        "width": 28,
+        "height": 84,
+        "pivotX": -22,
+        "pivotY": -82
+      },
+      {
+        "left": 53,
+        "top": 0,
+        "width": 39,
+        "height": 58,
+        "pivotX": -32,
+        "pivotY": -55
+      },
+      {
+        "left": 92,
+        "top": 0,
+        "width": 48,
+        "height": 35,
+        "pivotX": -39,
+        "pivotY": -31
+      }
+    ]
+  }
+]
