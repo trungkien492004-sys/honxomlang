@@ -21,7 +21,28 @@ window.currentFirebaseUser = null;
 window._cloudSaveEnabled   = false;
 window._cloudSaveData      = null;
 
-// 🎨 Hàm vẽ nhân vật chibi RPG chất lượng cao bằng đồ họa vector 🎨
+// Cache for class sprite sheets
+const classSpriteCache = {
+    cop: { idle: null, walk: null },
+    teacher: { idle: null, walk: null },
+    merchant: { idle: null, walk: null },
+    engineer: { idle: null, walk: null }
+};
+
+function preloadClassSprites() {
+    const classes = ['cop', 'teacher', 'merchant', 'engineer'];
+    classes.forEach(c => {
+        let idleImg = new Image();
+        idleImg.src = `assets/sprites/classes/${c}/Idle.png`;
+        classSpriteCache[c].idle = idleImg;
+
+        let walkImg = new Image();
+        walkImg.src = `assets/sprites/classes/${c}/Walk.png`;
+        classSpriteCache[c].walk = walkImg;
+    });
+}
+preloadClassSprites();
+
 const _skinCache = {};
 window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, scale = 1, faceDirection = 'right', isBlinking = false, skinId = null) {
     if(skinId === 'skin_cong_chua') {
@@ -151,6 +172,44 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
 
         ctx.restore();
         return; // Skip normal drawing
+    }
+
+    // Try rendering using sprite sheets if loaded
+    let cache = classSpriteCache[classId];
+    if (cache) {
+        let spriteImg = (isMoving && cache.walk) ? cache.walk : cache.idle;
+        if (spriteImg && spriteImg.complete && spriteImg.naturalWidth > 0) {
+            ctx.save();
+            
+            // Mirror image if facing left
+            if (faceDirection === 'left') {
+                ctx.translate(x, y);
+                ctx.scale(-1, 1);
+                ctx.translate(-x, -y);
+            }
+            
+            let frameWidth = 128;
+            let frameHeight = 128;
+            let totalWidth = spriteImg.naturalWidth;
+            let totalFrames = Math.max(1, Math.floor(totalWidth / frameWidth));
+            
+            let speedDivider = isMoving ? 100 : 150;
+            let currentFrame = Math.floor(Date.now() / speedDivider) % totalFrames;
+            
+            let drawW = 80 * scale;
+            let drawH = 80 * scale;
+            let drawX = x - drawW / 2;
+            let drawY = y + 36 * scale - drawH;
+            
+            ctx.drawImage(
+                spriteImg,
+                currentFrame * frameWidth, 0, frameWidth, frameHeight,
+                drawX, drawY, drawW, drawH
+            );
+            
+            ctx.restore();
+            return; // Skip normal vector drawing
+        }
     }
 
     ctx.save();

@@ -20,27 +20,8 @@
                 this.bgm.volume = this.muted ? 0 : this.bgmVolume;
             }
             playBgm(trackName) {
-                this.init();
-                if(this.currentBgmName === trackName) return;
-                
-                const path = `assets/audio/music/${trackName}.mp3`;
-                this.bgm.src = path;
-                this.currentBgmName = trackName;
-                
-                if(!this.muted) {
-                    this.bgm.play().catch(e => {
-                        console.log("Audio BGM autoplay blocked, waiting for interaction.");
-                        const playOnInteraction = () => {
-                            if (this.bgm.src && !this.muted) {
-                                this.bgm.play().catch(o => {});
-                            }
-                            document.removeEventListener('click', playOnInteraction);
-                            document.removeEventListener('keydown', playOnInteraction);
-                        };
-                        document.addEventListener('click', playOnInteraction);
-                        document.addEventListener('keydown', playOnInteraction);
-                    });
-                }
+                // Disabled by user request
+                return;
             }
             stopBgm() {
                 if(this.bgm) {
@@ -2236,6 +2217,44 @@
         wireModalButtons();
 
         // --- 6. MONSTER SPAWNING & COMBAT SIMULATION ENGINE ---
+        function updateNpcPositionsForMap(mapId) {
+            // Save defaults if not already done
+            for (let nKey in NPC_DATA) {
+                let npc = NPC_DATA[nKey];
+                if (npc.defaultX === undefined) {
+                    npc.defaultX = npc.x;
+                    npc.defaultY = npc.y;
+                }
+            }
+            
+            // Set coordinates based on current map
+            for (let nKey in NPC_DATA) {
+                let npc = NPC_DATA[nKey];
+                
+                let targetMap = '';
+                if (nKey === 'elder') targetMap = 'communal_house';
+                else if (nKey === 'blacksmith') targetMap = 'blacksmith_shop';
+                else if (nKey === 'merchant') targetMap = 'village_temple';
+                else if (nKey === 'barber') targetMap = 'school';
+                
+                if (targetMap) {
+                    if (mapId === targetMap) {
+                        // Inside their building, place them behind the table
+                        npc.x = 300;
+                        npc.y = 240;
+                        npc.ox = 300;
+                        npc.oy = 240;
+                    } else {
+                        // Restore to world defaults
+                        npc.x = npc.defaultX;
+                        npc.y = npc.defaultY;
+                        npc.ox = npc.defaultX;
+                        npc.oy = npc.defaultY;
+                    }
+                }
+            }
+        }
+
         function spawnInitialMonsters() {
             monsters = [];
             
@@ -2252,6 +2271,7 @@
                 spawnSingleMonster(true);
                 spawnSingleMonster(true);
             }
+            updateNpcPositionsForMap(window.currentMapId || 'world');
         }
 
         function spawnSingleMonster(isBoss = false, mapId = window.currentMapId) {
@@ -3396,23 +3416,32 @@ function handleWorldClick(e) {
         player.targetPvpPlayerId = null;
     }
 
-    // Click trúng Quái vật thì nhắm mục tiêu và bắt đầu tấn công
+    // Click trúng Quái vật thì nhắm mục tiêu (khóa mục tiêu) hoặc bắt đầu tấn công
     for(let m of monsters) {
         let dx = worldClickX - m.x;
         let dy = worldClickY - m.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
         if(dist <= 40) {
-            player.targetMonster = m;
-            player.destinationX = m.x;
-            player.destinationY = m.y;
-            showToast(`🎯 Đã nhắm mục tiêu: [${m.name}]`);
+            if (player.lockedTarget === m || player.targetMonster === m) {
+                // Click lần 2: Tấn công
+                player.targetMonster = m;
+                player.destinationX = m.x;
+                player.destinationY = m.y;
+                showToast(`⚔️ Bắt đầu tấn công: [${m.name}]`);
+            } else {
+                // Click lần 1: Khóa mục tiêu
+                player.lockedTarget = m;
+                player.targetMonster = null; // Chưa lao vào đánh
+                showToast(`🎯 Khóa mục tiêu: [${m.name}]. Nhấp lần nữa để tấn công!`);
+            }
             refreshHudDisplay();
             return;
         }
     }
 
-    // Click đất trống sẽ cập nhật đích di chuyển ngay lập tức
+    // Click đất trống sẽ cập nhật đích di chuyển và xóa mục tiêu khóa
     player.targetMonster = null;
+    player.lockedTarget = null;
     player.targetPvpPlayerId = null;
     document.getElementById('targetIndicator').style.display = 'none';
     player.destinationX = worldClickX;
@@ -4935,6 +4964,14 @@ function toggleAutoFarm() {
 
         let lastBgmCheckTime = 0;
         function updateGameLogicState() {
+            // Prune dead/removed targets
+            if (player.targetMonster && !monsters.some(m => m.id === player.targetMonster.id)) {
+                player.targetMonster = null;
+            }
+            if (player.lockedTarget && !monsters.some(m => m.id === player.lockedTarget.id)) {
+                player.lockedTarget = null;
+            }
+
             // Zone Background Music transition tick check
             let nowTime = Date.now();
             if (nowTime - lastBgmCheckTime > 1000) {
@@ -5292,7 +5329,14 @@ function toggleAutoFarm() {
                     npc.chatCooldown = 0;
                 }
                 
-                if (Date.now() > (npc.roamCooldown || 0)) {
+                let canRoam = true;
+                if (window.currentMapId !== 'world' && (nKey === 'elder' || nKey === 'blacksmith' || nKey === 'merchant' || nKey === 'barber')) {
+                    canRoam = false;
+                    npc.tx = undefined;
+                    npc.ty = undefined;
+                }
+                
+                if (canRoam && Date.now() > (npc.roamCooldown || 0)) {
                     if (Math.random() < 0.25) {
                         let angle = Math.random() * Math.PI * 2;
                         let dist = 30 + Math.random() * 50;
@@ -5306,7 +5350,7 @@ function toggleAutoFarm() {
                     }
                 }
                 
-                if (npc.tx !== undefined && npc.ty !== undefined) {
+                if (canRoam && npc.tx !== undefined && npc.ty !== undefined) {
                     let dx = npc.tx - npc.x;
                     let dy = npc.ty - npc.y;
                     let dist = Math.sqrt(dx*dx + dy*dy);
@@ -6162,8 +6206,9 @@ function toggleAutoFarm() {
             renderSkillActionPopups();
 
             // Layer 5: Target Reticle Selection Highlights Line Indicators
-            if(player.targetMonster) {
-                let m = player.targetMonster;
+            let activeTarget = player.targetMonster || player.lockedTarget;
+            if(activeTarget) {
+                let m = activeTarget;
                 ctx.beginPath();
                 ctx.strokeStyle = "rgba(244,63,94,0.6)";
                 ctx.lineWidth = 2;
@@ -6173,8 +6218,12 @@ function toggleAutoFarm() {
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                ctx.strokeStyle = "#f43f5e";
-                ctx.strokeRect(m.x - camera.x - 22, m.y - camera.y - 22, 44, 44);
+                ctx.beginPath();
+                let pulseRadius = 24 + Math.sin(Date.now() / 120) * 4;
+                ctx.arc(m.x - camera.x, m.y - camera.y, pulseRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = "#ef4444";
+                ctx.lineWidth = 3;
+                ctx.stroke();
             }
 
             // Layer 7: Render Floating Particle elements array
@@ -6433,11 +6482,13 @@ function toggleAutoFarm() {
                 player.destinationX = undefined;
                 player.destinationY = undefined;
                 player.targetMonster = null;
+                player.lockedTarget = null;
                 
                 if (window.generateMapDecorations) {
                     window.generateMapDecorations(mapId);
                 }
                 spawnMonstersForMap(mapId);
+                updateNpcPositionsForMap(mapId);
                 
                 let targetBgm = 'aresden';
                 if (mapId === 'demon_cave' || mapId === 'dungeon' || mapId === 'bat_cave') targetBgm = 'dungeon';
@@ -6492,11 +6543,13 @@ function toggleAutoFarm() {
                 player.destinationX = undefined;
                 player.destinationY = undefined;
                 player.targetMonster = null;
+                player.lockedTarget = null;
                 
                 if (window.generateMapDecorations) {
                     window.generateMapDecorations(window.currentMapId);
                 }
                 spawnMonstersForMap(window.currentMapId);
+                updateNpcPositionsForMap(window.currentMapId);
                 
                 showToast(`🌀 Đã dịch chuyển tới ${portal.name}`);
                 
