@@ -158,6 +158,7 @@
                 <button class="nav-btn" id="chatNavBtn" onclick="togglePanel('chat')">💬 Chat Tổng</button>
                 <button class="nav-btn" onclick="togglePanel('bet')">🏟️ Cược Bóng</button>
                 <button class="nav-btn" onclick="openBoardGameWithBet()" style="background:linear-gradient(135deg,#f97316,#7c3aed);">🏁 Cờ Đua</button>
+                <button class="nav-btn" onclick="openYugiohGame()" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); border-color:#d4af37;">🃏 Bài Ma Thuật</button>
                 <button class="btn btn-google" onclick="window.toggleMobileMenu()" style="padding: 5px 10px; margin-left: 10px;">☰</button>
                 <button class="nav-btn" onclick="signOutUser()" style="background:#dc2626; border-color:#ef4444;">🚪 Đăng Xuất</button>
             </div>
@@ -461,6 +462,554 @@
             </div>
         </div>
 
+        <!-- ===== 🃏 YU-GI-OH! CARD GAME MODAL ===== -->
+        <div id="yugiohGameModal" style="display:none; position:fixed; inset:0; background:rgba(10,8,6,0.98); z-index:100000; overflow-y:auto; font-family:'Baloo 2', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:white; padding:15px;">
+            
+            <!-- Styled CSS inline for Yu-Gi-Oh! component to avoid global clash -->
+            <style>
+                .ygo-container {
+                    max-width: 1000px;
+                    margin: 0 auto;
+                    background: #1a0f0a;
+                    border: 3px solid #d4af37;
+                    border-radius: 16px;
+                    padding: 20px;
+                    box-shadow: 0 0 30px rgba(212, 175, 55, 0.25);
+                }
+                .ygo-title {
+                    font-size: 2rem;
+                    text-align: center;
+                    color: #d4af37;
+                    text-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
+                    font-weight: 900;
+                    margin-bottom: 5px;
+                }
+                .ygo-subtitle {
+                    font-size: 0.85rem;
+                    text-align: center;
+                    color: #a8a29e;
+                    margin-bottom: 20px;
+                    letter-spacing: 1.5px;
+                    text-transform: uppercase;
+                }
+                .ygo-screen {
+                    min-height: 500px;
+                }
+                /* Lobby Styles */
+                .ygo-lobby-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                    margin-top: 20px;
+                }
+                .ygo-lobby-card {
+                    background: #271610;
+                    border: 2px solid #5a3d28;
+                    border-radius: 12px;
+                    padding: 20px;
+                    text-align: center;
+                    transition: transform 0.2s, border-color 0.2s;
+                }
+                .ygo-lobby-card:hover {
+                    transform: translateY(-2px);
+                    border-color: #d4af37;
+                }
+                .ygo-btn {
+                    padding: 10px 20px;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    color: #1a0f0a;
+                    background: linear-gradient(135deg, #d4af37, #aa7c11);
+                    border: 2px solid #fff;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-family: inherit;
+                    transition: filter 0.2s;
+                }
+                .ygo-btn:hover {
+                    filter: brightness(1.2);
+                }
+                .ygo-btn-secondary {
+                    background: linear-gradient(135deg, #4b5563, #1f2937);
+                    color: white;
+                    border-color: #4b5563;
+                }
+                /* Deck Builder Styles */
+                .ygo-deck-layout {
+                    display: flex;
+                    gap: 15px;
+                    height: 550px;
+                }
+                .ygo-deck-panel {
+                    flex: 1;
+                    background: #271610;
+                    border: 2px solid #5a3d28;
+                    border-radius: 12px;
+                    padding: 12px;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                }
+                .ygo-card-list-scroll {
+                    flex: 1;
+                    overflow-y: auto;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+                    gap: 8px;
+                    padding-right: 5px;
+                }
+                .ygo-card-deck-scroll {
+                    flex: 1;
+                    overflow-y: auto;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                    padding-right: 5px;
+                }
+                .ygo-search-row {
+                    display: flex;
+                    gap: 5px;
+                    margin-bottom: 10px;
+                }
+                .ygo-input {
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 2px solid #5a3d28;
+                    background: #1a0f0a;
+                    color: white;
+                    font-size: 0.9rem;
+                    outline: none;
+                }
+                .ygo-mini-card {
+                    aspect-ratio: 5/7;
+                    background: #3f2318;
+                    border: 1.5px solid #78350f;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    padding: 4px;
+                    font-size: 0.58rem;
+                    text-align: center;
+                    position: relative;
+                    user-select: none;
+                    transition: border-color 0.2s;
+                }
+                .ygo-mini-card:hover {
+                    border-color: #d4af37;
+                }
+                .ygo-mini-card.monster { background: linear-gradient(135deg, #b45309, #78350f); }
+                .ygo-mini-card.spell { background: linear-gradient(135deg, #047857, #064e3b); }
+                .ygo-mini-card.trap { background: linear-gradient(135deg, #be185d, #831843); }
+                
+                .ygo-deck-row {
+                    display: flex;
+                    align-items: center;
+                    background: #3f2318;
+                    border: 1px solid #78350f;
+                    padding: 5px 8px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 0.8rem;
+                    justify-content: space-between;
+                }
+                .ygo-deck-row:hover {
+                    border-color: #d4af37;
+                }
+                /* Dueling Board Styles */
+                .ygo-duel-layout {
+                    display: flex;
+                    gap: 15px;
+                }
+                .ygo-detail-panel {
+                    width: 250px;
+                    background: #271610;
+                    border: 2px solid #5a3d28;
+                    border-radius: 12px;
+                    padding: 12px;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .ygo-card-image-placeholder {
+                    aspect-ratio: 5/7;
+                    background: #1a0f0a;
+                    border: 2px solid #d4af37;
+                    border-radius: 8px;
+                    margin-bottom: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 3rem;
+                }
+                .ygo-board-panel {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+                .ygo-field {
+                    background: #090503;
+                    border: 3px solid #5a3d28;
+                    border-radius: 12px;
+                    padding: 10px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .ygo-field-row {
+                    display: flex;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                .ygo-zone {
+                    width: 65px;
+                    height: 85px;
+                    border: 2.5px dashed #4b3223;
+                    border-radius: 6px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 0.62rem;
+                    color: #5a3d28;
+                    cursor: pointer;
+                    position: relative;
+                }
+                .ygo-zone.active-card {
+                    border: 2px solid #d4af37;
+                    background: #3f2318;
+                    color: white;
+                }
+                .ygo-hand-row {
+                    background: #271610;
+                    border: 2px solid #5a3d28;
+                    border-radius: 12px;
+                    padding: 8px;
+                    display: flex;
+                    justify-content: center;
+                    gap: 8px;
+                    min-height: 105px;
+                }
+                .ygo-side-panel {
+                    width: 200px;
+                    background: #271610;
+                    border: 2px solid #5a3d28;
+                    border-radius: 12px;
+                    padding: 12px;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .ygo-lp-box {
+                    background: #1a0f0a;
+                    border: 2px solid #d4af37;
+                    border-radius: 8px;
+                    padding: 10px;
+                    text-align: center;
+                    margin-bottom: 10px;
+                }
+                .ygo-lp-num {
+                    font-size: 1.8rem;
+                    font-weight: bold;
+                    color: #ef4444;
+                    font-family: monospace;
+                }
+                .ygo-lp-num.player {
+                    color: #10b981;
+                }
+                .ygo-log {
+                    flex: 1;
+                    background: #1a0f0a;
+                    border: 1px solid #5a3d28;
+                    border-radius: 8px;
+                    padding: 8px;
+                    font-size: 0.72rem;
+                    overflow-y: auto;
+                    font-family: monospace;
+                    color: #cbd5e1;
+                    max-height: 250px;
+                }
+                .ygo-card-stat {
+                    display: flex;
+                    justify-content: space-between;
+                    background: rgba(0,0,0,0.3);
+                    padding: 4px;
+                    border-radius: 4px;
+                    font-size: 0.72rem;
+                    margin-bottom: 8px;
+                }
+                .ygo-zone-badge {
+                    position: absolute;
+                    top: -2px;
+                    right: -2px;
+                    background: red;
+                    color: white;
+                    border-radius: 50%;
+                    width: 14px;
+                    height: 14px;
+                    font-size: 0.52rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            </style>
+
+            <div class="ygo-container">
+                <div class="ygo-title">🃏 ĐẤU BÀI MA THUẬT YU-GI-OH! 🔮</div>
+                <div class="ygo-subtitle">ANIME VERSION · PVE & PVP MODE</div>
+
+                <!-- 1. LOBBY SCREEN -->
+                <div id="ygoLobbyScreen" class="ygo-screen">
+                    <!-- Tab Headers in Lobby -->
+                    <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:2px solid #5a3d28; padding-bottom:8px;">
+                        <button class="ygo-btn" style="flex:1; font-size:0.9rem; padding:6px; background:linear-gradient(135deg, #d4af37, #aa7c11);" id="ygoLobbyTabPlayBtn" onclick="ygoSwitchLobbyTab('play')">⚔️ Đấu Trường</button>
+                        <button class="ygo-btn ygo-btn-secondary" style="flex:1; font-size:0.9rem; padding:6px;" id="ygoLobbyTabCharBtn" onclick="ygoSwitchLobbyTab('char')">👤 Chọn Nhân Vật</button>
+                        <button class="ygo-btn ygo-btn-secondary" style="flex:1; font-size:0.9rem; padding:6px;" id="ygoLobbyTabLimitBtn" onclick="ygoSwitchLobbyTab('limit')">📋 Giới Hạn Bài</button>
+                    </div>
+
+                    <!-- Lobby Tab 1: Play Arena -->
+                    <div id="ygoLobbyTabPlay">
+                        <div style="text-align:center; padding:20px; background:rgba(0,0,0,0.2); border-radius:12px;">
+                            <span style="font-size:3rem;">🔮</span>
+                            <h2 style="font-size:1.2rem; margin:5px 0;">Chào mừng Dueling Hero đến với Đấu Trường Ma Thuật!</h2>
+                            <div style="font-size:0.85rem; color:#fcd34d; font-weight:bold; margin-bottom:4px;" id="ygoLobbyActiveCharText">Nhân vật hiện tại: Yugi Muto (Atem)</div>
+                            <p style="color:#a8a29e; max-width:600px; margin:5px auto; font-size:0.8rem;">Cơ sở dữ liệu Anime đã đồng bộ hóa thành công. Bạn hãy tùy chỉnh bộ bài 40 lá của mình trước khi thách đấu với Bot hoặc người chơi trực tuyến khác!</p>
+                        </div>
+
+                        <div class="ygo-lobby-grid">
+                            <div class="ygo-lobby-card" style="padding:15px;">
+                                <h3>🤖 Chế Độ Đấu Với Bot (PvE)</h3>
+                                <p style="font-size:0.75rem; color:#a8a29e; margin:5px 0;">Đấu với Máy sử dụng các bộ bài huyền thoại của Yugi, Kaiba, Pegasus hoặc Joey.</p>
+                                <div style="margin:5px 0; display:flex; justify-content:center; gap:8px;">
+                                    <select id="ygoBotSelector" class="ygo-input" style="width:180px; padding:6px; font-size:0.8rem;">
+                                        <option value="yugi">🤖 Bot Yugi Muto (Atem)</option>
+                                        <option value="kaiba">🐉 Bot Seto Kaiba (Rồng Mắt Xanh)</option>
+                                        <option value="joey">🗡️ Bot Joey Wheeler (Red-Eyes)</option>
+                                        <option value="pegasus">👁️ Bot Pegasus (Toon World)</option>
+                                    </select>
+                                </div>
+                                <button class="ygo-btn" style="padding:8px 16px; font-size:0.9rem;" onclick="ygoStartBotGame()">🚀 Vào Trận Đấu Bot</button>
+                            </div>
+                            
+                            <div class="ygo-lobby-card" style="padding:15px;">
+                                <h3>⚔️ Chế Độ Đấu Trực Tuyến (PvP)</h3>
+                                <p style="font-size:0.75rem; color:#a8a29e; margin:5px 0;">Mời người chơi trực tuyến trên cùng server để phân cao thấp thời gian thực.</p>
+                                <div style="margin:5px 0; max-height:80px; overflow-y:auto; background:#1a0f0a; border-radius:6px; padding:6px; border:1px solid #5a3d28;" id="ygoPvpPlayersList">
+                                    <span style="font-size:0.75rem; color:#666;">Chưa phát hiện đấu thủ nào online...</span>
+                                </div>
+                                <button class="ygo-btn" style="background:linear-gradient(135deg, #8b5cf6, #6d28d9); padding:8px 16px; font-size:0.9rem;" onclick="ygoRefreshPvpList()">📨 Cập Nhật Danh Sách</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:20px; display:flex; gap:12px; justify-content:center;">
+                            <button class="ygo-btn" style="background:linear-gradient(135deg, #10b981, #059669);" onclick="ygoOpenDeckBuilder()">🔧 Chỉnh Sửa Bộ Bài</button>
+                            <button class="ygo-btn ygo-btn-secondary" onclick="ygoCloseGame()">✖ Thoát Trò Chơi</button>
+                        </div>
+                    </div>
+
+                    <!-- Lobby Tab 2: Choose Character Role -->
+                    <div id="ygoLobbyTabChar" style="display:none;">
+                        <h3 style="text-align:center; color:#d4af37; margin-bottom:8px;">👤 LỰA CHỌN VAI CHƠI BÀI THỦ (DUELING HEROES)</h3>
+                        <p style="text-align:center; color:#cbd5e1; font-size:0.75rem; margin-bottom:12px;">Nhấp vào nhân vật để xem chi tiết và chọn vai. Kỹ năng của nhân vật sẽ giúp bạn lật ngược thế cờ trong trận đấu!</p>
+                        
+                        <div style="display:flex; gap:15px; height:320px;">
+                            <!-- Grid List of 30 Characters -->
+                            <div style="flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:8px; background:#1a0f0a; padding:10px; border-radius:10px; border:2.5px solid #5a3d28;" id="ygoCharListGrid">
+                                <!-- Chèn danh sách nhân vật bằng JS -->
+                            </div>
+                            <!-- Character Detail Card -->
+                            <div style="width:260px; background:#271610; border:2px solid #ea580c; border-radius:10px; padding:12px; display:flex; flex-direction:column; justify-content:space-between;" id="ygoCharDetailPanel">
+                                <div>
+                                    <div style="font-size:1.8rem; text-align:center; margin-bottom:4px;" id="ygoCharDetailAvatar">👤</div>
+                                    <h4 style="color:#d4af37; text-align:center; font-size:1rem; margin-bottom:6px;" id="ygoCharDetailName">Tên Nhân Vật</h4>
+                                    <div style="font-size:0.72rem; color:#cbd5e1; margin-bottom:8px; background:rgba(0,0,0,0.3); padding:5px; border-radius:4px;" id="ygoCharDetailReq">
+                                        <b>Bài yêu thích:</b> ---
+                                    </div>
+                                    <div style="font-size:0.75rem; border-top:1px dashed #5a3d28; padding-top:6px;">
+                                        <b style="color:#f97316;" id="ygoCharDetailSkillName">Kỹ năng: ---</b>
+                                        <p style="color:#a8a29e; font-size:0.7rem; line-height:1.35; margin:3px 0;" id="ygoCharDetailSkillDesc">Mô tả kỹ năng nhân vật...</p>
+                                    </div>
+                                </div>
+                                <button class="ygo-btn" style="width:100%; font-size:0.85rem; padding:8px 0; background:linear-gradient(135deg,#f97316,#d97706);" id="ygoCharSelectBtn" onclick="ygoSelectCharacterAct()">CHỌN VAI NÀY</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lobby Tab 3: Limited Cards List -->
+                    <div id="ygoLobbyTabLimit" style="display:none;">
+                        <h3 style="text-align:center; color:#d4af37; margin-bottom:8px;">📋 DANH SÁCH GIỚI HẠN BÀI (LIMIT LIST)</h3>
+                        <p style="text-align:center; color:#cbd5e1; font-size:0.78rem; margin-bottom:12px;">Các lá bài mạnh mẽ bị giới hạn số lượng bản sao trong Deck để đảm bảo cân bằng. Trò chơi hiện không cấm (ban) bất kỳ bài nào.</p>
+                        
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                            <div style="background:#271610; border:2px solid #ea580c; border-radius:10px; padding:10px;">
+                                <h4 style="color:#f97316; border-bottom:1.5px solid #ea580c; padding-bottom:3px; margin-bottom:8px; text-align:center; font-size:0.85rem;">🔴 Hạn Chế (Tối đa 1 lá)</h4>
+                                <ul style="padding-left:15px; margin:0; font-size:0.72rem; line-height:1.6; color:#e2e8f0;">
+                                    <li>🃏 <b>Hũ tham lam:</b> Rút thêm 2 lá bài.</li>
+                                    <li>⚡ <b>Lôi kích:</b> Tiêu diệt toàn bộ quái thú đối thủ.</li>
+                                    <li>✨ <b>Phục sinh quái thú:</b> Triệu hồi 1 quái thú từ Mộ bài.</li>
+                                    <li>🤝 <b>Thay đổi trái tim:</b> Thu phục 1 quái thú đối thủ.</li>
+                                    <li>🔥 <b>Exodia:</b> Gom đủ 5 mảnh thắng ngay lập tức.</li>
+                                </ul>
+                            </div>
+                            <div style="background:#271610; border:2px solid #eab308; border-radius:10px; padding:10px;">
+                                <h4 style="color:#facc15; border-bottom:1.5px solid #eab308; padding-bottom:3px; margin-bottom:8px; text-align:center; font-size:0.85rem;">🟡 Bán Hạn Chế (Tối đa 2 lá)</h4>
+                                <ul style="padding-left:15px; margin:0; font-size:0.72rem; line-height:1.6; color:#e2e8f0;">
+                                    <li>🕳️ <b>Hố đen:</b> Tiêu diệt toàn bộ quái thú cả hai bên.</li>
+                                    <li>💥 <b>Hủy bài:</b> Cả hai bỏ hết bài trên tay và rút tương tự.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. DECK BUILDER SCREEN -->
+                <div id="ygoDeckScreen" class="ygo-screen" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h3>🔧 CHỈNH SỬA BỘ BÀI (<span id="ygoDeckCount">0</span> / 40 lá)</h3>
+                        <div style="font-size:0.82rem; color:#22c55e; font-weight:bold;">💡 Click vào lá bài bên trái để THÊM, bên phải để XÓA</div>
+                    </div>
+                    
+                    <div class="ygo-deck-layout">
+                        <!-- Danh sách bài trong kho -->
+                        <div class="ygo-deck-panel">
+                            <div class="ygo-search-row">
+                                <input type="text" id="ygoSearchInput" class="ygo-input" style="flex:1;" placeholder="Tìm tên bài..." oninput="ygoFilterCards()">
+                                <select id="ygoTypeFilter" class="ygo-input" onchange="ygoFilterCards()">
+                                    <option value="all">Tất cả bài</option>
+                                    <option value="Monster">Quái thú (Monster)</option>
+                                    <option value="Spell">Bài Phép (Spell)</option>
+                                    <option value="Trap">Bài Bẫy (Trap)</option>
+                                </select>
+                            </div>
+                            <div class="ygo-card-list-scroll" id="ygoWarehouseContainer"></div>
+                        </div>
+
+                        <!-- Bộ bài hiện tại -->
+                        <div class="ygo-deck-panel" style="width:300px; flex:none;">
+                            <div style="font-weight:bold; margin-bottom:8px; border-bottom:1px solid #5a3d28; padding-bottom:4px;">📥 Các lá bài trong Deck:</div>
+                            <div class="ygo-card-deck-scroll" id="ygoDeckContainer"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:15px; display:flex; gap:12px; justify-content:center;">
+                        <button class="ygo-btn" onclick="ygoSaveDeck()">💾 Lưu Bộ Bài & Quay Lại</button>
+                        <button class="ygo-btn ygo-btn-secondary" onclick="ygoCloseDeckBuilder()"> Huỷ thay đổi</button>
+                    </div>
+                </div>
+
+                <!-- 3. DUEL BOARD SCREEN -->
+                <div id="ygoDuelScreen" class="ygo-screen" style="display:none;">
+                    <div class="ygo-duel-layout">
+                        
+                        <!-- Left Panel: Card Detail Zoomed -->
+                        <div class="ygo-detail-panel">
+                            <div class="ygo-card-image-placeholder" id="ygoDetailImg">🃏</div>
+                            <h3 style="color:#d4af37; font-size:1rem; text-align:center; margin-bottom:6px;" id="ygoDetailName">Lá bài ma thuật</h3>
+                            <div class="ygo-card-stat" id="ygoDetailStats">
+                                <span>TYPE: ---</span>
+                                <span>ATK/DEF: ---</span>
+                            </div>
+                            <p style="font-size:0.75rem; color:#cbd5e1; line-height:1.45; overflow-y:auto; flex:1; max-height:220px;" id="ygoDetailEffect">Hover lên các lá bài ở tay hoặc trên bàn đấu để xem thông tin chi tiết hiệu ứng bài ma thuật.</p>
+                        </div>
+
+                        <!-- Center Column: Field -->
+                        <div class="ygo-board-panel">
+                            <!-- Top: Opponent Hand Cards -->
+                            <div class="ygo-hand-row" id="oppHand" style="margin-bottom: 5px; min-height: 50px; padding: 4px; gap: 4px;"></div>
+                            <div class="ygo-field">
+                                <!-- Opponent's Backrow (Spell/Trap) -->
+                                <div class="ygo-field-row" id="oppBackrow">
+                                    <div class="ygo-zone" data-pos="0">S/T 1</div>
+                                    <div class="ygo-zone" data-pos="1">S/T 2</div>
+                                    <div class="ygo-zone" data-pos="2">S/T 3</div>
+                                    <div class="ygo-zone" data-pos="3">S/T 4</div>
+                                    <div class="ygo-zone" data-pos="4">S/T 5</div>
+                                </div>
+                                <!-- Opponent's Frontrow (Monster) -->
+                                <div class="ygo-field-row" id="oppFrontrow">
+                                    <div class="ygo-zone" data-pos="0">Monster 1</div>
+                                    <div class="ygo-zone" data-pos="1">Monster 2</div>
+                                    <div class="ygo-zone" data-pos="2">Monster 3</div>
+                                    <div class="ygo-zone" data-pos="3">Monster 4</div>
+                                    <div class="ygo-zone" data-pos="4">Monster 5</div>
+                                </div>
+                                
+                                <div style="height:15px; border-top:1px dashed #332211; margin:5px 0; text-align:center; font-size:0.6rem; color:#553322; letter-spacing:4px;">BẢN ĐỒ CHIẾN TRƯỜNG</div>
+                                
+                                <!-- Player's Frontrow (Monster) -->
+                                <div class="ygo-field-row" id="playerFrontrow">
+                                    <div class="ygo-zone" data-pos="0" onclick="ygoZoneClick('player', 'monster', 0)">Monster 1</div>
+                                    <div class="ygo-zone" data-pos="1" onclick="ygoZoneClick('player', 'monster', 1)">Monster 2</div>
+                                    <div class="ygo-zone" data-pos="2" onclick="ygoZoneClick('player', 'monster', 2)">Monster 3</div>
+                                    <div class="ygo-zone" data-pos="3" onclick="ygoZoneClick('player', 'monster', 3)">Monster 4</div>
+                                    <div class="ygo-zone" data-pos="4" onclick="ygoZoneClick('player', 'monster', 4)">Monster 5</div>
+                                </div>
+                                <!-- Player's Backrow (Spell/Trap) -->
+                                <div class="ygo-field-row" id="playerBackrow">
+                                    <div class="ygo-zone" data-pos="0" onclick="ygoZoneClick('player', 'spell', 0)">S/T 1</div>
+                                    <div class="ygo-zone" data-pos="1" onclick="ygoZoneClick('player', 'spell', 1)">S/T 2</div>
+                                    <div class="ygo-zone" data-pos="2" onclick="ygoZoneClick('player', 'spell', 2)">S/T 3</div>
+                                    <div class="ygo-zone" data-pos="3" onclick="ygoZoneClick('player', 'spell', 3)">S/T 4</div>
+                                    <div class="ygo-zone" data-pos="4" onclick="ygoZoneClick('player', 'spell', 4)">S/T 5</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Bottom: Hand Cards -->
+                            <div class="ygo-hand-row" id="playerHand"></div>
+                        </div>
+
+                        <!-- Right Panel: LP meters & Status -->
+                        <div class="ygo-side-panel">
+                            <!-- Opponent LP -->
+                            <div class="ygo-lp-box">
+                                <div style="font-size:0.75rem; color:#a8a29e;" id="oppNameDisplay">ĐỐI THỦ (BOT)</div>
+                                <div class="ygo-lp-num" id="oppLP">8000</div>
+                            </div>
+                            
+                            <!-- Player LP -->
+                            <div class="ygo-lp-box">
+                                <div style="font-size:0.75rem; color:#a8a29e;">ANH HÙNG (BẠN)</div>
+                                <div class="ygo-lp-num player" id="playerLP">8000</div>
+                            </div>
+
+                            <!-- Character Skill Activation -->
+                            <div class="ygo-lp-box" style="background:#1e1b4b; border-color:#4f46e5; padding:8px;">
+                                <div style="font-size:0.68rem; color:#c7d2fe; font-weight:bold;">VAI CHƠI: <span id="ygoMyCharDisplay">Yugi Muto</span></div>
+                                <button class="ygo-btn" style="width:100%; font-size:0.75rem; padding:5px; margin-top:4px; background:linear-gradient(135deg, #6366f1, #4f46e5); border-color:#818cf8; color:white;" id="ygoSkillBtn" onclick="ygoActivateSkill()">⚡ KÍCH HOẠT KỸ NĂNG</button>
+                            </div>
+
+                            <!-- Current Phase & Actions -->
+                            <div class="ygo-lp-box" style="background:#271610; border-color:#5a3d28;">
+                                <div style="font-size:0.72rem; color:#fbbf24; font-weight:bold;">PHASE HIỆN TẠI</div>
+                                <div style="font-size:0.95rem; font-weight:bold; color:white; margin:4px 0;" id="ygoPhaseText">DRAW PHASE</div>
+                                <button class="ygo-btn" style="width:100%; font-size:0.78rem; padding:6px; margin-top:5px; background:linear-gradient(135deg, #f59e0b, #d97706);" id="ygoNextPhaseBtn" onclick="ygoNextPhase()">Bước Kế Tiếp</button>
+                            </div>
+
+                            <!-- Log Console -->
+                            <div style="font-size:0.72rem; font-weight:bold; margin-bottom:4px; color:#a8a29e;">📜 KHU NHẬT KÝ TRẬN ĐẤU</div>
+                            <div class="ygo-log" id="ygoDuelLog"></div>
+                            
+                            <button class="ygo-btn ygo-btn-secondary" style="width:100%; margin-top:8px; font-size:0.78rem; padding:6px;" onclick="ygoSurrender()">🏳️ Đầu Hàng</button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ===== DESTINY DRAW / CHỌN BÀI TỪ DECK MODAL ===== -->
+        <div id="ygoDeckSelectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:100005; justify-content:center; align-items:center; padding:20px; font-family:inherit;">
+            <div style="width:min(90vw, 500px); max-height:80vh; background:#271610; border:3px solid #d4af37; border-radius:12px; padding:18px; color:white; display:flex; flex-direction:column; box-shadow:0 0 25px rgba(0,0,0,0.9);" class="rpg-popup-box">
+                <h3 style="color:#d4af37; border-bottom:2px solid #78350f; padding-bottom:6px; font-size:1.15rem; margin-bottom:10px; text-align:center;">✨ RÚT BÀI ĐỊNH MỆNH (DESTINY DRAW)</h3>
+                <p style="color:#cbd5e1; font-size:0.78rem; text-align:center; margin-bottom:10px;">Chọn 1 lá bài từ bộ bài của bạn để đưa lên tay.</p>
+                <div id="ygoDeckSelectContainer" class="ygo-card-list-scroll" style="flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(75px, 1fr)); gap:8px; padding:6px; background:#1a0f0a; border-radius:8px; border:1px solid #5a3d28; margin-bottom:12px; max-height: 350px;">
+                    <!-- Sẽ chèn các lá bài từ deck vào đây -->
+                </div>
+                <button class="ygo-btn ygo-btn-secondary" style="width:100%; padding:8px 0; font-size:0.9rem;" onclick="document.getElementById('ygoDeckSelectModal').style.display='none'">Huỷ bỏ</button>
+            </div>
+        </div>
+
         <!-- ===== 💰 BET MODAL (trước khi bắt đầu Cờ Đua) ===== -->
         <div id="boardBetModal">
             <div class="bet-modal-box">
@@ -569,6 +1118,7 @@
                     <button class="menu-popup-btn" onclick="menuAction('pvp')">⚔️ Đấu Trường</button>
                     <button class="menu-popup-btn" onclick="menuAction('chat')">💬 Chat Tổng</button>
                     <button class="menu-popup-btn" onclick="menuAction('board')">🏁 Cờ Đua</button>
+                    <button class="menu-popup-btn" onclick="menuAction('yugioh')" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); border-color:#d4af37;">🃏 Bài Ma Thuật</button>
                     <button class="menu-popup-btn" onclick="menuAction('bet')">🏟️ Cược Bóng</button>
                 </div>
                 
@@ -614,6 +1164,8 @@
     <script src="assets/js/sprites_data.js?v=6"></script>
     <script src="assets/js/sprites_renderer.js?v=6"></script>
     <script src="assets/js/map_decorations.js?v=6"></script>
+    <script src="assets/js/yugioh_cards_data.js"></script>
+    <script src="assets/js/yugioh.js"></script>
     <script src="assets/js/game.js?v=6"></script>
     <script>
         function toggleMobileMenu() {

@@ -1657,6 +1657,9 @@
         };
 
         function handleNetworkMessage(msg) {
+            if (typeof window.ygoRegisterNetworkMessage === 'function') {
+                window.ygoRegisterNetworkMessage(msg);
+            }
             if(!msg || msg.id === myNetworkId) return;
 
             if(msg.type === 'PRESENCE') {
@@ -4434,6 +4437,12 @@ function toggleAutoFarm() {
                     openBoardGameWithBet();
                 } else {
                     showToast("⚠️ Tính năng Đua Cờ chưa sẵn sàng!");
+                }
+            } else if (action === 'yugioh') {
+                if (typeof openYugiohGame === 'function') {
+                    openYugiohGame();
+                } else {
+                    showToast("⚠️ Trò chơi Bài Ma Thuật đang được khởi tạo!");
                 }
             } else {
                 togglePanel(action);
