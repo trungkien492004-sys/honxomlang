@@ -638,28 +638,28 @@
         };
 
 	const CLASS_DATA = {
-            cop: { name: "Anh Cảnh Sát", emoji: "👮‍♂️", hp: 160, mp: 40, atk: 12, def: 8, speed: 6.3, skills: [
+            cop: { name: "Anh Cảnh Sát", emoji: "👮‍♂️", hp: 160, mp: 40, atk: 12, def: 8, speed: 8.5, skills: [
                 { id: "cop_bash", name: "Dùi Cùi Trấn Áp", icon: "🔨", desc: "Đập mạnh gây sát thương vật lý và làm chậm mục tiêu.", mp: 8, cd: 3000, type: 'target', range: 180, multiplier: 3.2, lastUsed: 0 },
                 { id: "cop_shield", name: "Khiên Công Lý", icon: "🛡️", desc: "Tạo khiên hấp thụ sát thương và hồi HP tức thời.", mp: 12, cd: 6000, type: 'self', lastUsed: 0 },
                 { id: "cop_charge", name: "Tăng Tốc Đột Kích", icon: "⚡", desc: "Phóng tới cường kích mục tiêu, tạo choáng nhẹ.", mp: 14, cd: 5200, type: 'target', range: 220, multiplier: 3.8, lastUsed: 0 },
                 { id: "cop_siren", name: "Âm Thanh Kiểm Soát", icon: "📯", desc: "Gây hiệu ứng diện rộng làm chậm quái và giảm sát thương.", mp: 22, cd: 9000, type: 'aoe', range: 200, multiplier: 2.4, lastUsed: 0 },
                 { id: "cop_bastion", name: "Thành Lũy Công Lý", icon: "🏰", desc: "Mở vùng phòng thủ, phản lại sát thương và hồi HP lớn.", mp: 30, cd: 14000, type: 'ultimate', lastUsed: 0 }
             ]},
-            teacher: { name: "Cô Giáo Làng", emoji: "👩‍🏫", hp: 90, mp: 100, atk: 18, def: 3, speed: 5.9, skills: [
+            teacher: { name: "Cô Giáo Làng", emoji: "👩‍🏫", hp: 90, mp: 100, atk: 18, def: 3, speed: 8.0, skills: [
                 { id: "teach_quiz", name: "Kiểm Tra Bài Cũ", icon: "✏️", desc: "Tung phấn ma thuật gây sát thương phép và làm choáng.", mp: 15, cd: 2500, type: 'target', range: 200, multiplier: 4.4, lastUsed: 0 },
                 { id: "teach_silence", name: "Cả Lớp Trật Tự!", icon: "🔇", desc: "Khống chế một vùng kẻ địch và làm chậm lại toàn bộ quái.", mp: 25, cd: 7000, type: 'aoe', range: 180, multiplier: 2.6, lastUsed: 0 },
                 { id: "teach_meteor", name: "Thiên Thạch Phấn", icon: "☄️", desc: "Gọi thiên thạch giáng xuống điểm đã chọn gây sát thương lớn.", mp: 28, cd: 9500, type: 'point', range: 240, multiplier: 5.0, lastUsed: 0 },
                 { id: "teach_barrier", name: "Hào Quang Tri Thức", icon: "📚", desc: "Tạo lá chắn hồi phục cho bản thân và giảm sát thương.", mp: 20, cd: 10000, type: 'self', lastUsed: 0 },
                 { id: "teach_grace", name: "Ánh Sao Tinh Tú", icon: "🌟", desc: "Kỹ năng tối thượng gây bão ma thuật lớn lên vùng mục tiêu.", mp: 35, cd: 14500, type: 'ultimate', lastUsed: 0 }
             ]},
-            merchant: { name: "Chú Buôn Lậu", emoji: "🕵️‍♂️", hp: 110, mp: 60, atk: 15, def: 5, speed: 7.3, skills: [
+            merchant: { name: "Chú Buôn Lậu", emoji: "🕵️‍♂️", hp: 110, mp: 60, atk: 15, def: 5, speed: 10.0, skills: [
                 { id: "merch_slash", name: "Đoản Đao Cắt Lỗ", icon: "🗡️", desc: "Chém lén chí mạng gây sát thương lớn và tăng bạo kích.", mp: 10, cd: 2000, type: 'target', range: 180, multiplier: 3.8, lastUsed: 0 },
                 { id: "merch_bribe", name: "Đút Lót Tăng Tốc", icon: "💰", desc: "Hồi MP và tăng tốc độ đánh nhanh chóng.", mp: 0, cd: 5000, type: 'self', lastUsed: 0 },
                 { id: "merch_trap", name: "Bẫy Siêu Lợi", icon: "🪤", desc: "Đặt bẫy vùng gây sát thương và làm chậm địch.", mp: 18, cd: 7500, type: 'aoe', range: 190, multiplier: 5.6, lastUsed: 0 },
                 { id: "merch_dash", name: "Lướt Bóng Tiếp", icon: "🏃", desc: "Lướt tới mục tiêu và đánh thương mạnh.", mp: 12, cd: 4700, type: 'target', range: 220, multiplier: 4.0, lastUsed: 0 },
                 { id: "merch_midas", name: "Bàn Tay Midas", icon: "💎", desc: "Kỹ năng tối thượng gây vàng và sát thương phép cho kẻ địch.", mp: 32, cd: 13200, type: 'ultimate', lastUsed: 0 }
             ]},
-            engineer: { name: "Anh Kỹ Sư", emoji: "👨‍💻", hp: 120, mp: 80, atk: 13, def: 6, speed: 6.4, skills: [
+            engineer: { name: "Anh Kỹ Sư", emoji: "👨‍💻", hp: 120, mp: 80, atk: 13, def: 6, speed: 8.5, skills: [
                 { id: "eng_turret", name: "Ụ Súng Công Nghệ", icon: "🛠️", desc: "Triệu hồi súng laze bắn mục tiêu trong tầm.", mp: 20, cd: 4000, type: 'target', range: 220, multiplier: 3.4, lastUsed: 0 },
                 { id: "eng_overclock", name: "Ép Xung Phần Cứng", icon: "⚡", desc: "Hồi HP/MP và tăng tốc độ đánh trong vài giây.", mp: 30, cd: 9000, type: 'self', lastUsed: 0 },
                 { id: "eng_missile", name: "Tên Lửa Lăn Quân", icon: "🚀", desc: "Bắn tên lửa vào vị trí đã chọn gây nổ diện rộng.", mp: 25, cd: 8500, type: 'point', range: 240, multiplier: 4.6, lastUsed: 0 },
@@ -1471,7 +1471,7 @@
         }
 
         window.getMapSize = function(mapId) {
-            if (mapId === 'world') return 2000;
+            if (mapId === 'world') return 4000;
             if (mapId === 'beach') return 1400;
             if (mapId === 'pvp_arena') return 1000;
             return 1200;
@@ -2797,6 +2797,9 @@ ${s.desc}`;
 let attackParticles = [];
 
 function renderAttackEffect() {
+    // Render particles even if line slash is inactive
+    updateAndRenderParticles();
+
     if (!player.attackEffect.active) return;
     
     let elapsed = Date.now() - player.attackEffect.startAt;
@@ -4339,17 +4342,18 @@ function toggleAutoFarm() {
             
             // --- Ultimate VFX Triggers ---
             if(window.playUltimateVFX) {
-                if(type === 'skill_cop_3' || type === 'skill_hunter_3') {
-                    window.playUltimateVFX(x, y, 'kamehameha');
-                } else if (type === 'skill_merchant_3' || type === 'skill_teacher_3') {
-                    window.playUltimateVFX(x, y, 'magic_circle');
-                } else if (type === 'skill_engineer_3' || type === 'skill_cop_2') {
+                if(type === 'cop_bastion' || type === 'eng_core') {
                     window.playUltimateVFX(x, y, 'haki');
+                } else if (type === 'teach_grace' || type === 'merch_midas') {
+                    window.playUltimateVFX(x, y, 'magic_circle');
+                } else if (type === 'teach_meteor' || type === 'eng_missile') {
+                    window.playUltimateVFX(x, y, 'kamehameha');
                 } else {
-                    // Small standard sparks for regular skills
+                    // Regular skills get a decent particle burst
                     if(window.spawnParticle) {
-                        for(let i=0; i<10; i++) {
-                            window.spawnParticle(x, y, color, Math.random()*5+3, 15, (Math.random()-0.5)*10, (Math.random()-0.5)*10, 'glow');
+                        let numParticles = (type.includes('siren') || type.includes('silence') || type.includes('trap')) ? 25 : 15;
+                        for(let i=0; i<numParticles; i++) {
+                            window.spawnParticle(x, y, color, Math.random()*7+4, 20, (Math.random()-0.5)*8, (Math.random()-0.5)*8, 'glow');
                         }
                     }
                 }
@@ -5124,8 +5128,26 @@ function toggleAutoFarm() {
                     }
                 }
             }
-            player.x = Math.max(20, Math.min((window.currentMapId === 'pvp_arena' ? 1000 : WORLD_SIZE) - 20, player.x));
-            player.y = Math.max(20, Math.min((window.currentMapId === 'pvp_arena' ? 1000 : WORLD_SIZE) - 20, player.y));
+
+            // Walking dust particle effects
+            if (player.isMoving && Math.random() < 0.25) {
+                if (window.spawnParticle) {
+                    window.spawnParticle(
+                        player.x + (Math.random() - 0.5) * 10,
+                        player.y + 25 + (Math.random() - 0.5) * 5, // feet level
+                        'rgba(240, 240, 240, 0.35)', // dust white
+                        Math.random() * 4 + 2, // size
+                        15, // life
+                        (Math.random() - 0.5) * 0.8, // vx
+                        -Math.random() * 0.8, // vy
+                        'normal'
+                    );
+                }
+            }
+
+            let constrainedPos = window.constrainToMapBoundary(window.currentMapId || 'world', player.x, player.y);
+            player.x = constrainedPos.x;
+            player.y = constrainedPos.y;
 
             // Camera smoothly center anchoring system interpolations
             if (window.pvpArena && window.pvpArena.active && window.pvpArena.spectating) {
@@ -6382,23 +6404,105 @@ function toggleAutoFarm() {
             mCtx.fillStyle = "rgba(10,15,30,0.85)";
             mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
 
-            // Map sizing scaling ratio converters
-            let scale = mCanvas.width / WORLD_SIZE;
+            let mapId = window.currentMapId || 'world';
+            let mapSize = window.getMapSize(mapId);
+            let scale = mCanvas.width / mapSize;
 
-            // Render Static Map NPCs dots
-            for(let k in NPC_DATA) {
-                let n = NPC_DATA[k];
-                mCtx.fillStyle = "gold";
-                mCtx.beginPath(); mCtx.arc(n.x * scale, n.y * scale, 3, 0, Math.PI*2); mCtx.fill();
+            // 1. Draw Map Portals / Entrances
+            if (mapId === 'world') {
+                PORTALS.forEach(portal => {
+                    mCtx.fillStyle = portal.color || "#22d3ee";
+                    mCtx.beginPath();
+                    mCtx.arc(portal.x * scale, portal.y * scale, 4, 0, Math.PI * 2);
+                    mCtx.fill();
+                    mCtx.font = "8px sans-serif";
+                    mCtx.fillStyle = "#88edff";
+                    mCtx.textAlign = "center";
+                    let shortName = portal.name.replace("Làng ", "").replace("Rừng ", "").replace("Hồ ", "").replace("Đồi ", "");
+                    mCtx.fillText(shortName, portal.x * scale, portal.y * scale - 6);
+                });
+
+                DUNGEON_ENTRANCES.forEach(ent => {
+                    mCtx.fillStyle = "#ef4444";
+                    mCtx.beginPath();
+                    mCtx.rect(ent.x * scale - 3, ent.y * scale - 3, 6, 6);
+                    mCtx.fill();
+                    mCtx.font = "8px sans-serif";
+                    mCtx.fillStyle = "#fca5a5";
+                    mCtx.textAlign = "center";
+                    let shortName = ent.name.substring(0, 4);
+                    mCtx.fillText(shortName, ent.x * scale, ent.y * scale - 6);
+                });
+
+                BUILDING_ENTRANCES.forEach(ent => {
+                    mCtx.fillStyle = "#eab308";
+                    mCtx.beginPath();
+                    mCtx.rect(ent.x * scale - 2, ent.y * scale - 2, 4, 4);
+                    mCtx.fill();
+                });
+            } else {
+                let exitX = null, exitY = null, exitLabel = "Cổng";
+                if (mapId === 'bamboo_forest' || mapId === 'beach' || mapId === 'bat_cave') {
+                    exitX = 1900; exitY = 1000;
+                    exitLabel = mapId === 'bamboo_forest' ? "Cầu" : (mapId === 'beach' ? "Thuyền" : "Hang");
+                } else if (mapId === 'citadel') {
+                    exitX = 1000; exitY = 100;
+                    exitLabel = "Về Làng";
+                } else if (mapId.includes('cave') || mapId.includes('dungeon') || mapId.includes('temple') || mapId === 'cemetery' || mapId === 'ghost_forest' || mapId === 'sewer' || mapId === 'mine' || mapId === 'cultist_camp' || mapId === 'nest_cave') {
+                    exitX = 600; exitY = 1100;
+                    exitLabel = "Về Làng";
+                } else {
+                    exitX = 300; exitY = 550;
+                    exitLabel = "Lối Ra";
+                }
+
+                if (exitX !== null) {
+                    mCtx.fillStyle = "#22d3ee";
+                    mCtx.beginPath();
+                    mCtx.arc(exitX * scale, exitY * scale, 5, 0, Math.PI * 2);
+                    mCtx.fill();
+                    mCtx.strokeStyle = "#ffffff";
+                    mCtx.lineWidth = 1;
+                    mCtx.beginPath();
+                    mCtx.arc(exitX * scale, exitY * scale, 7, 0, Math.PI * 2);
+                    mCtx.stroke();
+
+                    mCtx.font = "bold 8px sans-serif";
+                    mCtx.fillStyle = "#22d3ee";
+                    mCtx.textAlign = "center";
+                    mCtx.fillText(exitLabel, exitX * scale, exitY * scale - 9);
+                }
             }
 
-            // Render Red Roaming Enemy Dots
+            // 2. Render Static Map NPCs dots
+            for(let k in NPC_DATA) {
+                let n = NPC_DATA[k];
+                let showNpc = false;
+                if (window.currentMapId !== 'world') {
+                    let targetMap = '';
+                    if (k === 'elder') targetMap = 'communal_house';
+                    else if (k === 'blacksmith') targetMap = 'blacksmith_shop';
+                    else if (k === 'merchant') targetMap = 'village_temple';
+                    else if (k === 'barber') targetMap = 'school';
+                    
+                    if (window.currentMapId === targetMap) showNpc = true;
+                } else {
+                    if (k !== 'dirtyPond' && k !== 'richMaze') showNpc = true;
+                }
+
+                if (showNpc) {
+                    mCtx.fillStyle = "gold";
+                    mCtx.beginPath(); mCtx.arc(n.x * scale, n.y * scale, 3, 0, Math.PI*2); mCtx.fill();
+                }
+            }
+
+            // 3. Render Red Roaming Enemy Dots
             monsters.forEach(m => {
                 mCtx.fillStyle = m.isBoss ? "orange" : "red";
                 mCtx.beginPath(); mCtx.arc(m.x * scale, m.y * scale, m.isBoss ? 4 : 2, 0, Math.PI*2); mCtx.fill();
             });
 
-            // Render Green Core Main Client Player Dot
+            // 4. Render Green Core Main Client Player Dot
             mCtx.fillStyle = "#22c55e";
             mCtx.beginPath(); mCtx.arc(player.x * scale, player.y * scale, 4, 0, Math.PI*2); mCtx.fill();
 

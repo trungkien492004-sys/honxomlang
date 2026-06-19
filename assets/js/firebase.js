@@ -835,10 +835,11 @@ window.selectExistingCharacter = function(docId, data) {
     // Inject the data into the game player object directly!
     Object.assign(window.player, data);
     
-    // Đảm bảo có init class stats
+    // Đảm bảo có init class stats và đồng bộ tốc độ chạy mới
     if(typeof CLASS_DATA !== 'undefined' && data.classId) {
         let t = CLASS_DATA[data.classId];
         if(!window.player.skills || window.player.skills.length === 0) window.player.skills = JSON.parse(JSON.stringify(t.skills));
+        window.player.baseSpeed = t.speed; // Đồng bộ tốc độ chạy mới nâng cấp
     }
 
     _fbToast(`☁️ Tải save: ${data.name} Lv.${data.level}`, '#fbbf24');

@@ -58,7 +58,32 @@ const DECORATION_ASSETS = {
     roof_b: 'Building/Cartoon_Medieval_Training Arena_Level_Set_Building - Roof B 01.png',
     door: 'Building/Cartoon_Medieval_Training Arena_Level_Set_Building - Door 01.png',
     wide_door: 'Building/Cartoon_Medieval_Training Arena_Level_Set_Building - Wide Door 01.png',
-    chimney: 'Building/Cartoon_Medieval_Training Arena_Level_Set_Building - Chimney 01.png'
+    chimney: 'Building/Cartoon_Medieval_Training Arena_Level_Set_Building - Chimney 01.png',
+
+    // New Top-Down Forest Pixel Art Sprites (Relative to assets/sprites/medieval/)
+    forest_luminous1: '../forest/Luminous_tree1.png',
+    forest_luminous2: '../forest/Luminous_tree2.png',
+    forest_luminous3: '../forest/Luminous_tree3.png',
+    forest_mega1: '../forest/Mega_tree1.png',
+    forest_mega2: '../forest/Mega_tree2.png',
+    forest_willow1: '../forest/Willow1.png',
+    forest_willow2: '../forest/Willow2.png',
+    forest_willow3: '../forest/Willow3.png',
+    forest_bg_balls1: '../forest/Blue-green_balls_tree1.png',
+    forest_bg_balls2: '../forest/Blue-green_balls_tree2.png',
+    forest_lt_balls1: '../forest/Light_balls_tree1.png',
+    forest_lt_balls2: '../forest/Light_balls_tree2.png',
+    forest_mush_red1: '../forest/White-red_mushroom1.png',
+    forest_mush_red2: '../forest/White-red_mushroom2.png',
+    forest_mush_beige1: '../forest/Beige_green_mushroom1.png',
+    forest_mush_beige2: '../forest/Beige_green_mushroom2.png',
+    forest_idol_wolf: '../forest/Tree_idol_wolf.png',
+    forest_idol_human: '../forest/Tree_idol_human.png',
+
+    // Grass Tufts
+    grass_tuft1: 'Environment/Cartoon_Medieval_Training Arena_Level_Set_Environment - Grass_01-23.png',
+    grass_tuft2: 'Environment/Cartoon_Medieval_Training Arena_Level_Set_Environment - Grass_01-24.png',
+    grass_tuft3: 'Environment/Cartoon_Medieval_Training Arena_Level_Set_Environment - Grass_03     .png'
 };
 
 // Preload all decoration images
@@ -104,11 +129,21 @@ window.generateMapDecorations = function(mapId) {
         }
 
         // 2. RỪNG U MINH (x: 200 to 1000, y: 2200 to 3400)
+        // Combine old trees with new magical luminous/willow trees
         for (let i = 0; i < 75; i++) {
-            let x = 200 + random() * 800;
+            let x = 200 + random() * 80;
             let y = 2200 + random() * 1200;
-            let type = random() < 0.5 ? 'tree1_field' : 'tree2_field';
-            addDecoration(type, x, y, 1.2 + random() * 0.4);
+            let roll = random();
+            if (roll < 0.4) {
+                let type = random() < 0.5 ? 'tree1_field' : 'tree2_field';
+                addDecoration(type, x, y, 1.2 + random() * 0.4);
+            } else if (roll < 0.8) {
+                let type = 'forest_willow' + (Math.floor(random() * 3) + 1);
+                addDecoration(type, x, y, 0.9 + random() * 0.3);
+            } else {
+                let type = 'forest_luminous' + (Math.floor(random() * 3) + 1);
+                addDecoration(type, x, y, 0.8 + random() * 0.4);
+            }
             if (random() < 0.25) {
                 addDecoration('stump', x + 25, y + 25, 0.9 + random() * 0.2);
             }
@@ -203,21 +238,152 @@ window.generateMapDecorations = function(mapId) {
             else if (r < 0.8) addDecoration('sack', x, y, 1.0);
             else addDecoration('stump', x, y, 1.0);
         }
-    } else if (mapId === 'cemetery' || mapId.includes('cave') || mapId.includes('dungeon') || mapId.includes('temple')) {
-        // Dungeon environments
-        for (let i = 0; i < 35; i++) {
-            let x = 200 + random() * 3600;
-            let y = 200 + random() * 3600;
-            let r = random();
-            if (r < 0.4) {
-                let rType = 'rock' + (Math.floor(random() * 8) + 1);
-                addDecoration(rType, x, y, 1.2 + random() * 0.6);
-            } else if (r < 0.7) {
-                addDecoration('stone', x, y, 1.3 + random() * 0.5);
-            } else if (r < 0.9) {
-                addDecoration('barrier2', x, y, 1.1);
+
+        // 6. Scattered grass tufts to break up the color checkerboard
+        for (let i = 0; i < 250; i++) {
+            let x = 100 + random() * 3800;
+            let y = 100 + random() * 3800;
+            // Don't spawn inside village
+            if (x >= 1300 && x <= 2700 && y >= 1200 && y <= 2200) {
+                if (random() < 0.8) continue;
+            }
+            let gType = 'grass_tuft' + (Math.floor(random() * 3) + 1);
+            addDecoration(gType, x, y, 0.6 + random() * 0.4);
+        }
+    } else if (mapId === 'bamboo_forest') {
+        // Bamboo forest (dense circular map, size 1200, radius 520)
+        let seed = 9876;
+        function random() {
+            let x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+        let cx = 600, cy = 600, R = 520;
+        
+        // Spawn Ancient Wolf Idol in the middle
+        addDecoration('forest_idol_wolf', cx, cy - 30, 1.2);
+        
+        // Spawn trees and props
+        for (let i = 0; i < 90; i++) {
+            let angle = random() * Math.PI * 2;
+            let r = random() * (R - 50);
+            let x = cx + Math.cos(angle) * r;
+            let y = cy + Math.sin(angle) * r;
+            
+            // Avoid spawning exactly in the center (near wolf idol)
+            if (Math.hypot(x - cx, y - cy) < 95) continue;
+            
+            let roll = random();
+            if (roll < 0.45) {
+                let type = random() < 0.5 ? 'forest_bg_balls1' : 'forest_bg_balls2';
+                addDecoration(type, x, y, 0.9 + random() * 0.3);
+            } else if (roll < 0.8) {
+                let type = random() < 0.5 ? 'forest_luminous1' : 'forest_luminous2';
+                addDecoration(type, x, y, 0.8 + random() * 0.4);
             } else {
-                addDecoration('sword1', x, y, 1.0);
+                let type = random() < 0.5 ? 'forest_mush_beige1' : 'forest_mush_beige2';
+                addDecoration(type, x, y, 0.7 + random() * 0.3);
+            }
+        }
+        // Spawn grass details
+        for (let i = 0; i < 80; i++) {
+            let angle = random() * Math.PI * 2;
+            let r = random() * (R - 30);
+            let x = cx + Math.cos(angle) * r;
+            let y = cy + Math.sin(angle) * r;
+            let gType = 'grass_tuft' + (Math.floor(random() * 3) + 1);
+            addDecoration(gType, x, y, 0.6 + random() * 0.4);
+        }
+    } else if (mapId === 'ghost_forest') {
+        // Cursed ghost forest (size 1200, radius 520)
+        let seed = 4444;
+        function random() {
+            let x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+        let cx = 600, cy = 600, R = 520;
+        
+        // Spawn Human Idol in the center
+        addDecoration('forest_idol_human', cx, cy - 30, 1.2);
+        
+        // Spawn spooky trees and mushrooms
+        for (let i = 0; i < 90; i++) {
+            let angle = random() * Math.PI * 2;
+            let r = random() * (R - 50);
+            let x = cx + Math.cos(angle) * r;
+            let y = cy + Math.sin(angle) * r;
+            
+            if (Math.hypot(x - cx, y - cy) < 95) continue;
+            
+            let roll = random();
+            if (roll < 0.5) {
+                let type = 'forest_willow' + (Math.floor(random() * 3) + 1);
+                addDecoration(type, x, y, 0.9 + random() * 0.3);
+            } else if (roll < 0.8) {
+                let type = 'forest_luminous' + (Math.floor(random() * 3) + 1);
+                addDecoration(type, x, y, 0.8 + random() * 0.4);
+            } else {
+                let type = random() < 0.5 ? 'forest_mush_red1' : 'forest_mush_red2';
+                addDecoration(type, x, y, 0.7 + random() * 0.3);
+            }
+        }
+        for (let i = 0; i < 60; i++) {
+            let angle = random() * Math.PI * 2;
+            let r = random() * (R - 30);
+            let x = cx + Math.cos(angle) * r;
+            let y = cy + Math.sin(angle) * r;
+            let gType = 'grass_tuft' + (Math.floor(random() * 3) + 1);
+            addDecoration(gType, x, y, 0.5 + random() * 0.3);
+        }
+    } else if (mapId === 'beach') {
+        // Sandy beach (size 1400, radius 640)
+        let seed = 1212;
+        function random() {
+            let x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+        let cx = 700, cy = 700, R = 640;
+        
+        // Spawn beach rocks and palm-like green trees
+        for (let i = 0; i < 70; i++) {
+            let angle = random() * Math.PI * 2;
+            let r = random() * (R - 40);
+            let x = cx + Math.cos(angle) * r;
+            let y = cy + Math.sin(angle) * r;
+            
+            let roll = random();
+            if (roll < 0.5) {
+                let rType = 'rock' + (Math.floor(random() * 8) + 1);
+                addDecoration(rType, x, y, 1.0 + random() * 0.8);
+            } else if (roll < 0.85) {
+                let type = random() < 0.5 ? 'tree1_field' : 'tree2_field';
+                addDecoration(type, x, y, 0.8 + random() * 0.4);
+            } else {
+                addDecoration('stump', x, y, 0.9 + random() * 0.3);
+            }
+        }
+    } else if (mapId === 'cemetery' || mapId.includes('cave') || mapId.includes('dungeon') || mapId.includes('temple')) {
+        // Caves/dungeons: spawn thạch nhũ, đá cổ, nấm đỏ phát sáng
+        let seed = 5678;
+        function random() {
+            let x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+        let size = window.getMapSize(mapId);
+        
+        for (let i = 0; i < 60; i++) {
+            let x = 100 + random() * (size - 200);
+            let y = 100 + random() * (size - 200);
+            if (!window.isInsideMapBoundary(mapId, x, y)) continue;
+            
+            let roll = random();
+            if (roll < 0.45) {
+                let rType = 'rock' + (Math.floor(random() * 8) + 1);
+                addDecoration(rType, x, y, 1.1 + random() * 0.5);
+            } else if (roll < 0.75) {
+                addDecoration('stone', x, y, 1.2 + random() * 0.4);
+            } else {
+                let type = random() < 0.5 ? 'forest_mush_red1' : 'forest_luminous3';
+                addDecoration(type, x, y, 0.8 + random() * 0.3);
             }
         }
     } else if (mapId === 'pvp_arena') {
@@ -329,7 +495,30 @@ function addDecoration(type, x, y, scale = 1.0) {
     let pivotX = 32;
     let pivotY = 50; // Visual bottom sorting line
     
-    if (type.includes('tree')) {
+    if (type.startsWith('forest_')) {
+        if (type.includes('mega1')) {
+            w = 256; h = 256;
+            pivotX = 128; pivotY = 220;
+        } else if (type.includes('mega2') || type.includes('balls2') || type.includes('luminous3') || type.includes('mush') || type.includes('willow3')) {
+            if (type.includes('mush') && !type.includes('mush_beige2') && !type.includes('mush_red2')) {
+                w = 80; h = 80;
+                pivotX = 40; pivotY = 70;
+            } else if (type.includes('mush_beige2') || type.includes('mush_red2')) {
+                w = 40; h = 40;
+                pivotX = 20; pivotY = 35;
+            } else {
+                w = 64; h = 64;
+                pivotX = 32; pivotY = 55;
+            }
+        } else {
+            w = 128; h = 128;
+            pivotX = 64; pivotY = 110;
+        }
+    } else if (type.startsWith('grass_tuft')) {
+        w = type === 'grass_tuft3' ? 64 : 128;
+        h = type === 'grass_tuft3' ? 32 : 64;
+        pivotX = w / 2; pivotY = h - 5;
+    } else if (type.includes('tree')) {
         w = 120; h = 180;
         pivotX = 60; pivotY = 160;
     } else if (type.includes('rock') || type === 'stone') {
