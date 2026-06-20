@@ -1035,10 +1035,12 @@ window.ygoRenderField = function() {
                 let isSelected = d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'monster' && d.selectedFieldCard.pos === i;
                 let borderStyle = isSelected ? 'border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24;' : (c.position === 'defense' ? 'border-color: #3b82f6;' : '');
                 let rotationStyle = c.position === 'defense' ? 'transform: rotate(90deg);' : '';
+                let imgUrl = ygoGetCardImage(c);
+                let bgStyle = `background: linear-gradient(rgba(10,8,6,0.65), rgba(10,8,6,0.65)), url('${imgUrl}') center/cover no-repeat;`;
                 
-                return `<div class="ygo-zone active-card" style="${rotationStyle} ${borderStyle}" onclick="ygoZoneClick('player', 'monster', ${i})" onmouseover="ygoHoverCardById('player', 'monster', ${i})">
-                    <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
-                    <span style="color:#fcd34d;font-size:0.5rem;margin-top:3px;">${posText} ${statVal}</span>
+                return `<div class="ygo-zone active-card" style="${rotationStyle} ${borderStyle} ${bgStyle}" onclick="ygoZoneClick('player', 'monster', ${i})" onmouseover="ygoHoverCardById('player', 'monster', ${i})">
+                    <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%; text-shadow: 1px 1px 2px black;">${c.name_vi}</span>
+                    <span style="color:#fcd34d;font-size:0.5rem;margin-top:3px; text-shadow: 1px 1px 2px black;">${posText} ${statVal}</span>
                 </div>`;
             }
             return `<div class="ygo-zone" onclick="ygoZoneClick('player', 'monster', ${i})">Monster ${i+1}</div>`;
@@ -1053,9 +1055,14 @@ window.ygoRenderField = function() {
                 let isSelected = d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'spell' && d.selectedFieldCard.pos === i;
                 let borderStyle = isSelected ? 'border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24;' : 'border-color:#10b981;';
                 let statusText = c.faceUp ? "NGỬA" : "ÚP";
-                return `<div class="ygo-zone active-card" style="${borderStyle}" onclick="ygoZoneClick('player', 'spell', ${i})" onmouseover="ygoHoverCardById('player', 'spell', ${i})">
-                    <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
-                    <span style="font-size:0.48rem;color:#cbd5e1;">${statusText}</span>
+                let imgUrl = ygoGetCardImage(c);
+                let bgStyle = c.faceUp 
+                    ? `background: linear-gradient(rgba(10,8,6,0.65), rgba(10,8,6,0.65)), url('${imgUrl}') center/cover no-repeat;`
+                    : `background: linear-gradient(rgba(76,5,25,0.75), rgba(76,5,25,0.75)), url('${imgUrl}') center/cover no-repeat;`;
+                
+                return `<div class="ygo-zone active-card" style="${borderStyle} ${bgStyle}" onclick="ygoZoneClick('player', 'spell', ${i})" onmouseover="ygoHoverCardById('player', 'spell', ${i})">
+                    <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%; text-shadow: 1px 1px 2px black;">${c.name_vi}</span>
+                    <span style="font-size:0.48rem;color:#cbd5e1; text-shadow: 1px 1px 2px black;">${statusText}</span>
                 </div>`;
             }
             return `<div class="ygo-zone" onclick="ygoZoneClick('player', 'spell', ${i})">S/T ${i+1}</div>`;
@@ -1073,9 +1080,11 @@ window.ygoRenderField = function() {
                 let statVal = c.position === 'defense' ? (c.currentDef || c.def) : (c.currentAtk || c.atk);
                 let rotationStyle = c.position === 'defense' ? 'transform: rotate(90deg); border-color: #3b82f6;' : '';
                 if (reveal) {
-                    return `<div class="ygo-zone active-card" style="${rotationStyle}" onclick="ygoZoneClick('opponent', 'monster', ${i})" onmouseover="ygoHoverCardById('opponent', 'monster', ${i})">
-                        <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
-                        <span style="color:#fcd34d;font-size:0.5rem;margin-top:3px;">${posText} ${statVal}</span>
+                    let imgUrl = ygoGetCardImage(c);
+                    let bgStyle = `background: linear-gradient(rgba(10,8,6,0.65), rgba(10,8,6,0.65)), url('${imgUrl}') center/cover no-repeat;`;
+                    return `<div class="ygo-zone active-card" style="${rotationStyle} ${bgStyle}" onclick="ygoZoneClick('opponent', 'monster', ${i})" onmouseover="ygoHoverCardById('opponent', 'monster', ${i})">
+                        <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%; text-shadow: 1px 1px 2px black;">${c.name_vi}</span>
+                        <span style="color:#fcd34d;font-size:0.5rem;margin-top:3px; text-shadow: 1px 1px 2px black;">${posText} ${statVal}</span>
                     </div>`;
                 } else {
                     return `<div class="ygo-zone active-card" style="${rotationStyle} background:linear-gradient(135deg, #4c0519, #881337); border-color:#fb7185;" onclick="ygoZoneClick('opponent', 'monster', ${i})" onmouseover="ygoHoverCardById('opponent', 'monster', ${i})">
@@ -1097,9 +1106,11 @@ window.ygoRenderField = function() {
             if(c) {
                 let reveal = (c.faceUp !== false) || isPegasus || (isEspa && c.card_type === 'Trap');
                 if (reveal) {
-                    return `<div class="ygo-zone active-card" style="border-color:#be185d; background: rgba(88,28,135,0.6);" onclick="ygoZoneClick('opponent', 'spell', ${i})" onmouseover="ygoHoverCardById('opponent', 'spell', ${i})">
-                        <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
-                        <span style="font-size:0.45rem;color:#e879f9;">${c.card_type === 'Trap' ? 'BẪY' : 'PHÉP'}</span>
+                    let imgUrl = ygoGetCardImage(c);
+                    let bgStyle = `background: linear-gradient(rgba(10,8,6,0.65), rgba(10,8,6,0.65)), url('${imgUrl}') center/cover no-repeat;`;
+                    return `<div class="ygo-zone active-card" style="border-color:#be185d; ${bgStyle}" onclick="ygoZoneClick('opponent', 'spell', ${i})" onmouseover="ygoHoverCardById('opponent', 'spell', ${i})">
+                        <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%; text-shadow: 1px 1px 2px black;">${c.name_vi}</span>
+                        <span style="font-size:0.45rem;color:#e879f9; text-shadow: 1px 1px 2px black;">${c.card_type === 'Trap' ? 'BẪY' : 'PHÉP'}</span>
                     </div>`;
                 }
                 return `<div class="ygo-zone active-card" style="border-color:#be185d; background:linear-gradient(135deg, #4c0519, #881337);" onmouseover="ygoHoverCardById('opponent', 'spell', ${i})">
@@ -1117,11 +1128,13 @@ window.ygoRenderField = function() {
             let c = d.playerFieldSpell;
             let isSelected = d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'fieldspell';
             let borderStyle = isSelected ? 'border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24;' : 'border-color:#10b981;';
+            let imgUrl = ygoGetCardImage(c);
+            let bgStyle = `background: linear-gradient(rgba(10,8,6,0.65), rgba(10,8,6,0.65)), url('${imgUrl}') center/cover no-repeat;`;
             pFieldSpellZone.className = "ygo-zone active-card";
-            pFieldSpellZone.style.cssText = borderStyle;
+            pFieldSpellZone.style.cssText = borderStyle + " " + bgStyle;
             pFieldSpellZone.innerHTML = `
-                <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
-                <span style="font-size:0.45rem;color:#a7f3d0;">FIELD</span>
+                <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%; text-shadow: 1px 1px 2px black;">${c.name_vi}</span>
+                <span style="font-size:0.45rem;color:#a7f3d0; text-shadow: 1px 1px 2px black;">FIELD</span>
             `;
             pFieldSpellZone.onmouseover = () => ygoHoverCard(c);
             pFieldSpellZone.onclick = () => ygoZoneClick('player', 'fieldspell', 0);
@@ -1129,6 +1142,7 @@ window.ygoRenderField = function() {
             pFieldSpellZone.className = "ygo-zone";
             pFieldSpellZone.style.borderColor = "";
             pFieldSpellZone.style.boxShadow = "";
+            pFieldSpellZone.style.background = "";
             pFieldSpellZone.innerHTML = `<span style="font-size:0.5rem;">PLAY FIELD</span>`;
             pFieldSpellZone.onmouseover = null;
             pFieldSpellZone.onclick = () => ygoZoneClick('player', 'fieldspell', 0);
@@ -1139,17 +1153,21 @@ window.ygoRenderField = function() {
     if (oFieldSpellZone) {
         if (d.oppFieldSpell) {
             let c = d.oppFieldSpell;
+            let imgUrl = ygoGetCardImage(c);
+            let bgStyle = `background: linear-gradient(rgba(10,8,6,0.65), rgba(10,8,6,0.65)), url('${imgUrl}') center/cover no-repeat;`;
             oFieldSpellZone.className = "ygo-zone active-card";
             oFieldSpellZone.style.borderColor = "#10b981";
+            oFieldSpellZone.style.cssText = `border-color:#10b981; ${bgStyle}`;
             oFieldSpellZone.innerHTML = `
-                <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
-                <span style="font-size:0.45rem;color:#a7f3d0;">FIELD</span>
+                <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%; text-shadow: 1px 1px 2px black;">${c.name_vi}</span>
+                <span style="font-size:0.45rem;color:#a7f3d0; text-shadow: 1px 1px 2px black;">FIELD</span>
             `;
             oFieldSpellZone.onmouseover = () => ygoHoverCard(c);
             oFieldSpellZone.onclick = () => ygoZoneClick('opponent', 'fieldspell', 0);
         } else {
             oFieldSpellZone.className = "ygo-zone";
             oFieldSpellZone.style.borderColor = "";
+            oFieldSpellZone.style.background = "";
             oFieldSpellZone.innerHTML = `<span style="font-size:0.5rem;">OPP FIELD</span>`;
             oFieldSpellZone.onmouseover = null;
             oFieldSpellZone.onclick = () => ygoZoneClick('opponent', 'fieldspell', 0);
@@ -1204,6 +1222,25 @@ window.ygoRenderField = function() {
     ygoRenderCardActions();
 };
 
+window.ygoGetCardImage = function(card) {
+    if (!card) return '';
+    
+    // Check if anime exclusive
+    let isAnimeExclusive = false;
+    if (card.anime_exclusive === 1 || card.anime_exclusive === true || 
+        (card.property && card.property.toLowerCase().includes('anime_exclusive')) || 
+        (card.anime_effect_en && card.anime_effect_en.toLowerCase().includes('anime_exclusive'))) {
+        isAnimeExclusive = true;
+    }
+    
+    if (isAnimeExclusive && card.custom_image) {
+        return card.custom_image;
+    }
+    
+    let name = card.name_en || card.name || '';
+    return `https://images.ygoprodeck.com/images/cards/${encodeURIComponent(name)}.jpg`;
+};
+
 // Hiển thị chi tiết lá bài khi hover chuột
 window.ygoHoverCard = function(card) {
     if(!card) return;
@@ -1215,11 +1252,11 @@ window.ygoHoverCard = function(card) {
     document.getElementById('ygoDetailEffect').textContent = card.anime_effect_vi || 'Không có hiệu ứng đặc biệt.';
     
     let imgContainer = document.getElementById('ygoDetailImg');
-    let color = '#78350f';
-    if(card.card_type === 'Spell') color = '#064e3b';
-    if(card.card_type === 'Trap') color = '#831843';
-    imgContainer.style.background = color;
-    imgContainer.textContent = card.card_type === 'Monster' ? '🐉' : card.card_type === 'Spell' ? '🪄' : '💣';
+    if (imgContainer) {
+        let imgUrl = ygoGetCardImage(card);
+        imgContainer.innerHTML = `<img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 6px;" onerror="this.style.display='none'; this.parentElement.textContent='🃏';">`;
+        imgContainer.style.background = 'transparent';
+    }
 };
 
 window.ygoHoverCardById = function(side, type, index) {
