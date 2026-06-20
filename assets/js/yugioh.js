@@ -277,6 +277,16 @@ window.openYugiohGame = function() {
         try { audio.play('click'); } catch(e){}
         document.getElementById('yugiohGameModal').style.display = 'block';
         
+        // Chuẩn hóa toàn bộ thẻ bài trong database khi mở game
+        if (window.YUGIOH_CARDS && Array.isArray(window.YUGIOH_CARDS)) {
+            window.YUGIOH_CARDS.forEach(c => {
+                if (c) {
+                    if (!c.name_en && c.name) c.name_en = c.name;
+                    if (!c.name && c.name_en) c.name = c.name_en;
+                }
+            });
+        }
+        
         // Load nhân vật đã chọn
         let savedChar = localStorage.getItem('ygo_char_save');
         if (savedChar && ygoCharacters[savedChar]) {
@@ -466,6 +476,14 @@ function ygoLoadMyDeck() {
     } else {
         ygoGame.myDeck = [];
     }
+    
+    // Normalize cards in myDeck (ensuring both name and name_en exist)
+    ygoGame.myDeck.forEach(c => {
+        if (c) {
+            if (!c.name_en && c.name) c.name_en = c.name;
+            if (!c.name && c.name_en) c.name = c.name_en;
+        }
+    });
     
     // Nếu chưa có bài, cấp Starter Deck tự động
     if (!ygoGame.myDeck || !Array.isArray(ygoGame.myDeck) || ygoGame.myDeck.length < 40) {
@@ -1225,19 +1243,31 @@ window.ygoRenderField = function() {
 window.ygoGetCardImage = function(card) {
     if (!card) return '';
     
-    // Check if anime exclusive
+    // Normalize card properties on the fly to ensure compatibility
+    if (!card.name_en && card.name) card.name_en = card.name;
+    if (!card.name && card.name_en) card.name = card.name_en;
+    
+    // Check if anime exclusive: if there is 'anime_exclusive' in any string fields or if anime_exclusive is true/1
     let isAnimeExclusive = false;
-    if (card.anime_exclusive === 1 || card.anime_exclusive === true || 
-        (card.property && card.property.toLowerCase().includes('anime_exclusive')) || 
-        (card.anime_effect_en && card.anime_effect_en.toLowerCase().includes('anime_exclusive'))) {
+    if (card.anime_exclusive === 1 || card.anime_exclusive === true) {
         isAnimeExclusive = true;
+    } else {
+        for (let key in card) {
+            if (card.hasOwnProperty(key) && typeof card[key] === 'string') {
+                if (card[key].toLowerCase().includes('anime_exclusive')) {
+                    isAnimeExclusive = true;
+                    break;
+                }
+            }
+        }
     }
     
     if (isAnimeExclusive && card.custom_image) {
         return card.custom_image;
     }
     
-    let name = card.name_en || card.name || '';
+    // Auto-fetch image by English name from YGOPRODECK API
+    let name = card.name || card.name_en || '';
     return `https://images.ygoprodeck.com/images/cards/${encodeURIComponent(name)}.jpg`;
 };
 
