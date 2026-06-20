@@ -52,6 +52,9 @@
                     case 'quest':
                         fileName = "E29.mp3"; // Quest / inventory bags
                         break;
+                    case 'apocalypse':
+                        fileName = "C23.mp3"; // Map apocalypse to levelup fanfare
+                        break;
                     default:
                         fileName = type.endsWith('.mp3') ? type : `${type}.mp3`;
                         break;

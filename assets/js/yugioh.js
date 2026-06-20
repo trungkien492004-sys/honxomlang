@@ -2002,7 +2002,7 @@ window.ygoTriggerChainResponse = function() {
     } else {
         let hasValidResponse = ygoCheckValidResponses('player');
         if (hasValidResponse) {
-            document.getElementById('ygoChainCardName').textContent = d.chainStack[d.chainStack.length - 1].card.name_vi;
+            document.getElementById('ygoChainPromptText').textContent = `Đối thủ kích hoạt hiệu ứng của [${d.chainStack[d.chainStack.length - 1].card.name_vi}]. Bạn có muốn phản hồi không?`;
             document.getElementById('ygoChainModal').style.display = 'flex';
         } else {
             ygoPassChain('player');
