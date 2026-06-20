@@ -14,7 +14,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 BASE_URL = "https://yugioh.fandom.com"
-START_URL = "https://yugioh.fandom.com/wiki/Category:Anime_cards?from=Armored+Zombie+%28later+anime%29"
+START_URL = "https://yugioh.fandom.com/wiki/Category:Anime_cards"
 DB_FILE = "yugioh_anime.db"
 BACKUP_DB_FILE = "yugioh_anime.db.bak"
 

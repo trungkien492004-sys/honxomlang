@@ -910,47 +910,101 @@
                                 <span>ATK/DEF: ---</span>
                             </div>
                             <p style="font-size:0.75rem; color:#cbd5e1; line-height:1.45; overflow-y:auto; flex:1; max-height:220px;" id="ygoDetailEffect">Hover lên các lá bài ở tay hoặc trên bàn đấu để xem thông tin chi tiết hiệu ứng bài ma thuật.</p>
+                            <!-- Nút thao tác bài -->
+                            <div id="ygoCardActionsContainer" style="display:flex; flex-direction:column; gap:6px; margin-top:10px;"></div>
                         </div>
 
                         <!-- Center Column: Field -->
                         <div class="ygo-board-panel">
                             <!-- Top: Opponent Hand Cards -->
                             <div class="ygo-hand-row" id="oppHand" style="margin-bottom: 5px; min-height: 50px; padding: 4px; gap: 4px;"></div>
-                            <div class="ygo-field">
-                                <!-- Opponent's Backrow (Spell/Trap) -->
-                                <div class="ygo-field-row" id="oppBackrow">
-                                    <div class="ygo-zone" data-pos="0">S/T 1</div>
-                                    <div class="ygo-zone" data-pos="1">S/T 2</div>
-                                    <div class="ygo-zone" data-pos="2">S/T 3</div>
-                                    <div class="ygo-zone" data-pos="3">S/T 4</div>
-                                    <div class="ygo-zone" data-pos="4">S/T 5</div>
+                            
+                            <div class="ygo-field" style="display:flex; flex-direction:row; justify-content:center; align-items:center; gap:12px; background:#090503; border:3px solid #5a3d28; border-radius:12px; padding:10px;">
+                                <!-- Left Column: Extra Deck & Field Spells -->
+                                <div class="ygo-field-side" id="ygoLeftFieldSide" style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+                                    <!-- Opponent Extra Deck -->
+                                    <div class="ygo-zone" id="oppExtraDeckZone" style="background:linear-gradient(135deg, #311042, #581c87); border-color:#a855f7; color:#f3e8ff;">
+                                        <span style="font-size:0.5rem;font-weight:bold;">OPP EXTRA</span>
+                                        <span style="font-size:0.8rem;font-weight:bold;" id="oppExtraCount">0</span>
+                                    </div>
+                                    <!-- Opponent Field Spell -->
+                                    <div class="ygo-zone" id="oppFieldSpellZone">
+                                        <span style="font-size:0.5rem;">OPP FIELD</span>
+                                    </div>
+                                    <div style="height:15px;"></div>
+                                    <!-- Player Field Spell -->
+                                    <div class="ygo-zone" id="playerFieldSpellZone">
+                                        <span style="font-size:0.5rem;">PLAY FIELD</span>
+                                    </div>
+                                    <!-- Player Extra Deck -->
+                                    <div class="ygo-zone" id="playerExtraDeckZone" onclick="ygoOpenExtraDeckModal()" style="background:linear-gradient(135deg, #311042, #581c87); border-color:#a855f7; color:#f3e8ff;">
+                                        <span style="font-size:0.5rem;font-weight:bold;">EXTRA DECK</span>
+                                        <span style="font-size:0.8rem;font-weight:bold;" id="playerExtraCount">0</span>
+                                    </div>
                                 </div>
-                                <!-- Opponent's Frontrow (Monster) -->
-                                <div class="ygo-field-row" id="oppFrontrow">
-                                    <div class="ygo-zone" data-pos="0">Monster 1</div>
-                                    <div class="ygo-zone" data-pos="1">Monster 2</div>
-                                    <div class="ygo-zone" data-pos="2">Monster 3</div>
-                                    <div class="ygo-zone" data-pos="3">Monster 4</div>
-                                    <div class="ygo-zone" data-pos="4">Monster 5</div>
+
+                                <!-- Center Column: Field Zones -->
+                                <div class="ygo-field-center" style="display:flex; flex-direction:column; gap:8px; flex:1;">
+                                    <!-- Opponent's Backrow (Spell/Trap) -->
+                                    <div class="ygo-field-row" id="oppBackrow">
+                                        <div class="ygo-zone" data-pos="0">S/T 1</div>
+                                        <div class="ygo-zone" data-pos="1">S/T 2</div>
+                                        <div class="ygo-zone" data-pos="2">S/T 3</div>
+                                        <div class="ygo-zone" data-pos="3">S/T 4</div>
+                                        <div class="ygo-zone" data-pos="4">S/T 5</div>
+                                    </div>
+                                    <!-- Opponent's Frontrow (Monster) -->
+                                    <div class="ygo-field-row" id="oppFrontrow">
+                                        <div class="ygo-zone" data-pos="0">Monster 1</div>
+                                        <div class="ygo-zone" data-pos="1">Monster 2</div>
+                                        <div class="ygo-zone" data-pos="2">Monster 3</div>
+                                        <div class="ygo-zone" data-pos="3">Monster 4</div>
+                                        <div class="ygo-zone" data-pos="4">Monster 5</div>
+                                    </div>
+                                    
+                                    <div style="height:15px; border-top:1px dashed #332211; margin:5px 0; text-align:center; font-size:0.6rem; color:#553322; letter-spacing:4px;">BẢN ĐỒ CHIẾN TRƯỜNG</div>
+                                    
+                                    <!-- Player's Frontrow (Monster) -->
+                                    <div class="ygo-field-row" id="playerFrontrow">
+                                        <div class="ygo-zone" data-pos="0" onclick="ygoZoneClick('player', 'monster', 0)">Monster 1</div>
+                                        <div class="ygo-zone" data-pos="1" onclick="ygoZoneClick('player', 'monster', 1)">Monster 2</div>
+                                        <div class="ygo-zone" data-pos="2" onclick="ygoZoneClick('player', 'monster', 2)">Monster 3</div>
+                                        <div class="ygo-zone" data-pos="3" onclick="ygoZoneClick('player', 'monster', 3)">Monster 4</div>
+                                        <div class="ygo-zone" data-pos="4" onclick="ygoZoneClick('player', 'monster', 4)">Monster 5</div>
+                                    </div>
+                                    <!-- Player's Backrow (Spell/Trap) -->
+                                    <div class="ygo-field-row" id="playerBackrow">
+                                        <div class="ygo-zone" data-pos="0" onclick="ygoZoneClick('player', 'spell', 0)">S/T 1</div>
+                                        <div class="ygo-zone" data-pos="1" onclick="ygoZoneClick('player', 'spell', 1)">S/T 2</div>
+                                        <div class="ygo-zone" data-pos="2" onclick="ygoZoneClick('player', 'spell', 2)">S/T 3</div>
+                                        <div class="ygo-zone" data-pos="3" onclick="ygoZoneClick('player', 'spell', 3)">S/T 4</div>
+                                        <div class="ygo-zone" data-pos="4" onclick="ygoZoneClick('player', 'spell', 4)">S/T 5</div>
+                                    </div>
                                 </div>
-                                
-                                <div style="height:15px; border-top:1px dashed #332211; margin:5px 0; text-align:center; font-size:0.6rem; color:#553322; letter-spacing:4px;">BẢN ĐỒ CHIẾN TRƯỜNG</div>
-                                
-                                <!-- Player's Frontrow (Monster) -->
-                                <div class="ygo-field-row" id="playerFrontrow">
-                                    <div class="ygo-zone" data-pos="0" onclick="ygoZoneClick('player', 'monster', 0)">Monster 1</div>
-                                    <div class="ygo-zone" data-pos="1" onclick="ygoZoneClick('player', 'monster', 1)">Monster 2</div>
-                                    <div class="ygo-zone" data-pos="2" onclick="ygoZoneClick('player', 'monster', 2)">Monster 3</div>
-                                    <div class="ygo-zone" data-pos="3" onclick="ygoZoneClick('player', 'monster', 3)">Monster 4</div>
-                                    <div class="ygo-zone" data-pos="4" onclick="ygoZoneClick('player', 'monster', 4)">Monster 5</div>
-                                </div>
-                                <!-- Player's Backrow (Spell/Trap) -->
-                                <div class="ygo-field-row" id="playerBackrow">
-                                    <div class="ygo-zone" data-pos="0" onclick="ygoZoneClick('player', 'spell', 0)">S/T 1</div>
-                                    <div class="ygo-zone" data-pos="1" onclick="ygoZoneClick('player', 'spell', 1)">S/T 2</div>
-                                    <div class="ygo-zone" data-pos="2" onclick="ygoZoneClick('player', 'spell', 2)">S/T 3</div>
-                                    <div class="ygo-zone" data-pos="3" onclick="ygoZoneClick('player', 'spell', 3)">S/T 4</div>
-                                    <div class="ygo-zone" data-pos="4" onclick="ygoZoneClick('player', 'spell', 4)">S/T 5</div>
+
+                                <!-- Right Column: GY & Main Deck -->
+                                <div class="ygo-field-side" id="ygoRightFieldSide" style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+                                    <!-- Opponent Main Deck -->
+                                    <div class="ygo-zone" id="oppMainDeckZone" style="background:linear-gradient(135deg, #4c0519, #881337); border-color:#fb7185; color:#ffe4e6;">
+                                        <span style="font-size:0.5rem;font-weight:bold;">OPP DECK</span>
+                                        <span style="font-size:0.8rem;font-weight:bold;" id="oppDeckCountDisplay">40</span>
+                                    </div>
+                                    <!-- Opponent GY -->
+                                    <div class="ygo-zone" id="oppGYZone">
+                                        <span style="font-size:0.5rem;">OPP GY</span>
+                                        <span style="font-size:0.8rem;font-weight:bold;" id="oppGYCount">0</span>
+                                    </div>
+                                    <div style="height:15px;"></div>
+                                    <!-- Player GY -->
+                                    <div class="ygo-zone" id="playerGYZone">
+                                        <span style="font-size:0.5rem;">PLAY GY</span>
+                                        <span style="font-size:0.8rem;font-weight:bold;" id="playerGYCount">0</span>
+                                    </div>
+                                    <!-- Player Main Deck -->
+                                    <div class="ygo-zone" id="playerMainDeckZone" style="background:linear-gradient(135deg, #1e3a8a, #3b82f6); border-color:#60a5fa; color:#dbeafe;">
+                                        <span style="font-size:0.5rem;font-weight:bold;">PLAY DECK</span>
+                                        <span style="font-size:0.8rem;font-weight:bold;" id="playerDeckCountDisplay">40</span>
+                                    </div>
                                 </div>
                             </div>
                             

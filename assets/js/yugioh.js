@@ -711,6 +711,30 @@ window.ygoStartBotGame = function() {
     
     ygoGame.oppCharacter = botType; // Set bot character properly
     
+    // Tách Extra Deck người chơi
+    let playerMainDeck = [];
+    let playerExtraDeck = [];
+    ygoGame.myDeck.forEach(c => {
+        let mt = (c.monster_type || '').toLowerCase();
+        if (c.card_type === 'Monster' && (mt.includes('fusion') || mt.includes('synchro') || mt.includes('xyz') || mt.includes('link'))) {
+            playerExtraDeck.push(c);
+        } else {
+            playerMainDeck.push(c);
+        }
+    });
+
+    // Tách Extra Deck bot
+    let botMainDeck = [];
+    let botExtraDeck = [];
+    botDeck.forEach(c => {
+        let mt = (c.monster_type || '').toLowerCase();
+        if (c.card_type === 'Monster' && (mt.includes('fusion') || mt.includes('synchro') || mt.includes('xyz') || mt.includes('link'))) {
+            botExtraDeck.push(c);
+        } else {
+            botMainDeck.push(c);
+        }
+    });
+    
     ygoGame.duel = {
         mode: 'pve',
         opponentId: null,
@@ -719,21 +743,26 @@ window.ygoStartBotGame = function() {
         oppLP: 8000,
         playerHand: [],
         oppHand: [],
-        playerDeck: [...ygoGame.myDeck],
-        oppDeck: botDeck,
+        playerDeck: playerMainDeck,
+        oppDeck: botMainDeck,
+        playerExtraDeck: playerExtraDeck,
+        oppExtraDeck: botExtraDeck,
         playerGY: [],
         oppGY: [],
         playerMonsters: [null, null, null, null, null],
         playerSpells: [null, null, null, null, null],
         oppMonsters: [null, null, null, null, null],
         oppSpells: [null, null, null, null, null],
+        playerFieldSpell: null,
+        oppFieldSpell: null,
         turn: Math.random() < 0.5 ? 'player' : 'opponent',
         phase: 'DRAW',
         hasNormalSummoned: false,
         selectedHandIndex: null,
         selectedZoneIndex: null,
         selectedFieldCard: null,
-        logs: []
+        logs: [],
+        turnCount: 1
     };
     
     // Weevil Underwood's Parasite Paracide skill trigger:
@@ -943,8 +972,12 @@ window.ygoRenderField = function() {
             if(c) {
                 let posText = c.position === 'defense' ? 'DEF' : 'ATK';
                 let statVal = c.position === 'defense' ? (c.currentDef || c.def) : (c.currentAtk || c.atk);
-                let rotationStyle = c.position === 'defense' ? 'transform: rotate(90deg); border-color: #3b82f6;' : '';
-                return `<div class="ygo-zone active-card" style="${rotationStyle}" onclick="ygoZoneClick('player', 'monster', ${i})" onmouseover="ygoHoverCardById('player', 'monster', ${i})">
+                
+                let isSelected = d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'monster' && d.selectedFieldCard.pos === i;
+                let borderStyle = isSelected ? 'border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24;' : (c.position === 'defense' ? 'border-color: #3b82f6;' : '');
+                let rotationStyle = c.position === 'defense' ? 'transform: rotate(90deg);' : '';
+                
+                return `<div class="ygo-zone active-card" style="${rotationStyle} ${borderStyle}" onclick="ygoZoneClick('player', 'monster', ${i})" onmouseover="ygoHoverCardById('player', 'monster', ${i})">
                     <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
                     <span style="color:#fcd34d;font-size:0.5rem;margin-top:3px;">${posText} ${statVal}</span>
                 </div>`;
@@ -958,9 +991,12 @@ window.ygoRenderField = function() {
     if(pBack) {
         pBack.innerHTML = d.playerSpells.map((c, i) => {
             if(c) {
-                return `<div class="ygo-zone active-card" style="border-color:#10b981;" onclick="ygoZoneClick('player', 'spell', ${i})" onmouseover="ygoHoverCardById('player', 'spell', ${i})">
+                let isSelected = d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'spell' && d.selectedFieldCard.pos === i;
+                let borderStyle = isSelected ? 'border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24;' : 'border-color:#10b981;';
+                let statusText = c.faceUp ? "NGỬA" : "ÚP";
+                return `<div class="ygo-zone active-card" style="${borderStyle}" onclick="ygoZoneClick('player', 'spell', ${i})" onmouseover="ygoHoverCardById('player', 'spell', ${i})">
                     <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
-                    <span style="font-size:0.48rem;color:#cbd5e1;">UP</span>
+                    <span style="font-size:0.48rem;color:#cbd5e1;">${statusText}</span>
                 </div>`;
             }
             return `<div class="ygo-zone" onclick="ygoZoneClick('player', 'spell', ${i})">S/T ${i+1}</div>`;
@@ -970,15 +1006,23 @@ window.ygoRenderField = function() {
     // 4. Render Vùng Quái Thú Đối thủ (Bot)
     const oFront = document.getElementById('oppFrontrow');
     if(oFront) {
+        let isPegasus = (ygoGame.myCharacter === 'pegasus');
         oFront.innerHTML = d.oppMonsters.map((c, i) => {
             if(c) {
+                let reveal = (c.faceUp !== false) || isPegasus;
                 let posText = c.position === 'defense' ? 'DEF' : 'ATK';
                 let statVal = c.position === 'defense' ? (c.currentDef || c.def) : (c.currentAtk || c.atk);
                 let rotationStyle = c.position === 'defense' ? 'transform: rotate(90deg); border-color: #3b82f6;' : '';
-                return `<div class="ygo-zone active-card" style="${rotationStyle}" onclick="ygoZoneClick('opponent', 'monster', ${i})" onmouseover="ygoHoverCardById('opponent', 'monster', ${i})">
-                    <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
-                    <span style="color:#fcd34d;font-size:0.5rem;margin-top:3px;">${posText} ${statVal}</span>
-                </div>`;
+                if (reveal) {
+                    return `<div class="ygo-zone active-card" style="${rotationStyle}" onclick="ygoZoneClick('opponent', 'monster', ${i})" onmouseover="ygoHoverCardById('opponent', 'monster', ${i})">
+                        <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
+                        <span style="color:#fcd34d;font-size:0.5rem;margin-top:3px;">${posText} ${statVal}</span>
+                    </div>`;
+                } else {
+                    return `<div class="ygo-zone active-card" style="${rotationStyle} background:linear-gradient(135deg, #4c0519, #881337); border-color:#fb7185;" onclick="ygoZoneClick('opponent', 'monster', ${i})" onmouseover="ygoHoverCardById('opponent', 'monster', ${i})">
+                        <span style="font-size:0.6rem;font-weight:bold;color:#fecdd3;">ÚP DEF</span>
+                    </div>`;
+                }
             }
             return `<div class="ygo-zone" onclick="ygoZoneClick('opponent', 'monster', ${i})">Monster ${i+1}</div>`;
         }).join('');
@@ -992,19 +1036,103 @@ window.ygoRenderField = function() {
         
         oBack.innerHTML = d.oppSpells.map((c, i) => {
             if(c) {
-                let reveal = isPegasus || (isEspa && c.card_type === 'Trap');
+                let reveal = (c.faceUp !== false) || isPegasus || (isEspa && c.card_type === 'Trap');
                 if (reveal) {
                     return `<div class="ygo-zone active-card" style="border-color:#be185d; background: rgba(88,28,135,0.6);" onclick="ygoZoneClick('opponent', 'spell', ${i})" onmouseover="ygoHoverCardById('opponent', 'spell', ${i})">
                         <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
                         <span style="font-size:0.45rem;color:#e879f9;">${c.card_type === 'Trap' ? 'BẪY' : 'PHÉP'}</span>
                     </div>`;
                 }
-                return `<div class="ygo-zone active-card" style="border-color:#be185d;" onmouseover="ygoHoverCardById('opponent', 'spell', ${i})">
-                    <span style="font-size:0.6rem;">ÚP</span>
+                return `<div class="ygo-zone active-card" style="border-color:#be185d; background:linear-gradient(135deg, #4c0519, #881337);" onmouseover="ygoHoverCardById('opponent', 'spell', ${i})">
+                    <span style="font-size:0.6rem; color:#fecdd3;">ÚP</span>
                 </div>`;
             }
             return `<div class="ygo-zone" onclick="ygoZoneClick('opponent', 'spell', ${i})">S/T ${i+1}</div>`;
         }).join('');
+    }
+
+    // 6. Render Vùng Môi Trường (Field Spell Zone)
+    const pFieldSpellZone = document.getElementById('playerFieldSpellZone');
+    if (pFieldSpellZone) {
+        if (d.playerFieldSpell) {
+            let c = d.playerFieldSpell;
+            let isSelected = d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'fieldspell';
+            let borderStyle = isSelected ? 'border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24;' : 'border-color:#10b981;';
+            pFieldSpellZone.className = "ygo-zone active-card";
+            pFieldSpellZone.style.cssText = borderStyle;
+            pFieldSpellZone.innerHTML = `
+                <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
+                <span style="font-size:0.45rem;color:#a7f3d0;">FIELD</span>
+            `;
+            pFieldSpellZone.onmouseover = () => ygoHoverCard(c);
+            pFieldSpellZone.onclick = () => ygoZoneClick('player', 'fieldspell', 0);
+        } else {
+            pFieldSpellZone.className = "ygo-zone";
+            pFieldSpellZone.style.borderColor = "";
+            pFieldSpellZone.style.boxShadow = "";
+            pFieldSpellZone.innerHTML = `<span style="font-size:0.5rem;">PLAY FIELD</span>`;
+            pFieldSpellZone.onmouseover = null;
+            pFieldSpellZone.onclick = () => ygoZoneClick('player', 'fieldspell', 0);
+        }
+    }
+
+    const oFieldSpellZone = document.getElementById('oppFieldSpellZone');
+    if (oFieldSpellZone) {
+        if (d.oppFieldSpell) {
+            let c = d.oppFieldSpell;
+            oFieldSpellZone.className = "ygo-zone active-card";
+            oFieldSpellZone.style.borderColor = "#10b981";
+            oFieldSpellZone.innerHTML = `
+                <span style="font-size:0.55rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;">${c.name_vi}</span>
+                <span style="font-size:0.45rem;color:#a7f3d0;">FIELD</span>
+            `;
+            oFieldSpellZone.onmouseover = () => ygoHoverCard(c);
+            oFieldSpellZone.onclick = () => ygoZoneClick('opponent', 'fieldspell', 0);
+        } else {
+            oFieldSpellZone.className = "ygo-zone";
+            oFieldSpellZone.style.borderColor = "";
+            oFieldSpellZone.innerHTML = `<span style="font-size:0.5rem;">OPP FIELD</span>`;
+            oFieldSpellZone.onmouseover = null;
+            oFieldSpellZone.onclick = () => ygoZoneClick('opponent', 'fieldspell', 0);
+        }
+    }
+
+    // 7. Cập nhật các bộ đếm Deck, GY và Extra Deck
+    const pExtraCountEl = document.querySelectorAll('#playerExtraCount');
+    pExtraCountEl.forEach(el => el.textContent = d.playerExtraDeck ? d.playerExtraDeck.length : 0);
+    const oExtraCountEl = document.querySelectorAll('#oppExtraCount');
+    oExtraCountEl.forEach(el => el.textContent = d.oppExtraDeck ? d.oppExtraDeck.length : 0);
+    
+    const pDeckCountEl = document.getElementById('playerDeckCountDisplay');
+    if (pDeckCountEl) pDeckCountEl.textContent = d.playerDeck ? d.playerDeck.length : 0;
+    const oDeckCountEl = document.getElementById('oppDeckCountDisplay');
+    if (oDeckCountEl) oDeckCountEl.textContent = d.oppDeck ? d.oppDeck.length : 0;
+    
+    const pGYCountEl = document.getElementById('playerGYCount');
+    if (pGYCountEl) pGYCountEl.textContent = d.playerGY ? d.playerGY.length : 0;
+    const oGYCountEl = document.getElementById('oppGYCount');
+    if (oGYCountEl) oGYCountEl.textContent = d.oppGY ? d.oppGY.length : 0;
+
+    // Hover xem lá bài trên cùng của Mộ bài (GY)
+    const pGYZone = document.getElementById('playerGYZone');
+    if (pGYZone) {
+        if (d.playerGY && d.playerGY.length > 0) {
+            let topGY = d.playerGY[d.playerGY.length - 1];
+            pGYZone.style.cursor = 'pointer';
+            pGYZone.onmouseover = () => ygoHoverCard(topGY);
+        } else {
+            pGYZone.onmouseover = null;
+        }
+    }
+    const oGYZone = document.getElementById('oppGYZone');
+    if (oGYZone) {
+        if (d.oppGY && d.oppGY.length > 0) {
+            let topGY = d.oppGY[d.oppGY.length - 1];
+            oGYZone.style.cursor = 'pointer';
+            oGYZone.onmouseover = () => ygoHoverCard(topGY);
+        } else {
+            oGYZone.onmouseover = null;
+        }
     }
     
     // Check Aroma Strategy (Mai) & Millennium Necklace (Ishizu)
@@ -1012,6 +1140,9 @@ window.ygoRenderField = function() {
     if (typeof ygoCheckMillenniumNecklace === 'function') {
         ygoCheckMillenniumNecklace();
     }
+
+    // Render nút hành động bài ở khung chi tiết
+    ygoRenderCardActions();
 };
 
 // Hiển thị chi tiết lá bài khi hover chuột
@@ -1036,11 +1167,44 @@ window.ygoHoverCardById = function(side, type, index) {
     let d = ygoGame.duel;
     let card = null;
     if(side === 'player') {
-        card = type === 'monster' ? d.playerMonsters[index] : d.playerSpells[index];
+        if (type === 'monster') card = d.playerMonsters[index];
+        else if (type === 'spell') card = d.playerSpells[index];
+        else if (type === 'fieldspell') card = d.playerFieldSpell;
+        ygoHoverCard(card);
     } else {
-        card = type === 'monster' ? d.oppMonsters[index] : d.oppSpells[index];
+        if (type === 'monster') card = d.oppMonsters[index];
+        else if (type === 'spell') card = d.oppSpells[index];
+        else if (type === 'fieldspell') card = d.oppFieldSpell;
+        
+        if (!card) return;
+        
+        // Check if opponent card is face-down and needs hiding
+        let reveal = false;
+        if (type === 'monster') {
+            reveal = (card.faceUp !== false) || (ygoGame.myCharacter === 'pegasus');
+        } else if (type === 'spell') {
+            reveal = (card.faceUp !== false) || (ygoGame.myCharacter === 'pegasus') || (ygoGame.myCharacter === 'espa_roba' && card.card_type === 'Trap');
+        } else if (type === 'fieldspell') {
+            reveal = true; // Field spells are always face-up/revealed once active
+        }
+        
+        if (reveal) {
+            ygoHoverCard(card);
+        } else {
+            // Conceal details
+            document.getElementById('ygoDetailName').textContent = "Lá Bài Úp của Đối Thủ";
+            document.getElementById('ygoDetailStats').innerHTML = `
+                <span>CARD: ---</span>
+                <span>ATK/DEF: ---</span>
+            `;
+            document.getElementById('ygoDetailEffect').textContent = "Hiệu ứng của lá bài này đang bị ẩn vì lá bài đang úp.";
+            let imgContainer = document.getElementById('ygoDetailImg');
+            if (imgContainer) {
+                imgContainer.style.background = 'linear-gradient(135deg, #4c0519, #881337)';
+                imgContainer.textContent = "❓";
+            }
+        }
     }
-    ygoHoverCard(card);
 };
 
 // Người chơi chọn bài trên tay
@@ -1057,9 +1221,395 @@ window.ygoSelectHand = function(idx) {
         d.selectedFieldCard = null; // Huỷ chọn bài trên sân
         let card = d.playerHand[idx];
         ygoHoverCard(card);
-        ygoLog(`👉 Chọn bài trên tay: [${card.name_vi}]. Chọn ô trống trên bàn đấu để kích hoạt/triệu hồi.`);
+        ygoLog(`👉 Chọn bài trên tay: [${card.name_vi}]. Hãy bấm nút Thao Tác ở khung chi tiết bên trái.`);
     }
     ygoRenderField();
+};
+
+// ==========================================
+// CÁC NÚT THAO TÁC BÀI CHI TIẾT
+// ==========================================
+window.ygoRenderCardActions = function() {
+    const container = document.getElementById('ygoCardActionsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    let d = ygoGame.duel;
+    if (!d || d.turn !== 'player') return; // Only player's turn shows actions!
+    
+    // Check if hand card is selected
+    if (d.selectedHandIndex !== null) {
+        let card = d.playerHand[d.selectedHandIndex];
+        if (!card) return;
+        
+        if (card.card_type === 'Monster') {
+            if (d.phase.includes('MAIN')) {
+                // Summon Button
+                const btnSummon = document.createElement('button');
+                btnSummon.className = 'ygo-btn';
+                btnSummon.style.background = 'linear-gradient(to right, #b45309, #78350f)';
+                btnSummon.textContent = '⚔️ Triệu Hồi Tấn Công';
+                btnSummon.onclick = () => ygoActionSummon(false);
+                container.appendChild(btnSummon);
+                
+                // Set Button
+                const btnSet = document.createElement('button');
+                btnSet.className = 'ygo-btn ygo-btn-secondary';
+                btnSet.textContent = '🛡️ Úp Phòng Thủ';
+                btnSet.onclick = () => ygoActionSummon(true);
+                container.appendChild(btnSet);
+            }
+        } else if (card.card_type === 'Spell' || card.card_type === 'Trap') {
+            let isField = (card.property === 'Field' || card.name_en.toLowerCase().includes('umi') || card.name_en.toLowerCase().includes('orichalcos') || card.name_en.toLowerCase().includes('stromberg'));
+            
+            if (isField) {
+                const btnActivate = document.createElement('button');
+                btnActivate.className = 'ygo-btn';
+                btnActivate.style.background = 'linear-gradient(to right, #047857, #065f46)';
+                btnActivate.textContent = '🏞️ Kích Hoạt Môi Trường';
+                btnActivate.onclick = () => ygoActionActivateFieldSpell();
+                container.appendChild(btnActivate);
+            } else {
+                if (card.card_type === 'Spell') {
+                    const btnActivate = document.createElement('button');
+                    btnActivate.className = 'ygo-btn';
+                    btnActivate.style.background = 'linear-gradient(to right, #047857, #065f46)';
+                    btnActivate.textContent = '🪄 Kích Hoạt Phép';
+                    btnActivate.onclick = () => ygoActionActivateSpell();
+                    container.appendChild(btnActivate);
+                }
+                
+                const btnSet = document.createElement('button');
+                btnSet.className = 'ygo-btn ygo-btn-secondary';
+                btnSet.textContent = '🃏 Úp Phép/Bẫy';
+                btnSet.onclick = () => ygoActionSetSpellTrap();
+                container.appendChild(btnSet);
+            }
+        }
+    }
+    // Check if field card is selected
+    else if (d.selectedFieldCard !== null) {
+        let sel = d.selectedFieldCard;
+        if (sel.side === 'player') {
+            if (sel.type === 'monster') {
+                let card = d.playerMonsters[sel.pos];
+                if (!card) return;
+                
+                if (d.phase.includes('MAIN')) {
+                    const btnPos = document.createElement('button');
+                    btnPos.className = 'ygo-btn';
+                    btnPos.style.background = 'linear-gradient(to right, #1d4ed8, #1e40af)';
+                    if (card.position === 'defense') {
+                        btnPos.textContent = '🔄 Lật Ngửa Tấn Công';
+                    } else {
+                        btnPos.textContent = '🔄 Chuyển Thế Thủ';
+                    }
+                    btnPos.onclick = () => ygoActionChangePosition(sel.pos);
+                    container.appendChild(btnPos);
+                }
+                
+                if (d.phase === 'BATTLE') {
+                    if (d.turnCount === 1) {
+                        const lblNoAttack = document.createElement('div');
+                        lblNoAttack.style.cssText = 'color:#ef4444; font-size:0.75rem; text-align:center; padding: 5px; background: rgba(239, 68, 68, 0.15); border: 1px dashed #ef4444; border-radius: 4px;';
+                        lblNoAttack.textContent = '⚠️ Lượt 1 không được tấn công!';
+                        container.appendChild(lblNoAttack);
+                    } else if (card.position !== 'defense') {
+                        const btnAttack = document.createElement('button');
+                        btnAttack.className = 'ygo-btn';
+                        btnAttack.style.background = 'linear-gradient(to right, #b91c1c, #991b1b)';
+                        btnAttack.textContent = '⚔️ Tuyên Bố Tấn Công';
+                        btnAttack.onclick = () => ygoActionDeclareAttack(sel.pos);
+                        container.appendChild(btnAttack);
+                    }
+                }
+            } else if (sel.type === 'spell') {
+                let card = d.playerSpells[sel.pos];
+                if (card && !card.faceUp) {
+                    const btnActivate = document.createElement('button');
+                    btnActivate.className = 'ygo-btn';
+                    btnActivate.style.background = 'linear-gradient(to right, #047857, #065f46)';
+                    btnActivate.textContent = '🪄 Kích Hoạt Bài Úp';
+                    btnActivate.onclick = () => ygoActionActivateSetCard(sel.pos);
+                    container.appendChild(btnActivate);
+                }
+            }
+        }
+    }
+};
+
+window.ygoActionSummon = function(isDefense) {
+    let d = ygoGame.duel;
+    if (d.selectedHandIndex === null) return;
+    let card = d.playerHand[d.selectedHandIndex];
+    if (!card || card.card_type !== 'Monster') return;
+    
+    if (d.hasNormalSummoned) {
+        showToast("⚠️ Bạn đã Triệu hồi Thường 1 quái thú ở lượt này rồi!");
+        return;
+    }
+    
+    let emptyIdx = d.playerMonsters.indexOf(null);
+    if (emptyIdx === -1) {
+        showToast("⚠️ Sân quái thú của bạn đã đầy!");
+        return;
+    }
+    
+    let lvl = card.level_rank || 1;
+    let tributesNeeded = lvl >= 7 ? 2 : (lvl >= 5 ? 1 : 0);
+    
+    // Seto Kaiba: Pride of Blue-Eyes
+    if (ygoGame.myCharacter === 'kaiba' && card.name_en.toLowerCase().includes("blue-eyes white dragon")) {
+        if (d.freeBlueEyes) {
+            tributesNeeded = 0;
+            d.freeBlueEyes = false;
+            ygoLog(`🐉 [Kiêu Hãnh Của Rồng] Triệu hồi Rồng Trắng Mắt Xanh không cần hiến tế!`);
+        }
+    }
+    
+    let aliveMonstersCount = d.playerMonsters.filter(m => m !== null).length;
+    if (aliveMonstersCount < tributesNeeded) {
+        showToast(`⚠️ Cần ${tributesNeeded} quái thú tế phẩm trên sân để triệu hồi!`);
+        return;
+    }
+    
+    // Tribute if needed
+    if (tributesNeeded > 0) {
+        let tCount = 0;
+        for (let mIdx = 0; mIdx < 5; mIdx++) {
+            if (d.playerMonsters[mIdx] !== null) {
+                ygoLog(`🕯️ Hiến tế quái thú: [${d.playerMonsters[mIdx].name_vi}] làm tế phẩm.`);
+                d.playerGY.push(d.playerMonsters[mIdx]);
+                d.playerMonsters[mIdx] = null;
+                tCount++;
+                if (tCount >= tributesNeeded) break;
+            }
+        }
+    }
+    
+    try { audio.play('levelup'); } catch(e){}
+    card.currentAtk = parseInt(card.atk) || 0;
+    card.currentDef = parseInt(card.def) || 0;
+    card.position = isDefense ? 'defense' : 'attack';
+    card.faceUp = !isDefense;
+    
+    d.playerMonsters[emptyIdx] = card;
+    d.playerHand.splice(d.selectedHandIndex, 1);
+    d.hasNormalSummoned = true;
+    d.selectedHandIndex = null;
+    
+    if (isDefense) {
+        ygoLog(`💥 Bạn úp 1 quái thú ở thế PHÒNG THỦ.`);
+    } else {
+        ygoLog(`💥 Bạn triệu hồi quái thú: [${card.name_vi}] (ATK: ${card.atk})`);
+    }
+    
+    ygoRenderField();
+    if (d.mode === 'pvp') {
+        ygoSendSyncState(isDefense ? `💥 Đối thủ úp 1 quái thú ở thế PHÒNG THỦ.` : `💥 Đối thủ triệu hồi quái thú: [${card.name_vi}] (ATK: ${card.atk})`);
+    }
+};
+
+window.ygoActionActivateSpell = function() {
+    let d = ygoGame.duel;
+    if (d.selectedHandIndex === null) return;
+    let card = d.playerHand[d.selectedHandIndex];
+    if (!card) return;
+    
+    let emptyIdx = d.playerSpells.indexOf(null);
+    if (emptyIdx === -1) {
+        showToast("⚠️ Ô bài phép/bẫy của bạn đã đầy!");
+        return;
+    }
+    
+    try { audio.play('click'); } catch(e){}
+    card.faceUp = true;
+    d.playerSpells[emptyIdx] = card;
+    d.playerHand.splice(d.selectedHandIndex, 1);
+    d.selectedHandIndex = null;
+    
+    ygoLog(`🃏 Bạn kích hoạt Spell: [${card.name_vi}]`);
+    
+    // Rebecca passive
+    if (ygoGame.myCharacter === 'rebecca') {
+        ygoLog(`✨ [Thần Đồng Công Nghệ] Rebecca kích hoạt Spell. Gây 400 sát thương lên đối thủ!`);
+        ygoDamageOpponent(400, "hiệu ứng Rebecca");
+    }
+    
+    ygoExecuteCardEffect('player', card, emptyIdx);
+    
+    ygoRenderField();
+    if (d.mode === 'pvp') {
+        ygoSendSyncState(`🃏 Đối thủ kích hoạt Spell: [${card.name_vi}]`);
+    }
+};
+
+window.ygoActionSetSpellTrap = function() {
+    let d = ygoGame.duel;
+    if (d.selectedHandIndex === null) return;
+    let card = d.playerHand[d.selectedHandIndex];
+    if (!card) return;
+    
+    let emptyIdx = d.playerSpells.indexOf(null);
+    if (emptyIdx === -1) {
+        showToast("⚠️ Ô bài phép/bẫy của bạn đã đầy!");
+        return;
+    }
+    
+    try { audio.play('click'); } catch(e){}
+    card.faceUp = false;
+    d.playerSpells[emptyIdx] = card;
+    d.playerHand.splice(d.selectedHandIndex, 1);
+    d.selectedHandIndex = null;
+    
+    ygoLog(`🃏 Bạn úp 1 lá bài Phép/Bẫy xuống sân.`);
+    ygoRenderField();
+    if (d.mode === 'pvp') {
+        ygoSendSyncState(`🃏 Đối thủ úp 1 lá bài Phép/Bẫy xuống sân.`);
+    }
+};
+
+window.ygoActionActivateFieldSpell = function() {
+    let d = ygoGame.duel;
+    if (d.selectedHandIndex === null) return;
+    let card = d.playerHand[d.selectedHandIndex];
+    if (!card) return;
+    
+    try { audio.play('click'); } catch(e){}
+    if (d.playerFieldSpell) {
+        ygoLog(`🗑️ Gửi bài môi trường cũ [${d.playerFieldSpell.name_vi}] xuống Mộ bài.`);
+        d.playerGY.push(d.playerFieldSpell);
+    }
+    
+    card.faceUp = true;
+    d.playerFieldSpell = card;
+    d.playerHand.splice(d.selectedHandIndex, 1);
+    d.selectedHandIndex = null;
+    
+    ygoLog(`🏞️ Bạn kích hoạt Bài Môi Trường: [${card.name_vi}]`);
+    ygoRenderField();
+    if (d.mode === 'pvp') {
+        ygoSendSyncState(`🏞️ Đối thủ kích hoạt Bài Môi Trường: [${card.name_vi}]`);
+    }
+};
+
+window.ygoActionChangePosition = function(pos) {
+    let d = ygoGame.duel;
+    let mon = d.playerMonsters[pos];
+    if (!mon) return;
+    
+    if (mon.position === 'defense') {
+        mon.position = 'attack';
+        mon.faceUp = true;
+        ygoLog(`🔄 Lật mặt / Chuyển quái thú [${mon.name_vi}] sang thế TẤN CÔNG (ATK).`);
+    } else {
+        mon.position = 'defense';
+        ygoLog(`🔄 Chuyển quái thú [${mon.name_vi}] sang thế PHÒNG THỦ (DEF).`);
+    }
+    
+    ygoRenderField();
+    if (d.mode === 'pvp') ygoSendSyncState();
+};
+
+window.ygoActionDeclareAttack = function(pos) {
+    let d = ygoGame.duel;
+    let myMon = d.playerMonsters[pos];
+    if (!myMon) return;
+    
+    d.selectedFieldCard = { side: 'player', type: 'monster', pos: pos };
+    ygoLog(`⚔️ Tuyên bố tấn công với [${myMon.name_vi}]! Click vào quái đối thủ để tấn công hoặc click vào ô đối diện trống để Tấn công trực diện.`);
+};
+
+window.ygoActionActivateSetCard = function(pos) {
+    let d = ygoGame.duel;
+    let card = d.playerSpells[pos];
+    if (!card) return;
+    
+    try { audio.play('click'); } catch(e){}
+    card.faceUp = true;
+    ygoLog(`🃏 Bạn kích hoạt bài úp: [${card.name_vi}]`);
+    
+    ygoExecuteCardEffect('player', card, pos);
+    
+    ygoRenderField();
+    if (d.mode === 'pvp') {
+        ygoSendSyncState(`🃏 Đối thủ kích hoạt bài úp: [${card.name_vi}]`);
+    }
+};
+
+window.ygoOpenExtraDeckModal = function() {
+    let d = ygoGame.duel;
+    if (!d) return;
+    if (d.turn !== 'player') {
+        showToast("⚠️ Chỉ có thể triệu hồi Đặc biệt từ Extra Deck trong lượt của bạn!");
+        return;
+    }
+    if (!d.phase.includes('MAIN')) {
+        showToast("⚠️ Chỉ có thể triệu hồi từ Extra Deck trong Main Phase 1 hoặc Main Phase 2!");
+        return;
+    }
+    
+    const modal = document.getElementById('ygoDeckSelectModal');
+    const container = document.getElementById('ygoDeckSelectContainer');
+    if (!modal || !container) return;
+    
+    modal.querySelector('h3').textContent = "🔮 TRIỆU HỒI TỪ EXTRA DECK";
+    modal.querySelector('p').textContent = "Chọn một quái thú Dung hợp/Đồng bộ/Xyz/Link để Triệu hồi Đặc biệt lên sân.";
+    
+    container.innerHTML = '';
+    
+    if (!d.playerExtraDeck || d.playerExtraDeck.length === 0) {
+        container.innerHTML = '<div style="color:#cbd5e1; font-size:0.85rem; padding: 15px; grid-column:1/-1; text-align:center;">Extra Deck trống!</div>';
+    } else {
+        d.playerExtraDeck.forEach((card, idx) => {
+            const div = document.createElement('div');
+            div.className = `ygo-mini-card monster`;
+            div.style.borderColor = '#a855f7';
+            div.innerHTML = `
+                <div style="font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${card.name_vi}</div>
+                <div style="font-size:0.48rem; color:#d8b4fe;">${card.atk !== null ? `A:${card.atk}` : card.card_type}</div>
+            `;
+            div.onmouseover = () => ygoHoverCard(card);
+            div.onclick = () => {
+                ygoSpecialSummonExtra(idx);
+                modal.style.display = 'none';
+            };
+            container.appendChild(div);
+        });
+    }
+    
+    modal.style.display = 'flex';
+};
+
+window.ygoSpecialSummonExtra = function(idx) {
+    let d = ygoGame.duel;
+    if (!d || d.turn !== 'player') return;
+    
+    let card = d.playerExtraDeck[idx];
+    if (!card) return;
+    
+    let emptyIdx = d.playerMonsters.indexOf(null);
+    if (emptyIdx === -1) {
+        showToast("⚠️ Sân của bạn đã đầy quái thú!");
+        return;
+    }
+    
+    let isDefense = !confirm(`Bạn muốn Triệu hồi Đặc biệt [${card.name_vi}] ở thế TẤN CÔNG? (Chọn Cancel để ÚP PHÒNG THỦ hoặc THẾ THỦ)`);
+    
+    try { audio.play('levelup'); } catch(e){}
+    card.currentAtk = parseInt(card.atk) || 0;
+    card.currentDef = parseInt(card.def) || 0;
+    card.position = isDefense ? 'defense' : 'attack';
+    card.faceUp = true; // Always face-up for special summons in general
+    
+    d.playerMonsters[emptyIdx] = card;
+    d.playerExtraDeck.splice(idx, 1);
+    
+    ygoLog(`🔮 Bạn Triệu hồi Đặc biệt [${card.name_vi}] từ Extra Deck ở thế ${isDefense ? 'PHÒNG THỦ' : 'TẤN CÔNG'}!`);
+    ygoRenderField();
+    if (d.mode === 'pvp') {
+        ygoSendSyncState(`🔮 Đối thủ Triệu hồi Đặc biệt [${card.name_vi}] từ Extra Deck ở thế ${isDefense ? 'PHÒNG THỦ' : 'TẤN CÔNG'}!`);
+    }
 };
 
 // Xử lý Click vào ô trên bàn đấu
@@ -1639,7 +2189,7 @@ window.ygoZoneClick = function(side, type, index) {
         }
     }
     
-    // TH1: Đang chọn bài trên tay để RA BÀI vào ô trống trên sân
+    // TH1: Đang chọn bài trên tay để RA BÀI (Summon/Set) bằng cách click vào ô trống (Old Flow fallback)
     if (d.selectedHandIndex !== null && side === 'player') {
         let card = d.playerHand[d.selectedHandIndex];
         
@@ -1671,7 +2221,6 @@ window.ygoZoneClick = function(side, type, index) {
             }
             
             let aliveMonstersCount = d.playerMonsters.filter(m => m !== null).length;
-            
             if (aliveMonstersCount < tributesNeeded) {
                 showToast(`⚠️ Cần ${tributesNeeded} quái thú tế phẩm trên sân để triệu hồi!`);
                 return;
@@ -1699,6 +2248,7 @@ window.ygoZoneClick = function(side, type, index) {
             card.currentAtk = parseInt(card.atk) || 0;
             card.currentDef = parseInt(card.def) || 0;
             card.position = isDefense ? 'defense' : 'attack';
+            card.faceUp = !isDefense;
             
             d.playerMonsters[index] = card;
             d.playerHand.splice(d.selectedHandIndex, 1);
@@ -1728,6 +2278,7 @@ window.ygoZoneClick = function(side, type, index) {
             }
             
             try { audio.play('click'); } catch(e){}
+            card.faceUp = false;
             d.playerSpells[index] = card;
             d.playerHand.splice(d.selectedHandIndex, 1);
             d.selectedHandIndex = null;
@@ -1750,120 +2301,125 @@ window.ygoZoneClick = function(side, type, index) {
         }
     }
     
-    // Toggles position in Main Phase if clicking player's monster with no hand card selected
-    if (d.phase.includes('MAIN') && side === 'player' && type === 'monster' && d.playerMonsters[index] !== null && d.selectedHandIndex === null) {
-        let mon = d.playerMonsters[index];
-        mon.position = mon.position === 'defense' ? 'attack' : 'defense';
-        ygoLog(`🔄 Chuyển quái thú [${mon.name_vi}] sang thế ${mon.position === 'defense' ? 'PHÒNG THỦ (DEF)' : 'TẤN CÔNG (ATK)'}.`);
-        ygoRenderField();
-        if (d.mode === 'pvp') ygoSendSyncState();
-        return;
-    }
-    
-    // TH2: TẤN CÔNG (Click quái thú của mình rồi click quái thú của đối thủ ở Battle Phase)
-    if (d.phase === 'BATTLE') {
-        if (side === 'player' && type === 'monster' && d.playerMonsters[index] !== null) {
-            let myMon = d.playerMonsters[index];
-            if (myMon.position === 'defense') {
-                showToast("⚠️ Quái thú ở thế phòng thủ không thể tuyên bố tấn công!");
+    // TH2: TẤN CÔNG (Battle Phase combat declaration / target selection)
+    if (d.phase === 'BATTLE' && d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'monster') {
+        if (d.turnCount === 1) {
+            showToast("⚠️ Lượt đầu tiên của trận đấu không được phép tấn công!");
+            d.selectedFieldCard = null;
+            ygoRenderField();
+            return;
+        }
+        
+        if (side === 'opponent' && type === 'monster') {
+            let myMon = d.playerMonsters[d.selectedFieldCard.pos];
+            if (!myMon) return;
+            
+            // Leon Stromberg check
+            if (ygoGame.oppCharacter === 'leon') {
+                ygoLog(`🏰 [Lâu Đài Cổ Tích] Quái thú [${myMon.name_vi}] bị tiêu diệt bởi Stromberg Castle của Leon khi tuyên bố tấn công!`);
+                ygoDestroyMonster('player', d.selectedFieldCard.pos);
+                d.selectedFieldCard = null;
+                ygoRenderField();
+                if (d.mode === 'pvp') ygoSendSyncState();
                 return;
             }
-            d.selectedFieldCard = { side: 'player', type: 'monster', pos: index };
-            ygoLog(`⚔️ Chọn quái thú [${d.playerMonsters[index].name_vi}] sẵn sàng tấn công. Click vào quái thú đối thủ hoặc click vào ô đối diện để đánh trực diện.`);
-        }
-        else if (d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'monster') {
-            let myMon = d.playerMonsters[d.selectedFieldCard.pos];
             
-            if (side === 'opponent' && type === 'monster') {
-                // Leon Stromberg check
-                if (ygoGame.oppCharacter === 'leon') {
-                    ygoLog(`🏰 [Lâu Đài Cổ Tích] Quái thú [${myMon.name_vi}] bị tiêu diệt bởi Stromberg Castle của Leon khi tuyên bố tấn công!`);
-                    ygoDestroyMonster('player', d.selectedFieldCard.pos);
-                    d.selectedFieldCard = null;
-                    ygoRenderField();
-                    if (d.mode === 'pvp') ygoSendSyncState();
-                    return;
+            let oppMon = d.oppMonsters[index];
+            if (oppMon) {
+                // Battle against monster
+                try { audio.play('hit'); } catch(e){}
+                let myAtk = ygoGetEffectiveAtk('player', myMon);
+                
+                if (oppMon.position === 'defense') {
+                    let oppDef = parseInt(oppMon.currentDef || oppMon.def) || 0;
+                    ygoLog(`⚔️ [${myMon.name_vi}] (ATK ${myAtk}) tấn công [${oppMon.name_vi}] ở THẾ THỦ (DEF ${oppDef})!`);
+                    
+                    if (myAtk > oppDef) {
+                        ygoLog(`💥 Tiêu diệt quái thú thế thủ của đối thủ!`);
+                        ygoDestroyMonster('opponent', index);
+                        // Rex Raptor: Dino Stampede (Pierce damage)
+                        if (ygoGame.myCharacter === 'rex' && myMon.monster_type && myMon.monster_type.toLowerCase().includes('dinosaur')) {
+                            let diff = myAtk - oppDef;
+                            ygoDamageOpponent(diff, `xuyên thủ của Rex Raptor`);
+                        }
+                    } else if (myAtk < oppDef) {
+                        let diff = oppDef - myAtk;
+                        ygoDamagePlayer(diff, `phản đòn từ quái thủ của đối thủ`);
+                    } else {
+                        ygoLog(`🛡️ Không thể xuyên phá thủ!`);
+                    }
+                } else {
+                    let oppAtk = ygoGetEffectiveAtk('opponent', oppMon);
+                    ygoLog(`⚔️ [${myMon.name_vi}] (ATK ${myAtk}) tấn công [${oppMon.name_vi}] (ATK ${oppAtk})!`);
+                    
+                    if (myAtk > oppAtk) {
+                        let diff = myAtk - oppAtk;
+                        ygoDamageOpponent(diff, `chiến đấu quái thú`);
+                        ygoLog(`💥 Tiêu diệt quái thú đối thủ!`);
+                        ygoDestroyMonster('opponent', index);
+                    } else if (myAtk === oppAtk) {
+                        ygoLog(`💥 Lưỡng bại câu thương! Cả hai quái thú cùng bay màu.`);
+                        ygoDestroyMonster('player', d.selectedFieldCard.pos);
+                        ygoDestroyMonster('opponent', index);
+                    } else {
+                        let diff = oppAtk - myAtk;
+                        ygoDamagePlayer(diff, `quái thú đối thủ phản công`);
+                        ygoLog(`💔 [${myMon.name_vi}] bị tiêu diệt.`);
+                        ygoDestroyMonster('player', d.selectedFieldCard.pos);
+                    }
                 }
                 
-                let oppMon = d.oppMonsters[index];
-                if (oppMon) {
-                    // Trận đấu quái thú
+                d.selectedFieldCard = null;
+                ygoUpdateLP();
+                ygoRenderField();
+                ygoCheckWinConditions();
+                if (d.mode === 'pvp') {
+                    ygoSendSyncState(`⚔️ [${myMon.name_vi}] tấn công [${oppMon.name_vi}]!`);
+                }
+            } else {
+                // Direct attack clicked empty monster zone
+                let hasOtherMonsters = d.oppMonsters.some(m => m !== null);
+                let isWater = myMon.attribute && myMon.attribute.toUpperCase() === 'WATER';
+                let oppHasWater = d.oppMonsters.some(m => m !== null && m.attribute && m.attribute.toUpperCase() === 'WATER');
+                
+                let canAttackDirectly = !hasOtherMonsters || (ygoGame.myCharacter === 'mako' && isWater && !oppHasWater);
+                
+                if (canAttackDirectly) {
                     try { audio.play('hit'); } catch(e){}
                     let myAtk = ygoGetEffectiveAtk('player', myMon);
                     
-                    if (oppMon.position === 'defense') {
-                        let oppDef = parseInt(oppMon.currentDef || oppMon.def) || 0;
-                        ygoLog(`⚔️ [${myMon.name_vi}] (ATK ${myAtk}) tấn công [${oppMon.name_vi}] ở THẾ THỦ (DEF ${oppDef})!`);
-                        
-                        if (myAtk > oppDef) {
-                            ygoLog(`💥 Tiêu diệt quái thú thế thủ của đối thủ!`);
-                            ygoDestroyMonster('opponent', index);
-                            // Rex Raptor: Dino Stampede (Pierce damage)
-                            if (ygoGame.myCharacter === 'rex' && myMon.monster_type && myMon.monster_type.toLowerCase().includes('dinosaur')) {
-                                let diff = myAtk - oppDef;
-                                ygoDamageOpponent(diff, `xuyên thủ của Rex Raptor`);
-                            }
-                        } else if (myAtk < oppDef) {
-                            let diff = oppDef - myAtk;
-                            ygoDamagePlayer(diff, `phản đòn từ quái thủ của đối thủ`);
-                        } else {
-                            ygoLog(`🛡️ Không thể xuyên phá thủ!`);
-                        }
-                    } else {
-                        let oppAtk = ygoGetEffectiveAtk('opponent', oppMon);
-                        ygoLog(`⚔️ [${myMon.name_vi}] (ATK ${myAtk}) tấn công [${oppMon.name_vi}] (ATK ${oppAtk})!`);
-                        
-                        if (myAtk > oppAtk) {
-                            let diff = myAtk - oppAtk;
-                            ygoDamageOpponent(diff, `chiến đấu quái thú`);
-                            ygoLog(`💥 Tiêu diệt quái thú đối thủ!`);
-                            ygoDestroyMonster('opponent', index);
-                        } else if (myAtk === oppAtk) {
-                            ygoLog(`💥 Lưỡng bại câu thương! Cả hai quái thú cùng bay màu.`);
-                            ygoDestroyMonster('player', d.selectedFieldCard.pos);
-                            ygoDestroyMonster('opponent', index);
-                        } else {
-                            let diff = oppAtk - myAtk;
-                            ygoDamagePlayer(diff, `quái thú đối thủ phản công`);
-                            ygoLog(`💔 [${myMon.name_vi}] bị tiêu diệt.`);
-                            ygoDestroyMonster('player', d.selectedFieldCard.pos);
-                        }
-                    }
+                    ygoDamageOpponent(myAtk, `đòn tấn công trực diện`);
+                    ygoLog(`💥 [${myMon.name_vi}] tấn công TRỰC DIỆN!`);
                     
                     d.selectedFieldCard = null;
                     ygoUpdateLP();
                     ygoRenderField();
                     ygoCheckWinConditions();
                     if (d.mode === 'pvp') {
-                        ygoSendSyncState(`⚔️ [${myMon.name_vi}] tấn công [${oppMon.name_vi}]!`);
+                        ygoSendSyncState(`💥 [${myMon.name_vi}] tấn công TRỰC DIỆN!`);
                     }
                 } else {
-                    // Tấn công trực diện
-                    let hasOtherMonsters = d.oppMonsters.some(m => m !== null);
-                    let isWater = myMon.attribute && myMon.attribute.toUpperCase() === 'WATER';
-                    let oppHasWater = d.oppMonsters.some(m => m !== null && m.attribute && m.attribute.toUpperCase() === 'WATER');
-                    
-                    let canAttackDirectly = !hasOtherMonsters || (ygoGame.myCharacter === 'mako' && isWater && !oppHasWater);
-                    
-                    if (canAttackDirectly) {
-                        try { audio.play('hit'); } catch(e){}
-                        let myAtk = ygoGetEffectiveAtk('player', myMon);
-                        
-                        ygoDamageOpponent(myAtk, `đòn tấn công trực diện`);
-                        ygoLog(`💥 [${myMon.name_vi}] tấn công TRỰC DIỆN!`);
-                        
-                        d.selectedFieldCard = null;
-                        ygoUpdateLP();
-                        ygoRenderField();
-                        ygoCheckWinConditions();
-                        if (d.mode === 'pvp') {
-                            ygoSendSyncState(`💥 [${myMon.name_vi}] tấn công TRỰC DIỆN!`);
-                        }
-                    } else {
-                        showToast("⚠️ Bạn phải tiêu diệt quái thú trên sân đối phương trước!");
-                    }
+                    showToast("⚠️ Bạn phải tiêu diệt quái thú trên sân đối phương trước!");
                 }
             }
+            return;
+        }
+    }
+    
+    // TH3: Lựa chọn bài trên sân của mình (Select field card for details/actions)
+    if (side === 'player' && d.selectedHandIndex === null) {
+        let card = null;
+        if (type === 'monster') card = d.playerMonsters[index];
+        else if (type === 'spell') card = d.playerSpells[index];
+        else if (type === 'fieldspell') card = d.playerFieldSpell;
+        
+        if (card) {
+            d.selectedFieldCard = { side: side, type: type, pos: index };
+            d.selectedHandIndex = null;
+            ygoHoverCard(card);
+            ygoLog(`👉 Đã chọn bài trên sân: [${card.name_vi}]. Bấm nút Thao tác bên trái để tương tác.`);
+            ygoRenderField();
+            return;
         }
     }
 };;
@@ -2106,6 +2662,7 @@ window.ygoNextPhase = function() {
         }
 
         d.turn = 'opponent';
+        d.turnCount = (d.turnCount || 1) + 1;
         ygoRenderField();
         
         if (d.mode === 'pvp') {
@@ -2185,6 +2742,22 @@ function ygoRunBotTurn() {
     
     // 2. Bot tính toán Ra Bài (Main Phase 1)
     setTimeout(() => {
+        // Bot Special Summon từ Extra Deck (30% cơ hội nếu có ít hơn 2 quái thú trên sân)
+        let botMonsterCount = d.oppMonsters.filter(m => m !== null).length;
+        if (d.oppExtraDeck && d.oppExtraDeck.length > 0 && botMonsterCount < 2 && Math.random() < 0.3) {
+            let emptyIdx = d.oppMonsters.indexOf(null);
+            if (emptyIdx !== -1) {
+                let card = d.oppExtraDeck.shift(); // Lấy quái đầu tiên từ Extra Deck
+                card.currentAtk = parseInt(card.atk) || 0;
+                card.currentDef = parseInt(card.def) || 0;
+                card.position = 'attack';
+                card.faceUp = true;
+                d.oppMonsters[emptyIdx] = card;
+                ygoLog(`🔮 Bot thực hiện Triệu hồi Đặc biệt quái thú [${card.name_vi}] từ Extra Deck!`);
+                ygoRenderField();
+            }
+        }
+        
         // Bot kích hoạt kỹ năng đặc trưng (Nếu chưa dùng và có cơ hội)
         if (!d.oppUsedSkill && Math.random() < 0.5) {
             let botChar = ygoGame.oppCharacter;
@@ -2343,6 +2916,19 @@ function ygoRunBotTurn() {
             }
         }
         
+        // Bot kích hoạt bài Môi trường nếu có trên tay
+        let botFieldSpellIdx = d.oppHand.findIndex(c => c.card_type === 'Spell' && (c.property === 'Field' || c.name_en.toLowerCase().includes('umi') || c.name_en.toLowerCase().includes('orichalcos') || c.name_en.toLowerCase().includes('stromberg')));
+        if (botFieldSpellIdx !== -1) {
+            let card = d.oppHand[botFieldSpellIdx];
+            if (d.oppFieldSpell) {
+                d.oppGY.push(d.oppFieldSpell);
+            }
+            card.faceUp = true;
+            d.oppFieldSpell = card;
+            d.oppHand.splice(botFieldSpellIdx, 1);
+            ygoLog(`🤖 Bot kích hoạt Bài Môi Trường: [${card.name_vi}]`);
+        }
+        
         // Bot úp bài phép ngẫu nhiên
         let spellIdx = d.oppHand.findIndex(c => c.card_type === 'Spell' || c.card_type === 'Trap');
         if (spellIdx !== -1) {
@@ -2369,85 +2955,89 @@ function ygoRunBotTurn() {
         
         // 3. Bot Tấn Công (Battle Phase)
         setTimeout(() => {
-            for (let i = 0; i < 5; i++) {
-                let botMon = d.oppMonsters[i];
-                if (botMon) {
-                    if (botMon.position === 'defense') continue; // Defense monsters cannot attack!
-                    
-                    // Leon Stromberg check on player side
-                    if (ygoGame.myCharacter === 'leon') {
-                        ygoLog(`🏰 [Lâu Đài Cổ Tích] Bot [${botMon.name_vi}] tuyên bố tấn công và bị nổ tung bởi Stromberg Castle!`);
-                        ygoDestroyMonster('opponent', i);
-                        ygoRenderField();
-                        continue;
-                    }
-                    
-                    let playerAliveMonIndices = [];
-                    d.playerMonsters.forEach((pm, idx) => {
-                        if(pm !== null) playerAliveMonIndices.push(idx);
-                    });
-                    
-                    let isWater = botMon.attribute && botMon.attribute.toUpperCase() === 'WATER';
-                    let playerHasWater = d.playerMonsters.some(m => m !== null && m.attribute && m.attribute.toUpperCase() === 'WATER');
-                    
-                    // Mako Ocean direct attack condition
-                    let canAttackDirectly = (playerAliveMonIndices.length === 0) || (ygoGame.oppCharacter === 'mako' && isWater && !playerHasWater);
-                    
-                    if (!canAttackDirectly && playerAliveMonIndices.length > 0) {
-                        let targetIdx = playerAliveMonIndices[0];
-                        let targetMon = d.playerMonsters[targetIdx];
+            if (d.turnCount === 1) {
+                ygoLog("🤖 Lượt đầu tiên của trận đấu, Bot không thể tấn công.");
+            } else {
+                for (let i = 0; i < 5; i++) {
+                    let botMon = d.oppMonsters[i];
+                    if (botMon) {
+                        if (botMon.position === 'defense') continue; // Defense monsters cannot attack!
                         
-                        try { audio.play('hit'); } catch(e){}
-                        let botAtk = ygoGetEffectiveAtk('opponent', botMon);
-                        
-                        if (targetMon.position === 'defense') {
-                            let playDef = parseInt(targetMon.currentDef || targetMon.def) || 0;
-                            ygoLog(`🤖 Bot [${botMon.name_vi}] (ATK ${botAtk}) tấn công [${targetMon.name_vi}] ở THẾ THỦ (DEF ${playDef})!`);
-                            
-                            if (botAtk > playDef) {
-                                ygoLog(`💔 [${targetMon.name_vi}] bị tiêu diệt.`);
-                                ygoDestroyMonster('player', targetIdx);
-                                // Bot Rex Raptor: Dino Stampede (Pierce damage)
-                                if (ygoGame.oppCharacter === 'rex' && botMon.monster_type && botMon.monster_type.toLowerCase().includes('dinosaur')) {
-                                    let diff = botAtk - playDef;
-                                    ygoDamagePlayer(diff, `xuyên thủ của Bot Rex Raptor`);
-                                }
-                            } else if (botAtk < playDef) {
-                                let diff = playDef - botAtk;
-                                ygoDamageOpponent(diff, `phản đòn từ quái thủ`);
-                            }
-                        } else {
-                            let playAtk = ygoGetEffectiveAtk('player', targetMon);
-                            ygoLog(`🤖 Bot [${botMon.name_vi}] (ATK ${botAtk}) tấn công [${targetMon.name_vi}] (ATK ${playAtk})!`);
-                            
-                            if (botAtk > playAtk) {
-                                let diff = botAtk - playAtk;
-                                ygoDamagePlayer(diff, `chiến đấu quái thú`);
-                                ygoLog(`💔 [${targetMon.name_vi}] bị tiêu diệt.`);
-                                ygoDestroyMonster('player', targetIdx);
-                            } else if (botAtk === playAtk) {
-                                ygoLog(`💥 Cả hai cùng chết!`);
-                                ygoDestroyMonster('opponent', i);
-                                ygoDestroyMonster('player', targetIdx);
-                            } else {
-                                let diff = playAtk - botAtk;
-                                ygoDamageOpponent(diff, `quái thú phản công`);
-                                ygoLog(`💔 Bot [${botMon.name_vi}] bị tiêu diệt.`);
-                                ygoDestroyMonster('opponent', i);
-                            }
+                        // Leon Stromberg check on player side
+                        if (ygoGame.myCharacter === 'leon') {
+                            ygoLog(`🏰 [Lâu Đài Cổ Tích] Bot [${botMon.name_vi}] tuyên bố tấn công và bị nổ tung bởi Stromberg Castle!`);
+                            ygoDestroyMonster('opponent', i);
+                            ygoRenderField();
+                            continue;
                         }
-                    } else if (canAttackDirectly) {
-                        // Tấn công trực diện
-                        try { audio.play('hit'); } catch(e){}
-                        let botAtk = ygoGetEffectiveAtk('opponent', botMon);
-                        ygoDamagePlayer(botAtk, `đòn tấn công trực diện của Bot`);
+                        
+                        let playerAliveMonIndices = [];
+                        d.playerMonsters.forEach((pm, idx) => {
+                            if(pm !== null) playerAliveMonIndices.push(idx);
+                        });
+                        
+                        let isWater = botMon.attribute && botMon.attribute.toUpperCase() === 'WATER';
+                        let playerHasWater = d.playerMonsters.some(m => m !== null && m.attribute && m.attribute.toUpperCase() === 'WATER');
+                        
+                        // Mako Ocean direct attack condition
+                        let canAttackDirectly = (playerAliveMonIndices.length === 0) || (ygoGame.oppCharacter === 'mako' && isWater && !playerHasWater);
+                        
+                        if (!canAttackDirectly && playerAliveMonIndices.length > 0) {
+                            let targetIdx = playerAliveMonIndices[0];
+                            let targetMon = d.playerMonsters[targetIdx];
+                            
+                            try { audio.play('hit'); } catch(e){}
+                            let botAtk = ygoGetEffectiveAtk('opponent', botMon);
+                            
+                            if (targetMon.position === 'defense') {
+                                let playDef = parseInt(targetMon.currentDef || targetMon.def) || 0;
+                                ygoLog(`🤖 Bot [${botMon.name_vi}] (ATK ${botAtk}) tấn công [${targetMon.name_vi}] ở THẾ THỦ (DEF ${playDef})!`);
+                                
+                                if (botAtk > playDef) {
+                                    ygoLog(`💔 [${targetMon.name_vi}] bị tiêu diệt.`);
+                                    ygoDestroyMonster('player', targetIdx);
+                                    // Bot Rex Raptor: Dino Stampede (Pierce damage)
+                                    if (ygoGame.oppCharacter === 'rex' && botMon.monster_type && botMon.monster_type.toLowerCase().includes('dinosaur')) {
+                                        let diff = botAtk - playDef;
+                                        ygoDamagePlayer(diff, `xuyên thủ của Bot Rex Raptor`);
+                                    }
+                                } else if (botAtk < playDef) {
+                                    let diff = playDef - botAtk;
+                                    ygoDamageOpponent(diff, `phản đòn từ quái thủ`);
+                                }
+                            } else {
+                                let playAtk = ygoGetEffectiveAtk('player', targetMon);
+                                ygoLog(`🤖 Bot [${botMon.name_vi}] (ATK ${botAtk}) tấn công [${targetMon.name_vi}] (ATK ${playAtk})!`);
+                                
+                                if (botAtk > playAtk) {
+                                    let diff = botAtk - playAtk;
+                                    ygoDamagePlayer(diff, `chiến đấu quái thú`);
+                                    ygoLog(`💔 [${targetMon.name_vi}] bị tiêu diệt.`);
+                                    ygoDestroyMonster('player', targetIdx);
+                                } else if (botAtk === playAtk) {
+                                    ygoLog(`💥 Cả hai cùng chết!`);
+                                    ygoDestroyMonster('opponent', i);
+                                    ygoDestroyMonster('player', targetIdx);
+                                } else {
+                                    let diff = playAtk - botAtk;
+                                    ygoDamageOpponent(diff, `quái thú phản công`);
+                                    ygoLog(`💔 Bot [${botMon.name_vi}] bị tiêu diệt.`);
+                                    ygoDestroyMonster('opponent', i);
+                                }
+                            }
+                        } else if (canAttackDirectly) {
+                            // Tấn công trực diện
+                            try { audio.play('hit'); } catch(e){}
+                            let botAtk = ygoGetEffectiveAtk('opponent', botMon);
+                            ygoDamagePlayer(botAtk, `đòn tấn công trực diện của Bot`);
+                        }
+                        
+                        ygoUpdateLP();
+                        ygoRenderField();
+                        ygoCheckWinConditions();
+                        
+                        if(d.playerLP <= 0 || d.oppLP <= 0) return; // Kết thúc game
                     }
-                    
-                    ygoUpdateLP();
-                    ygoRenderField();
-                    ygoCheckWinConditions();
-                    
-                    if(d.playerLP <= 0 || d.oppLP <= 0) return; // Kết thúc game
                 }
             }
             
@@ -2497,6 +3087,7 @@ function ygoRunBotTurn() {
                 
                 ygoLog(`⏳ Bot kết thúc lượt. Đến lượt của bạn!`);
                 d.turn = 'player';
+                d.turnCount = (d.turnCount || 1) + 1;
                 ygoStartPhase('DRAW');
                 ygoRenderField();
             }, 1000);
@@ -2610,6 +3201,18 @@ function ygoStartOnlineGame(opponentId, opponentName, isHost) {
         return;
     }
     
+    // Tách Extra Deck người chơi
+    let playerMainDeck = [];
+    let playerExtraDeck = [];
+    ygoGame.myDeck.forEach(c => {
+        let mt = (c.monster_type || '').toLowerCase();
+        if (c.card_type === 'Monster' && (mt.includes('fusion') || mt.includes('synchro') || mt.includes('xyz') || mt.includes('link'))) {
+            playerExtraDeck.push(c);
+        } else {
+            playerMainDeck.push(c);
+        }
+    });
+    
     ygoGame.duel = {
         mode: 'pvp',
         opponentId: opponentId,
@@ -2618,21 +3221,26 @@ function ygoStartOnlineGame(opponentId, opponentName, isHost) {
         oppLP: 8000,
         playerHand: [],
         oppHand: [],
-        playerDeck: [...ygoGame.myDeck],
+        playerDeck: playerMainDeck,
         oppDeck: [], // Bài của đối thủ tự quản lý, chỉ sync số lượng
+        playerExtraDeck: playerExtraDeck,
+        oppExtraDeck: [], 
         playerGY: [],
         oppGY: [],
         playerMonsters: [null, null, null, null, null],
         playerSpells: [null, null, null, null, null],
         oppMonsters: [null, null, null, null, null],
         oppSpells: [null, null, null, null, null],
+        playerFieldSpell: null,
+        oppFieldSpell: null,
         turn: isHost ? 'player' : 'opponent',
         phase: 'DRAW',
         hasNormalSummoned: false,
         selectedHandIndex: null,
         selectedZoneIndex: null,
         selectedFieldCard: null,
-        logs: []
+        logs: [],
+        turnCount: 1
     };
     
     // Weevil Underwood's Parasite Paracide skill trigger:
@@ -2692,8 +3300,11 @@ function ygoSendSyncState(actionLog) {
             playerHandCount: d.playerHand.length,
             playerMonsters: d.playerMonsters,
             playerSpells: d.playerSpells,
+            playerFieldSpell: d.playerFieldSpell,
+            playerExtraDeckCount: d.playerExtraDeck.length,
             turn: d.turn,
             phase: d.phase,
+            turnCount: d.turnCount || 1,
             myCharacter: ygoGame.myCharacter,
             actionLog: actionLog || ""
         });
@@ -2712,6 +3323,12 @@ window.ygoApplyNetworkState = function(msg) {
     // Đồng bộ hóa vùng Monster / Spells của đối thủ
     d.oppMonsters = msg.playerMonsters;
     d.oppSpells = msg.playerSpells;
+    d.oppFieldSpell = msg.playerFieldSpell;
+    
+    // Đồng bộ hóa Extra Deck đối thủ
+    let oppExtraPlaceholder = [];
+    for(let i=0; i<(msg.playerExtraDeckCount || 0); i++) oppExtraPlaceholder.push({});
+    d.oppExtraDeck = oppExtraPlaceholder;
     
     // Số lượng bài trên tay đối thủ
     let oppHandPlaceholder = [];
@@ -2721,6 +3338,7 @@ window.ygoApplyNetworkState = function(msg) {
     // Đồng bộ hóa lượt đi và phase
     d.turn = (msg.turn === 'player') ? 'opponent' : 'player';
     d.phase = msg.phase;
+    d.turnCount = msg.turnCount || 1;
     document.getElementById('ygoPhaseText').textContent = `${d.phase} PHASE`;
     
     // Đồng bộ hóa nhân vật đối thủ

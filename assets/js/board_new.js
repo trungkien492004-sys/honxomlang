@@ -17,6 +17,10 @@ if (!('networkPlayers' in window)) {
     });
 }
 
+const refreshHudDisplay = () => {
+    if (window.refreshHudDisplay) window.refreshHudDisplay();
+};
+
 var boardGame = null;
 const BOARD_TOTAL_CELLS = 60;
 
@@ -140,8 +144,23 @@ window.boardDoRollAnimation = function(boardPlayer, callback) {
     const diceEl  = document.getElementById('diceDisplay');
     const resultEl = document.getElementById('diceResultText');
     const roll = 1 + Math.floor(Math.random() * 6);
+    if (document.hidden) {
+        if(diceEl) diceEl.textContent = RACE_DICE_EMOJIS[roll - 1];
+        if(resultEl) resultEl.textContent = `${boardPlayer.name} đi ${roll} bước`;
+        boardPlayer.lastRoll = roll;
+        boardProcessTurn(boardPlayer, roll, callback);
+        return;
+    }
     let ticks = 0;
     const interval = setInterval(() => {
+        if (document.hidden) {
+            clearInterval(interval);
+            if(diceEl) diceEl.textContent = RACE_DICE_EMOJIS[roll - 1];
+            if(resultEl) resultEl.textContent = `${boardPlayer.name} đi ${roll} bước`;
+            boardPlayer.lastRoll = roll;
+            boardProcessTurn(boardPlayer, roll, callback);
+            return;
+        }
         diceEl.textContent = RACE_DICE_EMOJIS[Math.floor(Math.random()*6)];
         diceEl.style.animation = 'none'; diceEl.offsetHeight;
         diceEl.style.animation = 'diceRoll 0.5s ease';
@@ -176,8 +195,115 @@ window.boardProcessTurn = function(p, roll, callback) {
         steps = (BOARD_TOTAL_CELLS - 1) - p.pos; // Dừng ở đích
     }
 
+    if (document.hidden) {
+        // Chạy lập tức không trễ nếu tab đang bị ẩn
+        if (!p.eliminated && steps > 0) {
+            boardMovePlayer(p.idx, steps, false);
+            boardAddLog(`🎲 ${p.name} di chuyển nhanh ${steps} bước (ẩn tab).`);
+        }
+        
+        let cellName = NEIGHBORHOOD_NAMES[p.pos % NEIGHBORHOOD_NAMES.length];
+        
+        const finalizeTurn = () => {
+            const alive = boardGame.players.filter(x => !x.eliminated);
+            if (alive.length === 1 && boardGame.players.length > 1) {
+                boardGame.gameOver = true;
+                let prize = 200 + (boardGame.betPool||0);
+                boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
+                if (alive[0].networkId === myNetworkId || alive[0].isHuman) {
+                    player.gold += prize;
+                    refreshHudDisplay();
+                }
+            }
+            boardRenderGrid(); 
+            boardRenderPlayers();
+            if(callback) callback();
+        };
+
+        const handleWinOrCard = () => {
+            if(p.pos >= BOARD_TOTAL_CELLS - 1) {
+                boardGame.gameOver = true;
+                let prize = boardGame.betPool || 0;
+                if(p.networkId === myNetworkId || p.isHuman) {
+                    player.gold += (200 + prize);
+                    refreshHudDisplay();
+                }
+                boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
+                finalizeTurn();
+            } else {
+                boardDrawRandomCard(p, cellName, finalizeTurn);
+            }
+        };
+
+        const handleCombat = () => {
+            let combatLog = boardHandleCombat(p);
+            handleWinOrCard();
+        };
+
+        if(boardGame.trappedCells[p.pos]) {
+            delete boardGame.trappedCells[p.pos];
+            boardAddLog(`💣 ${p.name} dẫm bẫy! Lùi 3 ô!`, 'special');
+            boardMovePlayer(p.idx, -3, false);
+            handleCombat();
+        } else {
+            handleCombat();
+        }
+        return;
+    }
+
     let currentStep = 0;
     let moveInterval = setInterval(() => {
+        if (document.hidden) {
+            clearInterval(moveInterval);
+            let remaining = steps - currentStep;
+            if (remaining > 0 && !p.eliminated) {
+                boardMovePlayer(p.idx, remaining, false);
+            }
+            let cellName = NEIGHBORHOOD_NAMES[p.pos % NEIGHBORHOOD_NAMES.length];
+            const finalizeTurn = () => {
+                const alive = boardGame.players.filter(x => !x.eliminated);
+                if (alive.length === 1 && boardGame.players.length > 1) {
+                    boardGame.gameOver = true;
+                    let prize = 200 + (boardGame.betPool||0);
+                    boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
+                    if (alive[0].networkId === myNetworkId || alive[0].isHuman) {
+                        player.gold += prize;
+                        refreshHudDisplay();
+                    }
+                }
+                boardRenderGrid(); 
+                boardRenderPlayers();
+                if(callback) callback();
+            };
+            const handleWinOrCard = () => {
+                if(p.pos >= BOARD_TOTAL_CELLS - 1) {
+                    boardGame.gameOver = true;
+                    let prize = boardGame.betPool || 0;
+                    if(p.networkId === myNetworkId || p.isHuman) {
+                        player.gold += (200 + prize);
+                        refreshHudDisplay();
+                    }
+                    boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
+                    finalizeTurn();
+                } else {
+                    boardDrawRandomCard(p, cellName, finalizeTurn);
+                }
+            };
+            const handleCombat = () => {
+                let combatLog = boardHandleCombat(p);
+                handleWinOrCard();
+            };
+            if(boardGame.trappedCells[p.pos]) {
+                delete boardGame.trappedCells[p.pos];
+                boardAddLog(`💣 ${p.name} dẫm bẫy! Lùi 3 ô!`, 'special');
+                boardMovePlayer(p.idx, -3, false);
+                handleCombat();
+            } else {
+                handleCombat();
+            }
+            return;
+        }
+
         if(currentStep >= steps || p.eliminated) {
             clearInterval(moveInterval);
             
@@ -190,7 +316,6 @@ window.boardProcessTurn = function(p, roll, callback) {
                 let cellName = NEIGHBORHOOD_NAMES[p.pos % NEIGHBORHOOD_NAMES.length];
 
                 const finalizeTurn = () => {
-                    // Kiem tra xem chi con 1 nguoi song khong
                     const alive = boardGame.players.filter(x => !x.eliminated);
                     if(alive.length === 1 && boardGame.players.length > 1) {
                         boardGame.gameOver = true;
@@ -219,7 +344,6 @@ window.boardProcessTurn = function(p, roll, callback) {
                         window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, finalizeTurn, true);
                         try { audio.play('levelup'); } catch(e){}
                     } else {
-                        // Rút bài nếu chưa win
                         boardDrawRandomCard(p, cellName, finalizeTurn);
                     }
                 };
@@ -233,7 +357,6 @@ window.boardProcessTurn = function(p, roll, callback) {
                     }
                 };
 
-                // Xử lý bẫy trên sân
                 if(boardGame.trappedCells[p.pos]) {
                     delete boardGame.trappedCells[p.pos];
                     boardAddLog(`💣 ${p.name} dẫm bẫy! Lùi 3 ô!`, 'special');
@@ -247,7 +370,6 @@ window.boardProcessTurn = function(p, roll, callback) {
             return;
         }
 
-        // Move 1 step and animate
         boardMovePlayer(p.idx, 1, true);
         try { audio.play('click'); } catch(e){}
         currentStep++;
@@ -286,7 +408,7 @@ window._bigEventCallback = null;
 
 window.boardShowBigNotice = function(title, desc, extra = '', callback, persist = false) {
     let curPlayer = boardGame && boardGame.players && boardGame.players[boardGame.currentTurn];
-    if (curPlayer && curPlayer.isBot) {
+    if ((curPlayer && curPlayer.isBot) || document.hidden) {
         if(callback) callback();
         return;
     }
@@ -499,12 +621,19 @@ window.boardNextTurn = function() {
         safety++;
     }
     boardGame.currentTurn = nextIdx;
+    if(boardGame) {
+        boardGame.turnStartTime = Date.now(); // Ghi nhận thời gian bắt đầu lượt mới
+    }
     boardRenderPlayers();
     boardUpdateRollBtn();
     
     let next = boardGame.players[boardGame.currentTurn];
     if(next && next.isBot && !next.eliminated && !boardGame.gameOver) {
-        setTimeout(() => { if(!boardGame.gameOver) boardRollForCurrentPlayer(); }, 900);
+        if (document.hidden) {
+            window.boardRollForCurrentPlayer();
+        } else {
+            setTimeout(() => { if(!boardGame.gameOver) window.boardRollForCurrentPlayer(); }, 900);
+        }
     }
 };
 
@@ -512,6 +641,10 @@ window.closeBoardGame = function() {
     try { audio.play('click'); } catch(e){}
     const modal = document.getElementById('boardGameModal');
     if(modal) modal.classList.remove('active');
+    if(window.boardPvpTimerInterval) {
+        clearInterval(window.boardPvpTimerInterval);
+        window.boardPvpTimerInterval = null;
+    }
 };
 
 window.closeBoardInviteModal = function() {
@@ -596,7 +729,7 @@ window.showBoardInvite = function(msg) {
     document.getElementById('acceptPvpBtn').onclick = () => {
         document.getElementById('pvpChallengeModal').style.display = 'none';
         if(typeof pvpChannel !== 'undefined') pvpChannel.postMessage({ type: 'BOARD_PVP_REPLY', id: myNetworkId, senderId: msg.id, targetId: msg.id, accepted: true, replierName: player.name });
-        if(window.openBoardGameWithBet) window.openBoardGameWithBet();
+        showToast('⏳ Đã đồng ý! Đang chờ chủ phòng khởi tạo bàn cờ...');
     };
     
     document.getElementById('rejectPvpBtn').onclick = () => {
@@ -712,7 +845,17 @@ window.boardRollForCurrentPlayer = function() {
         boardGame.isRolling = false;
         if(cur.lastRoll === 6 && !boardGame.gameOver && !cur.eliminated) {
             window.boardAddLog(`⭐ ${cur.name} tung 6, được thêm lượt!`, 'special');
+            if(boardGame) {
+                boardGame.turnStartTime = Date.now(); // Reset turn start time for extra turn
+            }
             window.boardRenderPlayers();
+            if(cur.isBot) {
+                if (document.hidden) {
+                    window.boardRollForCurrentPlayer();
+                } else {
+                    setTimeout(() => { if(!boardGame.gameOver) window.boardRollForCurrentPlayer(); }, 900);
+                }
+            }
         } else {
             window.boardNextTurn();
         }
@@ -751,6 +894,33 @@ window.boardApplyNetworkState = function(msg) {
     window.boardRenderGrid();
     window.boardRenderPlayers();
     window.boardUpdateRollBtn();
+    
+    // Thiết lập vòng lặp đếm giờ phía khách để kiểm tra Chủ phòng mất kết nối
+    if(window.boardPvpTimerInterval) clearInterval(window.boardPvpTimerInterval);
+    window.boardPvpTimerInterval = setInterval(() => {
+        if (!boardGame || boardGame.gameOver || !boardGame.pvp) {
+            if(window.boardPvpTimerInterval) {
+                clearInterval(window.boardPvpTimerInterval);
+                window.boardPvpTimerInterval = null;
+            }
+            return;
+        }
+        if (boardGame.hostId === myNetworkId) return; // Chỉ khách kiểm tra chủ phòng
+        
+        // Kiểm tra xem chủ phòng còn online không
+        if (window.networkPlayers && !window.networkPlayers[boardGame.hostId]) {
+            if (!boardGame.hostOfflineTime) {
+                boardGame.hostOfflineTime = Date.now();
+            } else if (Date.now() - boardGame.hostOfflineTime > 5000) { // Chờ 5s buffer tránh lag đột xuất
+                boardAddLog(`⚠️ Chủ phòng đã mất kết nối! Trận đấu kết thúc.`, 'special');
+                window.boardShowBigNotice("⚠️ MẤT KẾT NỐI", "Chủ phòng đã rời khỏi trò chơi.", "Quay lại thế giới...", () => {
+                    window.closeBoardGame();
+                }, true);
+            }
+        } else {
+            boardGame.hostOfflineTime = null;
+        }
+    }, 1000);
 };
 
 window.boardSwapNearest = function(p) {
@@ -770,4 +940,89 @@ window.boardSwapNearest = function(p) {
         return `Đổi vị trí với ${nearest.name}.`;
     }
     return 'Không có ai để đổi.';
+};
+
+// ── Hàm Khởi Động PvP phía Chủ Phòng (Host) ──────────────────
+window.boardStartPvpAsHost = function(guestId, guestName) {
+    try { audio.play('click'); } catch(e){}
+    let guestData = window.networkPlayers && window.networkPlayers[guestId] ? window.networkPlayers[guestId] : {};
+    
+    boardGame = {
+        players: [], currentTurn: 0, isRolling: false,
+        trappedCells: {}, log: [], gameOver: false,
+        pvp: true, hostId: myNetworkId, betPool: 0,
+        turnStartTime: Date.now()
+    };
+    
+    // Thêm Chủ phòng (A)
+    boardGame.players.push({
+        idx: 0, name: player.name, networkId: myNetworkId, classId: player.classId, skin: player.equipment?.skin,
+        pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
+        color: RACE_PLAYER_COLORS[0],
+        emoji: CLASS_DATA[player.classId]?.emoji || '🏃',
+        isHuman: true, isBot: false, skipTurn: false
+    });
+    
+    // Thêm Khách (B)
+    boardGame.players.push({
+        idx: 1, name: guestName, networkId: guestId, classId: guestData.classId || 0, skin: guestData.skin || null,
+        pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
+        color: RACE_PLAYER_COLORS[1],
+        emoji: CLASS_DATA[guestData.classId || 0]?.emoji || '🏃',
+        isHuman: false, isBot: false, skipTurn: false
+    });
+    
+    // Thêm 2 bot cho đủ 4 người chơi
+    boardAddBot();
+    boardAddBot();
+    
+    boardRenderGrid();
+    boardRenderPlayers();
+    boardUpdateRollBtn();
+    
+    const modal = document.getElementById('boardGameModal');
+    if (modal) modal.classList.add('active');
+    
+    boardAddLog(`🏁 ĐẤU TRƯỜNG PvP BẮT ĐẦU! Quyết đấu giữa ${player.name} và ${guestName}!`, 'special');
+    
+    // Thiết lập vòng lặp đếm giờ lượt đi (AFK Timer) phía chủ phòng
+    if(window.boardPvpTimerInterval) clearInterval(window.boardPvpTimerInterval);
+    window.boardPvpTimerInterval = setInterval(() => {
+        if (!boardGame || boardGame.gameOver || !boardGame.pvp) {
+            if(window.boardPvpTimerInterval) {
+                clearInterval(window.boardPvpTimerInterval);
+                window.boardPvpTimerInterval = null;
+            }
+            return;
+        }
+        if (boardGame.hostId !== myNetworkId) return; // Chỉ chủ phòng kiểm tra AFK và mất kết nối
+        if (boardGame.isRolling) return;
+        
+        // 1. Kiểm tra đối thủ mất kết nối
+        let guestPlayer = boardGame.players.find(p => p.networkId && p.networkId !== myNetworkId);
+        if (guestPlayer && window.networkPlayers && !window.networkPlayers[guestPlayer.networkId]) {
+            boardAddLog(`⚠️ Đối thủ ${guestPlayer.name} đã mất kết nối! Bạn thắng cuộc!`, 'special');
+            window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${guestPlayer.name} đã mất kết nối. Bạn thắng cuộc!`, "", () => {
+                window.closeBoardGame();
+            }, true);
+            return;
+        }
+        
+        // 2. Kiểm tra quá giờ đi lượt (AFK - 20 giây)
+        let cur = boardGame.players[boardGame.currentTurn];
+        if (!cur || cur.isBot) return;
+        
+        if (!boardGame.turnStartTime) {
+            boardGame.turnStartTime = Date.now();
+        }
+        
+        let elapsed = Date.now() - boardGame.turnStartTime;
+        if (elapsed > 20000) { // 20 giây
+            boardAddLog(`⏰ ${cur.name} quá thời gian đi lượt! Tự động tung xúc xắc.`, 'special');
+            window.boardRollForCurrentPlayer();
+        }
+    }, 1000);
+    
+    // Phát sóng trạng thái khởi động game cho khách
+    window.boardBroadcastState('start');
 };

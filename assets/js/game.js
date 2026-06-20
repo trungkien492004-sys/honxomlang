@@ -1052,8 +1052,9 @@
                     });
                 });
 
-                // 2. Transient Events (PVP, Invites, Board)
-                let startEventTime = new Date();
+                // 2. Transient Events (PVP, Invites, Board) - 5-min lookback to avoid clock drift
+                let startEventTime = new Date(Date.now() - 5 * 60 * 1000);
+                let isInitialEvent = true;
                 db.collection('network_events')
                   .where('timestamp', '>', startEventTime)
                   .orderBy('timestamp')
@@ -1061,15 +1062,18 @@
                       snap.docChanges().forEach(change => {
                           if(change.type === 'added') {
                               const msg = change.doc.data();
+                              if(isInitialEvent) return; // Skip existing history messages
                               if(msg.id && msg.id !== myNetworkId) {
                                   handleNetworkMessage(msg);
                               }
                           }
                       });
+                      isInitialEvent = false;
                   });
 
-                // 3. Global Chat
-                let startChatTime = new Date();
+                // 3. Global Chat - 5-min lookback to avoid clock drift
+                let startChatTime = new Date(Date.now() - 5 * 60 * 1000);
+                let isInitialChat = true;
                 db.collection('chat_messages')
                   .where('timestamp', '>', startChatTime)
                   .orderBy('timestamp')
@@ -1077,6 +1081,7 @@
                       snap.docChanges().forEach(change => {
                           if(change.type === 'added') {
                               const msg = change.doc.data();
+                              if(isInitialChat) return; // Skip existing history messages
                               if(msg.id && msg.id !== myNetworkId) {
                                   // Call the original chat handler if exists, else append directly
                                   if (chatChannel.onmessage) {
@@ -1087,6 +1092,7 @@
                               }
                           }
                       });
+                      isInitialChat = false;
                   });
             }
         }, 3000); // Wait 3s to let Firebase auth initialize
@@ -1770,6 +1776,9 @@
             else if(msg.type === 'BOARD_PVP_REPLY' && msg.targetId === myNetworkId) {
                 if(msg.accepted) {
                     showToast(`✅ ${msg.replierName} đã CHẤP NHẬN vào Cờ Đua!`);
+                    if(window.boardStartPvpAsHost) {
+                        window.boardStartPvpAsHost(msg.id, msg.replierName);
+                    }
                 } else {
                     showToast(`❌ ${msg.replierName} đã TỪ CHỐI lời mời Cờ Đua.`);
                 }
@@ -4710,6 +4719,7 @@ function toggleAutoFarm() {
 
             rebuildQuickSkillBarUI();
         }
+        window.refreshHudDisplay = refreshHudDisplay;
 
         function rebuildInventoryGridUI() {
             let g = document.getElementById('inventoryGrid');
