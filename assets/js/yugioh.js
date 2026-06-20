@@ -1241,56 +1241,6 @@ window.ygoRenderField = function() {
 };
 
 // Khởi tạo bộ nhớ cache ảnh bài bằng tên tiếng Anh chuẩn để tránh gọi API lặp lại
-window.ygoImageCache = {};
-try {
-    let savedCache = localStorage.getItem('ygo_card_image_cache');
-    if (savedCache) {
-        window.ygoImageCache = JSON.parse(savedCache);
-    }
-} catch(e) {}
-
-// Hàm lấy ảnh không đồng bộ từ YGOPRODECK API bằng tên tiếng Anh để phân giải ID
-window.ygoFetchCardImageAsync = function(name) {
-    if (!name) return;
-    if (window.ygoImageCache[name]) return;
-    
-    // Đánh dấu là đang tải để tránh gọi trùng lặp
-    window.ygoImageCache[name] = 'FETCHING';
-    
-    fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${encodeURIComponent(name)}`)
-        .then(res => {
-            if (!res.ok) throw new Error('Card not found');
-            return res.json();
-        })
-        .then(json => {
-            if (json && json.data && json.data[0] && json.data[0].card_images && json.data[0].card_images[0]) {
-                let imgUrl = json.data[0].card_images[0].image_url;
-                window.ygoImageCache[name] = imgUrl;
-                try {
-                    localStorage.setItem('ygo_card_image_cache', JSON.stringify(window.ygoImageCache));
-                } catch(e) {}
-                
-                // Cập nhật lại giao diện bàn đấu và chi tiết
-                if (typeof ygoRenderField === 'function') ygoRenderField();
-                
-                // Nếu lá bài đang hover trùng khớp, nạp lại chi tiết để hiển thị ảnh
-                if (window.ygoCurrentHoveredCard) {
-                    let currentHoverName = window.ygoCurrentHoveredCard.name || window.ygoCurrentHoveredCard.name_en || '';
-                    if (currentHoverName === name && typeof ygoHoverCard === 'function') {
-                        ygoHoverCard(window.ygoCurrentHoveredCard);
-                    }
-                }
-            } else {
-                window.ygoImageCache[name] = 'NOT_FOUND';
-            }
-        })
-        .catch(err => {
-            console.warn(`[YGOPRODECK API] Không tìm thấy ảnh cho: ${name}. Sử dụng fallback.`, err);
-            // Gán fallback để không gọi lại liên tục
-            window.ygoImageCache[name] = `https://images.ygoprodeck.com/images/cards/${encodeURIComponent(name)}.jpg`;
-        });
-};
-
 window.ygoGetCardImage = function(card) {
     if (!card) return '';
     
@@ -1318,27 +1268,12 @@ window.ygoGetCardImage = function(card) {
     }
     
     let name = card.name || card.name_en || '';
-    if (!name) return '';
-    
-    // Kiểm tra cache
-    let cachedUrl = window.ygoImageCache[name];
-    if (cachedUrl && cachedUrl !== 'FETCHING' && cachedUrl !== 'NOT_FOUND') {
-        return cachedUrl;
-    }
-    
-    if (!cachedUrl) {
-        // Tải bất đồng bộ từ API
-        window.ygoFetchCardImageAsync(name);
-    }
-    
-    // Trả về ảnh fallback hoặc placeholder tạm thời
     return `https://images.ygoprodeck.com/images/cards/${encodeURIComponent(name)}.jpg`;
 };
 
 // Hiển thị chi tiết lá bài khi hover chuột
 window.ygoHoverCard = function(card) {
     if(!card) return;
-    window.ygoCurrentHoveredCard = card;
     document.getElementById('ygoDetailName').textContent = card.name_vi;
     document.getElementById('ygoDetailStats').innerHTML = `
         <span>CARD: ${card.card_type}</span>
