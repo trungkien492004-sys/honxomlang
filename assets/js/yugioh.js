@@ -474,42 +474,121 @@ function ygoLoadMyDeck() {
 }
 
 // Tạo Starter Deck từ kho bài có sẵn
+// Hàm phụ trợ xây dựng bộ bài có tỉ lệ cân bằng (Main Deck 40 lá, Extra Deck riêng)
+function ygoBuildBalancedDeck(initialCards, pool) {
+    let mainDeck = [];
+    let extraDeck = [];
+    
+    const isLowLevelMonster = (c) => c.card_type === 'Monster' && (c.level_rank === null || c.level_rank === undefined || parseInt(c.level_rank) <= 4 || isNaN(parseInt(c.level_rank)));
+    const isHighLevelMonster = (c) => c.card_type === 'Monster' && c.level_rank !== null && c.level_rank !== undefined && parseInt(c.level_rank) >= 5;
+    const isExtraMonster = (c) => {
+        let mt = (c.monster_type || '').toLowerCase();
+        return c.card_type === 'Monster' && (mt.includes('fusion') || mt.includes('synchro') || mt.includes('xyz') || mt.includes('link'));
+    };
+    
+    // Phân loại các lá ban đầu
+    initialCards.forEach(c => {
+        if (isExtraMonster(c)) {
+            if (extraDeck.length < 15) extraDeck.push(c);
+        } else {
+            if (mainDeck.length < 40) mainDeck.push(c);
+        }
+    });
+    
+    // Trộn ngẫu nhiên pool bài để lấy ngẫu nhiên
+    let shuffledPool = [...pool].sort(() => Math.random() - 0.5);
+    
+    // Nạp đầy Extra Deck lên 8-10 lá nếu có chỗ
+    if (extraDeck.length < 10) {
+        for (let card of shuffledPool) {
+            if (extraDeck.length >= 10) break;
+            if (isExtraMonster(card)) {
+                let limit = ygoGetCardLimit(card.name_en);
+                let count = extraDeck.filter(c => c.name_en === card.name_en).length;
+                if (count < limit) {
+                    extraDeck.push(card);
+                }
+            }
+        }
+    }
+    
+    // Nạp đầy Main Deck lên đúng 40 lá với tỉ lệ cân bằng
+    // Mục tiêu: 18 quái thú level 1-4, 5 quái thú tế phẩm level 5+, 10 phép, 7 bẫy
+    let lowMonsters = mainDeck.filter(isLowLevelMonster);
+    let highMonsters = mainDeck.filter(isHighLevelMonster);
+    let spells = mainDeck.filter(c => c.card_type === 'Spell');
+    let traps = mainDeck.filter(c => c.card_type === 'Trap');
+    
+    for (let card of shuffledPool) {
+        if (mainDeck.length >= 40) break;
+        if (isExtraMonster(card)) continue;
+        
+        let limit = ygoGetCardLimit(card.name_en);
+        let count = mainDeck.filter(c => c.name_en === card.name_en).length;
+        if (count >= limit) continue;
+        
+        if (isLowLevelMonster(card) && lowMonsters.length < 18) {
+            mainDeck.push(card);
+            lowMonsters.push(card);
+        } else if (isHighLevelMonster(card) && highMonsters.length < 5) {
+            mainDeck.push(card);
+            highMonsters.push(card);
+        } else if (card.card_type === 'Spell' && spells.length < 10) {
+            mainDeck.push(card);
+            spells.push(card);
+        } else if (card.card_type === 'Trap' && traps.length < 7) {
+            mainDeck.push(card);
+            traps.push(card);
+        }
+    }
+    
+    // Dự phòng: Nếu vẫn chưa đủ 40 lá, lấp đầy bằng bài bất kỳ không phải Extra Deck
+    for (let card of shuffledPool) {
+        if (mainDeck.length >= 40) break;
+        if (isExtraMonster(card)) continue;
+        
+        let limit = ygoGetCardLimit(card.name_en);
+        let count = mainDeck.filter(c => c.name_en === card.name_en).length;
+        if (count < limit) {
+            mainDeck.push(card);
+        }
+    }
+    
+    return mainDeck.concat(extraDeck);
+}
+
+// Tạo Starter Deck từ kho bài có sẵn
 function ygoCreateStarterDeck() {
     let pool = window.YUGIOH_CARDS || [];
     if (!pool.length) return;
     
-    ygoGame.myDeck = [];
-    
-    // Chọn các lá bài đặc trưng hoặc ngẫu nhiên cho đủ 40 lá
+    // Chọn các lá bài đặc trưng
     let targetCards = [
         'Dark Magician', 'Celtic Guardian', 'Summoned Skull', 'Giant Soldier of Stone', 'Kuriboh',
         'Baby Dragon', 'Time Wizard', 'Monster Reborn', 'Pot of Greed', 'Raigeki', 'Mirror Force',
         'Axe Raider', 'Feral Imp', 'Mystical Elf', 'Silver Fang', 'Trap Hole'
     ];
     
-    // Tìm các lá bài khớp tên
+    let initialCards = [];
     targetCards.forEach(tc => {
         let found = pool.find(c => c.name_en.toLowerCase().includes(tc.toLowerCase()) || c.name_vi.toLowerCase().includes(tc.toLowerCase()));
         if (found) {
-            ygoGame.myDeck.push(found);
+            initialCards.push(found);
         }
     });
     
-    // Đổ đầy ngẫu nhiên các lá bài khác cho đủ 40 lá
-    let i = 0;
-    while (ygoGame.myDeck.length < 40 && i < pool.length) {
-        let card = pool[i];
-        // Đảm bảo không quá giới hạn bài
-        let limit = ygoGetCardLimit(card.name_en);
-        let count = ygoGame.myDeck.filter(c => c.name_en === card.name_en).length;
-        if (count < limit) {
-            ygoGame.myDeck.push(card);
-        }
-        i++;
-    }
-    
+    ygoGame.myDeck = ygoBuildBalancedDeck(initialCards, pool);
     localStorage.setItem('ygo_deck_save', JSON.stringify(ygoGame.myDeck));
 }
+
+window.ygoResetToStarterDeck = function() {
+    if (confirm("Bạn có chắc chắn muốn khôi phục bộ bài về Starter Deck mặc định (tỉ lệ cân bằng) không? Bộ bài hiện tại sẽ bị xóa.")) {
+        ygoCreateStarterDeck();
+        ygoLoadMyDeck();
+        ygoOpenDeckBuilder(); // Làm mới giao diện
+        showToast("🔄 Đã khôi phục Starter Deck thành công!");
+    }
+};
 
 // ── DECK BUILDER ────────────────────────────────────────────────────
 var ygoFilteredWarehouse = [];
@@ -659,7 +738,6 @@ window.ygoSaveDeck = function() {
 // Tạo bộ bài đặc trưng cho Bot dựa trên cơ sở dữ liệu cào được
 function ygoGenerateBotDeck(botType) {
     let pool = window.YUGIOH_CARDS || [];
-    let botDeck = [];
     
     let keywords = [];
     if (botType === 'yugi') {
@@ -675,27 +753,8 @@ function ygoGenerateBotDeck(botType) {
     // Gom các lá bài chứa từ khóa
     let matching = pool.filter(c => keywords.some(k => c.name_en.toLowerCase().includes(k.toLowerCase()) || c.name_vi.toLowerCase().includes(k.toLowerCase())));
     
-    // Nạp bài vào deck của Bot
-    matching.forEach(card => {
-        let limit = ygoGetCardLimit(card.name_en);
-        for(let j=0; j<limit; j++) {
-            if(botDeck.length < 40) botDeck.push(card);
-        }
-    });
-    
-    // Nếu thiếu, đổ ngẫu nhiên cho đủ 40 lá
-    let i = 0;
-    while (botDeck.length < 40 && i < pool.length) {
-        let card = pool[i];
-        let limit = ygoGetCardLimit(card.name_en);
-        let count = botDeck.filter(c => c.name_en === card.name_en).length;
-        if (count < limit) {
-            botDeck.push(card);
-        }
-        i++;
-    }
-    
-    return botDeck;
+    // Tạo bộ bài có tỉ lệ cân bằng từ danh sách lá đặc trưng của Bot
+    return ygoBuildBalancedDeck(matching, pool);
 }
 
 // ── DUELING ENGINE (PVE & PVP) ───────────────────────────────────────
@@ -2692,6 +2751,18 @@ function ygoStartPhase(phaseName) {
         }
         d.hasNormalSummoned = false;
         ygoRenderField();
+        
+        // Tự động chuyển DRAW -> STANDBY -> MAIN1 để người chơi có thể chơi bài ngay lập tức
+        setTimeout(() => {
+            if (d.phase === 'DRAW' && d.turn === 'player') {
+                ygoStartPhase('STANDBY');
+                setTimeout(() => {
+                    if (d.phase === 'STANDBY' && d.turn === 'player') {
+                        ygoStartPhase('MAIN1');
+                    }
+                }, 150);
+            }
+        }, 250);
     }
     if (d.mode === 'pvp') {
         ygoSendSyncState();
