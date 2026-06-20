@@ -17,9 +17,11 @@ if (!('networkPlayers' in window)) {
     });
 }
 
-const refreshHudDisplay = () => {
-    if (window.refreshHudDisplay) window.refreshHudDisplay();
-};
+function boardRefreshHud() {
+    if (typeof window.refreshHudDisplay === 'function' && window.refreshHudDisplay !== boardRefreshHud) {
+        window.refreshHudDisplay();
+    }
+}
 
 var boardGame = null;
 const BOARD_TOTAL_CELLS = 60;
@@ -61,7 +63,7 @@ const RACE_CARDS = [
     { name: "Lốc Xoáy", type: 'spell', rarity: 'common', desc: "Bị vợ gọi về ăn cơm gấp! Lùi cắm đầu 2 ô.", 
       effect: p => { boardMovePlayer(p.idx, -2, true); return 'Chạy về nhà gấp lùi 2 ô.'; } },
     { name: "Rương Vàng", type: 'spell', rarity: 'rare', desc: "Nhặt được ví tiền của Admin rơi! +50 Vàng nóng.", 
-      effect: p => { if(p.isHuman||p.networkId===myNetworkId) { player.gold+=50; refreshHudDisplay(); } return 'Nhặt được ví Admin rơi, húp 50 vàng.'; } },
+      effect: p => { if(p.isHuman||p.networkId===myNetworkId) { player.gold+=50; boardRefreshHud(); } return 'Nhặt được ví Admin rơi, húp 50 vàng.'; } },
     { name: "Dịch Chuyển Không Gian", type: 'spell', rarity: 'epic', desc: "Hố đen vũ trụ hoán đổi vị trí của bạn với đứa gần nhất để kéo nó chịu khổ cùng!", 
       effect: p => boardSwapNearest(p) },
     { name: "Tăng Tốc Sinh Tồn", type: 'spell', rarity: 'rare', desc: "Uống bò cụng tăng lực phóng nhanh vượt ải! Tiến 5 ô và hốt thêm 1 Khiên.", 
@@ -83,7 +85,7 @@ const RACE_CARDS = [
 function boardFightMonster(p, mName, reward, damage = 1) {
     if (p.weapons > 0) {
         p.weapons--;
-        if(p.isHuman||p.networkId===myNetworkId) { player.gold += reward; refreshHudDisplay(); }
+        if(p.isHuman||p.networkId===myNetworkId) { player.gold += reward; boardRefreshHud(); }
         return `Dùng hàng nóng 🗡️ vả sml ${mName}! Húp trọn ${reward}💰 thưởng.`;
     } else {
         return boardTakeDamage(p, damage, `bị ${mName} cắn cụt mông`);
@@ -212,7 +214,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                 boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
                 if (alive[0].networkId === myNetworkId || alive[0].isHuman) {
                     player.gold += prize;
-                    refreshHudDisplay();
+                    boardRefreshHud();
                 }
             }
             boardRenderGrid(); 
@@ -226,7 +228,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                 let prize = boardGame.betPool || 0;
                 if(p.networkId === myNetworkId || p.isHuman) {
                     player.gold += (200 + prize);
-                    refreshHudDisplay();
+                    boardRefreshHud();
                 }
                 boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
                 finalizeTurn();
@@ -268,7 +270,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                     boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
                     if (alive[0].networkId === myNetworkId || alive[0].isHuman) {
                         player.gold += prize;
-                        refreshHudDisplay();
+                        boardRefreshHud();
                     }
                 }
                 boardRenderGrid(); 
@@ -281,7 +283,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                     let prize = boardGame.betPool || 0;
                     if(p.networkId === myNetworkId || p.isHuman) {
                         player.gold += (200 + prize);
-                        refreshHudDisplay();
+                        boardRefreshHud();
                     }
                     boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
                     finalizeTurn();
@@ -323,7 +325,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                         boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
                         if(alive[0].networkId === myNetworkId || alive[0].isHuman) {
                             player.gold += prize;
-                            refreshHudDisplay();
+                            boardRefreshHud();
                         }
                         window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${alive[0].name} là người sống sót cuối cùng!`, `Thưởng: ${prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, () => {}, true);
                     }
@@ -338,7 +340,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                         let prize = boardGame.betPool || 0;
                         if(p.networkId === myNetworkId || p.isHuman) {
                             player.gold += (200 + prize);
-                            refreshHudDisplay();
+                            boardRefreshHud();
                         }
                         boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
                         window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, finalizeTurn, true);
@@ -780,7 +782,7 @@ window.confirmBetAndStart = function() {
         return;
     }
     player.gold -= amt;
-    refreshHudDisplay();
+    boardRefreshHud();
     closeBetModal();
     
     // Bắt đầu game với tiền cược
