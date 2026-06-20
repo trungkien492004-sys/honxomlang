@@ -832,6 +832,7 @@ window.ygoStartBotGame = function() {
         oppSpells: [null, null, null, null, null],
         playerFieldSpell: null,
         oppFieldSpell: null,
+        
         turn: Math.random() < 0.5 ? 'player' : 'opponent',
         phase: 'DRAW',
         hasNormalSummoned: false,
@@ -839,7 +840,26 @@ window.ygoStartBotGame = function() {
         selectedZoneIndex: null,
         selectedFieldCard: null,
         logs: [],
-        turnCount: 1
+        turnCount: 1,
+        
+        // Chain Link & Priority
+        chainStack: [],
+        chainActive: false,
+        prioritySide: 'player',
+        consecutivePasses: 0,
+        chainSelectionInProgress: false,
+        
+        // Tribute selection
+        tributeSelectionInProgress: false,
+        tributeNeeded: 0,
+        tributeSelectedIndices: [],
+        tributeSummonCard: null,
+        tributeSummonPosition: null,
+        selectedSummonZoneIdx: null,
+        
+        // Stolen
+        changeOfHeartStolen: null,
+        zigfriedBanishList: []
     };
     
     // Weevil Underwood's Parasite Paracide skill trigger:
@@ -877,6 +897,7 @@ window.ygoStartBotGame = function() {
     
     ygoShowScreen('duel');
     document.getElementById('oppNameDisplay').textContent = ygoGame.duel.opponentName;
+    document.getElementById('ygoMyCharDisplay').textContent = ygoCharacters[ygoGame.myCharacter]?.name || 'Yugi Muto';
     
     ygoLog("⚔️ TRẬN ĐẤU BẮT ĐẦU!");
     ygoLog(`👤 Đối thủ: ${ygoGame.duel.opponentName}`);
@@ -885,12 +906,8 @@ window.ygoStartBotGame = function() {
     ygoRenderField();
     ygoUpdateLP();
     
-    // Nếu Bot đi trước, kích hoạt Bot đánh
-    if (ygoGame.duel.turn === 'opponent') {
-        setTimeout(ygoRunBotTurn, 1000);
-    } else {
-        ygoStartPhase('DRAW');
-    }
+    // Khởi động Central State Machine ở DRAW phase
+    ygoStartPhase('DRAW');
 };
 
 function ygoShuffle(deck) {
@@ -999,7 +1016,6 @@ window.ygoRenderField = function() {
         oppHandContainer.innerHTML = '';
         d.oppHand.forEach((card, idx) => {
             const div = document.createElement('div');
-            // Check if player is Ishizu or Espa Roba (with trap cards)
             let isRevealed = false;
             let typeClass = 'monster';
             let cardText = "ÚP";
@@ -1047,14 +1063,28 @@ window.ygoRenderField = function() {
     if(pFront) {
         pFront.innerHTML = d.playerMonsters.map((c, i) => {
             if(c) {
-                let posText = c.position === 'defense' ? 'DEF' : 'ATK';
+                let isFaceUp = c.faceUp !== false;
+                let posText = c.position === 'defense' ? (isFaceUp ? 'DEF' : 'ÚP DEF') : 'ATK';
                 let statVal = c.position === 'defense' ? (c.currentDef || c.def) : (c.currentAtk || c.atk);
                 
                 let isSelected = d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'monster' && d.selectedFieldCard.pos === i;
-                let borderStyle = isSelected ? 'border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24;' : (c.position === 'defense' ? 'border-color: #3b82f6;' : '');
+                
+                let borderStyle = '';
+                if (isSelected) {
+                    borderStyle = 'border-color: #fbbf24; box-shadow: 0 0 8px #fbbf24;';
+                } else if (d.tributeSelectionInProgress && d.tributeSelectedIndices.includes(i)) {
+                    borderStyle = 'border-color: #ef4444; box-shadow: 0 0 12px #ef4444;'; // hiến tế đỏ
+                } else if (c.position === 'defense') {
+                    borderStyle = 'border-color: #3b82f6;';
+                }
+                
                 let rotationStyle = c.position === 'defense' ? 'transform: rotate(90deg);' : '';
                 let imgUrl = ygoGetCardImage(c);
-                let bgStyle = `background: linear-gradient(rgba(10,8,6,0.65), rgba(10,8,6,0.65)), url('${imgUrl}') center/cover no-repeat;`;
+                
+                // Owner can inspect set monsters, but let's tint them dark red/purple to show they are set
+                let bgStyle = isFaceUp
+                    ? `background: linear-gradient(rgba(10,8,6,0.65), rgba(10,8,6,0.65)), url('${imgUrl}') center/cover no-repeat;`
+                    : `background: linear-gradient(rgba(76,5,25,0.75), rgba(76,5,25,0.75)), url('${imgUrl}') center/cover no-repeat;`;
                 
                 return `<div class="ygo-zone active-card" style="${rotationStyle} ${borderStyle} ${bgStyle}" onclick="ygoZoneClick('player', 'monster', ${i})" onmouseover="ygoHoverCardById('player', 'monster', ${i})">
                     <span style="font-size:0.6rem;font-weight:bold;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%; text-shadow: 1px 1px 2px black;">${c.name_vi}</span>
@@ -1230,13 +1260,11 @@ window.ygoRenderField = function() {
         }
     }
     
-    // Check Aroma Strategy (Mai) & Millennium Necklace (Ishizu)
     ygoCheckAromaStrategy();
     if (typeof ygoCheckMillenniumNecklace === 'function') {
         ygoCheckMillenniumNecklace();
     }
 
-    // Render nút hành động bài ở khung chi tiết
     ygoRenderCardActions();
 };
 
@@ -1254,7 +1282,6 @@ window.ygoFetchCardImageAsync = function(name) {
     if (!name) return;
     if (window.ygoImageCache[name]) return;
     
-    // Đánh dấu là đang tải để tránh gọi trùng lặp
     window.ygoImageCache[name] = 'FETCHING';
     
     fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${encodeURIComponent(name)}`)
@@ -1270,10 +1297,8 @@ window.ygoFetchCardImageAsync = function(name) {
                     localStorage.setItem('ygo_card_image_cache', JSON.stringify(window.ygoImageCache));
                 } catch(e) {}
                 
-                // Cập nhật lại giao diện bàn đấu và chi tiết
                 if (typeof ygoRenderField === 'function') ygoRenderField();
                 
-                // Nếu lá bài đang hover trùng khớp, nạp lại chi tiết để hiển thị ảnh
                 if (window.ygoCurrentHoveredCard) {
                     let currentHoverName = window.ygoCurrentHoveredCard.name || window.ygoCurrentHoveredCard.name_en || '';
                     if (currentHoverName === name && typeof ygoHoverCard === 'function') {
@@ -1286,7 +1311,6 @@ window.ygoFetchCardImageAsync = function(name) {
         })
         .catch(err => {
             console.warn(`[YGOPRODECK API] Không tìm thấy ảnh cho: ${name}. Sử dụng fallback.`, err);
-            // Gán fallback để không gọi lại liên tục
             window.ygoImageCache[name] = `https://images.ygoprodeck.com/images/cards/${encodeURIComponent(name)}.jpg`;
         });
 };
@@ -1294,11 +1318,9 @@ window.ygoFetchCardImageAsync = function(name) {
 window.ygoGetCardImage = function(card) {
     if (!card) return '';
     
-    // Normalize card properties on the fly to ensure compatibility
     if (!card.name_en && card.name) card.name_en = card.name;
     if (!card.name && card.name_en) card.name = card.name_en;
     
-    // Check if anime exclusive: if there is 'anime_exclusive' in any string fields or if anime_exclusive is true/1
     let isAnimeExclusive = false;
     if (card.anime_exclusive === 1 || card.anime_exclusive === true) {
         isAnimeExclusive = true;
@@ -1320,18 +1342,15 @@ window.ygoGetCardImage = function(card) {
     let name = card.name || card.name_en || '';
     if (!name) return '';
     
-    // Kiểm tra cache
     let cachedUrl = window.ygoImageCache[name];
     if (cachedUrl && cachedUrl !== 'FETCHING' && cachedUrl !== 'NOT_FOUND') {
         return cachedUrl;
     }
     
     if (!cachedUrl) {
-        // Tải bất đồng bộ từ API
         window.ygoFetchCardImageAsync(name);
     }
     
-    // Trả về ảnh fallback hoặc placeholder tạm thời
     return `https://images.ygoprodeck.com/images/cards/${encodeURIComponent(name)}.jpg`;
 };
 
@@ -1369,20 +1388,18 @@ window.ygoHoverCardById = function(side, type, index) {
         
         if (!card) return;
         
-        // Check if opponent card is face-down and needs hiding
         let reveal = false;
         if (type === 'monster') {
             reveal = (card.faceUp !== false) || (ygoGame.myCharacter === 'pegasus');
         } else if (type === 'spell') {
             reveal = (card.faceUp !== false) || (ygoGame.myCharacter === 'pegasus') || (ygoGame.myCharacter === 'espa_roba' && card.card_type === 'Trap');
         } else if (type === 'fieldspell') {
-            reveal = true; // Field spells are always face-up/revealed once active
+            reveal = true;
         }
         
         if (reveal) {
             ygoHoverCard(card);
         } else {
-            // Conceal details
             document.getElementById('ygoDetailName').textContent = "Lá Bài Úp của Đối Thủ";
             document.getElementById('ygoDetailStats').innerHTML = `
                 <span>CARD: ---</span>
@@ -1402,6 +1419,7 @@ window.ygoHoverCardById = function(side, type, index) {
 window.ygoSelectHand = function(idx) {
     let d = ygoGame.duel;
     if (d.turn !== 'player') return;
+    if (d.chainActive) return;
     
     try { audio.play('click'); } catch(e){}
     
@@ -1426,7 +1444,7 @@ window.ygoRenderCardActions = function() {
     container.innerHTML = '';
     
     let d = ygoGame.duel;
-    if (!d || d.turn !== 'player') return; // Only player's turn shows actions!
+    if (!d || d.turn !== 'player' || d.chainActive) return;
     
     // Check if hand card is selected
     if (d.selectedHandIndex !== null) {
@@ -1435,20 +1453,21 @@ window.ygoRenderCardActions = function() {
         
         if (card.card_type === 'Monster') {
             if (d.phase.includes('MAIN')) {
-                // Summon Button
+                // Summon / Set Position selection trigger button
                 const btnSummon = document.createElement('button');
                 btnSummon.className = 'ygo-btn';
                 btnSummon.style.background = 'linear-gradient(to right, #b45309, #78350f)';
-                btnSummon.textContent = '⚔️ Triệu Hồi Tấn Công';
-                btnSummon.onclick = () => ygoActionSummon(false);
+                btnSummon.textContent = '⚔️ Triệu Hồi / Úp Bài';
+                btnSummon.onclick = () => {
+                    let emptyIdx = d.playerMonsters.indexOf(null);
+                    if (emptyIdx === -1) {
+                        showToast("⚠️ Sân quái thú của bạn đã đầy!");
+                        return;
+                    }
+                    d.selectedSummonZoneIdx = emptyIdx;
+                    ygoOpenSummonPositionModal(d.selectedHandIndex);
+                };
                 container.appendChild(btnSummon);
-                
-                // Set Button
-                const btnSet = document.createElement('button');
-                btnSet.className = 'ygo-btn ygo-btn-secondary';
-                btnSet.textContent = '🛡️ Úp Phòng Thủ';
-                btnSet.onclick = () => ygoActionSummon(true);
-                container.appendChild(btnSet);
             }
         } else if (card.card_type === 'Spell' || card.card_type === 'Trap') {
             let isField = (card.property === 'Field' || card.name_en.toLowerCase().includes('umi') || card.name_en.toLowerCase().includes('orichalcos') || card.name_en.toLowerCase().includes('stromberg'));
@@ -1462,6 +1481,7 @@ window.ygoRenderCardActions = function() {
                 container.appendChild(btnActivate);
             } else {
                 if (card.card_type === 'Spell') {
+                    // Check if Quick-Play: can only activate on own turn from hand
                     const btnActivate = document.createElement('button');
                     btnActivate.className = 'ygo-btn';
                     btnActivate.style.background = 'linear-gradient(to right, #047857, #065f46)';
@@ -1490,7 +1510,10 @@ window.ygoRenderCardActions = function() {
                     const btnPos = document.createElement('button');
                     btnPos.className = 'ygo-btn';
                     btnPos.style.background = 'linear-gradient(to right, #1d4ed8, #1e40af)';
-                    if (card.position === 'defense') {
+                    
+                    if (card.faceUp === false) {
+                        btnPos.textContent = '🔄 Flip Summon (Lật mặt)';
+                    } else if (card.position === 'defense') {
                         btnPos.textContent = '🔄 Lật Ngửa Tấn Công';
                     } else {
                         btnPos.textContent = '🔄 Chuyển Thế Thủ';
@@ -1505,7 +1528,7 @@ window.ygoRenderCardActions = function() {
                         lblNoAttack.style.cssText = 'color:#ef4444; font-size:0.75rem; text-align:center; padding: 5px; background: rgba(239, 68, 68, 0.15); border: 1px dashed #ef4444; border-radius: 4px;';
                         lblNoAttack.textContent = '⚠️ Lượt 1 không được tấn công!';
                         container.appendChild(lblNoAttack);
-                    } else if (card.position !== 'defense') {
+                    } else if (card.position !== 'defense' && !card.hasAttacked) {
                         const btnAttack = document.createElement('button');
                         btnAttack.className = 'ygo-btn';
                         btnAttack.style.background = 'linear-gradient(to right, #b91c1c, #991b1b)';
@@ -1529,11 +1552,10 @@ window.ygoRenderCardActions = function() {
     }
 };
 
-window.ygoActionSummon = function(isDefense) {
+window.ygoOpenSummonPositionModal = function(idx) {
     let d = ygoGame.duel;
-    if (d.selectedHandIndex === null) return;
-    let card = d.playerHand[d.selectedHandIndex];
-    if (!card || card.card_type !== 'Monster') return;
+    let card = d.playerHand[idx];
+    if (!card) return;
     
     if (d.hasNormalSummoned) {
         showToast("⚠️ Bạn đã Triệu hồi Thường 1 quái thú ở lượt này rồi!");
@@ -1546,59 +1568,963 @@ window.ygoActionSummon = function(isDefense) {
         return;
     }
     
+    // Set target zone
+    d.selectedSummonZoneIdx = d.selectedSummonZoneIdx !== null ? d.selectedSummonZoneIdx : emptyIdx;
+    
+    document.getElementById('ygoSummonPosCardName').textContent = card.name_vi;
+    
+    // Link Monster checks
+    let isLink = (card.monster_type || '').toLowerCase().includes('link') || card.def === null || card.def === undefined;
+    if (isLink) {
+        document.getElementById('btnSummonPosDefFaceup').style.display = 'none';
+        document.getElementById('btnSummonPosDefFacedown').style.display = 'none';
+    } else {
+        document.getElementById('btnSummonPosDefFaceup').style.display = 'block';
+        document.getElementById('btnSummonPosDefFacedown').style.display = 'block';
+    }
+    
+    document.getElementById('ygoSummonPositionModal').style.display = 'flex';
+};
+
+window.ygoSummonPositionSelect = function(posType) {
+    document.getElementById('ygoSummonPositionModal').style.display = 'none';
+    
+    let d = ygoGame.duel;
+    if (d.selectedHandIndex === null || d.selectedSummonZoneIdx === null) return;
+    let card = d.playerHand[d.selectedHandIndex];
+    if (!card) return;
+    
     let lvl = card.level_rank || 1;
     let tributesNeeded = lvl >= 7 ? 2 : (lvl >= 5 ? 1 : 0);
     
-    // Seto Kaiba: Pride of Blue-Eyes
-    if (ygoGame.myCharacter === 'kaiba' && card.name_en.toLowerCase().includes("blue-eyes white dragon")) {
-        if (d.freeBlueEyes) {
-            tributesNeeded = 0;
-            d.freeBlueEyes = false;
-            ygoLog(`🐉 [Kiêu Hãnh Của Rồng] Triệu hồi Rồng Trắng Mắt Xanh không cần hiến tế!`);
-        }
+    if (ygoGame.myCharacter === 'kaiba' && card.name_en.toLowerCase().includes("blue-eyes white dragon") && d.freeBlueEyes) {
+        tributesNeeded = 0;
+        d.freeBlueEyes = false;
+        ygoLog(`🐉 [Kiêu Hãnh Của Rồng] Triệu hồi Rồng Trắng Mắt Xanh không cần hiến tế!`);
     }
     
-    let aliveMonstersCount = d.playerMonsters.filter(m => m !== null).length;
-    if (aliveMonstersCount < tributesNeeded) {
-        showToast(`⚠️ Cần ${tributesNeeded} quái thú tế phẩm trên sân để triệu hồi!`);
+    let aliveCount = d.playerMonsters.filter(m => m !== null).length;
+    if (aliveCount < tributesNeeded) {
+        showToast(`⚠️ Không đủ tế phẩm trên sân! Cần ${tributesNeeded} quái.`);
+        d.selectedHandIndex = null;
+        d.selectedSummonZoneIdx = null;
         return;
     }
     
-    // Tribute if needed
     if (tributesNeeded > 0) {
-        let tCount = 0;
-        for (let mIdx = 0; mIdx < 5; mIdx++) {
-            if (d.playerMonsters[mIdx] !== null) {
-                ygoLog(`🕯️ Hiến tế quái thú: [${d.playerMonsters[mIdx].name_vi}] làm tế phẩm.`);
-                d.playerGY.push(d.playerMonsters[mIdx]);
-                d.playerMonsters[mIdx] = null;
-                tCount++;
-                if (tCount >= tributesNeeded) break;
-            }
+        d.tributeSelectionInProgress = true;
+        d.tributeNeeded = tributesNeeded;
+        d.tributeSelectedIndices = [];
+        d.tributeSummonCard = card;
+        d.tributeSummonPosition = posType;
+        
+        ygoLog(`🕯️ Triệu hồi hiến tế [${card.name_vi}]: Hãy click chọn ${tributesNeeded} quái thú trên sân của bạn làm tế phẩm.`);
+        ygoRenderField();
+    } else {
+        ygoPerformSummon('player', card, d.selectedSummonZoneIdx, posType);
+        d.selectedHandIndex = null;
+        d.selectedSummonZoneIdx = null;
+        ygoRenderField();
+    }
+};
+
+// ==========================================
+// CENTRAL GAME STATE MACHINE & AI BOT SYSTEM
+// ==========================================
+
+window.ygoPerformSummon = function(side, card, zoneIdx, position) {
+    let d = ygoGame.duel;
+    let monsters = side === 'player' ? d.playerMonsters : d.oppMonsters;
+    let hand = side === 'player' ? d.playerHand : d.oppHand;
+    
+    // Xoá khỏi tay
+    let handIdx = hand.indexOf(card);
+    if (handIdx !== -1) {
+        hand.splice(handIdx, 1);
+    }
+    
+    card.position = position === 'set' ? 'defense' : position;
+    card.faceUp = (position !== 'set');
+    card.hasChangedPosition = true; // vừa ra sân không được đổi tư thế
+    card.wasSummonedThisTurn = true;
+    card.hasAttacked = false;
+    card.currentAtk = parseInt(card.atk) || 0;
+    card.currentDef = parseInt(card.def) || 0;
+    
+    monsters[zoneIdx] = card;
+    
+    if (side === 'player') {
+        if (position === 'set') {
+            ygoLog(`🃏 Bạn úp 1 quái thú ở thế phòng thủ.`);
+        } else {
+            ygoLog(`⚔️ Bạn triệu hồi quái thú: [${card.name_vi}] (ATK: ${card.atk}).`);
+        }
+    } else {
+        if (position === 'set') {
+            ygoLog(`🤖 Bot úp 1 quái thú ở thế phòng thủ.`);
+        } else {
+            ygoLog(`🤖 Bot triệu hồi quái thú: [${card.name_vi}] (ATK: ${card.atk}).`);
         }
     }
     
     try { audio.play('levelup'); } catch(e){}
-    card.currentAtk = parseInt(card.atk) || 0;
-    card.currentDef = parseInt(card.def) || 0;
-    card.position = isDefense ? 'defense' : 'attack';
-    card.faceUp = !isDefense;
     
-    d.playerMonsters[emptyIdx] = card;
-    d.playerHand.splice(d.selectedHandIndex, 1);
-    d.hasNormalSummoned = true;
-    d.selectedHandIndex = null;
+    // Kích hoạt Chain Link cho Summon Response nếu đối phương có Trap/Quick-Play
+    ygoTriggerChainResponse(side === 'player' ? 'opponent' : 'player', card, () => {
+        ygoRenderField();
+    });
+};
+
+window.ygoStartPhase = function(phaseName) {
+    let d = ygoGame.duel;
+    d.phase = phaseName;
     
-    if (isDefense) {
-        ygoLog(`💥 Bạn úp 1 quái thú ở thế PHÒNG THỦ.`);
+    const phaseTextEl = document.getElementById('ygoPhaseText');
+    if (phaseTextEl) {
+        phaseTextEl.textContent = `${phaseName} PHASE`;
+    }
+    
+    ygoLog(`📍 Bước vào: ${phaseName} PHASE (${d.turn === 'player' ? 'Lượt của bạn' : 'Lượt của Bot'})`);
+    
+    if (phaseName === 'DRAW') {
+        d.hasNormalSummoned = false;
+        
+        // Reset flags cho quái thú bên có lượt
+        let monsters = d.turn === 'player' ? d.playerMonsters : d.oppMonsters;
+        monsters.forEach(m => {
+            if (m) {
+                m.hasChangedPosition = false;
+                m.hasAttacked = false;
+                m.wasSummonedThisTurn = false;
+            }
+        });
+        
+        // Draw card
+        if (d.turn === 'player') {
+            if (ygoGame.myCharacter === 'yugi' && d.playerLP < 1500 && !d.destinyDrawUsed && d.playerDeck.length > 0) {
+                d.destinyDrawUsed = true;
+                ygoTriggerDestinyDraw();
+            } else {
+                ygoDrawCard('player');
+            }
+        } else {
+            // Bot Draw
+            if (ygoGame.oppCharacter === 'yugi' && d.oppLP < 1500 && !d.destinyDrawUsed && d.oppDeck.length > 0) {
+                d.destinyDrawUsed = true;
+                let targetIdx = d.oppDeck.findIndex(c => c.name_en.toLowerCase().includes("raigeki") || c.name_en.toLowerCase().includes("pot of greed"));
+                if (targetIdx === -1) {
+                    targetIdx = d.oppDeck.findIndex(c => c.card_type === 'Monster');
+                }
+                if (targetIdx !== -1) {
+                    let card = d.oppDeck.splice(targetIdx, 1)[0];
+                    d.oppHand.push(card);
+                    ygoLog(`🔮 [RÚT BÀI ĐỊNH MỆNH] Bot Yugi Atem kích hoạt kỹ năng và chọn [${card.name_vi}] lên tay!`);
+                    try { audio.play('apocalypse'); } catch(e){}
+                } else {
+                    ygoDrawCard('opponent');
+                }
+            } else {
+                ygoDrawCard('opponent');
+            }
+            
+            if (ygoGame.oppCharacter === 'mai' && d.oppDeck.length > 0) {
+                let top = d.oppDeck[d.oppDeck.length - 1];
+                ygoLog(`🔮 [Nước Hoa] Bot Mai Valentine ngửi thấy bài tiếp theo: [${top.name_vi}]`);
+            }
+        }
+        
+        ygoRenderField();
+        
+        // Tự chuyển DRAW -> STANDBY
+        setTimeout(() => {
+            ygoStartPhase('STANDBY');
+        }, 800);
+    }
+    else if (phaseName === 'STANDBY') {
+        // Tự chuyển STANDBY -> MAIN1
+        setTimeout(() => {
+            ygoStartPhase('MAIN1');
+        }, 800);
+    }
+    else if (phaseName === 'MAIN1' || phaseName === 'MAIN2' || phaseName === 'BATTLE') {
+        ygoRenderField();
+        if (d.turn === 'opponent') {
+            // Bot chạy AI Bot cho Main Phase hoặc Battle Phase
+            setTimeout(() => {
+                ygoRunBotPhase();
+            }, 500);
+        }
+    }
+    else if (phaseName === 'END') {
+        ygoRenderField();
+        
+        // Dọn dẹp cuối lượt (Valkyries, Change of Heart, mask lock)
+        if (d.zigfriedBanishList.length > 0) {
+            ygoLog(`✨ [Bản Hùng Ca Valkyrie] Trục xuất toàn bộ Valkyrie khỏi sân.`);
+            for (let i = 0; i < 5; i++) {
+                if (d.oppMonsters[i] && d.zigfriedBanishList.includes(d.oppMonsters[i])) d.oppMonsters[i] = null;
+                if (d.playerMonsters[i] && d.zigfriedBanishList.includes(d.playerMonsters[i])) d.playerMonsters[i] = null;
+            }
+            d.zigfriedBanishList = [];
+        }
+        
+        if (d.changeOfHeartStolen) {
+            let ch = d.changeOfHeartStolen;
+            let currentMonsters = ch.toSide === 'player' ? d.playerMonsters : d.oppMonsters;
+            let targetMonsters = ch.fromSide === 'player' ? d.playerMonsters : d.oppMonsters;
+            
+            if (currentMonsters[ch.toIdx] === ch.monster) {
+                currentMonsters[ch.toIdx] = null;
+                if (targetMonsters[ch.fromIdx] === null) {
+                    targetMonsters[ch.fromIdx] = ch.monster;
+                } else {
+                    let emptyIdx = targetMonsters.indexOf(null);
+                    if (emptyIdx !== -1) {
+                        targetMonsters[emptyIdx] = ch.monster;
+                    } else {
+                        let oppGY = ch.fromSide === 'player' ? d.playerGY : d.oppGY;
+                        oppGY.push(ch.monster);
+                    }
+                }
+                ygoLog(`⏳ Trả lại quái thú [${ch.monster.name_vi}] cho đối thủ.`);
+            }
+            d.changeOfHeartStolen = null;
+        }
+        
+        if (d.lumisLockTurns > 0) {
+            d.lumisLockTurns--;
+            if (d.lumisLockTurns === 0) {
+                ygoLog(`🎭 Giải phóng ô bị phong ấn bởi Mặt Nạ.`);
+                d.lumisLockedZone = null;
+            }
+        }
+        
+        // Chuyển lượt
+        d.turn = d.turn === 'player' ? 'opponent' : 'player';
+        d.turnCount = (d.turnCount || 1) + 1;
+        ygoLog(`⏳ Bắt đầu lượt mới. Lượt của ${d.turn === 'player' ? 'BẠN' : 'BOT'}`);
+        ygoRenderField();
+        
+        setTimeout(() => {
+            ygoStartPhase('DRAW');
+        }, 500);
+    }
+    
+    if (d.mode === 'pvp') {
+        ygoSendSyncState();
+    }
+};
+
+window.ygoNextPhase = function() {
+    let d = ygoGame.duel;
+    if (d.turn !== 'player') return;
+    if (d.chainActive) return;
+    
+    try { audio.play('click'); } catch(e){}
+    
+    if (d.phase === 'MAIN1') {
+        if (d.turnCount === 1) {
+            ygoLog(`⚠️ Lượt 1 không được vào BATTLE PHASE. Đi thẳng sang END PHASE.`);
+            ygoStartPhase('END');
+        } else {
+            ygoStartPhase('BATTLE');
+        }
+    } else if (d.phase === 'BATTLE') {
+        ygoStartPhase('MAIN2');
+    } else if (d.phase === 'MAIN2') {
+        ygoStartPhase('END');
+    }
+    
+    if (d.mode === 'pvp') {
+        ygoSendSyncState();
+    }
+};
+
+window.ygoZoneClick = function(side, type, index) {
+    let d = ygoGame.duel;
+    if (d.chainActive) return;
+    
+    // Tribute Selection
+    if (d.tributeSelectionInProgress) {
+        if (side === 'player' && type === 'monster' && d.playerMonsters[index] !== null) {
+            if (d.tributeSelectedIndices.includes(index)) {
+                d.tributeSelectedIndices = d.tributeSelectedIndices.filter(i => i !== index);
+            } else {
+                d.tributeSelectedIndices.push(index);
+            }
+            ygoLog(`👉 Đã chọn: ${d.tributeSelectedIndices.length}/${d.tributeNeeded} tế phẩm.`);
+            ygoRenderField();
+            
+            if (d.tributeSelectedIndices.length === d.tributeNeeded) {
+                d.tributeSelectedIndices.forEach(idx => {
+                    let sacrificed = d.playerMonsters[idx];
+                    ygoLog(`🪦 Hiến tế [${sacrificed.name_vi}] gửi vào Graveyard.`);
+                    d.playerGY.push(sacrificed);
+                    d.playerMonsters[idx] = null;
+                });
+                
+                ygoPerformSummon('player', d.tributeSummonCard, d.selectedSummonZoneIdx, d.tributeSummonPosition);
+                
+                d.tributeSelectionInProgress = false;
+                d.tributeNeeded = 0;
+                d.tributeSelectedIndices = [];
+                d.tributeSummonCard = null;
+                d.tributeSummonPosition = null;
+                d.selectedSummonZoneIdx = null;
+                d.selectedHandIndex = null;
+                ygoRenderField();
+            }
+        }
+        return;
+    }
+    
+    if (d.turn !== 'player') return;
+    
+    if (d.lumisLockTurns > 0 && d.lumisLockedZone) {
+        if (d.lumisLockedZone.side === side && d.lumisLockedZone.type === type && d.lumisLockedZone.index === index) {
+            showToast(`⚠️ Ô này đang bị phong ấn bởi Mặt Nạ trong ${d.lumisLockTurns} lượt nữa!`);
+            return;
+        }
+    }
+    
+    if (d.selectedHandIndex !== null && side === 'player') {
+        let card = d.playerHand[d.selectedHandIndex];
+        if (!card) return;
+        
+        if (type === 'monster' && card.card_type === 'Monster') {
+            if (d.playerMonsters[index] !== null) {
+                showToast("⚠️ Ô này đã có quái thú!");
+                return;
+            }
+            d.selectedSummonZoneIdx = index;
+            ygoOpenSummonPositionModal(d.selectedHandIndex);
+            return;
+        }
+        
+        if (type === 'spell' && (card.card_type === 'Spell' || card.card_type === 'Trap')) {
+            if (d.playerSpells[index] !== null) {
+                showToast("⚠️ Ô này đã có Phép/Bẫy!");
+                return;
+            }
+            
+            let confirmAct = confirm(`Kích hoạt [${card.name_vi}]? (Chọn Cancel để ÚP)`);
+            if (confirmAct) {
+                if (card.card_type === 'Spell') {
+                    try { audio.play('click'); } catch(e){}
+                    card.faceUp = true;
+                    d.playerSpells[index] = card;
+                    d.playerHand.splice(d.selectedHandIndex, 1);
+                    d.selectedHandIndex = null;
+                    ygoLog(`🪄 Bạn kích hoạt: [${card.name_vi}]`);
+                    
+                    ygoStartChain('player', card, index);
+                } else {
+                    showToast("⚠️ Bẫy (Trap) chỉ có thể ÚP trước rồi mới kích hoạt từ lượt sau!");
+                }
+            } else {
+                try { audio.play('click'); } catch(e){}
+                card.faceUp = false;
+                d.playerSpells[index] = card;
+                d.playerHand.splice(d.selectedHandIndex, 1);
+                d.selectedHandIndex = null;
+                ygoLog(`🃏 Bạn úp 1 lá Phép/Bẫy.`);
+                ygoRenderField();
+            }
+            return;
+        }
+    }
+    
+    if (d.phase === 'BATTLE' && d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'monster') {
+        let myMonIdx = d.selectedFieldCard.pos;
+        let myMon = d.playerMonsters[myMonIdx];
+        if (!myMon || myMon.position === 'defense' || myMon.hasAttacked) return;
+        
+        if (side === 'opponent' && type === 'monster') {
+            let oppMon = d.oppMonsters[index];
+            if (oppMon) {
+                ygoResolveBattle(myMonIdx, index);
+            } else {
+                let hasOtherOppMonsters = d.oppMonsters.some(m => m !== null);
+                let isWater = myMon.attribute && myMon.attribute.toUpperCase() === 'WATER';
+                let oppHasWater = d.oppMonsters.some(m => m !== null && m.attribute && m.attribute.toUpperCase() === 'WATER');
+                let canAttackDirectly = !hasOtherOppMonsters || (ygoGame.myCharacter === 'mako' && isWater && !oppHasWater);
+                
+                if (canAttackDirectly) {
+                    ygoResolveDirectAttack(myMonIdx);
+                } else {
+                    showToast("⚠️ Bạn phải tiêu diệt quái thú trên sân đối phương trước!");
+                }
+            }
+            d.selectedFieldCard = null;
+            ygoRenderField();
+            return;
+        }
+    }
+    
+    if (side === 'player' && d.selectedHandIndex === null) {
+        let card = null;
+        if (type === 'monster') card = d.playerMonsters[index];
+        else if (type === 'spell') card = d.playerSpells[index];
+        else if (type === 'fieldspell') card = d.playerFieldSpell;
+        
+        if (card) {
+            d.selectedFieldCard = { side: side, type: type, pos: index };
+            ygoHoverCard(card);
+            ygoLog(`👉 Chọn bài trên sân: [${card.name_vi}]. Chọn thao tác bên trái.`);
+            ygoRenderField();
+        }
+    }
+};
+
+window.ygoStartChain = function(side, card, zoneIdx) {
+    let d = ygoGame.duel;
+    d.chainStack.push({ side: side, card: card, zoneIdx: zoneIdx });
+    d.chainActive = true;
+    d.consecutivePasses = 0;
+    d.prioritySide = side === 'player' ? 'opponent' : 'player';
+    
+    ygoLog(`⛓️ Chain Link ${d.chainStack.length}: [${card.name_vi}] được kích hoạt!`);
+    ygoTriggerChainResponse();
+};
+
+window.ygoTriggerChainResponse = function() {
+    let d = ygoGame.duel;
+    if (!d.chainActive) return;
+    
+    if (d.prioritySide === 'opponent') {
+        if (d.mode === 'pvp') {
+            // PVP Sync...
+        } else {
+            setTimeout(() => {
+                ygoBotChainDecision();
+            }, 800);
+        }
     } else {
-        ygoLog(`💥 Bạn triệu hồi quái thú: [${card.name_vi}] (ATK: ${card.atk})`);
+        let hasValidResponse = ygoCheckValidResponses('player');
+        if (hasValidResponse) {
+            document.getElementById('ygoChainCardName').textContent = d.chainStack[d.chainStack.length - 1].card.name_vi;
+            document.getElementById('ygoChainModal').style.display = 'flex';
+        } else {
+            ygoPassChain('player');
+        }
+    }
+};
+
+window.ygoCheckValidResponses = function(side) {
+    let d = ygoGame.duel;
+    let spells = side === 'player' ? d.playerSpells : d.oppSpells;
+    let hand = side === 'player' ? d.playerHand : d.oppHand;
+    
+    let hasOnField = spells.some((c, idx) => {
+        if (c && !c.faceUp) {
+            let isQuickPlay = c.card_type === 'Spell' && c.property === 'Quick-Play';
+            let isTrap = c.card_type === 'Trap';
+            return isTrap || isQuickPlay;
+        }
+        return false;
+    });
+    
+    let hasInHand = false;
+    if (d.turn === side) {
+        hasInHand = hand.some(c => c.card_type === 'Spell' && c.property === 'Quick-Play');
+    }
+    
+    return hasOnField || hasInHand;
+};
+
+window.ygoPassChain = function(side) {
+    let d = ygoGame.duel;
+    if (!d.chainActive) return;
+    
+    if (side === 'player') {
+        document.getElementById('ygoChainModal').style.display = 'none';
+    }
+    
+    ygoLog(`Pass priority: ${side === 'player' ? 'Bạn' : 'Bot'} không phản hồi Chain.`);
+    d.consecutivePasses++;
+    
+    if (d.consecutivePasses >= 2) {
+        ygoLog(`⛓️ Cả hai bên đều dừng phản hồi. Bắt đầu giải quyết chuỗi Chain Link...`);
+        ygoResolveChain();
+    } else {
+        d.prioritySide = side === 'player' ? 'opponent' : 'player';
+        ygoTriggerChainResponse();
+    }
+};
+
+window.ygoConfirmChain = function() {
+    document.getElementById('ygoChainModal').style.display = 'none';
+    let d = ygoGame.duel;
+    
+    let validCards = [];
+    d.playerSpells.forEach((c, idx) => {
+        if (c && !c.faceUp) {
+            validCards.push({ card: c, source: 'field', index: idx });
+        }
+    });
+    if (d.turn === 'player') {
+        d.playerHand.forEach((c, idx) => {
+            if (c.card_type === 'Spell' && c.property === 'Quick-Play') {
+                validCards.push({ card: c, source: 'hand', index: idx });
+            }
+        });
+    }
+    
+    if (validCards.length === 0) {
+        showToast("⚠️ Không có bài phản hồi khả dụng!");
+        ygoPassChain('player');
+        return;
+    }
+    
+    const modal = document.getElementById('ygoDeckSelectModal');
+    const container = document.getElementById('ygoDeckSelectContainer');
+    if (!modal || !container) return;
+    
+    modal.querySelector('h3').textContent = "⛓️ CHỌN BÀI PHẢN HỒI (CHAIN)";
+    modal.querySelector('p').textContent = "Chọn một lá bài Spell/Trap phù hợp để tạo Chain Link tiếp theo.";
+    container.innerHTML = '';
+    
+    validCards.forEach(item => {
+        const div = document.createElement('div');
+        let typeClass = item.card.card_type === 'Spell' ? 'spell' : 'trap';
+        div.className = `ygo-mini-card ${typeClass}`;
+        div.innerHTML = `
+            <div style="font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.card.name_vi}</div>
+            <div style="font-size:0.48rem; color:#cbd5e1;">${item.source === 'hand' ? 'TAY' : 'SÂN'}</div>
+        `;
+        div.onclick = () => {
+            modal.style.display = 'none';
+            try { audio.play('click'); } catch(e){}
+            item.card.faceUp = true;
+            
+            if (item.source === 'hand') {
+                let emptyIdx = d.playerSpells.indexOf(null);
+                if (emptyIdx !== -1) {
+                    d.playerSpells[emptyIdx] = item.card;
+                    d.playerHand.splice(item.index, 1);
+                    d.chainStack.push({ side: 'player', card: item.card, zoneIdx: emptyIdx });
+                }
+            } else {
+                d.chainStack.push({ side: 'player', card: item.card, zoneIdx: item.index });
+            }
+            
+            d.consecutivePasses = 0;
+            d.prioritySide = 'opponent';
+            ygoLog(`⛓️ Chain Link ${d.chainStack.length}: Bạn phản hồi bằng [${item.card.name_vi}]!`);
+            ygoTriggerChainResponse();
+        };
+        container.appendChild(div);
+    });
+    
+    modal.style.display = 'flex';
+};
+
+window.ygoResolveChain = function() {
+    let d = ygoGame.duel;
+    if (d.chainStack.length === 0) {
+        d.chainActive = false;
+        d.consecutivePasses = 0;
+        ygoLog(`⛓️ Giải quyết Chain hoàn tất!`);
+        ygoRenderField();
+        ygoCheckWinConditions();
+        
+        if (d.turn === 'opponent') {
+            setTimeout(ygoRunBotPhase, 500);
+        }
+        return;
+    }
+    
+    let link = d.chainStack.pop();
+    ygoLog(`▶️ Resolve Chain Link ${d.chainStack.length + 1}: Kích hoạt hiệu ứng của [${link.card.name_vi}] (${link.side === 'player' ? 'BẠN' : 'BOT'})`);
+    
+    ygoExecuteCardEffect(link.side, link.card, link.zoneIdx);
+    
+    setTimeout(() => {
+        ygoResolveChain();
+    }, 1000);
+};
+
+window.ygoBotChainDecision = function() {
+    let d = ygoGame.duel;
+    let hasResponse = ygoCheckValidResponses('opponent');
+    if (hasResponse && Math.random() < 0.6) {
+        let validSpells = [];
+        d.oppSpells.forEach((c, idx) => {
+            if (c && !c.faceUp) validSpells.push({ card: c, source: 'field', index: idx });
+        });
+        if (d.turn === 'opponent') {
+            d.oppHand.forEach((c, idx) => {
+                if (c.card_type === 'Spell' && c.property === 'Quick-Play') {
+                    validSpells.push({ card: c, source: 'hand', index: idx });
+                }
+            });
+        }
+        
+        if (validSpells.length > 0) {
+            let choice = validSpells[Math.floor(Math.random() * validSpells.length)];
+            choice.card.faceUp = true;
+            
+            if (choice.source === 'hand') {
+                let emptyIdx = d.oppSpells.indexOf(null);
+                if (emptyIdx !== -1) {
+                    d.oppSpells[emptyIdx] = choice.card;
+                    d.oppHand.splice(choice.index, 1);
+                    d.chainStack.push({ side: 'opponent', card: choice.card, zoneIdx: emptyIdx });
+                }
+            } else {
+                d.chainStack.push({ side: 'opponent', card: choice.card, zoneIdx: choice.index });
+            }
+            
+            d.consecutivePasses = 0;
+            d.prioritySide = 'player';
+            ygoLog(`⛓️ Chain Link ${d.chainStack.length}: Bot phản hồi bằng [${choice.card.name_vi}]!`);
+            ygoTriggerChainResponse();
+            return;
+        }
+    }
+    
+    ygoPassChain('opponent');
+};
+
+window.ygoResolveBattle = function(myMonIdx, oppMonIdx) {
+    let d = ygoGame.duel;
+    let myMon = d.playerMonsters[myMonIdx];
+    let oppMon = d.oppMonsters[oppMonIdx];
+    if (!myMon || !oppMon) return;
+    
+    myMon.hasAttacked = true;
+    
+    let wasFaceDown = (oppMon.faceUp === false);
+    if (wasFaceDown) {
+        oppMon.faceUp = true;
+        ygoLog(`🔄 Lật ngửa quái thú thủ úp của đối thủ: [${oppMon.name_vi}]!`);
+        let isFlip = (oppMon.monster_type || '').toLowerCase().includes('flip') || (oppMon.anime_effect_vi || '').toLowerCase().includes('lật');
+        if (isFlip) {
+            ygoLog(`🔮 Kích hoạt hiệu ứng FLIP của [${oppMon.name_vi}]!`);
+            ygoExecuteCardEffect('opponent', oppMon, oppMonIdx);
+        }
+    }
+    
+    let myAtk = ygoGetEffectiveAtk('player', myMon);
+    try { audio.play('hit'); } catch(e){}
+    
+    if (oppMon.position === 'defense') {
+        let oppDef = parseInt(oppMon.currentDef || oppMon.def) || 0;
+        ygoLog(`⚔️ [${myMon.name_vi}] (ATK ${myAtk}) tấn công [${oppMon.name_vi}] ở THẾ THỦ (DEF ${oppDef})!`);
+        
+        if (myAtk > oppDef) {
+            ygoLog(`💔 [${oppMon.name_vi}] bị tiêu diệt.`);
+            ygoDestroyMonster('opponent', oppMonIdx);
+            
+            if (ygoGame.myCharacter === 'rex' && myMon.monster_type && myMon.monster_type.toLowerCase().includes('dinosaur')) {
+                let diff = myAtk - oppDef;
+                ygoDamageOpponent(diff, `xuyên thủ của Rex Raptor`);
+            }
+        } else if (myAtk < oppDef) {
+            let diff = oppDef - myAtk;
+            ygoDamagePlayer(diff, `phản đòn phòng thủ từ quái thú`);
+        } else {
+            ygoLog(`🛡️ Không bên nào bị thiệt hại.`);
+        }
+    } else {
+        let oppAtk = ygoGetEffectiveAtk('opponent', oppMon);
+        ygoLog(`⚔️ [${myMon.name_vi}] (ATK ${myAtk}) tấn công [${oppMon.name_vi}] (ATK ${oppAtk})!`);
+        
+        if (myAtk > oppAtk) {
+            let diff = myAtk - oppAtk;
+            ygoDamageOpponent(diff, `chiến đấu quái thú`);
+            ygoLog(`💔 [${oppMon.name_vi}] bị tiêu diệt.`);
+            ygoDestroyMonster('opponent', oppMonIdx);
+        } else if (myAtk === oppAtk) {
+            ygoLog(`💥 Cả hai quái thú cùng bị hủy!`);
+            ygoDestroyMonster('player', myMonIdx);
+            ygoDestroyMonster('opponent', oppMonIdx);
+        } else {
+            let diff = oppAtk - myAtk;
+            ygoDamagePlayer(diff, `quái thú đối thủ phản công`);
+            ygoLog(`💔 [${myMon.name_vi}] bị tiêu diệt.`);
+            ygoDestroyMonster('player', myMonIdx);
+        }
+    }
+};
+
+window.ygoResolveDirectAttack = function(myMonIdx) {
+    let d = ygoGame.duel;
+    let myMon = d.playerMonsters[myMonIdx];
+    if (!myMon) return;
+    
+    myMon.hasAttacked = true;
+    let myAtk = ygoGetEffectiveAtk('player', myMon);
+    
+    try { audio.play('hit'); } catch(e){}
+    ygoLog(`⚔️ [${myMon.name_vi}] tấn công TRỰC DIỆN!`);
+    ygoDamageOpponent(myAtk, `tấn công trực diện`);
+};
+
+window.ygoRunBotPhase = function() {
+    let d = ygoGame.duel;
+    if (d.turn !== 'opponent' || d.chainActive) return;
+    
+    if (d.phase === 'MAIN1') {
+        ygoRunBotMainPhase();
+    } else if (d.phase === 'BATTLE') {
+        ygoRunBotBattlePhase();
+    } else if (d.phase === 'MAIN2') {
+        ygoStartPhase('END');
+    }
+};
+
+window.ygoRunBotMainPhase = function() {
+    let d = ygoGame.duel;
+    
+    // 1. Extra Deck Summon
+    let botMonsterCount = d.oppMonsters.filter(m => m !== null).length;
+    if (d.oppExtraDeck && d.oppExtraDeck.length > 0 && botMonsterCount < 2 && Math.random() < 0.3) {
+        let emptyIdx = d.oppMonsters.indexOf(null);
+        if (emptyIdx !== -1) {
+            let card = d.oppExtraDeck.shift();
+            card.currentAtk = parseInt(card.atk) || 0;
+            card.currentDef = parseInt(card.def) || 0;
+            card.position = 'attack';
+            card.faceUp = true;
+            d.oppMonsters[emptyIdx] = card;
+            ygoLog(`🔮 Bot Triệu hồi Đặc biệt [${card.name_vi}] từ Extra Deck!`);
+            ygoRenderField();
+        }
+    }
+    
+    // 2. Kích hoạt Skill
+    if (!d.oppUsedSkill && Math.random() < 0.5) {
+        ygoTriggerBotSkill();
+    }
+    
+    // 3. Triệu hồi quái thú thường
+    let bestMonIdx = -1;
+    let maxAtk = -1;
+    d.oppHand.forEach((c, idx) => {
+        if (c.card_type === 'Monster') {
+            let atk = parseInt(c.atk) || 0;
+            if (atk > maxAtk) {
+                maxAtk = atk;
+                bestMonIdx = idx;
+            }
+        }
+    });
+    
+    if (bestMonIdx !== -1 && !d.hasNormalSummoned) {
+        let card = d.oppHand[bestMonIdx];
+        let emptyIdx = d.oppMonsters.indexOf(null);
+        if (emptyIdx !== -1) {
+            let lvl = card.level_rank || 1;
+            let tributesNeeded = lvl >= 7 ? 2 : (lvl >= 5 ? 1 : 0);
+            if (ygoGame.oppCharacter === 'kaiba' && card.name_en.toLowerCase().includes("blue-eyes white dragon")) {
+                tributesNeeded = 0;
+            }
+            
+            let aliveCount = d.oppMonsters.filter(m => m !== null).length;
+            if (aliveCount >= tributesNeeded) {
+                if (tributesNeeded > 0) {
+                    let count = 0;
+                    for (let i = 0; i < 5; i++) {
+                        if (d.oppMonsters[i] !== null) {
+                            ygoLog(`🕯️ Bot hiến tế [${d.oppMonsters[i].name_vi}] gửi vào Graveyard.`);
+                            d.oppGY.push(d.oppMonsters[i]);
+                            d.oppMonsters[i] = null;
+                            count++;
+                            if (count >= tributesNeeded) break;
+                        }
+                    }
+                }
+                
+                let isDef = (parseInt(card.def) || 0) > (parseInt(card.atk) || 0);
+                let pos = isDef ? 'set' : 'attack';
+                
+                ygoPerformSummon('opponent', card, emptyIdx, pos);
+                d.hasNormalSummoned = true;
+            }
+        }
+    }
+    
+    // 4. Úp Spell/Trap
+    let spellIdx = d.oppHand.findIndex(c => c.card_type === 'Spell' || c.card_type === 'Trap');
+    if (spellIdx !== -1) {
+        let emptyIdx = d.oppSpells.indexOf(null);
+        if (emptyIdx !== -1) {
+            let card = d.oppHand[spellIdx];
+            d.oppSpells[emptyIdx] = card;
+            d.oppHand.splice(spellIdx, 1);
+            ygoLog(`🤖 Bot úp 1 lá Spell/Trap.`);
+            
+            if (card.card_type === 'Spell' && (card.name_en.toLowerCase().includes('pot of greed') || card.name_en.toLowerCase().includes('raigeki'))) {
+                card.faceUp = true;
+                ygoStartChain('opponent', card, emptyIdx);
+                return;
+            }
+        }
     }
     
     ygoRenderField();
-    if (d.mode === 'pvp') {
-        ygoSendSyncState(isDefense ? `💥 Đối thủ úp 1 quái thú ở thế PHÒNG THỦ.` : `💥 Đối thủ triệu hồi quái thú: [${card.name_vi}] (ATK: ${card.atk})`);
+    
+    setTimeout(() => {
+        if (d.turnCount === 1) {
+            ygoStartPhase('END');
+        } else {
+            ygoStartPhase('BATTLE');
+        }
+    }, 1000);
+};
+
+window.ygoTriggerBotSkill = function() {
+    let d = ygoGame.duel;
+    let botChar = ygoGame.oppCharacter;
+    
+    if (botChar === 'kaiba') {
+        let bewdIdx = d.oppHand.findIndex(c => c.name_en.toLowerCase().includes("blue-eyes white dragon"));
+        let emptyIdx = d.oppMonsters.indexOf(null);
+        if (bewdIdx !== -1 && emptyIdx !== -1) {
+            let card = d.oppHand.splice(bewdIdx, 1)[0];
+            ygoPerformSummon('opponent', card, emptyIdx, 'attack');
+            d.oppUsedSkill = true;
+            ygoLog(`🔥 [Kỹ Năng] Bot Kaiba kích hoạt [Kiêu Hãnh Của Rồng] không cần hiến tế!`);
+        }
     }
+    else if (botChar === 'marik' && d.oppLP > 1000) {
+        let playerAlive = d.playerMonsters.map((m, i) => m !== null ? i : null).filter(v => v !== null);
+        let handMonIdx = d.oppHand.findIndex(c => c.card_type === 'Monster');
+        let emptyIdx = d.oppMonsters.indexOf(null);
+        if (playerAlive.length > 0 && handMonIdx !== -1 && emptyIdx !== -1) {
+            let targetIdx = playerAlive[0];
+            let sacrificed = d.playerMonsters[targetIdx];
+            d.playerGY.push(sacrificed);
+            d.playerMonsters[targetIdx] = null;
+            
+            let summoned = d.oppHand.splice(handMonIdx, 1)[0];
+            ygoPerformSummon('opponent', summoned, emptyIdx, 'attack');
+            
+            let cost = Math.floor(d.oppLP / 2);
+            d.oppLP -= cost;
+            d.oppUsedSkill = true;
+            ygoLog(`🔥 [Kỹ Năng] Bot Marik kích hoạt [Nghi Thức Hiến Tế Bóng Tối] hiến tế [${sacrificed.name_vi}] và trừ ${cost} LP.`);
+            ygoUpdateLP();
+        }
+    }
+};
+
+window.ygoRunBotBattlePhase = function() {
+    let d = ygoGame.duel;
+    
+    let botMonsters = [];
+    d.oppMonsters.forEach((m, idx) => {
+        if (m && m.position === 'attack' && !m.hasAttacked) {
+            botMonsters.push({ card: m, index: idx });
+        }
+    });
+    
+    if (botMonsters.length === 0) {
+        ygoStartPhase('MAIN2');
+        return;
+    }
+    
+    let idxToAttack = 0;
+    
+    function performNextAttack() {
+        if (idxToAttack >= botMonsters.length) {
+            ygoStartPhase('MAIN2');
+            return;
+        }
+        
+        let attacker = botMonsters[idxToAttack];
+        let myMon = attacker.card;
+        myMon.hasAttacked = true;
+        
+        let playerAlive = [];
+        d.playerMonsters.forEach((m, i) => {
+            if (m) playerAlive.push(i);
+        });
+        
+        let isWater = myMon.attribute && myMon.attribute.toUpperCase() === 'WATER';
+        let playerHasWater = d.playerMonsters.some(m => m !== null && m.attribute && m.attribute.toUpperCase() === 'WATER');
+        let canAttackDirectly = (playerAlive.length === 0) || (ygoGame.oppCharacter === 'mako' && isWater && !playerHasWater);
+        
+        if (ygoGame.myCharacter === 'leon') {
+            ygoLog(`🏰 [Lâu Đài Cổ Tích] Bot [${myMon.name_vi}] tuyên bố tấn công và bị tiêu diệt bởi Stromberg Castle!`);
+            ygoDestroyMonster('opponent', attacker.index);
+            ygoRenderField();
+            idxToAttack++;
+            setTimeout(performNextAttack, 1000);
+            return;
+        }
+        
+        if (!canAttackDirectly && playerAlive.length > 0) {
+            let targetIdx = playerAlive[0];
+            let targetMon = d.playerMonsters[targetIdx];
+            
+            if (targetMon.faceUp === false) {
+                targetMon.faceUp = true;
+                ygoLog(`🔄 Bot lật ngửa quái thú của bạn: [${targetMon.name_vi}]!`);
+                let isFlip = (targetMon.monster_type || '').toLowerCase().includes('flip') || (targetMon.anime_effect_vi || '').toLowerCase().includes('lật');
+                if (isFlip) {
+                    ygoLog(`🔮 Kích hoạt hiệu ứng FLIP của [${targetMon.name_vi}]!`);
+                    ygoExecuteCardEffect('player', targetMon, targetIdx);
+                }
+            }
+            
+            let botAtk = ygoGetEffectiveAtk('opponent', myMon);
+            try { audio.play('hit'); } catch(e){}
+            
+            if (targetMon.position === 'defense') {
+                let playDef = parseInt(targetMon.currentDef || targetMon.def) || 0;
+                ygoLog(`🤖 Bot [${myMon.name_vi}] (ATK ${botAtk}) tấn công [${targetMon.name_vi}] ở THẾ THỦ (DEF ${playDef})!`);
+                
+                if (botAtk > playDef) {
+                    ygoLog(`💔 [${targetMon.name_vi}] bị tiêu diệt.`);
+                    ygoDestroyMonster('player', targetIdx);
+                    if (ygoGame.oppCharacter === 'rex' && myMon.monster_type && myMon.monster_type.toLowerCase().includes('dinosaur')) {
+                        let diff = botAtk - playDef;
+                        ygoDamagePlayer(diff, `xuyên thủ của Bot Rex Raptor`);
+                    }
+                } else if (botAtk < playDef) {
+                    let diff = playDef - botAtk;
+                    ygoDamageOpponent(diff, `quái thủ phản đòn`);
+                }
+            } else {
+                let playAtk = ygoGetEffectiveAtk('player', targetMon);
+                ygoLog(`🤖 Bot [${myMon.name_vi}] (ATK ${botAtk}) tấn công [${targetMon.name_vi}] (ATK ${playAtk})!`);
+                
+                if (botAtk > playAtk) {
+                    let diff = botAtk - playAtk;
+                    ygoDamagePlayer(diff, `chiến đấu quái thú`);
+                    ygoLog(`💔 [${targetMon.name_vi}] bị tiêu diệt.`);
+                    ygoDestroyMonster('player', targetIdx);
+                } else if (botAtk === playAtk) {
+                    ygoLog(`💥 Cả hai quái thú cùng chết!`);
+                    ygoDestroyMonster('opponent', attacker.index);
+                    ygoDestroyMonster('player', targetIdx);
+                } else {
+                    let diff = playAtk - botAtk;
+                    ygoDamageOpponent(diff, `quái thú phản công`);
+                    ygoLog(`💔 Bot [${myMon.name_vi}] bị tiêu diệt.`);
+                    ygoDestroyMonster('opponent', attacker.index);
+                }
+            }
+        } else if (canAttackDirectly) {
+            try { audio.play('hit'); } catch(e){}
+            let botAtk = ygoGetEffectiveAtk('opponent', myMon);
+            ygoLog(`🤖 Bot [${myMon.name_vi}] tấn công TRỰC DIỆN!`);
+            ygoDamagePlayer(botAtk, `tấn công trực diện của Bot`);
+        }
+        
+        ygoUpdateLP();
+        ygoRenderField();
+        ygoCheckWinConditions();
+        
+        if (d.playerLP <= 0 || d.oppLP <= 0) return;
+        
+        idxToAttack++;
+        setTimeout(performNextAttack, 1000);
+    }
+    
+    performNextAttack();
 };
 
 window.ygoActionActivateSpell = function() {
@@ -1609,7 +2535,7 @@ window.ygoActionActivateSpell = function() {
     
     let emptyIdx = d.playerSpells.indexOf(null);
     if (emptyIdx === -1) {
-        showToast("⚠️ Ô bài phép/bẫy của bạn đã đầy!");
+        showToast("⚠️ Ô bài Phép/Bẫy của bạn đã đầy!");
         return;
     }
     
@@ -1619,20 +2545,8 @@ window.ygoActionActivateSpell = function() {
     d.playerHand.splice(d.selectedHandIndex, 1);
     d.selectedHandIndex = null;
     
-    ygoLog(`🃏 Bạn kích hoạt Spell: [${card.name_vi}]`);
-    
-    // Rebecca passive
-    if (ygoGame.myCharacter === 'rebecca') {
-        ygoLog(`✨ [Thần Đồng Công Nghệ] Rebecca kích hoạt Spell. Gây 400 sát thương lên đối thủ!`);
-        ygoDamageOpponent(400, "hiệu ứng Rebecca");
-    }
-    
-    ygoExecuteCardEffect('player', card, emptyIdx);
-    
-    ygoRenderField();
-    if (d.mode === 'pvp') {
-        ygoSendSyncState(`🃏 Đối thủ kích hoạt Spell: [${card.name_vi}]`);
-    }
+    ygoLog(`🪄 Bạn kích hoạt: [${card.name_vi}]`);
+    ygoStartChain('player', card, emptyIdx);
 };
 
 window.ygoActionSetSpellTrap = function() {
@@ -1643,7 +2557,7 @@ window.ygoActionSetSpellTrap = function() {
     
     let emptyIdx = d.playerSpells.indexOf(null);
     if (emptyIdx === -1) {
-        showToast("⚠️ Ô bài phép/bẫy của bạn đã đầy!");
+        showToast("⚠️ Ô bài Phép/Bẫy của bạn đã đầy!");
         return;
     }
     
@@ -1653,11 +2567,8 @@ window.ygoActionSetSpellTrap = function() {
     d.playerHand.splice(d.selectedHandIndex, 1);
     d.selectedHandIndex = null;
     
-    ygoLog(`🃏 Bạn úp 1 lá bài Phép/Bẫy xuống sân.`);
+    ygoLog(`🃏 Bạn úp 1 lá Phép/Bẫy.`);
     ygoRenderField();
-    if (d.mode === 'pvp') {
-        ygoSendSyncState(`🃏 Đối thủ úp 1 lá bài Phép/Bẫy xuống sân.`);
-    }
 };
 
 window.ygoActionActivateFieldSpell = function() {
@@ -1668,7 +2579,6 @@ window.ygoActionActivateFieldSpell = function() {
     
     try { audio.play('click'); } catch(e){}
     if (d.playerFieldSpell) {
-        ygoLog(`🗑️ Gửi bài môi trường cũ [${d.playerFieldSpell.name_vi}] xuống Mộ bài.`);
         d.playerGY.push(d.playerFieldSpell);
     }
     
@@ -1677,38 +2587,8 @@ window.ygoActionActivateFieldSpell = function() {
     d.playerHand.splice(d.selectedHandIndex, 1);
     d.selectedHandIndex = null;
     
-    ygoLog(`🏞️ Bạn kích hoạt Bài Môi Trường: [${card.name_vi}]`);
+    ygoLog(`🏞️ Kích hoạt bài Môi Trường: [${card.name_vi}]`);
     ygoRenderField();
-    if (d.mode === 'pvp') {
-        ygoSendSyncState(`🏞️ Đối thủ kích hoạt Bài Môi Trường: [${card.name_vi}]`);
-    }
-};
-
-window.ygoActionChangePosition = function(pos) {
-    let d = ygoGame.duel;
-    let mon = d.playerMonsters[pos];
-    if (!mon) return;
-    
-    if (mon.position === 'defense') {
-        mon.position = 'attack';
-        mon.faceUp = true;
-        ygoLog(`🔄 Lật mặt / Chuyển quái thú [${mon.name_vi}] sang thế TẤN CÔNG (ATK).`);
-    } else {
-        mon.position = 'defense';
-        ygoLog(`🔄 Chuyển quái thú [${mon.name_vi}] sang thế PHÒNG THỦ (DEF).`);
-    }
-    
-    ygoRenderField();
-    if (d.mode === 'pvp') ygoSendSyncState();
-};
-
-window.ygoActionDeclareAttack = function(pos) {
-    let d = ygoGame.duel;
-    let myMon = d.playerMonsters[pos];
-    if (!myMon) return;
-    
-    d.selectedFieldCard = { side: 'player', type: 'monster', pos: pos };
-    ygoLog(`⚔️ Tuyên bố tấn công với [${myMon.name_vi}]! Click vào quái đối thủ để tấn công hoặc click vào ô đối diện trống để Tấn công trực diện.`);
 };
 
 window.ygoActionActivateSetCard = function(pos) {
@@ -1718,39 +2598,58 @@ window.ygoActionActivateSetCard = function(pos) {
     
     try { audio.play('click'); } catch(e){}
     card.faceUp = true;
-    ygoLog(`🃏 Bạn kích hoạt bài úp: [${card.name_vi}]`);
+    ygoLog(`🪄 Bạn lật kích hoạt bài úp: [${card.name_vi}]`);
+    ygoStartChain('player', card, pos);
+};
+
+window.ygoActionChangePosition = function(pos) {
+    let d = ygoGame.duel;
+    let card = d.playerMonsters[pos];
+    if (!card) return;
     
-    ygoExecuteCardEffect('player', card, pos);
-    
-    ygoRenderField();
-    if (d.mode === 'pvp') {
-        ygoSendSyncState(`🃏 Đối thủ kích hoạt bài úp: [${card.name_vi}]`);
+    if (card.faceUp === false) {
+        card.faceUp = true;
+        card.position = 'attack';
+        ygoLog(`🔄 Flip Summon (Lật mặt tấn công): [${card.name_vi}]!`);
+        
+        let isFlip = (card.monster_type || '').toLowerCase().includes('flip') || (card.anime_effect_vi || '').toLowerCase().includes('lật');
+        if (isFlip) {
+            ygoLog(`🔮 Kích hoạt hiệu ứng FLIP của [${card.name_vi}]!`);
+            ygoExecuteCardEffect('player', card, pos);
+        }
+    } else {
+        card.position = card.position === 'defense' ? 'attack' : 'defense';
+        ygoLog(`🔄 Thay đổi tư thế chiến đấu của [${card.name_vi}] sang ${card.position === 'defense' ? 'PHÒNG THỦ' : 'TẤN CÔNG'}.`);
     }
+    
+    card.hasChangedPosition = true;
+    d.selectedFieldCard = null;
+    ygoRenderField();
+};
+
+window.ygoActionDeclareAttack = function(pos) {
+    let d = ygoGame.duel;
+    let card = d.playerMonsters[pos];
+    if (!card || card.position === 'defense' || card.hasAttacked) return;
+    
+    d.selectedFieldCard = { side: 'player', type: 'monster', pos: pos };
+    ygoLog(`⚔️ Hãy click chọn 1 quái thú đối thủ để tấn công (hoặc ô trống đối diện để tấn công trực diện).`);
 };
 
 window.ygoOpenExtraDeckModal = function() {
     let d = ygoGame.duel;
-    if (!d) return;
-    if (d.turn !== 'player') {
-        showToast("⚠️ Chỉ có thể triệu hồi Đặc biệt từ Extra Deck trong lượt của bạn!");
-        return;
-    }
-    if (!d.phase.includes('MAIN')) {
-        showToast("⚠️ Chỉ có thể triệu hồi từ Extra Deck trong Main Phase 1 hoặc Main Phase 2!");
-        return;
-    }
+    if (!d || d.turn !== 'player' || !d.phase.includes('MAIN')) return;
     
     const modal = document.getElementById('ygoDeckSelectModal');
     const container = document.getElementById('ygoDeckSelectContainer');
     if (!modal || !container) return;
     
     modal.querySelector('h3').textContent = "🔮 TRIỆU HỒI TỪ EXTRA DECK";
-    modal.querySelector('p').textContent = "Chọn một quái thú Dung hợp/Đồng bộ/Xyz/Link để Triệu hồi Đặc biệt lên sân.";
-    
+    modal.querySelector('p').textContent = "Chọn quái thú Dung hợp / Đồng bộ / Xyz / Link.";
     container.innerHTML = '';
     
     if (!d.playerExtraDeck || d.playerExtraDeck.length === 0) {
-        container.innerHTML = '<div style="color:#cbd5e1; font-size:0.85rem; padding: 15px; grid-column:1/-1; text-align:center;">Extra Deck trống!</div>';
+        container.innerHTML = '<div style="color:#cbd5e1; padding: 15px; text-align:center; grid-column:1/-1;">Extra Deck trống!</div>';
     } else {
         d.playerExtraDeck.forEach((card, idx) => {
             const div = document.createElement('div');
@@ -1768,14 +2667,11 @@ window.ygoOpenExtraDeckModal = function() {
             container.appendChild(div);
         });
     }
-    
     modal.style.display = 'flex';
 };
 
 window.ygoSpecialSummonExtra = function(idx) {
     let d = ygoGame.duel;
-    if (!d || d.turn !== 'player') return;
-    
     let card = d.playerExtraDeck[idx];
     if (!card) return;
     
@@ -1785,312 +2681,23 @@ window.ygoSpecialSummonExtra = function(idx) {
         return;
     }
     
-    let isDefense = !confirm(`Bạn muốn Triệu hồi Đặc biệt [${card.name_vi}] ở thế TẤN CÔNG? (Chọn Cancel để ÚP PHÒNG THỦ hoặc THẾ THỦ)`);
+    let confirmAtk = confirm(`Triệu hồi [${card.name_vi}] ở thế TẤN CÔNG? (Chọn Cancel để triệu hồi thế PHÒNG THỦ)`);
+    let pos = confirmAtk ? 'attack' : 'defense';
     
-    try { audio.play('levelup'); } catch(e){}
+    card.position = pos;
+    card.faceUp = true;
+    card.hasChangedPosition = true;
     card.currentAtk = parseInt(card.atk) || 0;
     card.currentDef = parseInt(card.def) || 0;
-    card.position = isDefense ? 'defense' : 'attack';
-    card.faceUp = true; // Always face-up for special summons in general
     
     d.playerMonsters[emptyIdx] = card;
     d.playerExtraDeck.splice(idx, 1);
     
-    ygoLog(`🔮 Bạn Triệu hồi Đặc biệt [${card.name_vi}] từ Extra Deck ở thế ${isDefense ? 'PHÒNG THỦ' : 'TẤN CÔNG'}!`);
+    ygoLog(`🔮 Bạn Triệu hồi Đặc biệt [${card.name_vi}] ở thế ${pos === 'attack' ? 'TẤN CÔNG' : 'PHÒNG THỦ'}!`);
     ygoRenderField();
-    if (d.mode === 'pvp') {
-        ygoSendSyncState(`🔮 Đối thủ Triệu hồi Đặc biệt [${card.name_vi}] từ Extra Deck ở thế ${isDefense ? 'PHÒNG THỦ' : 'TẤN CÔNG'}!`);
-    }
 };
 
-// Xử lý Click vào ô trên bàn đấu
-// ── HỆ THỐNG KỸ NĂNG VAI CHƠI CHI TIẾT (30 NHÂN VẬT) ─────────────────
-function ygoGetEffectiveAtk(side, card) {
-    if (!card) return 0;
-    let baseAtk = parseInt(card.atk) || 0;
-    let bonus = 0;
-    
-    // Mako: Ocean Kingdom -> Water +500 ATK
-    let hasUmi = (ygoGame.myCharacter === 'mako' || ygoGame.oppCharacter === 'mako');
-    if (hasUmi && card.attribute && card.attribute.toUpperCase() === 'WATER') {
-        bonus += 500;
-    }
-    
-    // Dartz: Seal of Orichalcos -> +500 ATK to own monsters
-    let myDartz = (side === 'player' && ygoGame.myCharacter === 'dartz');
-    let oppDartz = (side === 'opponent' && ygoGame.oppCharacter === 'dartz');
-    if (myDartz || oppDartz) {
-        bonus += 500;
-    }
-    
-    // Rafael: GY empty -> +1000 ATK
-    let d = ygoGame.duel;
-    let gy = side === 'player' ? d.playerGY : d.oppGY;
-    let myRafael = (side === 'player' && ygoGame.myCharacter === 'rafael' && gy.length === 0);
-    let oppRafael = (side === 'opponent' && ygoGame.oppCharacter === 'rafael' && gy.length === 0);
-    if (myRafael || oppRafael) {
-        bonus += 1000;
-    }
-    
-    return baseAtk + bonus;
-}
-
-function ygoDamagePlayer(amount, reason) {
-    let d = ygoGame.duel;
-    let actualDamage = amount;
-    
-    // Valon: Armor Active (Nếu có quái Machine trên sân, damage = 0)
-    if (ygoGame.myCharacter === 'valon') {
-        let hasMachine = d.playerMonsters.some(m => m !== null && m.monster_type && m.monster_type.toLowerCase().includes('machine'));
-        if (hasMachine) {
-            ygoLog(`🛡️ [Giáp Trận Công Nghệ] Valon sở hữu quái thú Máy Móc trên sân. Sát thương nhận vào giảm về 0!`);
-            return;
-        }
-    }
-    
-    // Téa: Friendship Power (Hồi lại 50% LP bị trừ)
-    if (ygoGame.myCharacter === 'tea') {
-        let recover = Math.floor(actualDamage * 0.5);
-        d.playerLP = Math.max(0, d.playerLP - actualDamage + recover);
-        ygoLog(`💖 [Sức Mạnh Tình Bạn] Téa Gardner hồi lại ${recover} LP từ ${actualDamage} sát thương.`);
-    } else {
-        d.playerLP = Math.max(0, d.playerLP - actualDamage);
-        ygoLog(`💔 Bạn nhận ${actualDamage} sát thương từ ${reason}.`);
-    }
-    
-    ygoUpdateLP();
-    ygoCheckWinConditions();
-    
-    // Noah: Virtual World Reset (Khi LP dưới 1000 sau đòn đánh)
-    if (ygoGame.myCharacter === 'noah' && d.playerLP < 1000 && d.playerLP > 0 && !d.noahSkillUsed) {
-        d.noahSkillUsed = true;
-        ygoLog(`🌐 [Thế Giới Ảo] Noah kích hoạt Reset: Trả toàn bộ quái thú trên sân của hai bên về tay chủ!`);
-        for (let i = 0; i < 5; i++) {
-            if (d.playerMonsters[i]) {
-                d.playerHand.push(d.playerMonsters[i]);
-                d.playerMonsters[i] = null;
-            }
-            if (d.oppMonsters[i]) {
-                d.oppHand.push(d.oppMonsters[i]);
-                d.oppMonsters[i] = null;
-            }
-        }
-        ygoRenderField();
-    }
-    
-    // Alister: Ziggurat Summon (Khi LP dưới 2000)
-    if (ygoGame.myCharacter === 'alister' && d.playerLP < 2000 && d.playerLP > 0 && !d.alisterSkillUsed) {
-        d.alisterSkillUsed = true;
-        ygoLog(`⚡ [Pháo Đài Ảo Ảnh] Alister huỷ toàn bộ bài trên tay để Triệu hồi Đặc biệt siêu quái thú Air Fortress Ziggurat!`);
-        d.playerHand = [];
-        let emptyIdx = d.playerMonsters.indexOf(null);
-        let ziggurat = {
-            name_en: "Air Fortress Ziggurat",
-            name_vi: "Pháo Đài Không Trung Ziggurat",
-            card_type: "Monster",
-            attribute: "WIND",
-            monster_type: "Machine / Effect",
-            level_rank: 8,
-            atk: "2500",
-            def: "2000",
-            anime_effect_en: "Cannot be destroyed.",
-            anime_effect_vi: "Không thể bị phá huỷ."
-        };
-        if (emptyIdx !== -1) {
-            d.playerMonsters[emptyIdx] = ziggurat;
-        } else {
-            d.playerGY.push(ziggurat);
-        }
-        ygoRenderField();
-    }
-}
-
-function ygoDamageOpponent(amount, reason) {
-    let d = ygoGame.duel;
-    let actualDamage = amount;
-    
-    // Valon opponent passive
-    if (ygoGame.oppCharacter === 'valon') {
-        let hasMachine = d.oppMonsters.some(m => m !== null && m.monster_type && m.monster_type.toLowerCase().includes('machine'));
-        if (hasMachine) {
-            ygoLog(`🛡️ [Giáp Trận Công Nghệ] Bot Valon có quái Máy Móc. Sát thương nhận vào giảm về 0!`);
-            return;
-        }
-    }
-    
-    // Téa opponent passive
-    if (ygoGame.oppCharacter === 'tea') {
-        let recover = Math.floor(actualDamage * 0.5);
-        d.oppLP = Math.max(0, d.oppLP - actualDamage + recover);
-        ygoLog(`💖 [Sức Mạnh Tình Bạn] Bot Téa Gardner hồi lại ${recover} LP.`);
-    } else {
-        d.oppLP = Math.max(0, d.oppLP - actualDamage);
-        ygoLog(`💥 Đối thủ nhận ${actualDamage} sát thương từ ${reason}.`);
-    }
-    
-    ygoUpdateLP();
-    ygoCheckWinConditions();
-    
-    // Noah opponent passive
-    if (ygoGame.oppCharacter === 'noah' && d.oppLP < 1000 && d.oppLP > 0 && !d.noahSkillUsed) {
-        d.noahSkillUsed = true;
-        ygoLog(`🌐 [Thế Giới Ảo] Bot Noah kích hoạt Reset: Trả toàn bộ quái về tay chủ!`);
-        for (let i = 0; i < 5; i++) {
-            if (d.playerMonsters[i]) {
-                d.playerHand.push(d.playerMonsters[i]);
-                d.playerMonsters[i] = null;
-            }
-            if (d.oppMonsters[i]) {
-                d.oppHand.push(d.oppMonsters[i]);
-                d.oppMonsters[i] = null;
-            }
-        }
-        ygoRenderField();
-    }
-    
-    // Alister opponent passive
-    if (ygoGame.oppCharacter === 'alister' && d.oppLP < 2000 && d.oppLP > 0 && !d.alisterSkillUsed) {
-        d.alisterSkillUsed = true;
-        ygoLog(`⚡ [Pháo Đài Ảo Ảnh] Bot Alister huỷ tay triệu hồi Air Fortress Ziggurat!`);
-        d.oppHand = [];
-        let emptyIdx = d.oppMonsters.indexOf(null);
-        let ziggurat = {
-            name_en: "Air Fortress Ziggurat",
-            name_vi: "Pháo Đài Không Trung Ziggurat",
-            card_type: "Monster",
-            attribute: "WIND",
-            monster_type: "Machine / Effect",
-            level_rank: 8,
-            atk: "2500",
-            def: "2000",
-            anime_effect_en: "Cannot be destroyed.",
-            anime_effect_vi: "Không thể bị phá huỷ."
-        };
-        if (emptyIdx !== -1) {
-            d.oppMonsters[emptyIdx] = ziggurat;
-        } else {
-            d.oppGY.push(ziggurat);
-        }
-        ygoRenderField();
-    }
-}
-
-function ygoDestroyMonster(side, index) {
-    let d = ygoGame.duel;
-    let monsters = side === 'player' ? d.playerMonsters : d.oppMonsters;
-    let gy = side === 'player' ? d.playerGY : d.oppGY;
-    let char = side === 'player' ? ygoGame.myCharacter : ygoGame.oppCharacter;
-    
-    let mon = monsters[index];
-    if (!mon) return;
-    
-    // Rafael: Sức Mạnh Giữ Mình (Mộ trống -> kháng phá huỷ)
-    if (char === 'rafael' && gy.length === 0) {
-        ygoLog(`🛡️ [Sức Mạnh Giữ Mình] Mộ bài của ${side === 'player' ? 'Rafael' : 'Bot Rafael'} trống rơn. [${mon.name_vi}] kháng mọi phá huỷ!`);
-        return;
-    }
-    
-    // Gozaburo: Necross Immortality
-    let hasNecross = (mon.name_en && mon.name_en.toLowerCase().includes("necross"));
-    if (char === 'gozaburo' && hasNecross) {
-        let exodiaParts = gy.filter(c => c.name_en && c.name_en.toLowerCase().includes("exodia"));
-        if (exodiaParts.length >= 5) {
-            ygoLog(`🔥 [Khát Vọng Báo Thù] Exodia Necross trên sân Gozaburo bất tử chặn đứng đòn tiêu diệt!`);
-            return;
-        }
-    }
-    
-    // Bonz: Tiếng Gọi Nghĩa Địa (Hồi sinh quái Zombie thế thủ ATK=0)
-    if (char === 'bonz' && mon.monster_type && mon.monster_type.toLowerCase().includes('zombie')) {
-        ygoLog(`🧟 [Tiếng Gọi Nghĩa Địa] Zombie [${mon.name_vi}] tự động hồi sinh ở thế Thủ, ATK = 0!`);
-        mon.currentAtk = 0;
-        monsters[index] = mon; // Giữ lại trên sân
-    } else {
-        gy.push(mon);
-        monsters[index] = null;
-    }
-}
-
-function ygoFlipCoin(side) {
-    let char = side === 'player' ? ygoGame.myCharacter : ygoGame.oppCharacter;
-    if (char === 'joey') {
-        ygoLog(`🎲 [Thần Bài May Mắn] Kết quả tung đồng xu luôn luôn NGỬA (Có lợi)!`);
-        return 'heads';
-    }
-    return Math.random() < 0.5 ? 'heads' : 'tails';
-}
-
-function ygoRollDice(side) {
-    let char = side === 'player' ? ygoGame.myCharacter : ygoGame.oppCharacter;
-    let d = ygoGame.duel;
-    if (char === 'joey') {
-        ygoLog(`🎲 [Thần Bài May Mắn] Kết quả đổ xúc xắc luôn luôn là 6!`);
-        return 6;
-    }
-    
-    let roll = Math.floor(Math.random() * 6) + 1;
-    // Duke Devlin: Xúc Xắc Ma Thuật
-    if (char === 'duke') {
-        ygoLog(`🎲 [Xúc Xắc Ma Thuật] Duke Devlin tung xúc xắc được ${roll}!`);
-        if (roll % 2 === 0) {
-            ygoLog(`✨ Số chẵn! Cộng ngay 500 ATK cho toàn bộ quái thú của Duke.`);
-            let monsters = side === 'player' ? d.playerMonsters : d.oppMonsters;
-            monsters.forEach(m => {
-                if (m) m.currentAtk = (parseInt(m.currentAtk || m.atk) || 0) + 500;
-            });
-        } else {
-            ygoLog(`✨ Số lẻ! Các quái thú chuyển thế thủ và kháng phá huỷ lượt này.`);
-        }
-    }
-    return roll;
-}
-
-function ygoTriggerDestinyDraw() {
-    let d = ygoGame.duel;
-    ygoLog("✨ [KỸ NĂNG BẠN] Yugi Muto kích hoạt [RÚT BÀI ĐỊNH MỆNH]!");
-    ygoLog("🎵 Nhạc nền kịch tính apocaylpse vang dội! Hiệu ứng hào quang vàng rực rỡ.");
-    
-    try { audio.play('apocalypse'); } catch(e){}
-    
-    const container = document.getElementById('ygoDeckSelectContainer');
-    if (!container) return;
-    container.innerHTML = '';
-    
-    let sortedDeck = [...d.playerDeck].sort((a,b) => a.name_vi.localeCompare(b.name_vi));
-    
-    sortedDeck.forEach(card => {
-        const div = document.createElement('div');
-        let typeClass = 'monster';
-        if (card.card_type === 'Spell') typeClass = 'spell';
-        if (card.card_type === 'Trap') typeClass = 'trap';
-        div.className = `ygo-mini-card ${typeClass}`;
-        div.innerHTML = `
-            <div style="font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${card.name_vi}</div>
-            <div style="font-size:0.48rem; color:#fcd34d;">${card.atk !== null ? `A:${card.atk}` : card.card_type}</div>
-        `;
-        div.onclick = () => ygoSelectDestinyCard(card);
-        container.appendChild(div);
-    });
-    
-    document.getElementById('ygoDeckSelectModal').style.display = 'flex';
-}
-
-window.ygoSelectDestinyCard = function(card) {
-    let d = ygoGame.duel;
-    let idx = d.playerDeck.findIndex(c => c.name_en === card.name_en);
-    if (idx !== -1) {
-        let selected = d.playerDeck.splice(idx, 1)[0];
-        d.playerHand.push(selected);
-        ygoLog(`📥 [Rút Bài Định Mệnh] Bạn đã chọn thành công lá bài đỉnh cao: ${selected.name_vi}!`);
-        
-        document.getElementById('ygoDeckSelectModal').style.display = 'none';
-        d.hasNormalSummoned = false;
-        ygoRenderField();
-        if (d.mode === 'pvp') ygoSendSyncState();
-    }
-};
-
-function ygoCheckAromaStrategy() {
+window.ygoCheckAromaStrategy = function() {
     let d = ygoGame.duel;
     let textEl = document.getElementById('ygoAromaText');
     if (!textEl) {
@@ -2113,9 +2720,9 @@ function ygoCheckAromaStrategy() {
             textEl.style.display = 'none';
         }
     }
-}
+};
 
-function ygoCheckMillenniumNecklace() {
+window.ygoCheckMillenniumNecklace = function() {
     let d = ygoGame.duel;
     let textEl = document.getElementById('ygoIshizuDeckText');
     if (!textEl) {
@@ -2139,7 +2746,7 @@ function ygoCheckMillenniumNecklace() {
             textEl.style.display = 'none';
         }
     }
-}
+};
 
 window.ygoActivateSkill = function() {
     let d = ygoGame.duel;
@@ -2148,7 +2755,7 @@ window.ygoActivateSkill = function() {
         return;
     }
     if (d.myUsedSkill) {
-        showToast("⚠️ Bạn đã kích hoạt kỹ năng trong trận đấu này rồi!");
+        showToast("⚠️ Bạn đã kích hoạt kỹ năng trong trận này rồi!");
         return;
     }
     
@@ -2158,31 +2765,22 @@ window.ygoActivateSkill = function() {
     
     try { audio.play('levelup'); } catch(e){}
     
-    // 1. Seto Kaiba: Pride of Blue-Eyes
     if (charId === 'kaiba') {
         let hasBEWD = d.playerHand.some(c => c.name_en.toLowerCase().includes("blue-eyes white dragon"));
         if (!hasBEWD) {
-            showToast("⚠️ Bạn cần có Rồng Trắng Mắt Xanh trên tay để kích hoạt kỹ năng này!");
+            showToast("⚠️ Bạn cần Rồng Trắng Mắt Xanh trên tay để dùng kỹ năng!");
             return;
         }
         d.freeBlueEyes = true;
         d.myUsedSkill = true;
-        ygoLog(`⚡ [KỸ NĂNG] Kaiba kích hoạt [Kiêu Hãnh Của Rồng]! Lá bài Rồng Trắng Mắt Xanh kế tiếp triệu hồi không cần hiến tế.`);
-        showToast("⚡ Đã kích hoạt Kiêu Hãnh Của Rồng!");
+        ygoLog(`🔥 [Kỹ Năng] Kaiba kích hoạt [Kiêu Hãnh Của Rồng]! Lần triệu hồi Rồng Trắng Mắt Xanh tiếp theo không cần hiến tế.`);
     }
-    
-    // 2. Yami Marik: Shadow Sacrifice
     else if (charId === 'marik') {
-        let oppMonIndices = [];
-        d.oppMonsters.forEach((m, i) => { if(m) oppMonIndices.push(i); });
-        
-        if (oppMonIndices.length === 0) {
-            showToast("⚠️ Đối thủ không có quái thú nào trên sân để hiến tế!");
-            return;
-        }
+        let oppMonIndices = d.oppMonsters.map((m, i) => m !== null ? i : null).filter(v => v !== null);
         let handMonIdx = d.playerHand.findIndex(c => c.card_type === 'Monster');
-        if (handMonIdx === -1) {
-            showToast("⚠️ Bạn không có quái thú nào trên tay để triệu hồi!");
+        
+        if (oppMonIndices.length === 0 || handMonIdx === -1 || d.playerLP <= 1000) {
+            showToast("⚠️ Điều kiện dùng kỹ năng hiến tế bóng tối không đủ!");
             return;
         }
         
@@ -2191,482 +2789,373 @@ window.ygoActivateSkill = function() {
         d.oppGY.push(sacrificed);
         d.oppMonsters[targetIdx] = null;
         
-        let summoned = d.playerHand[handMonIdx];
-        d.playerHand.splice(handMonIdx, 1);
+        let summoned = d.playerHand.splice(handMonIdx, 1)[0];
         let emptyIdx = d.playerMonsters.indexOf(null);
         if (emptyIdx !== -1) {
-            d.playerMonsters[emptyIdx] = summoned;
-        } else {
-            d.playerGY.push(summoned);
+            ygoPerformSummon('player', summoned, emptyIdx, 'attack');
         }
         
         let cost = Math.floor(d.playerLP / 2);
         d.playerLP -= cost;
-        
         d.myUsedSkill = true;
-        ygoLog(`⚡ [KỸ NĂNG] Marik kích hoạt [Nghi Thức Hiến Tế Bóng Tối]! Tế quái [${sacrificed.name_vi}] của đối thủ, triệu hồi [${summoned.name_vi}] và trừ ${cost} LP.`);
+        ygoLog(`🔥 [Kỹ Năng] Marik kích hoạt [Hiến Tế Bóng Tối]: hiến tế [${sacrificed.name_vi}] và trừ ${cost} LP.`);
         ygoUpdateLP();
         ygoRenderField();
         ygoCheckWinConditions();
-        if (d.mode === 'pvp') ygoSendSyncState();
     }
-    
-    // 3. Yami Bakura: Graveyard Robber
     else if (charId === 'bakura') {
-        let monstersInOppGy = d.oppGY.filter(c => c.card_type === 'Monster');
-        if (monstersInOppGy.length === 0) {
-            showToast("⚠️ Mộ bài đối thủ không có quái thú nào!");
-            return;
-        }
+        let oppGyMon = d.oppGY.filter(c => c.card_type === 'Monster');
         let emptyIdx = d.playerMonsters.indexOf(null);
-        if (emptyIdx === -1) {
-            showToast("⚠️ Sân của bạn đã đầy quái thú!");
+        if (oppGyMon.length === 0 || emptyIdx === -1) {
+            showToast("⚠️ Mộ bài đối thủ trống hoặc sân bạn đầy!");
             return;
         }
-        
-        monstersInOppGy.sort((a,b) => (parseInt(b.atk)||0) - (parseInt(a.atk)||0));
-        let targetMon = monstersInOppGy[0];
-        
-        let gyIdx = d.oppGY.indexOf(targetMon);
-        d.oppGY.splice(gyIdx, 1);
-        
-        targetMon.attribute = 'DARK';
-        targetMon.currentAtk = parseInt(targetMon.atk) || 0;
-        targetMon.currentDef = parseInt(targetMon.def) || 0;
-        d.playerMonsters[emptyIdx] = targetMon;
-        
+        oppGyMon.sort((a,b) => (parseInt(b.atk)||0) - (parseInt(a.atk)||0));
+        let target = oppGyMon[0];
+        d.oppGY.splice(d.oppGY.indexOf(target), 1);
+        target.attribute = 'DARK';
+        ygoPerformSummon('player', target, emptyIdx, 'attack');
         d.myUsedSkill = true;
-        ygoLog(`⚡ [KỸ NĂNG] Yami Bakura kích hoạt [Sức Mệnh Kẻ Trộm Mộ]! Cướp quái [${targetMon.name_vi}] từ Mộ đối thủ và hồi sinh dưới hệ Bóng Tối (DARK).`);
-        ygoRenderField();
-        if (d.mode === 'pvp') ygoSendSyncState();
+        ygoLog(`🔥 [Kỹ Năng] Bakura kích hoạt [Kẻ Trộm Mộ]: cướp quái [${target.name_vi}] sang hệ tối (DARK).`);
     }
-    
-    // 4. Bandit Keith: Sleight of Hand
     else if (charId === 'keith') {
         if (d.playerHand.length === 0) {
-            showToast("⚠️ Bạn không có lá bài nào trên tay để biến đổi!");
+            showToast("⚠️ Không có bài trên tay!");
             return;
         }
-        let cardToTransform = d.playerHand[0];
         let cardSeven = {
             name_en: "7 Completed",
             name_vi: "7 Hoàn Hảo",
             card_type: "Spell",
             property: "Equip",
             anime_effect_en: "Equip only to a Machine monster. It gains 700 ATK.",
-            anime_effect_vi: "Trang bị cho quái thú Máy Móc (Machine). Tăng 700 ATK."
+            anime_effect_vi: "Trang bị cho quái thú Máy Móc. Tăng 700 ATK."
         };
         d.playerHand[0] = cardSeven;
         d.myUsedSkill = true;
-        ygoLog(`⚡ [KỸ NĂNG] Bandit Keith kích hoạt [Gian Lận Súng Sáu]! Biến đổi lá bài [${cardToTransform.name_vi}] trên tay thành lá bài Phép '7 Hoàn Hảo'.`);
+        ygoLog(`🔥 [Kỹ Năng] Bandit Keith kích hoạt [Gian Lận Súng Sáu]: Biến lá bài đầu trên tay thành phép '7 Hoàn Hảo'.`);
         ygoRenderField();
     }
-    
-    // 5. Arkana: Dark Magician Curtain
     else if (charId === 'arkana') {
-        if (d.playerLP <= 1000) {
-            showToast("⚠️ LP của bạn không đủ!");
-            return;
-        }
         let emptyIdx = d.playerMonsters.indexOf(null);
-        if (emptyIdx === -1) {
-            showToast("⚠️ Sân của bạn đã đầy!");
-            return;
-        }
-        
         let dmIdx = d.playerDeck.findIndex(c => c.name_en.toLowerCase().includes("dark magician"));
-        if (dmIdx === -1) {
-            showToast("⚠️ Không tìm thấy Phù Thủy Áo Đen trong bộ bài!");
+        if (emptyIdx === -1 || dmIdx === -1 || d.playerLP <= 1000) {
+            showToast("⚠️ Không đủ điều kiện triệu hồi Phù Thuỷ Áo Đen!");
             return;
         }
-        
-        let dm = d.playerDeck[dmIdx];
-        d.playerDeck.splice(dmIdx, 1);
-        dm.currentAtk = parseInt(dm.atk) || 0;
-        dm.currentDef = parseInt(dm.def) || 0;
-        d.playerMonsters[emptyIdx] = dm;
+        let dm = d.playerDeck.splice(dmIdx, 1)[0];
+        ygoPerformSummon('player', dm, emptyIdx, 'attack');
         d.playerLP -= 1000;
         d.myUsedSkill = true;
-        
-        ygoLog(`⚡ [KỸ NĂNG] Arkana kích hoạt [Phù Thủy Đen Độc Ác]! Trả 1000 LP triệu hồi Phù Thủy Áo Đen [${dm.name_vi}] từ bộ bài.`);
+        ygoLog(`🔥 [Kỹ Năng] Arkana kích hoạt [Phù Thuỷ Áo Đen Độc Ác]: Trả 1000 LP để triệu hồi Phù Thuỷ Áo Đen.`);
         ygoUpdateLP();
         ygoRenderField();
         ygoCheckWinConditions();
-        if (d.mode === 'pvp') ygoSendSyncState();
     }
-    
-    // 6. Paradox Brothers: Labyrinth Wall
     else if (charId === 'paradox_brothers') {
-        let playerMonIdx = d.playerMonsters.findIndex(m => m !== null);
-        if (playerMonIdx === -1) {
-            showToast("⚠️ Bạn không có quái thú nào trên sân để biến đổi!");
-            return;
-        }
-        
-        let targetMon = d.playerMonsters[playerMonIdx];
-        targetMon.name_vi = "Bức Tường Mê Cung";
-        targetMon.name_en = "Labyrinth Wall";
-        targetMon.def = "3000";
-        targetMon.currentDef = 3000;
-        
+        let monIdx = d.playerMonsters.findIndex(m => m !== null);
+        if (monIdx === -1) return;
+        let m = d.playerMonsters[monIdx];
+        m.name_vi = "Bức Tường Mê Cung";
+        m.name_en = "Labyrinth Wall";
+        m.def = 3000;
+        m.currentDef = 3000;
         d.myUsedSkill = true;
-        ygoLog(`⚡ [KỸ NĂNG] Anh Em Mê Cung kích hoạt [Hợp Thể Mê Cung]! Biến đổi quái [${targetMon.name_vi}] thành 'Bức Tường Mê Cung' với DEF bằng 3000.`);
+        ygoLog(`🔥 [Kỹ Năng] Anh Em Mê Cung kích hoạt [Hợp Thể Mê Cung] biến quái thành Bức Tường Mê Cung.`);
         ygoRenderField();
-        if (d.mode === 'pvp') ygoSendSyncState();
     }
-    
-    // 7. Zigfried: Valkyrie Anthem
     else if (charId === 'zigfried') {
-        let fairyMonsters = [];
+        let fairy = [];
         for (let i = d.playerHand.length - 1; i >= 0; i--) {
-            let card = d.playerHand[i];
-            if (card.card_type === 'Monster' && card.monster_type && card.monster_type.toLowerCase().includes('fairy')) {
-                fairyMonsters.push(card);
+            if (d.playerHand[i].card_type === 'Monster' && (d.playerHand[i].monster_type || '').toLowerCase().includes('fairy')) {
+                fairy.push(d.playerHand[i]);
                 d.playerHand.splice(i, 1);
             }
         }
-        
-        if (fairyMonsters.length === 0) {
-            showToast("⚠️ Bạn không có quái thú tộc Fairy (Tiên thần) nào trên tay!");
-            return;
-        }
-        
-        let count = 0;
-        fairyMonsters.forEach(monster => {
+        if (fairy.length === 0) return;
+        fairy.forEach(c => {
             let emptyIdx = d.playerMonsters.indexOf(null);
             if (emptyIdx !== -1) {
-                monster.currentAtk = parseInt(monster.atk) || 0;
-                monster.currentDef = parseInt(monster.def) || 0;
-                d.playerMonsters[emptyIdx] = monster;
-                d.zigfriedBanishList.push(monster);
-                count++;
+                ygoPerformSummon('player', c, emptyIdx, 'attack');
+                d.zigfriedBanishList.push(c);
             } else {
-                d.playerGY.push(monster);
+                d.playerGY.push(c);
             }
         });
-        
         d.myUsedSkill = true;
-        ygoLog(`⚡ [KỸ NĂNG] Zigfried kích hoạt [Bản Hùng Ca Valkyrie]! Triệu hồi đặc biệt cùng lúc các quái thú Fairy lên sân.`);
+        ygoLog(`🔥 [Kỹ Năng] Zigfried kích hoạt [Bản Hùng Ca Valkyrie] triệu hồi đặc biệt các Valkyrie.`);
         ygoRenderField();
-        if (d.mode === 'pvp') ygoSendSyncState();
     }
-    
-    // 8. Lumis & Umbra: Mask Lock
     else if (charId === 'lumis_umbra') {
         d.lumisLockedZone = { side: 'opponent', type: 'monster', index: 0 };
         d.lumisLockTurns = 3;
         d.myUsedSkill = true;
-        ygoLog(`⚡ [KỸ NĂNG] Lumis & Umbra kích hoạt [Phong Ấn Mặt Nạ]! Khoá ô quái số 1 của đối thủ trong 3 lượt tiếp theo.`);
-        if (d.mode === 'pvp') ygoSendSyncState();
+        ygoLog(`🔥 [Kỹ Năng] Lumis & Umbra phong ấn ô quái số 1 của đối thủ trong 3 lượt.`);
     }
-    
     else {
         showToast(`💡 Vai chơi có kỹ năng bị động [${char.skillName}] hoạt động tự động!`);
     }
 };
 
-window.ygoZoneClick = function(side, type, index) {
+window.ygoGetEffectiveAtk = function(side, card) {
+    if (!card) return 0;
+    let baseAtk = parseInt(card.atk) || 0;
+    let bonus = 0;
+    
+    let hasUmi = (ygoGame.myCharacter === 'mako' || ygoGame.oppCharacter === 'mako');
+    if (hasUmi && card.attribute && card.attribute.toUpperCase() === 'WATER') {
+        bonus += 500;
+    }
+    
+    let myDartz = (side === 'player' && ygoGame.myCharacter === 'dartz');
+    let oppDartz = (side === 'opponent' && ygoGame.oppCharacter === 'dartz');
+    if (myDartz || oppDartz) {
+        bonus += 500;
+    }
+    
     let d = ygoGame.duel;
-    
-    // Solomon Muto passive bypasses turn limit for Spell/Trap cards
-    let isSolomonBypass = (d.turn !== 'player' && ygoGame.myCharacter === 'solomon' && d.selectedHandIndex !== null);
-    if (d.turn !== 'player' && !isSolomonBypass) return;
-    
-    // Lumis & Umbra: Mask Lock check
-    if (d.lumisLockTurns > 0 && d.lumisLockedZone) {
-        if (d.lumisLockedZone.side === side && d.lumisLockedZone.type === type && d.lumisLockedZone.index === index) {
-            showToast(`⚠️ Ô này đang bị phong ấn bởi Mặt Nạ trong ${d.lumisLockTurns} lượt nữa!`);
-            return;
-        }
+    let gy = side === 'player' ? d.playerGY : d.oppGY;
+    let myRafael = (side === 'player' && ygoGame.myCharacter === 'rafael' && gy.length === 0);
+    let oppRafael = (side === 'opponent' && ygoGame.oppCharacter === 'rafael' && gy.length === 0);
+    if (myRafael || oppRafael) {
+        bonus += 1000;
     }
     
-    // TH1: Đang chọn bài trên tay để RA BÀI (Summon/Set) bằng cách click vào ô trống (Old Flow fallback)
-    if (d.selectedHandIndex !== null && side === 'player') {
-        let card = d.playerHand[d.selectedHandIndex];
-        
-        if (type === 'monster' && card.card_type === 'Monster') {
-            if (d.turn !== 'player') {
-                showToast("⚠️ Bạn không thể triệu hồi quái thú trong lượt đối thủ!");
-                return;
-            }
-            if (d.hasNormalSummoned) {
-                showToast("⚠️ Bạn đã Triệu hồi Thường 1 quái thú ở lượt này rồi!");
-                return;
-            }
-            if (d.playerMonsters[index] !== null) {
-                showToast("⚠️ Ô quái thú này đã có bài!");
-                return;
-            }
-            
-            // Xử lý tế phẩm hiến tế (Tribute)
-            let lvl = card.level_rank || 1;
-            let tributesNeeded = lvl >= 7 ? 2 : (lvl >= 5 ? 1 : 0);
-            
-            // Seto Kaiba: Pride of Blue-Eyes
-            if (ygoGame.myCharacter === 'kaiba' && card.name_en.toLowerCase().includes("blue-eyes white dragon")) {
-                if (d.freeBlueEyes) {
-                    tributesNeeded = 0;
-                    d.freeBlueEyes = false; // Reset sau khi dùng
-                    ygoLog(`🐉 [Kiêu Hãnh Của Rồng] Triệu hồi Rồng Trắng Mắt Xanh không cần hiến tế!`);
-                }
-            }
-            
-            let aliveMonstersCount = d.playerMonsters.filter(m => m !== null).length;
-            if (aliveMonstersCount < tributesNeeded) {
-                showToast(`⚠️ Cần ${tributesNeeded} quái thú tế phẩm trên sân để triệu hồi!`);
-                return;
-            }
-            
-            // Thực hiện tế phẩm nếu cần
-            if (tributesNeeded > 0) {
-                let tCount = 0;
-                for (let mIdx = 0; mIdx < 5; mIdx++) {
-                    if (d.playerMonsters[mIdx] !== null) {
-                        ygoLog(`🕯️ Hiến tế quái thú: [${d.playerMonsters[mIdx].name_vi}] làm tế phẩm.`);
-                        d.playerGY.push(d.playerMonsters[mIdx]);
-                        d.playerMonsters[mIdx] = null;
-                        tCount++;
-                        if (tCount >= tributesNeeded) break;
-                    }
-                }
-            }
-            
-            // Hỏi thế Tấn công hay Phòng thủ
-            let isDefense = !confirm(`Bạn muốn Triệu hồi [${card.name_vi}] ở thế TẤN CÔNG? (Chọn Cancel để ÚP PHÒNG THỦ)`);
-            
-            // Triệu hồi
-            try { audio.play('levelup'); } catch(e){}
-            card.currentAtk = parseInt(card.atk) || 0;
-            card.currentDef = parseInt(card.def) || 0;
-            card.position = isDefense ? 'defense' : 'attack';
-            card.faceUp = !isDefense;
-            
-            d.playerMonsters[index] = card;
-            d.playerHand.splice(d.selectedHandIndex, 1);
-            d.hasNormalSummoned = true;
-            d.selectedHandIndex = null;
-            
-            if (isDefense) {
-                ygoLog(`💥 Bạn úp 1 quái thú ở thế PHÒNG THỦ.`);
-                ygoRenderField();
-                if (d.mode === 'pvp') {
-                    ygoSendSyncState(`💥 Đối thủ úp 1 quái thú ở thế PHÒNG THỦ.`);
-                }
-            } else {
-                ygoLog(`💥 Bạn triệu hồi quái thú: [${card.name_vi}] (ATK: ${card.atk})`);
-                ygoRenderField();
-                if (d.mode === 'pvp') {
-                    ygoSendSyncState(`💥 Đối thủ triệu hồi quái thú: [${card.name_vi}] (ATK: ${card.atk})`);
-                }
-            }
-            return;
-        }
-        
-        if (type === 'spell' && (card.card_type === 'Spell' || card.card_type === 'Trap')) {
-            if (d.playerSpells[index] !== null) {
-                showToast("⚠️ Ô bài phép/bẫy này đã có bài!");
-                return;
-            }
-            
-            try { audio.play('click'); } catch(e){}
-            card.faceUp = false;
-            d.playerSpells[index] = card;
-            d.playerHand.splice(d.selectedHandIndex, 1);
-            d.selectedHandIndex = null;
-            
-            ygoLog(`🃏 Bạn úp bài/kích hoạt: [${card.name_vi}]`);
-            
-            // Rebecca passive
-            if (ygoGame.myCharacter === 'rebecca' && card.card_type === 'Spell') {
-                ygoLog(`✨ [Thần Đồng Công Nghệ] Rebecca kích hoạt Spell. Gây 400 sát thương lên đối thủ!`);
-                ygoDamageOpponent(400, "hiệu ứng Rebecca");
-            }
-            
-            ygoExecuteCardEffect('player', card, index);
-            
-            ygoRenderField();
-            if (d.mode === 'pvp') {
-                ygoSendSyncState(`🃏 Đối thủ úp bài/kích hoạt: [${card.name_vi}]`);
-            }
-            return;
-        }
-    }
-    
-    // TH2: TẤN CÔNG (Battle Phase combat declaration / target selection)
-    if (d.phase === 'BATTLE' && d.selectedFieldCard && d.selectedFieldCard.side === 'player' && d.selectedFieldCard.type === 'monster') {
-        if (d.turnCount === 1) {
-            showToast("⚠️ Lượt đầu tiên của trận đấu không được phép tấn công!");
-            d.selectedFieldCard = null;
-            ygoRenderField();
-            return;
-        }
-        
-        if (side === 'opponent' && type === 'monster') {
-            let myMon = d.playerMonsters[d.selectedFieldCard.pos];
-            if (!myMon) return;
-            
-            // Leon Stromberg check
-            if (ygoGame.oppCharacter === 'leon') {
-                ygoLog(`🏰 [Lâu Đài Cổ Tích] Quái thú [${myMon.name_vi}] bị tiêu diệt bởi Stromberg Castle của Leon khi tuyên bố tấn công!`);
-                ygoDestroyMonster('player', d.selectedFieldCard.pos);
-                d.selectedFieldCard = null;
-                ygoRenderField();
-                if (d.mode === 'pvp') ygoSendSyncState();
-                return;
-            }
-            
-            let oppMon = d.oppMonsters[index];
-            if (oppMon) {
-                // Battle against monster
-                try { audio.play('hit'); } catch(e){}
-                let myAtk = ygoGetEffectiveAtk('player', myMon);
-                
-                if (oppMon.position === 'defense') {
-                    let oppDef = parseInt(oppMon.currentDef || oppMon.def) || 0;
-                    ygoLog(`⚔️ [${myMon.name_vi}] (ATK ${myAtk}) tấn công [${oppMon.name_vi}] ở THẾ THỦ (DEF ${oppDef})!`);
-                    
-                    if (myAtk > oppDef) {
-                        ygoLog(`💥 Tiêu diệt quái thú thế thủ của đối thủ!`);
-                        ygoDestroyMonster('opponent', index);
-                        // Rex Raptor: Dino Stampede (Pierce damage)
-                        if (ygoGame.myCharacter === 'rex' && myMon.monster_type && myMon.monster_type.toLowerCase().includes('dinosaur')) {
-                            let diff = myAtk - oppDef;
-                            ygoDamageOpponent(diff, `xuyên thủ của Rex Raptor`);
-                        }
-                    } else if (myAtk < oppDef) {
-                        let diff = oppDef - myAtk;
-                        ygoDamagePlayer(diff, `phản đòn từ quái thủ của đối thủ`);
-                    } else {
-                        ygoLog(`🛡️ Không thể xuyên phá thủ!`);
-                    }
-                } else {
-                    let oppAtk = ygoGetEffectiveAtk('opponent', oppMon);
-                    ygoLog(`⚔️ [${myMon.name_vi}] (ATK ${myAtk}) tấn công [${oppMon.name_vi}] (ATK ${oppAtk})!`);
-                    
-                    if (myAtk > oppAtk) {
-                        let diff = myAtk - oppAtk;
-                        ygoDamageOpponent(diff, `chiến đấu quái thú`);
-                        ygoLog(`💥 Tiêu diệt quái thú đối thủ!`);
-                        ygoDestroyMonster('opponent', index);
-                    } else if (myAtk === oppAtk) {
-                        ygoLog(`💥 Lưỡng bại câu thương! Cả hai quái thú cùng bay màu.`);
-                        ygoDestroyMonster('player', d.selectedFieldCard.pos);
-                        ygoDestroyMonster('opponent', index);
-                    } else {
-                        let diff = oppAtk - myAtk;
-                        ygoDamagePlayer(diff, `quái thú đối thủ phản công`);
-                        ygoLog(`💔 [${myMon.name_vi}] bị tiêu diệt.`);
-                        ygoDestroyMonster('player', d.selectedFieldCard.pos);
-                    }
-                }
-                
-                d.selectedFieldCard = null;
-                ygoUpdateLP();
-                ygoRenderField();
-                ygoCheckWinConditions();
-                if (d.mode === 'pvp') {
-                    ygoSendSyncState(`⚔️ [${myMon.name_vi}] tấn công [${oppMon.name_vi}]!`);
-                }
-            } else {
-                // Direct attack clicked empty monster zone
-                let hasOtherMonsters = d.oppMonsters.some(m => m !== null);
-                let isWater = myMon.attribute && myMon.attribute.toUpperCase() === 'WATER';
-                let oppHasWater = d.oppMonsters.some(m => m !== null && m.attribute && m.attribute.toUpperCase() === 'WATER');
-                
-                let canAttackDirectly = !hasOtherMonsters || (ygoGame.myCharacter === 'mako' && isWater && !oppHasWater);
-                
-                if (canAttackDirectly) {
-                    try { audio.play('hit'); } catch(e){}
-                    let myAtk = ygoGetEffectiveAtk('player', myMon);
-                    
-                    ygoDamageOpponent(myAtk, `đòn tấn công trực diện`);
-                    ygoLog(`💥 [${myMon.name_vi}] tấn công TRỰC DIỆN!`);
-                    
-                    d.selectedFieldCard = null;
-                    ygoUpdateLP();
-                    ygoRenderField();
-                    ygoCheckWinConditions();
-                    if (d.mode === 'pvp') {
-                        ygoSendSyncState(`💥 [${myMon.name_vi}] tấn công TRỰC DIỆN!`);
-                    }
-                } else {
-                    showToast("⚠️ Bạn phải tiêu diệt quái thú trên sân đối phương trước!");
-                }
-            }
-            return;
-        }
-    }
-    
-    // TH3: Lựa chọn bài trên sân của mình (Select field card for details/actions)
-    if (side === 'player' && d.selectedHandIndex === null) {
-        let card = null;
-        if (type === 'monster') card = d.playerMonsters[index];
-        else if (type === 'spell') card = d.playerSpells[index];
-        else if (type === 'fieldspell') card = d.playerFieldSpell;
-        
-        if (card) {
-            d.selectedFieldCard = { side: side, type: type, pos: index };
-            d.selectedHandIndex = null;
-            ygoHoverCard(card);
-            ygoLog(`👉 Đã chọn bài trên sân: [${card.name_vi}]. Bấm nút Thao tác bên trái để tương tác.`);
-            ygoRenderField();
-            return;
-        }
-    }
-};;
+    return baseAtk + bonus;
+};
 
-// Kích hoạt một số thẻ bài phép/bẫy cơ bản
-// Kích hoạt một số thẻ bài phép/bẫy cơ bản
-function ygoExecuteCardEffect(side, card, zoneIdx) {
+window.ygoDamagePlayer = function(amount, reason) {
+    let d = ygoGame.duel;
+    let actualDamage = amount;
+    
+    if (ygoGame.myCharacter === 'valon') {
+        let hasMachine = d.playerMonsters.some(m => m !== null && m.monster_type && m.monster_type.toLowerCase().includes('machine'));
+        if (hasMachine) {
+            ygoLog(`🛡️ [Giáp Trận] Valon chặn sát thương về 0!`);
+            return;
+        }
+    }
+    
+    if (ygoGame.myCharacter === 'tea') {
+        let recover = Math.floor(actualDamage * 0.5);
+        d.playerLP = Math.max(0, d.playerLP - actualDamage + recover);
+        ygoLog(`💖 [Tình Bạn] Tea Gardner hồi lại ${recover} LP từ ${actualDamage} sát thương.`);
+    } else {
+        d.playerLP = Math.max(0, d.playerLP - actualDamage);
+        ygoLog(`💔 Bạn nhận ${actualDamage} sát thương từ ${reason}.`);
+    }
+    
+    ygoUpdateLP();
+    ygoCheckWinConditions();
+    
+    if (ygoGame.myCharacter === 'noah' && d.playerLP < 1000 && d.playerLP > 0 && !d.noahSkillUsed) {
+        d.noahSkillUsed = true;
+        ygoLog(`🌐 [Noah Reset] Trả toàn bộ quái trên sân về tay.`);
+        for (let i = 0; i < 5; i++) {
+            if (d.playerMonsters[i]) { d.playerHand.push(d.playerMonsters[i]); d.playerMonsters[i] = null; }
+            if (d.oppMonsters[i]) { d.oppHand.push(d.oppMonsters[i]); d.oppMonsters[i] = null; }
+        }
+        ygoRenderField();
+    }
+    
+    if (ygoGame.myCharacter === 'alister' && d.playerLP < 2000 && d.playerLP > 0 && !d.alisterSkillUsed) {
+        d.alisterSkillUsed = true;
+        d.playerHand = [];
+        let emptyIdx = d.playerMonsters.indexOf(null);
+        let ziggurat = {
+            name_en: "Air Fortress Ziggurat", name_vi: "Pháo Đài Không Trung Ziggurat",
+            card_type: "Monster", attribute: "WIND", monster_type: "Machine / Effect",
+            level_rank: 8, atk: "2500", def: "2000",
+            anime_effect_vi: "Không thể bị phá huỷ."
+        };
+        if (emptyIdx !== -1) d.playerMonsters[emptyIdx] = ziggurat;
+        else d.playerGY.push(ziggurat);
+        ygoLog(`🛡️ [Kỹ Năng] Alister huỷ tay, triệu hồi Pháo Đài Không Trung Ziggurat!`);
+        ygoRenderField();
+    }
+};
+
+window.ygoDamageOpponent = function(amount, reason) {
+    let d = ygoGame.duel;
+    let actualDamage = amount;
+    
+    if (ygoGame.oppCharacter === 'valon') {
+        let hasMachine = d.oppMonsters.some(m => m !== null && m.monster_type && m.monster_type.toLowerCase().includes('machine'));
+        if (hasMachine) {
+            ygoLog(`🛡️ Bot Valon chặn sát thương về 0!`);
+            return;
+        }
+    }
+    
+    if (ygoGame.oppCharacter === 'tea') {
+        let recover = Math.floor(actualDamage * 0.5);
+        d.oppLP = Math.max(0, d.oppLP - actualDamage + recover);
+        ygoLog(`💖 Bot Tea Gardner hồi lại ${recover} LP.`);
+    } else {
+        d.oppLP = Math.max(0, d.oppLP - actualDamage);
+        ygoLog(`💥 Đối thủ nhận ${actualDamage} sát thương từ ${reason}.`);
+    }
+    
+    ygoUpdateLP();
+    ygoCheckWinConditions();
+    
+    if (ygoGame.oppCharacter === 'noah' && d.oppLP < 1000 && d.oppLP > 0 && !d.noahSkillUsed) {
+        d.noahSkillUsed = true;
+        ygoLog(`🌐 [Noah Reset] Trả quái về tay.`);
+        for (let i = 0; i < 5; i++) {
+            if (d.playerMonsters[i]) { d.playerHand.push(d.playerMonsters[i]); d.playerMonsters[i] = null; }
+            if (d.oppMonsters[i]) { d.oppHand.push(d.oppMonsters[i]); d.oppMonsters[i] = null; }
+        }
+        ygoRenderField();
+    }
+    
+    if (ygoGame.oppCharacter === 'alister' && d.oppLP < 2000 && d.oppLP > 0 && !d.alisterSkillUsed) {
+        d.alisterSkillUsed = true;
+        d.oppHand = [];
+        let emptyIdx = d.oppMonsters.indexOf(null);
+        let ziggurat = {
+            name_en: "Air Fortress Ziggurat", name_vi: "Pháo Đài Không Trung Ziggurat",
+            card_type: "Monster", attribute: "WIND", monster_type: "Machine / Effect",
+            level_rank: 8, atk: "2500", def: "2000",
+            anime_effect_vi: "Không thể bị phá huỷ."
+        };
+        if (emptyIdx !== -1) d.oppMonsters[emptyIdx] = ziggurat;
+        else d.oppGY.push(ziggurat);
+        ygoLog(`🛡️ Bot Alister triệu hồi Ziggurat!`);
+        ygoRenderField();
+    }
+};
+
+window.ygoDestroyMonster = function(side, index) {
+    let d = ygoGame.duel;
+    let monsters = side === 'player' ? d.playerMonsters : d.oppMonsters;
+    let gy = side === 'player' ? d.playerGY : d.oppGY;
+    let char = side === 'player' ? ygoGame.myCharacter : ygoGame.oppCharacter;
+    
+    let mon = monsters[index];
+    if (!mon) return;
+    
+    if (char === 'rafael' && gy.length === 0) {
+        ygoLog(`🛡️ [Kỹ Năng] [${mon.name_vi}] kháng phá huỷ do Mộ bài trống!`);
+        return;
+    }
+    
+    let hasNecross = (mon.name_en && mon.name_en.toLowerCase().includes("necross"));
+    if (char === 'gozaburo' && hasNecross) {
+        let exodiaParts = gy.filter(c => c.name_en && c.name_en.toLowerCase().includes("exodia"));
+        if (exodiaParts.length >= 5) {
+            ygoLog(`🛡️ Exodia Necross trên sân Gozaburo bất tử!`);
+            return;
+        }
+    }
+    
+    if (char === 'bonz' && mon.monster_type && mon.monster_type.toLowerCase().includes('zombie')) {
+        ygoLog(`🧟 [Hồi Sinh] Zombie [${mon.name_vi}] tự hồi sinh ở thế thủ ATK=0!`);
+        mon.currentAtk = 0;
+        monsters[index] = mon;
+    } else {
+        gy.push(mon);
+        monsters[index] = null;
+    }
+};
+
+window.ygoFlipCoin = function(side) {
+    let char = side === 'player' ? ygoGame.myCharacter : ygoGame.oppCharacter;
+    if (char === 'joey') {
+        ygoLog(`🎲 [May Mắn] Đồng xu luôn ngửa!`);
+        return 'heads';
+    }
+    return Math.random() < 0.5 ? 'heads' : 'tails';
+};
+
+window.ygoRollDice = function(side) {
+    let char = side === 'player' ? ygoGame.myCharacter : ygoGame.oppCharacter;
+    let d = ygoGame.duel;
+    if (char === 'joey') {
+        ygoLog(`🎲 Xúc xắc luôn là 6!`);
+        return 6;
+    }
+    
+    let roll = Math.floor(Math.random() * 6) + 1;
+    if (char === 'duke') {
+        ygoLog(`🎲 Duke Devlin tung xúc xắc được ${roll}!`);
+        if (roll % 2 === 0) {
+            let monsters = side === 'player' ? d.playerMonsters : d.oppMonsters;
+            monsters.forEach(m => {
+                if (m) m.currentAtk = (parseInt(m.currentAtk || m.atk) || 0) + 500;
+            });
+        }
+    }
+    return roll;
+};
+
+window.ygoTriggerDestinyDraw = function() {
+    let d = ygoGame.duel;
+    ygoLog("✨ [Định Mệnh] Kích hoạt Rút Bài Định Mệnh!");
+    try { audio.play('apocalypse'); } catch(e){}
+    
+    const container = document.getElementById('ygoDeckSelectContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    let sortedDeck = [...d.playerDeck].sort((a,b) => a.name_vi.localeCompare(b.name_vi));
+    sortedDeck.forEach(card => {
+        const div = document.createElement('div');
+        let typeClass = card.card_type === 'Spell' ? 'spell' : (card.card_type === 'Trap' ? 'trap' : 'monster');
+        div.className = `ygo-mini-card ${typeClass}`;
+        div.innerHTML = `
+            <div style="font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${card.name_vi}</div>
+            <div style="font-size:0.48rem; color:#fcd34d;">${card.atk !== null ? `A:${card.atk}` : card.card_type}</div>
+        `;
+        div.onclick = () => ygoSelectDestinyCard(card);
+        container.appendChild(div);
+    });
+    document.getElementById('ygoDeckSelectModal').style.display = 'flex';
+};
+
+window.ygoSelectDestinyCard = function(card) {
+    let d = ygoGame.duel;
+    let idx = d.playerDeck.findIndex(c => c.name_en === card.name_en);
+    if (idx !== -1) {
+        let selected = d.playerDeck.splice(idx, 1)[0];
+        d.playerHand.push(selected);
+        ygoLog(`🔮 Bạn đã chọn [${selected.name_vi}] lên tay!`);
+        document.getElementById('ygoDeckSelectModal').style.display = 'none';
+        ygoRenderField();
+    }
+};
+
+window.ygoExecuteCardEffect = function(side, card, zoneIdx) {
     let d = ygoGame.duel;
     let name = card.name_en.toLowerCase();
     let isPlayer = (side === 'player');
     
-    // Pot of Greed (Hũ tham lam) -> Rút 2 lá bài
     if (name.includes('pot of greed') || card.name_vi.includes('Hũ tham lam')) {
-        ygoLog(`🪄 Kích hoạt hiệu ứng [${card.name_vi}]: Rút thêm 2 lá bài!`);
+        ygoLog(`🧪 Hiệu ứng Pot of Greed: Rút 2 lá bài!`);
         ygoDrawCard(side);
         ygoDrawCard(side);
-        // Chuyển bài phép vào mộ sau khi dùng
-        setTimeout(() => {
-            if(side === 'player') {
-                d.playerGY.push(card);
-                d.playerSpells[zoneIdx] = null;
-            } else {
-                d.oppGY.push(card);
-                d.oppSpells[zoneIdx] = null;
-            }
-            ygoRenderField();
-        }, 1000);
-    }
-    
-    // Raigeki (Lôi kích) -> Tiêu diệt toàn bộ quái đối phương
-    else if (name.includes('raigeki') || card.name_vi.includes('Lôi kích')) {
-        ygoLog(`⚡ LÔI KÍCH HOẠT ĐỘNG! Tiêu diệt toàn bộ quái thú của đối phương!`);
-        let oppMon = side === 'player' ? d.oppMonsters : d.playerMonsters;
-        let oppGY = side === 'player' ? d.oppGY : d.playerGY;
         
+        setTimeout(() => {
+            if(isPlayer) { d.playerGY.push(card); d.playerSpells[zoneIdx] = null; }
+            else { d.oppGY.push(card); d.oppSpells[zoneIdx] = null; }
+            ygoRenderField();
+        }, 800);
+    }
+    else if (name.includes('raigeki') || card.name_vi.includes('Lôi kích')) {
+        ygoLog(`💥 Hiệu ứng Raigeki: Tiêu diệt toàn bộ quái đối phương!`);
+        let oppMon = isPlayer ? d.oppMonsters : d.playerMonsters;
+        let oppGY = isPlayer ? d.oppGY : d.playerGY;
         for (let i = 0; i < 5; i++) {
-            if (oppMon[i] !== null) {
-                oppGY.push(oppMon[i]);
-                oppMon[i] = null;
-            }
+            if (oppMon[i] !== null) { oppGY.push(oppMon[i]); oppMon[i] = null; }
         }
         
         setTimeout(() => {
-            if(side === 'player') {
-                d.playerGY.push(card);
-                d.playerSpells[zoneIdx] = null;
-            } else {
-                d.oppGY.push(card);
-                d.oppSpells[zoneIdx] = null;
-            }
+            if(isPlayer) { d.playerGY.push(card); d.playerSpells[zoneIdx] = null; }
+            else { d.oppGY.push(card); d.oppSpells[zoneIdx] = null; }
             ygoRenderField();
-        }, 1000);
+        }, 800);
     }
-    
-    // Monster Reborn (Phục sinh quái thú)
-    else if (name.includes('monster reborn') || card.name_vi.includes('Phục sinh quái thú')) {
+    else if (name.includes('monster reborn') || card.name_vi.includes('Phục sinh')) {
         let myGY = isPlayer ? d.playerGY : d.oppGY;
         let myMonsters = isPlayer ? d.playerMonsters : d.oppMonsters;
         let monstersInGy = myGY.filter(c => c.card_type === 'Monster');
@@ -2674,631 +3163,83 @@ function ygoExecuteCardEffect(side, card, zoneIdx) {
         if (monstersInGy.length > 0) {
             monstersInGy.sort((a, b) => (parseInt(b.atk) || 0) - (parseInt(a.atk) || 0));
             let targetMon = monstersInGy[0];
-            let gyIdx = myGY.indexOf(targetMon);
-            myGY.splice(gyIdx, 1);
-            
+            myGY.splice(myGY.indexOf(targetMon), 1);
             let emptyIdx = myMonsters.indexOf(null);
             if (emptyIdx !== -1) {
                 targetMon.currentAtk = parseInt(targetMon.atk) || 0;
                 targetMon.currentDef = parseInt(targetMon.def) || 0;
-                targetMon.position = 'attack'; // summon face up attack by default
+                targetMon.position = 'attack';
+                targetMon.faceUp = true;
                 myMonsters[emptyIdx] = targetMon;
-                ygoLog(`🪄 [${card.name_vi}] phục sinh quái thú [${targetMon.name_vi}] (ATK: ${targetMon.atk}) từ Mộ bài lên sân!`);
-            } else {
-                myGY.push(targetMon);
-                ygoLog(`⚠️ Không có ô quái thú trống để phục sinh!`);
+                ygoLog(`🧪 Phục sinh quái [${targetMon.name_vi}] lên sân!`);
             }
-        } else {
-            ygoLog(`⚠️ Mộ bài không có quái thú nào để phục sinh!`);
         }
         
         setTimeout(() => {
-            if(isPlayer) {
-                d.playerGY.push(card);
-                d.playerSpells[zoneIdx] = null;
-            } else {
-                d.oppGY.push(card);
-                d.oppSpells[zoneIdx] = null;
-            }
+            if(isPlayer) { d.playerGY.push(card); d.playerSpells[zoneIdx] = null; }
+            else { d.oppGY.push(card); d.oppSpells[zoneIdx] = null; }
             ygoRenderField();
-        }, 1000);
+        }, 800);
     }
-    
-    // Dark Hole (Hố đen)
     else if (name.includes('dark hole') || card.name_vi.includes('Hố đen')) {
-        ygoLog(`🪄 Kích hoạt [${card.name_vi}]: Gửi tất cả quái thú trên sân của hai bên xuống Mộ!`);
+        ygoLog(`🖤 Hiệu ứng Hố đen: Tiêu diệt toàn bộ quái vật hai bên!`);
         for (let i = 0; i < 5; i++) {
-            if (d.playerMonsters[i] !== null) {
-                d.playerGY.push(d.playerMonsters[i]);
-                d.playerMonsters[i] = null;
-            }
-            if (d.oppMonsters[i] !== null) {
-                d.oppGY.push(d.oppMonsters[i]);
-                d.oppMonsters[i] = null;
-            }
+            if (d.playerMonsters[i]) { d.playerGY.push(d.playerMonsters[i]); d.playerMonsters[i] = null; }
+            if (d.oppMonsters[i]) { d.oppGY.push(d.oppMonsters[i]); d.oppMonsters[i] = null; }
         }
         
         setTimeout(() => {
-            if(isPlayer) {
-                d.playerGY.push(card);
-                d.playerSpells[zoneIdx] = null;
-            } else {
-                d.oppGY.push(card);
-                d.oppSpells[zoneIdx] = null;
-            }
+            if(isPlayer) { d.playerGY.push(card); d.playerSpells[zoneIdx] = null; }
+            else { d.oppGY.push(card); d.oppSpells[zoneIdx] = null; }
             ygoRenderField();
-        }, 1000);
+        }, 800);
     }
-    
-    // Card Destruction (Hủy bài)
-    else if (name.includes('card destruction') || card.name_vi.includes('Hủy bài')) {
-        ygoLog(`🪄 Kích hoạt [${card.name_vi}]: Huỷ toàn bộ bài trên tay của hai bên và rút lại số lượng tương đương!`);
-        
-        // Player hand discard & redraw
+    else if (name.includes('card destruction') || card.name_vi.includes('Huỷ bài')) {
+        ygoLog(`🧪 Hiệu ứng Card Destruction: Huỷ toàn bộ tay và rút lại số tương ứng!`);
         let pCount = d.playerHand.length;
-        while(d.playerHand.length > 0) {
-            d.playerGY.push(d.playerHand.pop());
-        }
-        for (let i = 0; i < pCount; i++) {
-            ygoDrawCard('player');
-        }
+        while(d.playerHand.length) d.playerGY.push(d.playerHand.pop());
+        for (let i = 0; i < pCount; i++) ygoDrawCard('player');
         
-        // Opponent hand discard & redraw
         let oCount = d.oppHand.length;
-        while(d.oppHand.length > 0) {
-            let disc = d.oppHand.pop();
-            if (disc && disc.name_en) d.oppGY.push(disc);
-        }
-        for (let i = 0; i < oCount; i++) {
-            ygoDrawCard('opponent');
-        }
+        while(d.oppHand.length) d.oppGY.push(d.oppHand.pop());
+        for (let i = 0; i < oCount; i++) ygoDrawCard('opponent');
         
         setTimeout(() => {
-            if(isPlayer) {
-                d.playerGY.push(card);
-                d.playerSpells[zoneIdx] = null;
-            } else {
-                d.oppGY.push(card);
-                d.oppSpells[zoneIdx] = null;
-            }
+            if(isPlayer) { d.playerGY.push(card); d.playerSpells[zoneIdx] = null; }
+            else { d.oppGY.push(card); d.oppSpells[zoneIdx] = null; }
             ygoRenderField();
-        }, 1000);
+        }, 800);
     }
-    
-    // Change of Heart (Thay đổi trái tim)
-    else if (name.includes('change of heart') || card.name_vi.includes('Thay đổi trái tim')) {
-        let oppMonsters = isPlayer ? d.oppMonsters : d.playerMonsters;
-        let myMonsters = isPlayer ? d.playerMonsters : d.oppMonsters;
-        
-        let strongestIdx = -1;
-        let maxAtk = -1;
-        for (let i = 0; i < 5; i++) {
-            if (oppMonsters[i] !== null) {
-                let atk = parseInt(oppMonsters[i].atk) || 0;
-                if (atk > maxAtk) {
-                    maxAtk = atk;
-                    strongestIdx = i;
-                }
-            }
-        }
-        
-        let emptyIdx = myMonsters.indexOf(null);
-        if (strongestIdx !== -1 && emptyIdx !== -1) {
-            let stolen = oppMonsters[strongestIdx];
-            oppMonsters[strongestIdx] = null;
-            myMonsters[emptyIdx] = stolen;
-            
+    else if (name.includes('change of heart') || card.name_vi.includes('Trái tim')) {
+        let oppMon = isPlayer ? d.oppMonsters : d.playerMonsters;
+        let myMon = isPlayer ? d.playerMonsters : d.oppMonsters;
+        let targetIdx = oppMon.findIndex(m => m !== null);
+        let emptyIdx = myMon.indexOf(null);
+        if (targetIdx !== -1 && emptyIdx !== -1) {
+            let stolen = oppMon[targetIdx];
+            oppMon[targetIdx] = null;
+            myMon[emptyIdx] = stolen;
             d.changeOfHeartStolen = {
-                monster: stolen,
-                fromSide: isPlayer ? 'opponent' : 'player',
-                fromIdx: strongestIdx,
-                toSide: side,
-                toIdx: emptyIdx
+                monster: stolen, fromSide: isPlayer ? 'opponent' : 'player',
+                fromIdx: targetIdx, toSide: side, toIdx: emptyIdx
             };
-            ygoLog(`🪄 [${card.name_vi}] chiếm quyền điều khiển quái thú [${stolen.name_vi}] của đối thủ!`);
-        } else {
-            ygoLog(`⚠️ Không có quái thú đối phương để cướp hoặc sân của bạn đã đầy!`);
+            ygoLog(`🧪 Cướp quái [${stolen.name_vi}] cho đến cuối lượt.`);
         }
         
         setTimeout(() => {
-            if(isPlayer) {
-                d.playerGY.push(card);
-                d.playerSpells[zoneIdx] = null;
-            } else {
-                d.oppGY.push(card);
-                d.oppSpells[zoneIdx] = null;
-            }
+            if(isPlayer) { d.playerGY.push(card); d.playerSpells[zoneIdx] = null; }
+            else { d.oppGY.push(card); d.oppSpells[zoneIdx] = null; }
             ygoRenderField();
-        }, 1000);
-    }
-}
-
-// Chuyển đổi Phase đấu bài
-window.ygoNextPhase = function() {
-    let d = ygoGame.duel;
-    if (d.turn !== 'player') return;
-    
-    try { audio.play('click'); } catch(e){}
-    
-    if (d.phase === 'DRAW') ygoStartPhase('STANDBY');
-    else if (d.phase === 'STANDBY') ygoStartPhase('MAIN1');
-    else if (d.phase === 'MAIN1') ygoStartPhase('BATTLE');
-    else if (d.phase === 'BATTLE') ygoStartPhase('MAIN2');
-    else if (d.phase === 'MAIN2') ygoStartPhase('END');
-    else if (d.phase === 'END') {
-        ygoLog(`⏳ Kết thúc lượt của bạn. Bắt đầu lượt của đối thủ.`);
-        
-        // Return Change of Heart stolen monster before turn switch
-        if (d.changeOfHeartStolen) {
-            let ch = d.changeOfHeartStolen;
-            let currentMonsters = ch.toSide === 'player' ? d.playerMonsters : d.oppMonsters;
-            let targetMonsters = ch.fromSide === 'player' ? d.playerMonsters : d.oppMonsters;
-            
-            if (currentMonsters[ch.toIdx] === ch.monster) {
-                currentMonsters[ch.toIdx] = null;
-                if (targetMonsters[ch.fromIdx] === null) {
-                    targetMonsters[ch.fromIdx] = ch.monster;
-                } else {
-                    let emptyIdx = targetMonsters.indexOf(null);
-                    if (emptyIdx !== -1) {
-                        targetMonsters[emptyIdx] = ch.monster;
-                    } else {
-                        let oppGY = ch.fromSide === 'player' ? d.playerGY : d.oppGY;
-                        oppGY.push(ch.monster);
-                    }
-                }
-                ygoLog(`⏳ Trả lại quái thú [${ch.monster.name_vi}] cho đối thủ.`);
-            }
-            d.changeOfHeartStolen = null;
-        }
-
-        d.turn = 'opponent';
-        d.turnCount = (d.turnCount || 1) + 1;
-        ygoRenderField();
-        
-        if (d.mode === 'pvp') {
-            ygoSendSyncState("⏳ Lượt đối thủ kết thúc. Bắt đầu lượt của bạn!");
-        } else {
-            setTimeout(ygoRunBotTurn, 1000);
-        }
-    }
-    if (d.mode === 'pvp') {
-        ygoSendSyncState();
+        }, 800);
     }
 };
 
-function ygoStartPhase(phaseName) {
-    let d = ygoGame.duel;
-    d.phase = phaseName;
-    document.getElementById('ygoPhaseText').textContent = `${phaseName} PHASE`;
-    
-    ygoLog(`📍 Bước vào: ${phaseName} PHASE`);
-    
-    if (phaseName === 'DRAW' && d.turn === 'player') {
-        if (ygoGame.myCharacter === 'yugi' && d.playerLP < 1500 && !d.destinyDrawUsed && d.playerDeck.length > 0) {
-            d.destinyDrawUsed = true;
-            ygoTriggerDestinyDraw();
-        } else {
-            ygoDrawCard('player');
-        }
-        d.hasNormalSummoned = false;
-        ygoRenderField();
-        
-        // Tự động chuyển DRAW -> STANDBY -> MAIN1 để người chơi có thể chơi bài ngay lập tức
-        setTimeout(() => {
-            if (d.phase === 'DRAW' && d.turn === 'player') {
-                ygoStartPhase('STANDBY');
-                setTimeout(() => {
-                    if (d.phase === 'STANDBY' && d.turn === 'player') {
-                        ygoStartPhase('MAIN1');
-                    }
-                }, 150);
-            }
-        }, 250);
-    }
-    if (d.mode === 'pvp') {
-        ygoSendSyncState();
-    }
-}
-
-// Đầu hàng
 window.ygoSurrender = function() {
     if(confirm("Bạn có chắc chắn muốn đầu hàng trận đấu này?")) {
         ygoLog("🏳️ Bạn đã đầu hàng!");
         ygoEndGame('opponent');
     }
 };
-
-// ── BOT AI AUTOMATION ──────────────────────────────────────────────
-function ygoRunBotTurn() {
-    let d = ygoGame.duel;
-    if (d.turn !== 'opponent') return;
-    
-    ygoLog(`🤖 Lượt của Bot (${d.opponentName}) bắt đầu...`);
-    
-    // 1. Draw Phase (Bot Yugi Destiny Draw check)
-    if (ygoGame.oppCharacter === 'yugi' && d.oppLP < 1500 && !d.destinyDrawUsed && d.oppDeck.length > 0) {
-        d.destinyDrawUsed = true;
-        let targetIdx = d.oppDeck.findIndex(c => c.name_en.toLowerCase().includes("raigeki") || c.name_en.toLowerCase().includes("pot of greed"));
-        if (targetIdx === -1) {
-            targetIdx = d.oppDeck.findIndex(c => c.card_type === 'Monster');
-        }
-        if (targetIdx !== -1) {
-            let card = d.oppDeck.splice(targetIdx, 1)[0];
-            d.oppHand.push(card);
-            ygoLog(`⚡ [RÚT BÀI ĐỊNH MỆNH] Bot Yugi Atem kích hoạt kỹ năng và chọn [${card.name_vi}] lên tay!`);
-            try { audio.play('apocalypse'); } catch(e){}
-        } else {
-            ygoDrawCard('opponent');
-        }
-    } else {
-        ygoDrawCard('opponent');
-    }
-    
-    // Mai Valentine Aroma Strategy check for Bot (Bot Mai knows top card of deck)
-    if (ygoGame.oppCharacter === 'mai' && d.oppDeck.length > 0) {
-        let top = d.oppDeck[d.oppDeck.length - 1];
-        ygoLog(`🔮 [Nước Hoa] Bot Mai Valentine ngửi thấy bài tiếp theo: [${top.name_vi}]`);
-    }
-    
-    ygoRenderField();
-    
-    // 2. Bot tính toán Ra Bài (Main Phase 1)
-    setTimeout(() => {
-        // Bot Special Summon từ Extra Deck (30% cơ hội nếu có ít hơn 2 quái thú trên sân)
-        let botMonsterCount = d.oppMonsters.filter(m => m !== null).length;
-        if (d.oppExtraDeck && d.oppExtraDeck.length > 0 && botMonsterCount < 2 && Math.random() < 0.3) {
-            let emptyIdx = d.oppMonsters.indexOf(null);
-            if (emptyIdx !== -1) {
-                let card = d.oppExtraDeck.shift(); // Lấy quái đầu tiên từ Extra Deck
-                card.currentAtk = parseInt(card.atk) || 0;
-                card.currentDef = parseInt(card.def) || 0;
-                card.position = 'attack';
-                card.faceUp = true;
-                d.oppMonsters[emptyIdx] = card;
-                ygoLog(`🔮 Bot thực hiện Triệu hồi Đặc biệt quái thú [${card.name_vi}] từ Extra Deck!`);
-                ygoRenderField();
-            }
-        }
-        
-        // Bot kích hoạt kỹ năng đặc trưng (Nếu chưa dùng và có cơ hội)
-        if (!d.oppUsedSkill && Math.random() < 0.5) {
-            let botChar = ygoGame.oppCharacter;
-            
-            if (botChar === 'kaiba') {
-                let bewdIdx = d.oppHand.findIndex(c => c.name_en.toLowerCase().includes("blue-eyes white dragon"));
-                if (bewdIdx !== -1) {
-                    let emptyIdx = d.oppMonsters.indexOf(null);
-                    if (emptyIdx !== -1) {
-                        let card = d.oppHand[bewdIdx];
-                        card.currentAtk = parseInt(card.atk) || 0;
-                        card.currentDef = parseInt(card.def) || 0;
-                        card.position = 'attack';
-                        d.oppMonsters[emptyIdx] = card;
-                        d.oppHand.splice(bewdIdx, 1);
-                        d.oppUsedSkill = true;
-                        ygoLog(`⚡ [KỸ NĂNG] Bot Kaiba kích hoạt [Kiêu Hãnh Của Rồng]! Triệu hồi đặc biệt Rồng Trắng Mắt Xanh [${card.name_vi}] không cần hiến tế!`);
-                        try { audio.play('levelup'); } catch(e){}
-                    }
-                }
-            }
-            
-            else if (botChar === 'marik') {
-                let playerAlive = [];
-                d.playerMonsters.forEach((m, i) => { if(m) playerAlive.push(i); });
-                let handMonIdx = d.oppHand.findIndex(c => c.card_type === 'Monster');
-                if (playerAlive.length > 0 && handMonIdx !== -1 && d.oppLP > 1000) {
-                    let targetIdx = playerAlive[0];
-                    let sacrificed = d.playerMonsters[targetIdx];
-                    d.playerGY.push(sacrificed);
-                    d.playerMonsters[targetIdx] = null;
-                    
-                    let summoned = d.oppHand[handMonIdx];
-                    d.oppHand.splice(handMonIdx, 1);
-                    let emptyIdx = d.oppMonsters.indexOf(null);
-                    if (emptyIdx !== -1) {
-                        summoned.currentAtk = parseInt(summoned.atk) || 0;
-                        summoned.currentDef = parseInt(summoned.def) || 0;
-                        summoned.position = 'attack';
-                        d.oppMonsters[emptyIdx] = summoned;
-                    }
-                    
-                    let cost = Math.floor(d.oppLP / 2);
-                    d.oppLP -= cost;
-                    d.oppUsedSkill = true;
-                    ygoLog(`⚡ [KỸ NĂNG] Bot Marik kích hoạt [Nghi Thức Hiến Tế Bóng Tối]! Tế quái [${sacrificed.name_vi}] của bạn, triệu hồi [${summoned.name_vi}] và trừ ${cost} LP.`);
-                    try { audio.play('levelup'); } catch(e){}
-                }
-            }
-            
-            else if (botChar === 'bakura') {
-                let monstersInPlayerGy = d.playerGY.filter(c => c.card_type === 'Monster');
-                let emptyIdx = d.oppMonsters.indexOf(null);
-                if (monstersInPlayerGy.length > 0 && emptyIdx !== -1) {
-                    monstersInPlayerGy.sort((a,b) => (parseInt(b.atk)||0) - (parseInt(a.atk)||0));
-                    let targetMon = monstersInPlayerGy[0];
-                    
-                    let gyIdx = d.playerGY.indexOf(targetMon);
-                    d.playerGY.splice(gyIdx, 1);
-                    
-                    targetMon.attribute = 'DARK';
-                    targetMon.currentAtk = parseInt(targetMon.atk) || 0;
-                    targetMon.currentDef = parseInt(targetMon.def) || 0;
-                    targetMon.position = 'attack';
-                    d.oppMonsters[emptyIdx] = targetMon;
-                    
-                    d.oppUsedSkill = true;
-                    ygoLog(`⚡ [KỸ NĂNG] Bot Yami Bakura kích hoạt [Sức Mệnh Kẻ Trộm Mộ]! Cướp quái [${targetMon.name_vi}] từ Mộ bạn về sân đối thủ.`);
-                    try { audio.play('levelup'); } catch(e){}
-                }
-            }
-            
-            else if (botChar === 'arkana' && d.oppLP > 1000) {
-                let emptyIdx = d.oppMonsters.indexOf(null);
-                let dmIdx = d.oppDeck.findIndex(c => c.name_en.toLowerCase().includes("dark magician"));
-                if (emptyIdx !== -1 && dmIdx !== -1) {
-                    let dm = d.oppDeck[dmIdx];
-                    d.oppDeck.splice(dmIdx, 1);
-                    dm.currentAtk = parseInt(dm.atk) || 0;
-                    dm.currentDef = parseInt(dm.def) || 0;
-                    dm.position = 'attack';
-                    d.oppMonsters[emptyIdx] = dm;
-                    d.oppLP -= 1000;
-                    d.oppUsedSkill = true;
-                    ygoLog(`⚡ [KỸ NĂNG] Bot Arkana kích hoạt [Phù Thủy Đen Độc Ác]! Trả 1000 LP triệu hồi Phù Thủy Áo Đen [${dm.name_vi}] từ bộ bài.`);
-                    try { audio.play('levelup'); } catch(e){}
-                }
-            }
-            
-            else if (botChar === 'lumis_umbra') {
-                d.lumisLockedZone = { side: 'player', type: 'monster', index: 0 };
-                d.lumisLockTurns = 3;
-                d.oppUsedSkill = true;
-                ygoLog(`⚡ [KỸ NĂNG] Bot Lumis & Umbra kích hoạt [Phong Ấn Mặt Nạ]! Khoá ô quái số 1 của bạn trong 3 lượt tiếp theo.`);
-                try { audio.play('levelup'); } catch(e){}
-            }
-        }
-        
-        // Tìm quái thú mạnh nhất trên tay Bot để triệu hồi thường hoặc úp thủ
-        let bestMonsterIdx = -1;
-        let maxAtk = -1;
-        
-        d.oppHand.forEach((card, idx) => {
-            if (card.card_type === 'Monster') {
-                let atk = parseInt(card.atk) || 0;
-                if (atk > maxAtk) {
-                    maxAtk = atk;
-                    bestMonsterIdx = idx;
-                }
-            }
-        });
-        
-        if (bestMonsterIdx !== -1) {
-            let card = d.oppHand[bestMonsterIdx];
-            let emptyZoneIdx = d.oppMonsters.indexOf(null);
-            if (emptyZoneIdx !== -1) {
-                // Tế phẩm (Dành cho Bot nếu không miễn phí)
-                let lvl = card.level_rank || 1;
-                let tributesNeeded = lvl >= 7 ? 2 : (lvl >= 5 ? 1 : 0);
-                
-                // Kaiba free Blue-eyes
-                if (ygoGame.oppCharacter === 'kaiba' && card.name_en.toLowerCase().includes("blue-eyes")) {
-                    tributesNeeded = 0;
-                }
-                
-                let aliveOppCount = d.oppMonsters.filter(m => m !== null).length;
-                if (aliveOppCount >= tributesNeeded) {
-                    if (tributesNeeded > 0) {
-                        let tCount = 0;
-                        for (let mIdx = 0; mIdx < 5; mIdx++) {
-                            if (d.oppMonsters[mIdx] !== null) {
-                                d.oppGY.push(d.oppMonsters[mIdx]);
-                                d.oppMonsters[mIdx] = null;
-                                tCount++;
-                                if (tCount >= tributesNeeded) break;
-                            }
-                        }
-                    }
-                    try { audio.play('levelup'); } catch(e){}
-                    card.currentAtk = parseInt(card.atk) || 0;
-                    card.currentDef = parseInt(card.def) || 0;
-                    
-                    // Smart decision: Set in defense if DEF > ATK
-                    let isDefense = (parseInt(card.def) || 0) > (parseInt(card.atk) || 0);
-                    card.position = isDefense ? 'defense' : 'attack';
-                    
-                    d.oppMonsters[emptyZoneIdx] = card;
-                    d.oppHand.splice(bestMonsterIdx, 1);
-                    
-                    if (isDefense) {
-                        ygoLog(`🤖 Bot úp 1 quái thú ở thế PHÒNG THỦ.`);
-                    } else {
-                        ygoLog(`🤖 Bot triệu hồi: [${card.name_vi}] (ATK: ${card.atk})`);
-                    }
-                }
-            }
-        }
-        
-        // Bot kích hoạt bài Môi trường nếu có trên tay
-        let botFieldSpellIdx = d.oppHand.findIndex(c => c.card_type === 'Spell' && (c.property === 'Field' || c.name_en.toLowerCase().includes('umi') || c.name_en.toLowerCase().includes('orichalcos') || c.name_en.toLowerCase().includes('stromberg')));
-        if (botFieldSpellIdx !== -1) {
-            let card = d.oppHand[botFieldSpellIdx];
-            if (d.oppFieldSpell) {
-                d.oppGY.push(d.oppFieldSpell);
-            }
-            card.faceUp = true;
-            d.oppFieldSpell = card;
-            d.oppHand.splice(botFieldSpellIdx, 1);
-            ygoLog(`🤖 Bot kích hoạt Bài Môi Trường: [${card.name_vi}]`);
-        }
-        
-        // Bot úp bài phép ngẫu nhiên
-        let spellIdx = d.oppHand.findIndex(c => c.card_type === 'Spell' || c.card_type === 'Trap');
-        if (spellIdx !== -1) {
-            let card = d.oppHand[spellIdx];
-            let emptySpellZone = d.oppSpells.indexOf(null);
-            if (emptySpellZone !== -1) {
-                d.oppSpells[emptySpellZone] = card;
-                d.oppHand.splice(spellIdx, 1);
-                ygoLog(`🤖 Bot úp một lá bài Phép/Bẫy.`);
-                
-                // Solomon passive check
-                if (ygoGame.myCharacter === 'solomon' && card.card_type === 'Spell') {
-                    ygoLog(`👵 [Trải Nghiệm Lão Luyện] Solomon Muto rút 1 lá bài do đối thủ kích hoạt Spell/Trap!`);
-                    ygoDrawCard('player');
-                }
-                
-                if (card.name_en.toLowerCase().includes('pot of greed') || card.name_en.toLowerCase().includes('raigeki')) {
-                    ygoExecuteCardEffect('opponent', card, emptySpellZone);
-                }
-            }
-        }
-        
-        ygoRenderField();
-        
-        // 3. Bot Tấn Công (Battle Phase)
-        setTimeout(() => {
-            if (d.turnCount === 1) {
-                ygoLog("🤖 Lượt đầu tiên của trận đấu, Bot không thể tấn công.");
-            } else {
-                for (let i = 0; i < 5; i++) {
-                    let botMon = d.oppMonsters[i];
-                    if (botMon) {
-                        if (botMon.position === 'defense') continue; // Defense monsters cannot attack!
-                        
-                        // Leon Stromberg check on player side
-                        if (ygoGame.myCharacter === 'leon') {
-                            ygoLog(`🏰 [Lâu Đài Cổ Tích] Bot [${botMon.name_vi}] tuyên bố tấn công và bị nổ tung bởi Stromberg Castle!`);
-                            ygoDestroyMonster('opponent', i);
-                            ygoRenderField();
-                            continue;
-                        }
-                        
-                        let playerAliveMonIndices = [];
-                        d.playerMonsters.forEach((pm, idx) => {
-                            if(pm !== null) playerAliveMonIndices.push(idx);
-                        });
-                        
-                        let isWater = botMon.attribute && botMon.attribute.toUpperCase() === 'WATER';
-                        let playerHasWater = d.playerMonsters.some(m => m !== null && m.attribute && m.attribute.toUpperCase() === 'WATER');
-                        
-                        // Mako Ocean direct attack condition
-                        let canAttackDirectly = (playerAliveMonIndices.length === 0) || (ygoGame.oppCharacter === 'mako' && isWater && !playerHasWater);
-                        
-                        if (!canAttackDirectly && playerAliveMonIndices.length > 0) {
-                            let targetIdx = playerAliveMonIndices[0];
-                            let targetMon = d.playerMonsters[targetIdx];
-                            
-                            try { audio.play('hit'); } catch(e){}
-                            let botAtk = ygoGetEffectiveAtk('opponent', botMon);
-                            
-                            if (targetMon.position === 'defense') {
-                                let playDef = parseInt(targetMon.currentDef || targetMon.def) || 0;
-                                ygoLog(`🤖 Bot [${botMon.name_vi}] (ATK ${botAtk}) tấn công [${targetMon.name_vi}] ở THẾ THỦ (DEF ${playDef})!`);
-                                
-                                if (botAtk > playDef) {
-                                    ygoLog(`💔 [${targetMon.name_vi}] bị tiêu diệt.`);
-                                    ygoDestroyMonster('player', targetIdx);
-                                    // Bot Rex Raptor: Dino Stampede (Pierce damage)
-                                    if (ygoGame.oppCharacter === 'rex' && botMon.monster_type && botMon.monster_type.toLowerCase().includes('dinosaur')) {
-                                        let diff = botAtk - playDef;
-                                        ygoDamagePlayer(diff, `xuyên thủ của Bot Rex Raptor`);
-                                    }
-                                } else if (botAtk < playDef) {
-                                    let diff = playDef - botAtk;
-                                    ygoDamageOpponent(diff, `phản đòn từ quái thủ`);
-                                }
-                            } else {
-                                let playAtk = ygoGetEffectiveAtk('player', targetMon);
-                                ygoLog(`🤖 Bot [${botMon.name_vi}] (ATK ${botAtk}) tấn công [${targetMon.name_vi}] (ATK ${playAtk})!`);
-                                
-                                if (botAtk > playAtk) {
-                                    let diff = botAtk - playAtk;
-                                    ygoDamagePlayer(diff, `chiến đấu quái thú`);
-                                    ygoLog(`💔 [${targetMon.name_vi}] bị tiêu diệt.`);
-                                    ygoDestroyMonster('player', targetIdx);
-                                } else if (botAtk === playAtk) {
-                                    ygoLog(`💥 Cả hai cùng chết!`);
-                                    ygoDestroyMonster('opponent', i);
-                                    ygoDestroyMonster('player', targetIdx);
-                                } else {
-                                    let diff = playAtk - botAtk;
-                                    ygoDamageOpponent(diff, `quái thú phản công`);
-                                    ygoLog(`💔 Bot [${botMon.name_vi}] bị tiêu diệt.`);
-                                    ygoDestroyMonster('opponent', i);
-                                }
-                            }
-                        } else if (canAttackDirectly) {
-                            // Tấn công trực diện
-                            try { audio.play('hit'); } catch(e){}
-                            let botAtk = ygoGetEffectiveAtk('opponent', botMon);
-                            ygoDamagePlayer(botAtk, `đòn tấn công trực diện của Bot`);
-                        }
-                        
-                        ygoUpdateLP();
-                        ygoRenderField();
-                        ygoCheckWinConditions();
-                        
-                        if(d.playerLP <= 0 || d.oppLP <= 0) return; // Kết thúc game
-                    }
-                }
-            }
-            
-            // 4. Kết thúc lượt của Bot (Banish Valkyries của Zigfried nếu có)
-            setTimeout(() => {
-                if (d.zigfriedBanishList.length > 0) {
-                    ygoLog(`✨ [Bản Hùng Ca Valkyrie] Trục xuất toàn bộ Valkyrie khỏi sân.`);
-                    for (let i = 0; i < 5; i++) {
-                        if (d.oppMonsters[i] && d.zigfriedBanishList.includes(d.oppMonsters[i])) d.oppMonsters[i] = null;
-                        if (d.playerMonsters[i] && d.zigfriedBanishList.includes(d.playerMonsters[i])) d.playerMonsters[i] = null;
-                    }
-                    d.zigfriedBanishList = [];
-                }
-                
-                // Return Change of Heart stolen monster
-                if (d.changeOfHeartStolen) {
-                    let ch = d.changeOfHeartStolen;
-                    let currentMonsters = ch.toSide === 'player' ? d.playerMonsters : d.oppMonsters;
-                    let targetMonsters = ch.fromSide === 'player' ? d.playerMonsters : d.oppMonsters;
-                    
-                    if (currentMonsters[ch.toIdx] === ch.monster) {
-                        currentMonsters[ch.toIdx] = null;
-                        if (targetMonsters[ch.fromIdx] === null) {
-                            targetMonsters[ch.fromIdx] = ch.monster;
-                        } else {
-                            let emptyIdx = targetMonsters.indexOf(null);
-                            if (emptyIdx !== -1) {
-                                targetMonsters[emptyIdx] = ch.monster;
-                            } else {
-                                let oppGY = ch.fromSide === 'player' ? d.playerGY : d.oppGY;
-                                oppGY.push(ch.monster);
-                            }
-                        }
-                        ygoLog(`⏳ Trả lại quái thú [${ch.monster.name_vi}] cho đối thủ.`);
-                    }
-                    d.changeOfHeartStolen = null;
-                }
-                
-                // Trừ thời gian Lumis Lock
-                if (d.lumisLockTurns > 0) {
-                    d.lumisLockTurns--;
-                    if (d.lumisLockTurns === 0) {
-                        ygoLog(`🎭 Giải phóng ô bị phong ấn bởi Mặt Nạ.`);
-                        d.lumisLockedZone = null;
-                    }
-                }
-                
-                ygoLog(`⏳ Bot kết thúc lượt. Đến lượt của bạn!`);
-                d.turn = 'player';
-                d.turnCount = (d.turnCount || 1) + 1;
-                ygoStartPhase('DRAW');
-                ygoRenderField();
-            }, 1000);
-            
-        }, 1000);
-        
-    }, 1000);
-}
 
 // Kiểm tra thắng thua
 function ygoCheckWinConditions() {

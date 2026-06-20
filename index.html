@@ -1065,6 +1065,36 @@
             </div>
         </div>
 
+        <!-- ===== HỘP THOẠI PHẢN HỒI CHAIN LINK ===== -->
+        <div id="ygoChainModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100006; justify-content:center; align-items:center; padding:20px; font-family:inherit;">
+            <div style="width:min(90vw, 400px); background:#2d1810; border:3px solid #ef4444; border-radius:12px; padding:18px; color:white; display:flex; flex-direction:column; box-shadow:0 0 25px rgba(239, 68, 68, 0.4);" class="rpg-popup-box">
+                <h3 style="color:#ef4444; border-bottom:2px solid #78350f; padding-bottom:6px; font-size:1.15rem; margin-bottom:10px; text-align:center; letter-spacing:1px;">⚡ CHUỖI PHẢN HỒI (CHAIN LINK)</h3>
+                <div id="ygoChainStackList" style="margin-bottom:12px; max-height:150px; overflow-y:auto; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; border:1px solid #5a3d28; font-size:0.8rem; line-height: 1.4;">
+                    <!-- Danh sách các link trong stack -->
+                </div>
+                <p id="ygoChainPromptText" style="color:#cbd5e1; font-size:0.82rem; text-align:center; margin-bottom:15px;">Đối thủ kích hoạt hiệu ứng. Bạn có muốn phản hồi không?</p>
+                <div style="display:flex; gap:10px;">
+                    <button class="ygo-btn" style="flex:1; padding:8px; background:linear-gradient(to right, #b91c1c, #991b1b);" id="ygoChainRespondBtn" onclick="ygoChainRespondClick()">⚡ Phản Hồi</button>
+                    <button class="ygo-btn ygo-btn-secondary" style="flex:1; padding:8px;" onclick="ygoChainPassClick()">Bỏ Qua</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CHỌN TƯ THẾ TRIỆU HỒI MODAL ===== -->
+        <div id="ygoSummonPositionModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100007; justify-content:center; align-items:center; padding:20px; font-family:inherit;">
+            <div style="width:min(90vw, 360px); background:#2d1810; border:3px solid #d4af37; border-radius:12px; padding:18px; color:white; display:flex; flex-direction:column; box-shadow:0 0 25px rgba(0,0,0,0.95);" class="rpg-popup-box">
+                <h3 style="color:#d4af37; border-bottom:2px solid #78350f; padding-bottom:6px; font-size:1.1rem; margin-bottom:12px; text-align:center;">⚔️ CHỌN TƯ THẾ TRIỆU HỒI</h3>
+                <p id="ygoSummonPosCardName" style="color:#cbd5e1; font-size:0.85rem; text-align:center; margin-bottom:15px; font-weight:bold;"></p>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="ygo-btn" style="padding:10px; background:linear-gradient(to right, #b45309, #78350f);" onclick="ygoSummonPositionSelect('attack_faceup')">⚔️ Triệu Hồi Tấn Công (Ngửa dọc)</button>
+                    <button id="btnSummonPosDefFaceup" class="ygo-btn" style="padding:10px; background:linear-gradient(to right, #1d4ed8, #1e40af);" onclick="ygoSummonPositionSelect('defense_faceup')">🛡️ Triệu Hồi Phòng Thủ (Ngửa ngang)</button>
+                    <button id="btnSummonPosDefFacedown" class="ygo-btn ygo-btn-secondary" style="padding:10px;" onclick="ygoSummonPositionSelect('defense_facedown')">💤 Úp Phòng Thủ (Úp ngang)</button>
+                    <button class="ygo-btn ygo-btn-secondary" style="padding:6px; margin-top:6px; background:#475569;" onclick="document.getElementById('ygoSummonPositionModal').style.display='none'">Huỷ bỏ</button>
+                </div>
+            </div>
+        </div>
+
+
         <!-- ===== 💰 BET MODAL (trước khi bắt đầu Cờ Đua) ===== -->
         <div id="boardBetModal">
             <div class="bet-modal-box">
