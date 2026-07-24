@@ -844,6 +844,16 @@ input[type="text"], input[type="email"], input[type="password"] {
     flex-direction: column;
     gap: 6px;
     width: 140px;
+    transition: width 0.25s ease-in-out;
+}
+.right-top-box.enlarged {
+    width: 300px !important;
+}
+.right-top-box.enlarged .quick-actions {
+    width: 300px !important;
+}
+.right-top-box.enlarged #autoFarmBtn {
+    width: 300px !important;
 }
 #minimap {
     width: 140px; height: 140px;
@@ -852,12 +862,18 @@ input[type="text"], input[type="email"], input[type="password"] {
     border-radius: 16px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.45);
     display: block;
+    transition: width 0.25s ease-in-out, height 0.25s ease-in-out;
+}
+#minimap.enlarged {
+    width: 300px !important;
+    height: 300px !important;
 }
 .quick-actions {
     display: flex;
     flex-direction: column;
     gap: 6px;
     width: 140px;
+    transition: width 0.25s ease-in-out;
 }
 .btn-sm {
     padding: 9px 12px;

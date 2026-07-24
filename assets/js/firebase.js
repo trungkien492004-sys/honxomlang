@@ -218,6 +218,13 @@ window.drawBeautifulRPGChibi = function(ctx, x, y, classId, isMoving = false, sc
 
     ctx.save();
     
+    // Mirror image if facing left
+    if (faceDirection === 'left') {
+        ctx.translate(x, y);
+        ctx.scale(-1, 1);
+        ctx.translate(-x, -y);
+    }
+    
     // Animation tick
     let tick = Date.now() / 150;
     let bob = isMoving ? Math.sin(tick) * 4 * scale : Math.sin(Date.now() / 400) * 1.5 * scale;

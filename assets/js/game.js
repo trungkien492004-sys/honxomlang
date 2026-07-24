@@ -1,5 +1,5 @@
 // --- 1. CONFIGURATIONS & GAME CONSTANTS ---
-        const WORLD_SIZE = 2400; 
+        const WORLD_SIZE = 1600; 
         const MAP_SCALE = WORLD_SIZE / 4000;
         const SAVE_KEY = "XOM_ANH_HUNG_SAVE_V2";
         const AUDIO_ENABLED = true;
@@ -492,17 +492,17 @@
         // Quest Directions Pointer UI Canvas Drawer
         function renderQuestDirectionGuide() {
             if(currentScreen !== 'gameScreen') return;
+            if(!window.showQuestGuide) return;
             
-            // Get coordinates of active target based on current accepted quest
             let targetX = null;
             let targetY = null;
             let targetName = "";
-            let targetMap = "world"; // default
             
-            if (player.currentQuestIdx !== undefined && STORY_QUESTS[player.currentQuestIdx]) {
+            let qType = window.activeQuestGuideType || 'story';
+            
+            if (qType === 'story' && player.currentQuestIdx !== undefined && STORY_QUESTS[player.currentQuestIdx]) {
                 let sQuest = STORY_QUESTS[player.currentQuestIdx];
                 if (!player.questAccepted) {
-                    // Go accept quest from accept NPC
                     let npcKey = sQuest.npcAccept || sQuest.target;
                     let npc = NPC_DATA[npcKey];
                     if (npc) {
@@ -511,7 +511,6 @@
                         targetName = "📜 " + npc.name;
                     }
                 } else {
-                    // Accepted, go to target
                     if (sQuest.type === 'talk') {
                         let npc = NPC_DATA[sQuest.target];
                         if (npc) {
@@ -520,52 +519,99 @@
                             targetName = "💬 " + npc.name;
                         }
                     } else if (sQuest.type === 'kill') {
-                        // Find if target monster exists on map
                         let match = monsters.find(m => m.name === sQuest.target);
                         if (match) {
                             targetX = match.x;
                             targetY = match.y;
                             targetName = "⚔️ " + match.name;
                         } else {
-                            // Point to spawn region coordinate estimation
                             if (sQuest.target.includes('Chuột')) { targetX = 1800 * MAP_SCALE; targetY = 1800 * MAP_SCALE; }
                             else if (sQuest.target.includes('Chó')) { targetX = 1200 * MAP_SCALE; targetY = 2000 * MAP_SCALE; }
                             else if (sQuest.target.includes('Muỗi')) { targetX = 1000 * MAP_SCALE; targetY = 1000 * MAP_SCALE; }
                             else if (sQuest.target.includes('Lợn')) { targetX = 2500 * MAP_SCALE; targetY = 2500 * MAP_SCALE; }
                             else if (sQuest.target.includes('Hộ Vệ')) { targetX = 2000 * MAP_SCALE; targetY = 2000 * MAP_SCALE; }
-                            else if (sQuest.target.includes('Thần Trùng')) { targetX = 2200 * MAP_SCALE; targetY = 2200 * MAP_SCALE; }
-                            else if (sQuest.target.includes('Barlog')) { targetX = 3500 * MAP_SCALE; targetY = 500 * MAP_SCALE; }
-                            else { targetX = 2000 * MAP_SCALE; targetY = 2000 * MAP_SCALE; }
-                            targetName = "🔍 Vùng: " + sQuest.target;
+                            else if (sQuest.target.includes('Boss') || sQuest.target.includes('Thần Trùng')) { targetX = 2200 * MAP_SCALE; targetY = 2200 * MAP_SCALE; }
+                            else { targetX = 1500 * MAP_SCALE; targetY = 1500 * MAP_SCALE; }
+                            targetName = "📍 Bãi " + sQuest.target;
                         }
                     } else if (sQuest.type === 'collect') {
-                        // Point to drop items or spawn regions
-                        let match = groundItems.find(gi => {
-                            if (gi.mapId && gi.mapId !== (window.currentMapId || 'world')) return false;
-                            let itemDef = ITEMS[gi.id];
-                            return gi.id === sQuest.target || (itemDef && itemDef.name === sQuest.target);
-                        });
+                        let match = groundItems.find(gi => gi.id === sQuest.target || (gi.emoji && gi.emoji === sQuest.target));
                         if (match) {
                             targetX = match.x;
                             targetY = match.y;
-                            targetName = "💎 Vật Phẩm Rơi";
+                            targetName = "🎒 " + sQuest.target;
                         } else {
-                            targetX = 1800 * MAP_SCALE; targetY = 1800 * MAP_SCALE; // General central farm spot
-                            targetName = "🌾 Tìm: " + sQuest.target;
+                            if (sQuest.target.includes('Quặng') || sQuest.target.includes('Đồng')) { targetX = 600 * MAP_SCALE; targetY = 1200 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Thịt') || sQuest.target.includes('Chuột')) { targetX = 1800 * MAP_SCALE; targetY = 1800 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Mảnh Đá')) { targetX = 1200 * MAP_SCALE; targetY = 2200 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Trứng') || sQuest.target.includes('Tinh Thể')) { targetX = 2200 * MAP_SCALE; targetY = 2200 * MAP_SCALE; }
+                            else { targetX = 1500 * MAP_SCALE; targetY = 1500 * MAP_SCALE; }
+                            targetName = "📍 Vùng có " + sQuest.target;
                         }
                     }
                 }
-            } else if (player.dailyQuest) {
+            } else if (qType === 'daily' && player.dailyQuest) {
                 let dq = player.dailyQuest;
                 let match = monsters.find(m => m.name === dq.target);
-                if (match) { targetX = match.x; targetY = match.y; }
-                else { targetX = 1500 * MAP_SCALE; targetY = 1500 * MAP_SCALE; }
+                if (match) {
+                    targetX = match.x;
+                    targetY = match.y;
+                } else {
+                    if (dq.target.includes('Chó')) { targetX = 1200 * MAP_SCALE; targetY = 2000 * MAP_SCALE; }
+                    else if (dq.target.includes('Muỗi')) { targetX = 1000 * MAP_SCALE; targetY = 1000 * MAP_SCALE; }
+                    else { targetX = 1500 * MAP_SCALE; targetY = 1500 * MAP_SCALE; }
+                }
                 targetName = dq.title;
+            } else if (qType === 'guild' && player.guildQuest) {
+                let gq = player.guildQuest;
+                let match = groundItems.find(gi => gi.id === gq.target);
+                if (match) {
+                    targetX = match.x;
+                    targetY = match.y;
+                } else {
+                    targetX = 600 * MAP_SCALE; targetY = 1200 * MAP_SCALE;
+                }
+                targetName = gq.title;
+            } else if (qType === 'couple' && player.coupleQuest) {
+                let cq = player.coupleQuest;
+                let match = groundItems.find(gi => gi.id === cq.target);
+                if (match) {
+                    targetX = match.x;
+                    targetY = match.y;
+                } else {
+                    targetX = 2250 * MAP_SCALE; targetY = 2050 * MAP_SCALE;
+                }
+                targetName = cq.title;
             }
 
             if (targetX === null || targetY === null) return;
 
-            // Draw arrow
+            // 1. Draw orbiting arrow helper directly around the player character
+            let angle = Math.atan2(targetY - player.y, targetX - player.x);
+            let orbitR = 45; 
+            let ox = canvas.width / 2 + Math.cos(angle) * orbitR;
+            let oy = canvas.height / 2 + Math.sin(angle) * orbitR;
+            
+            ctx.save();
+            ctx.translate(ox, oy);
+            ctx.rotate(angle);
+            ctx.fillStyle = "#ffd54f";
+            ctx.strokeStyle = "#ff8f00";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(8, 0);
+            ctx.lineTo(-4, -5);
+            ctx.lineTo(-2, -2);
+            ctx.lineTo(-10, -2);
+            ctx.lineTo(-10, 2);
+            ctx.lineTo(-2, 2);
+            ctx.lineTo(-4, 5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // 2. Draw standard screen edge / target guides
             let sx = canvas.width / 2 + (targetX - player.x);
             let sy = canvas.height / 2 + (targetY - player.y);
 
@@ -1003,6 +1049,23 @@
             quests: JSON.parse(JSON.stringify(QUEST_DATA)), // Deep clone quest dictionary
             attackEffect: { active: false, sx: 0, sy: 0, targetX: 0, targetY: 0, startAt: 0 }
         };
+        window.showQuestGuide = false;
+        window.activeQuestGuideType = null;
+        window.toggleQuestGuide = function(type) {
+            audio.play('click');
+            if (window.showQuestGuide && window.activeQuestGuideType === type) {
+                window.showQuestGuide = false;
+                window.activeQuestGuideType = null;
+                showToast("🔍 Đã tắt la bàn chỉ đường.");
+            } else {
+                window.showQuestGuide = true;
+                window.activeQuestGuideType = type;
+                showToast("🔍 Đã bật la bàn chỉ đường nhiệm vụ!");
+                let p = document.getElementById('panel-quests');
+                if (p) p.style.display = 'none';
+                activePanel = null;
+            }
+        };
 
         let camera = { x: 0, y: 0 };
         let monsters = [];
@@ -1024,6 +1087,13 @@
         let ctx = canvas.getContext('2d');
         let mCanvas = document.getElementById('minimap');
         let mCtx = mCanvas.getContext('2d');
+        mCanvas.style.cursor = 'pointer';
+        mCanvas.title = "Nhấp để phóng to / thu nhỏ";
+        mCanvas.addEventListener('click', () => {
+            mCanvas.classList.toggle('enlarged');
+            let box = document.querySelector('.right-top-box');
+            if (box) box.classList.toggle('enlarged');
+        });
 
         // Setup Multiplayer Synchronization using Firebase Firestore (True Online)
         let pvpChannel = {
@@ -1249,8 +1319,8 @@
         function setupCanvasSize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            mCanvas.width = 150;
-            mCanvas.height = 150;
+            mCanvas.width = 300;
+            mCanvas.height = 300;
         }
 
         function checkAndDisplayLocalSave() {
@@ -3622,6 +3692,8 @@ function toggleAutoFarm() {
                             player.questAccepted = true;
                             player.questProgress = 0;
                             player.questDone = false;
+                            window.showQuestGuide = true;
+                            window.activeQuestGuideType = 'story';
                             showToast(`📜 Nhận nhiệm vụ cốt truyện: ${sQuest.title}`);
                             
                             // Spawn quest-related items
@@ -3722,6 +3794,8 @@ function toggleAutoFarm() {
                             
                             showToast(`🎉 Hoàn thành: ${sQuest.title}! +${sQuest.rewardGold} vàng, +${sQuest.rewardExp} EXP`);
                             
+                            window.showQuestGuide = false;
+                            window.activeQuestGuideType = null;
                             player.currentQuestIdx++;
                             player.questAccepted = false;
                             player.questProgress = 0;
@@ -4850,6 +4924,7 @@ function toggleAutoFarm() {
                     statusTxt = `Tiến độ: <b>${player.questProgress || 0}/${s.req || 1}</b>`;
                 }
 
+                let guideBtnHtml = `<button class="btn-sm" style="margin-top: 6px; width: auto; align-self: flex-start; padding: 4px 8px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem;" onclick="event.stopPropagation(); window.toggleQuestGuide('story')">🔍 Chỉ Đường</button>`;
                 div.innerHTML = `
                     <div class="item-meta">
                         <div style="font-size:1.6rem; color:#f59e0b;">👑</div>
@@ -4857,6 +4932,7 @@ function toggleAutoFarm() {
                             <h4 style="color:#f59e0b;">[Cốt Truyện] ${s.title}</h4>
                             <p>${s.desc}</p>
                             <span style="font-size:0.8rem; color:#ffd54f;">Thưởng: ${s.rewardGold} vàng / +${s.rewardExp} exp ${s.rewardItem ? '(Trang Bị)' : ''}</span>
+                            ${guideBtnHtml}
                         </div>
                     </div>
                     <div style="font-size:0.9rem;">${statusTxt}</div>
@@ -4881,6 +4957,8 @@ function toggleAutoFarm() {
                     let isDone = s.progress >= s.req;
                     let statusTxt = isDone ? "<b style='color:#4caf50;'>[XONG] Trả NPC</b>" : `Tiến độ: <b>${s.progress}/${s.req}</b>`;
 
+                    let guideType = opt.label === "Hằng Ngày" ? "daily" : (opt.label === "Bang Hội" ? "guild" : "couple");
+                    let guideBtnHtml = `<button class="btn-sm" style="margin-top: 6px; width: auto; align-self: flex-start; padding: 4px 8px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem;" onclick="event.stopPropagation(); window.toggleQuestGuide('${guideType}')">🔍 Chỉ Đường</button>`;
                     div.innerHTML = `
                         <div class="item-meta">
                             <div style="font-size:1.6rem;">${opt.icon}</div>
@@ -4888,6 +4966,7 @@ function toggleAutoFarm() {
                                 <h4 style="color:#60a5fa;">[${opt.label}] ${s.title}</h4>
                                 <p>${s.desc}</p>
                                 <span style="font-size:0.8rem; color:#ffd54f;">Thưởng: ${s.rewardGold} vàng / +${s.rewardExp} exp</span>
+                                ${guideBtnHtml}
                             </div>
                         </div>
                         <div style="font-size:0.9rem;">${statusTxt}</div>
@@ -5847,7 +5926,34 @@ function toggleAutoFarm() {
         }
 
         function renderWorldGraphicsLayers() {
-            ctx.fillStyle = "#111625";
+            let mapId = window.currentMapId || 'world';
+            let color1 = "#111625";
+            let color2 = "#151b2d";
+            let tilePattern = 'none';
+            
+            if (mapId === 'world' || mapId === 'bamboo_forest' || mapId === 'pvp_arena') {
+                color1 = "#55b467";
+                color2 = "#4ca85d";
+                tilePattern = 'checkers';
+            } else if (mapId === 'beach') {
+                color1 = "#f6d365";
+                color2 = "#eda750";
+                tilePattern = 'checkers';
+            } else if (mapId.includes('cave') || mapId.includes('dungeon') || mapId === 'cemetery' || mapId === 'sewer' || mapId === 'mine' || mapId === 'cultist_camp' || mapId === 'nest_cave') {
+                color1 = "#374151";
+                color2 = "#1f2937";
+                tilePattern = 'stone';
+            } else if (mapId.includes('house') || mapId === 'school' || mapId.includes('shop') || mapId === 'police_station' || mapId === 'village_temple') {
+                color1 = "#a16207";
+                color2 = "#854d0e";
+                tilePattern = 'wood';
+            } else {
+                color1 = "#111625";
+                color2 = "#0f1322";
+                tilePattern = 'checkers';
+            }
+
+            ctx.fillStyle = color1;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             let pvpZoom = (window.currentMapId === 'pvp_arena');
@@ -5858,24 +5964,81 @@ function toggleAutoFarm() {
                 ctx.translate(-canvas.width / 2, -canvas.height / 2);
             }
             
+            // Draw tile pattern
+            let tileSize = 100;
+            let startTileX = Math.floor(camera.x / tileSize);
+            let startTileY = Math.floor(camera.y / tileSize);
+            let endTileX = Math.floor((camera.x + canvas.width) / tileSize) + 1;
+            let endTileY = Math.floor((camera.y + canvas.height) / tileSize) + 1;
+            let size = window.getMapSize(mapId);
+            let maxTileX = Math.floor(size / tileSize);
+            let maxTileY = Math.floor(size / tileSize);
+
+            for (let tx = startTileX; tx <= endTileX; tx++) {
+                if (tx < 0 || tx >= maxTileX) continue;
+                for (let ty = startTileY; ty <= endTileY; ty++) {
+                    if (ty < 0 || ty >= maxTileY) continue;
+                    
+                    let rx = tx * tileSize - camera.x;
+                    let ry = ty * tileSize - camera.y;
+
+                    if (tilePattern === 'checkers') {
+                        if ((tx + ty) % 2 === 0) {
+                            ctx.fillStyle = color2;
+                            ctx.fillRect(rx, ry, tileSize, tileSize);
+                        }
+                        if (mapId === 'world' || mapId === 'bamboo_forest' || mapId === 'pvp_arena') {
+                            let seed = (tx * 1337 + ty * 73) % 100;
+                            if (seed < 8) {
+                                ctx.fillStyle = seed < 4 ? "#fef08a" : "#fecdd3";
+                                ctx.beginPath();
+                                let fx = rx + 30 + (seed * 5) % 40;
+                                let fy = ry + 30 + (seed * 7) % 40;
+                                ctx.arc(fx, fy, 4, 0, Math.PI*2);
+                                ctx.fill();
+                                ctx.fillStyle = "#ffffff";
+                                ctx.beginPath();
+                                ctx.arc(fx, fy, 1.5, 0, Math.PI*2);
+                                ctx.fill();
+                            } else if (seed < 18) {
+                                ctx.strokeStyle = "#388e3c";
+                                ctx.lineWidth = 1.5;
+                                let fx = rx + 30 + (seed * 5) % 40;
+                                let fy = ry + 30 + (seed * 7) % 40;
+                                ctx.beginPath();
+                                ctx.moveTo(fx, fy);
+                                ctx.quadraticCurveTo(fx + 2, fy - 6, fx + 4, fy - 8);
+                                ctx.moveTo(fx + 3, fy);
+                                ctx.quadraticCurveTo(fx, fy - 5, fx - 2, fy - 7);
+                                ctx.stroke();
+                            }
+                        }
+                    } else if (tilePattern === 'wood') {
+                        ctx.fillStyle = (tx + ty) % 2 === 0 ? color1 : color2;
+                        ctx.fillRect(rx, ry, tileSize, tileSize);
+                        ctx.strokeStyle = "#54330c";
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(rx, ry, tileSize, tileSize);
+                        ctx.beginPath();
+                        ctx.moveTo(rx, ry + 25); ctx.lineTo(rx + tileSize, ry + 25);
+                        ctx.moveTo(rx, ry + 50); ctx.lineTo(rx + tileSize, ry + 50);
+                        ctx.moveTo(rx, ry + 75); ctx.lineTo(rx + tileSize, ry + 75);
+                        ctx.stroke();
+                    } else if (tilePattern === 'stone') {
+                        ctx.fillStyle = (tx + ty) % 2 === 0 ? color1 : color2;
+                        ctx.fillRect(rx, ry, tileSize, tileSize);
+                        ctx.strokeStyle = "#111827";
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeRect(rx, ry, tileSize, tileSize);
+                        ctx.beginPath();
+                        ctx.moveTo(rx + 50, ry); ctx.lineTo(rx + 50, ry + tileSize);
+                        ctx.moveTo(rx, ry + 50); ctx.lineTo(rx + tileSize, ry + 50);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
             renderWorldThemeAreas();
-
-            ctx.strokeStyle = "rgba(255,215,0,0.06)";
-            ctx.lineWidth = 1;
-            let spacing = 100;
-            let startGridX = Math.floor(camera.x / spacing) * spacing;
-            let startGridY = Math.floor(camera.y / spacing) * spacing;
-
-            for(let gx = startGridX; gx < startGridX + canvas.width + spacing; gx += spacing) {
-                ctx.beginPath();
-                ctx.moveTo(gx - camera.x, 0); ctx.lineTo(gx - camera.x, canvas.height);
-                ctx.stroke();
-            }
-            for(let gy = startGridY; gy < startGridY + canvas.height + spacing; gy += spacing) {
-                ctx.beginPath();
-                ctx.moveTo(0, gy - camera.y); ctx.lineTo(canvas.width, gy - camera.y);
-                ctx.stroke();
-            }
 
             ctx.strokeStyle = "rgba(239,68,68,0.4)";
             ctx.lineWidth = 4;
@@ -5998,8 +6161,15 @@ function toggleAutoFarm() {
                                 ctx.shadowColor = m.isBoss ? "#ef4444" : "rgba(0, 0, 0, 0.7)";
                                 ctx.strokeStyle = "#000000";
                                 ctx.lineWidth = 4;
-                                ctx.strokeText(m.emoji, sx, sy);
-                                ctx.fillText(m.emoji, sx, sy);
+                                if (m.vx < -0.05) {
+                                    ctx.translate(sx, sy);
+                                    ctx.scale(-1, 1);
+                                    ctx.strokeText(m.emoji, 0, 0);
+                                    ctx.fillText(m.emoji, 0, 0);
+                                } else {
+                                    ctx.strokeText(m.emoji, sx, sy);
+                                    ctx.fillText(m.emoji, sx, sy);
+                                }
                                 ctx.restore();
                             }
 
@@ -6060,8 +6230,16 @@ function toggleAutoFarm() {
                         if (window.drawBeautifulRPGChibi) {
                             window.drawBeautifulRPGChibi(ctx, sx, sy - 10, p.classId, otherIsMoving, 0.9, p.faceDir, false, p.equipment?.skin, otherIsAttacking);
                         } else {
-                            ctx.font = "30px Arial"; ctx.textAlign = "center";
-                            ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
+                            ctx.font = "30px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                            ctx.save();
+                            if (p.faceDir === 'left') {
+                                ctx.translate(sx, sy);
+                                ctx.scale(-1, 1);
+                                ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", 0, 0);
+                            } else {
+                                ctx.fillText(CLASS_DATA[p.classId]?.emoji || "👤", sx, sy);
+                            }
+                            ctx.restore();
                         }
 
                         if (isFlashing) {
@@ -6148,7 +6326,15 @@ function toggleAutoFarm() {
                         window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir, false, player.equipment.skin, isSelfAttacking);
                     } else {
                         ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                        ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);
+                        ctx.save();
+                        if (faceDir === 'left') {
+                            ctx.translate(px, py);
+                            ctx.scale(-1, 1);
+                            ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", 0, 0);
+                        } else {
+                            ctx.fillText(CLASS_DATA[player.classId]?.emoji || "👮‍♂️", px, py);
+                        }
+                        ctx.restore();
                     }
 
                     ctx.restore();
@@ -6580,10 +6766,12 @@ function toggleAutoFarm() {
                 }
             }
 
-            // 3. Render Red Roaming Enemy Dots
+            // 3. Render Red Roaming Enemy Dots (Only Bosses to avoid clutter)
             monsters.forEach(m => {
-                mCtx.fillStyle = m.isBoss ? "orange" : "red";
-                mCtx.beginPath(); mCtx.arc(m.x * scale, m.y * scale, m.isBoss ? 4 : 2, 0, Math.PI*2); mCtx.fill();
+                if (m.isBoss) {
+                    mCtx.fillStyle = "orange";
+                    mCtx.beginPath(); mCtx.arc(m.x * scale, m.y * scale, 4, 0, Math.PI*2); mCtx.fill();
+                }
             });
 
             // 4. Render Green Core Main Client Player Dot

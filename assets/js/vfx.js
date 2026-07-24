@@ -6,6 +6,20 @@ window.screenShake = { x: 0, y: 0, time: 0, magnitude: 0 };
 window.gameTimeClock = 600; // 600 phút = 10:00 AM
 window.weatherType = 'clear'; // 'clear', 'rain', 'snow', 'petals'
 
+let offscreenCanvas = null;
+let offscreenCtx = null;
+function getOffscreenCanvas(width, height) {
+    if (!offscreenCanvas) {
+        offscreenCanvas = document.createElement('canvas');
+        offscreenCtx = offscreenCanvas.getContext('2d');
+    }
+    if (offscreenCanvas.width !== width || offscreenCanvas.height !== height) {
+        offscreenCanvas.width = width;
+        offscreenCanvas.height = height;
+    }
+    return { canvas: offscreenCanvas, ctx: offscreenCtx };
+}
+
 // 1. Tạo hiệu ứng rung màn hình
 window.triggerScreenShake = function(magnitude, durationMs) {
     window.screenShake.magnitude = magnitude;
@@ -179,27 +193,26 @@ window.renderVFXOverlays = function(ctx, camera) {
     }
     
     if (hasDarkness) {
-        ctx.save();
+        let { canvas: oCanvas, ctx: oCtx } = getOffscreenCanvas(canvas.width, canvas.height);
         
-        // 1. Phủ bóng tối/hoàng hôn lên toàn màn hình
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = overlayColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // 1. Fill offscreen canvas with dark overlay color
+        oCtx.fillStyle = overlayColor;
+        oCtx.fillRect(0, 0, oCanvas.width, oCanvas.height);
         
-        // 2. Đục lỗ vùng sáng bằng cơ chế destination-out
-        ctx.globalCompositeOperation = 'destination-out';
+        // 2. Punch holes in the dark overlay using destination-out on the offscreen context
+        oCtx.globalCompositeOperation = 'destination-out';
         
         // Ánh sáng của Player
         if (window.player && window.player.x !== undefined) {
             let px = window.player.x - camera.x;
             let py = window.player.y - camera.y;
             let pRad = 220; 
-            let grad = ctx.createRadialGradient(px, py, 15, px, py, pRad);
+            let grad = oCtx.createRadialGradient(px, py, 15, px, py, pRad);
             grad.addColorStop(0, 'rgba(0, 0, 0, 1.0)'); 
             grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.4)');
             grad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');  
-            ctx.fillStyle = grad;
-            ctx.beginPath(); ctx.arc(px, py, pRad, 0, Math.PI * 2); ctx.fill();
+            oCtx.fillStyle = grad;
+            oCtx.beginPath(); oCtx.arc(px, py, pRad, 0, Math.PI * 2); oCtx.fill();
         }
         
         // Ánh sáng của các NPC trong làng
@@ -209,11 +222,11 @@ window.renderVFXOverlays = function(ctx, camera) {
                 let nx = npc.x - camera.x;
                 let ny = npc.y - camera.y;
                 let nRad = 150;
-                let grad = ctx.createRadialGradient(nx, ny, 10, nx, ny, nRad);
+                let grad = oCtx.createRadialGradient(nx, ny, 10, nx, ny, nRad);
                 grad.addColorStop(0, 'rgba(0, 0, 0, 1.0)');
                 grad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
-                ctx.fillStyle = grad;
-                ctx.beginPath(); ctx.arc(nx, ny, nRad, 0, Math.PI * 2); ctx.fill();
+                oCtx.fillStyle = grad;
+                oCtx.beginPath(); oCtx.arc(nx, ny, nRad, 0, Math.PI * 2); oCtx.fill();
             }
         }
         
@@ -224,16 +237,24 @@ window.renderVFXOverlays = function(ctx, camera) {
                     let mx = m.x - camera.x;
                     let my = m.y - camera.y;
                     let bRad = 260;
-                    let grad = ctx.createRadialGradient(mx, my, 25, mx, my, bRad);
+                    let grad = oCtx.createRadialGradient(mx, my, 25, mx, my, bRad);
                     grad.addColorStop(0, 'rgba(0, 0, 0, 1.0)');
                     grad.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
-                    ctx.fillStyle = grad;
-                    ctx.beginPath(); ctx.arc(mx, my, bRad, 0, Math.PI * 2); ctx.fill();
+                    oCtx.fillStyle = grad;
+                    oCtx.beginPath(); oCtx.arc(mx, my, bRad, 0, Math.PI * 2); oCtx.fill();
                 }
             });
         }
         
-        // 3. Phủ hiệu ứng màu sắc ánh đèn bằng chế độ pha trộn screen
+        // Reset composite operation on offscreen context
+        oCtx.globalCompositeOperation = 'source-over';
+        
+        // 3. Draw the offscreen dark overlay onto the main canvas
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.drawImage(oCanvas, 0, 0);
+        
+        // 4. Draw warm lighting glows on the main canvas with screen mode
         ctx.globalCompositeOperation = 'screen';
         
         // Ánh sáng đèn vàng ấm áp của Player
