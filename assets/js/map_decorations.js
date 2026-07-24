@@ -487,6 +487,11 @@ window.generateMapDecorations = function(mapId) {
 };
 
 function addDecoration(type, x, y, scale = 1.0) {
+    if (window.currentMapId === 'world') {
+        const factor = window.getMapSize('world') / 4000;
+        x *= factor;
+        y *= factor;
+    }
     let asset = DECORATION_ASSETS[type];
     if (!asset) return;
     

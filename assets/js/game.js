@@ -1,5 +1,6 @@
 // --- 1. CONFIGURATIONS & GAME CONSTANTS ---
-        const WORLD_SIZE = 4000; 
+        const WORLD_SIZE = 2400; 
+        const MAP_SCALE = WORLD_SIZE / 4000;
         const SAVE_KEY = "XOM_ANH_HUNG_SAVE_V2";
         const AUDIO_ENABLED = true;
 
@@ -527,14 +528,14 @@
                             targetName = "⚔️ " + match.name;
                         } else {
                             // Point to spawn region coordinate estimation
-                            if (sQuest.target.includes('Chuột')) { targetX = 1800; targetY = 1800; }
-                            else if (sQuest.target.includes('Chó')) { targetX = 1200; targetY = 2000; }
-                            else if (sQuest.target.includes('Muỗi')) { targetX = 1000; targetY = 1000; }
-                            else if (sQuest.target.includes('Lợn')) { targetX = 2500; targetY = 2500; }
-                            else if (sQuest.target.includes('Hộ Vệ')) { targetX = 2000; targetY = 2000; }
-                            else if (sQuest.target.includes('Thần Trùng')) { targetX = 2200; targetY = 2200; }
-                            else if (sQuest.target.includes('Barlog')) { targetX = 3500; targetY = 500; }
-                            else { targetX = 2000; targetY = 2000; }
+                            if (sQuest.target.includes('Chuột')) { targetX = 1800 * MAP_SCALE; targetY = 1800 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Chó')) { targetX = 1200 * MAP_SCALE; targetY = 2000 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Muỗi')) { targetX = 1000 * MAP_SCALE; targetY = 1000 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Lợn')) { targetX = 2500 * MAP_SCALE; targetY = 2500 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Hộ Vệ')) { targetX = 2000 * MAP_SCALE; targetY = 2000 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Thần Trùng')) { targetX = 2200 * MAP_SCALE; targetY = 2200 * MAP_SCALE; }
+                            else if (sQuest.target.includes('Barlog')) { targetX = 3500 * MAP_SCALE; targetY = 500 * MAP_SCALE; }
+                            else { targetX = 2000 * MAP_SCALE; targetY = 2000 * MAP_SCALE; }
                             targetName = "🔍 Vùng: " + sQuest.target;
                         }
                     } else if (sQuest.type === 'collect') {
@@ -549,7 +550,7 @@
                             targetY = match.y;
                             targetName = "💎 Vật Phẩm Rơi";
                         } else {
-                            targetX = 1800; targetY = 1800; // General central farm spot
+                            targetX = 1800 * MAP_SCALE; targetY = 1800 * MAP_SCALE; // General central farm spot
                             targetName = "🌾 Tìm: " + sQuest.target;
                         }
                     }
@@ -558,7 +559,7 @@
                 let dq = player.dailyQuest;
                 let match = monsters.find(m => m.name === dq.target);
                 if (match) { targetX = match.x; targetY = match.y; }
-                else { targetX = 1500; targetY = 1500; }
+                else { targetX = 1500 * MAP_SCALE; targetY = 1500 * MAP_SCALE; }
                 targetName = dq.title;
             }
 
@@ -919,6 +920,20 @@
             { name: 'Khu Luyện Cấp Ngoài Làng', x: 500, y: 3200, w: 1400, h: 650, color: 'rgba(220, 38, 38, 0.12)', icon: '💀', label: 'Bãi Luyện Cấp (Dị Biến)' },
             { name: 'Chợ Quê Xóm Dưới', x: 2400, y: 3400, w: 900, h: 500, color: 'rgba(16, 185, 129, 0.14)', icon: '🎪', label: 'Chợ Quê Xóm Dưới' }
         ];
+
+        // Scale NPC coordinates for the smaller world map
+        for (let key in NPC_DATA) {
+            NPC_DATA[key].x *= MAP_SCALE;
+            NPC_DATA[key].y *= MAP_SCALE;
+        }
+
+        // Scale theme area coordinates and dimensions
+        WORLD_THEME_AREAS.forEach(area => {
+            area.x *= MAP_SCALE;
+            area.y *= MAP_SCALE;
+            area.w *= MAP_SCALE;
+            area.h *= MAP_SCALE;
+        });
 
         // --- 3. STATE MANAGEMENT VARIABLES ---
         let currentScreen = window.currentScreen || 'login';
@@ -1480,7 +1495,7 @@
         }
 
         window.getMapSize = function(mapId) {
-            if (mapId === 'world') return 4000;
+            if (mapId === 'world') return WORLD_SIZE;
             if (mapId === 'beach') return 1400;
             if (mapId === 'pvp_arena') return 1000;
             return 1200;
@@ -4456,6 +4471,12 @@ function toggleAutoFarm() {
                 } else {
                     showToast("⚠️ Trò chơi Bài Ma Thuật đang được khởi tạo!");
                 }
+            } else if (action === 'memecard') {
+                if (typeof openMemeCardGame === 'function') {
+                    openMemeCardGame();
+                } else {
+                    showToast("⚠️ Đấu Trường Meme Xóm đang được khởi tạo!");
+                }
             } else {
                 togglePanel(action);
             }
@@ -6608,6 +6629,26 @@ function toggleAutoFarm() {
             { name: "Cửa Vào Đình Làng", targetMapId: "village_temple", parentMapId: "world", x: 2500, y: 1550, spawnX: 300, spawnY: 500, color: '#e2e8f0' }
         ];
 
+        // Scale portal and entrance coordinates for the smaller world map
+        PORTALS.forEach(portal => {
+            if (portal.mapId === 'world') {
+                portal.x *= MAP_SCALE;
+                portal.y *= MAP_SCALE;
+            }
+        });
+        DUNGEON_ENTRANCES.forEach(ent => {
+            if (ent.parentMapId === 'world') {
+                ent.x *= MAP_SCALE;
+                ent.y *= MAP_SCALE;
+            }
+        });
+        BUILDING_ENTRANCES.forEach(ent => {
+            if (ent.parentMapId === 'world') {
+                ent.x *= MAP_SCALE;
+                ent.y *= MAP_SCALE;
+            }
+        });
+
         function spawnMonstersForMap(mapId) {
             monsters = [];
             if (mapId === 'pvp_arena') {
@@ -7038,15 +7079,15 @@ function toggleAutoFarm() {
                 } else if (window.currentMapId === 'citadel') {
                     let dist = Math.sqrt((px - 1000)**2 + (py - 100)**2);
                     if (dist < 40) {
-                        window.changeMap('world', 760, 725); // back to town center
+                        window.changeMap('world', 760 * MAP_SCALE, 725 * MAP_SCALE); // back to town center
                         return;
                     }
                 } else if (window.currentMapId.includes('cave') || window.currentMapId.includes('dungeon') || window.currentMapId.includes('temple') || window.currentMapId === 'cemetery' || window.currentMapId === 'ghost_forest' || window.currentMapId === 'sewer' || window.currentMapId === 'mine' || window.currentMapId === 'cultist_camp' || window.currentMapId === 'nest_cave') {
                     let dist = Math.sqrt((px - 600)**2 + (py - 1100)**2);
                     if (dist < 40) {
                         let ent = DUNGEON_ENTRANCES.find(e => e.targetMapId === window.currentMapId);
-                        let rx = ent ? ent.x : 760;
-                        let ry = ent ? ent.y + 50 : 725;
+                        let rx = ent ? ent.x : 760 * MAP_SCALE;
+                        let ry = ent ? ent.y + 50 * MAP_SCALE : 725 * MAP_SCALE;
                         window.changeMap('world', rx, ry);
                         return;
                     }
@@ -7054,8 +7095,8 @@ function toggleAutoFarm() {
                     let dist = Math.sqrt((px - 300)**2 + (py - 550)**2);
                     if (dist < 35) {
                         let ent = BUILDING_ENTRANCES.find(e => e.targetMapId === window.currentMapId);
-                        let rx = ent ? ent.x : 760;
-                        let ry = ent ? ent.y + 50 : 725;
+                        let rx = ent ? ent.x : 760 * MAP_SCALE;
+                        let ry = ent ? ent.y + 50 * MAP_SCALE : 725 * MAP_SCALE;
                         window.changeMap('world', rx, ry);
                         return;
                     }
