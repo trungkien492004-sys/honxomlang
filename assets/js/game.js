@@ -109,6 +109,54 @@
                 dialogFinish: "Bà Năm: Cảm ơn cậu đã quan tâm đến bà con. Đây là chút lộ phí nhỏ ta tặng cậu."
             },
             {
+                id: "story_2a",
+                title: "Gà Chạy Loạn Xóm",
+                desc: "Bắt 5 con gà sổng chuồng mang về cho Bà Năm.",
+                type: "collect",
+                target: "lost_chicken",
+                req: 5,
+                reqLevel: 1,
+                rewardGold: 30,
+                rewardExp: 50,
+                rewardItem: "fresh_egg",
+                npcAccept: "ba_nam",
+                npcFinish: "ba_nam",
+                dialogStart: "Bà Năm: Ối trời đất ơi! Cái lũ gà trời đánh này, mới sáng ra đã làm loạn cả xóm! Con chó nhà thằng Tư sủa cái gì đâu không biết, làm sổng chuồng hết cả gà bà. Con giúp bà bắt tụi nó lại được không? Tất cả có 5 con, coi chừng con trống dữ lắm à nha!",
+                dialogFinish: "Bà Năm: Ôi giời ơi, đủ cả 5 con luôn hả con?! Giỏi quá, giỏi quá! Để bà nhốt lại cho chắc. Bà cảm ơn nhiều nha, đây là ít trứng gà tươi bà gửi con."
+            },
+            {
+                id: "story_2b",
+                title: "Mèo Mun Mất Tích",
+                desc: "Tìm Mèo Mun ở Miếu Nhỏ sau vườn Bà Năm, mang về cho Bé Na.",
+                type: "collect",
+                target: "mun_cat",
+                req: 1,
+                reqLevel: 1,
+                rewardGold: 50,
+                rewardExp: 80,
+                rewardItem: "mun_bell",
+                npcAccept: "be_na",
+                npcFinish: "be_na",
+                dialogStart: "Bé Na: Anh/chị {Tên} ơi... hu hu... Mun của con không về ăn cơm luôn á. Con sợ nó bị lạc mất rồi... Nó hay chui vô cái miếu nhỏ sau vườn nhà bà ngoại lắm, nhưng con sợ chỗ đó, tối nào cũng lạnh lạnh à. Anh/chị tìm giúp con đi!",
+                dialogFinish: "Bé Na: Mun ơi!! Con nhớ mày quá àaa! Anh/chị {Tên} ơi, cảm ơn anh/chị nhiều lắm luôn! Con sẽ kể cho bà ngoại nghe anh/chị giỏi cỡ nào!"
+            },
+            {
+                id: "story_2c",
+                title: "Phiên Chợ Sớm",
+                desc: "Hái 8 bó Rau Muống ở vườn sau mang về cho Cô Ba Tạp Hóa.",
+                type: "collect",
+                target: "rau_muong",
+                req: 8,
+                reqLevel: 1,
+                rewardGold: 60,
+                rewardExp: 100,
+                rewardItem: "recipe_canh_rau",
+                npcAccept: "merchant",
+                npcFinish: "merchant",
+                dialogStart: "Cô Ba: Ê {Tên}, đỡ giùm cô cái, muốn gãy lưng luôn nè! Bữa nay phiên chợ sớm mà con nhỏ cháu cô lại bận thi, cô làm không xuể. Con ra vườn sau hái giùm cô 8 bó rau muống non được không? Đồ nghề để sẵn cạnh giếng rồi.",
+                dialogFinish: "Cô Ba: Sắp đủ rồi mà con hái nhanh dữ à nha! Cảm ơn con nhiều nhen, đây là công thức nấu canh rau muống cô chỉ lại cho con, với ít tiền công nữa."
+            },
+            {
                 id: "story_3",
                 title: "Chuột Trong Kho Lúa",
                 desc: "Tiêu diệt 5 con Chuột Cống ở bãi đất phía Bắc giúp Cô Ba Tạp Hóa.",
@@ -884,6 +932,12 @@
             ar_wolf_leather: { id: "ar_wolf_leather", name: "Áo Da Sói", emoji: "👕", type: "armor", atk: 1, def: 5, hp: 40, price: 120 },
             eq_speed_boots: { id: "eq_speed_boots", name: "Giày Tăng Tốc", emoji: "🥾", type: "accessory", atk: 0, def: 2, hp: 10, speed: 1.0, price: 80 },
             lost_cat: { id: "lost_cat", name: "Mèo Lạc", emoji: "🐱", type: "material", desc: "Chú mèo lạc của Bé Na", price: 0 },
+            lost_chicken: { id: "lost_chicken", name: "Gà Sổng Chuồng", emoji: "🐔", type: "material", desc: "Con gà chạy loạn của Bà Năm, cần bắt lại", price: 0 },
+            mun_cat: { id: "mun_cat", name: "Mèo Mun", emoji: "🐈‍⬛", type: "material", desc: "Chú mèo đen của Bé Na, tìm thấy trong miếu nhỏ", price: 0 },
+            fresh_egg: { id: "fresh_egg", name: "Trứng Gà Tươi", emoji: "🥚", type: "material", desc: "Trứng gà tươi Bà Năm tặng, dùng để nấu ăn", price: 5 },
+            mun_bell: { id: "mun_bell", name: "Chuông Nhỏ Mun Đeo Cổ", emoji: "🔔", type: "accessory", desc: "Vật phẩm kỷ niệm, không có chỉ số", atk: 0, def: 0, hp: 0, price: 0 },
+            rau_muong: { id: "rau_muong", name: "Rau Muống Vườn Sau", emoji: "🥬", type: "material", desc: "Rau muống non hái giúp Cô Ba cho phiên chợ sớm", price: 3 },
+            recipe_canh_rau: { id: "recipe_canh_rau", name: "Công Thức: Canh Rau Muống", emoji: "📖", type: "material", desc: "Công thức nấu ăn Cô Ba dạy lại", price: 0 },
             stone_engraving: { id: "stone_engraving", name: "Mảnh Đá Khắc", emoji: "🪨", type: "material", desc: "Mảnh đá khắc chữ cổ trong Hang Dơi", price: 20 },
             stone_disease: { id: "stone_disease", name: "Tinh Thể Nhiễm Bệnh", emoji: "🔮", type: "material", desc: "Tinh thể nhiễm độc gieo rắc tà thuật", price: 50 },
 
@@ -3705,6 +3759,23 @@ function toggleAutoFarm() {
                             } else if (sQuest.id === 'story_6') {
                                 dropItemOnGround('lost_cat', 1, 600, 2500);
                                 showToast(`✨ Chú Mèo Đi Lạc đã xuất hiện trong Rừng Tân Thủ!`);
+                            } else if (sQuest.id === 'story_2a') {
+                                for (let i = 0; i < 5; i++) {
+                                    let rx = 1900 + (Math.random() - 0.5) * 260;
+                                    let ry = 1800 + (Math.random() - 0.5) * 260;
+                                    dropItemOnGround('lost_chicken', 1, rx, ry);
+                                }
+                                showToast(`✨ 5 con gà sổng chuồng đang chạy loạn quanh nhà Bà Năm!`);
+                            } else if (sQuest.id === 'story_2b') {
+                                dropItemOnGround('mun_cat', 1, 1650, 1650);
+                                showToast(`✨ Có tiếng mèo kêu yếu ớt vọng ra từ Miếu Nhỏ sau vườn Bà Năm...`);
+                            } else if (sQuest.id === 'story_2c') {
+                                for (let i = 0; i < 8; i++) {
+                                    let rx = 2250 + (Math.random() - 0.5) * 220;
+                                    let ry = 2050 + (Math.random() - 0.5) * 220;
+                                    dropItemOnGround('rau_muong', 1, rx, ry);
+                                }
+                                showToast(`✨ 8 bó rau muống non đã sẵn sàng ở vườn sau Cô Ba!`);
                             } else if (sQuest.id === 'story_10') {
                                 for (let i = 0; i < 3; i++) {
                                     let rx = 500 + (Math.random() - 0.5) * 200;
