@@ -2577,6 +2577,10 @@ window.mcHideOnlineStatus = function() {
   if (el) el.style.display = 'none';
 };
 
+window.mcOnlineRole = null;
+window.mcOnlineRoomId = null;
+window.mcRoomPingInterval = null;
+
 window.mcHostOnlineRoom = async function() {
   const defaultRoomName = 'room_' + (window.player && window.player.name ? window.player.name : Math.floor(Math.random() * 1000));
   const roomId = prompt('🔑 Nhập mã phòng của bạn (hoặc giữ mặc định):', defaultRoomName);
@@ -2584,99 +2588,144 @@ window.mcHostOnlineRoom = async function() {
 
   const name = window.player && window.player.name ? window.player.name : 'Host';
   
+  window.mcOnlineRole = 'host';
+  window.mcOnlineRoomId = roomId;
+
+  // Clear existing interval just in case
+  if (window.mcRoomPingInterval) clearInterval(window.mcRoomPingInterval);
+
+  // Set interval to ping
+  window.mcRoomPingInterval = setInterval(() => {
+    if (!window.mcOnlineRoomId || window.mcOnlineRole !== 'host') return;
+    if (typeof window.pvpChannel !== 'undefined') {
+      window.pvpChannel.postMessage({
+        type: 'MC_ROOM_PING',
+        roomId: window.mcOnlineRoomId,
+        hostId: myNetworkId,
+        hostName: name
+      });
+    }
+  }, 1500);
+
   mcShowOnlineStatus(`Đang tạo phòng "${roomId}" và chờ đối thủ tham gia...`, function() {
-    db.collection('active_players').doc('mcroom_' + roomId).delete().catch(() => {});
-    if (window.mcRoomUnsubscribe) {
-      window.mcRoomUnsubscribe();
-      window.mcRoomUnsubscribe = null;
+    if (window.mcRoomPingInterval) {
+      clearInterval(window.mcRoomPingInterval);
+      window.mcRoomPingInterval = null;
     }
     window.mcOnlineRoomId = null;
     window.mcOnlineRole = null;
-  });
-
-  try {
-    await db.collection('active_players').doc('mcroom_' + roomId).set({
-      roomId: roomId,
-      status: 'waiting',
-      hostName: name,
-      guestName: '',
-      turn: 'host',
-      duelState: null,
-      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    window.mcOnlineRole = 'host';
-    window.mcOnlineRoomId = roomId;
-
-    window.mcRoomUnsubscribe = db.collection('active_players').doc('mcroom_' + roomId).onSnapshot(doc => {
-      const room = doc.data();
-      if (!room) return;
-      if (room.status === 'playing') {
-        mcHideOnlineStatus();
-        if (!mcGame.duel) {
-          mcStartOnlineDuel('host', room);
-        } else {
-          mcSyncOnlineState(room);
-        }
-      }
-    });
-  } catch (err) {
-    alert('⚠️ Lỗi tạo phòng: ' + err.message);
     mcHideOnlineStatus();
-  }
+  });
 };
 
 window.mcJoinOnlineRoom = async function() {
   const roomId = prompt('🔑 Nhập mã phòng bạn muốn tham gia:');
   if (!roomId) return;
 
-  const name = window.player && window.player.name ? window.player.name : 'Guest';
-  
-  mcShowOnlineStatus(`Đang kết nối tới phòng "${roomId}"...`, function() {
-    if (window.mcRoomUnsubscribe) {
-      window.mcRoomUnsubscribe();
-      window.mcRoomUnsubscribe = null;
-    }
+  window.mcOnlineRole = 'guest';
+  window.mcOnlineRoomId = roomId;
+
+  mcShowOnlineStatus(`Đang tìm kiếm phòng "${roomId}"...`, function() {
     window.mcOnlineRoomId = null;
     window.mcOnlineRole = null;
+    mcHideOnlineStatus();
   });
+};
 
-  try {
-    const doc = await db.collection('active_players').doc('mcroom_' + roomId).get();
-    if (!doc.exists) {
-      alert('⚠️ Phòng không tồn tại!');
-      mcHideOnlineStatus();
-      return;
-    }
-    const room = doc.data();
-    if (room.status !== 'waiting') {
-      alert('⚠️ Phòng này đã đầy hoặc đang thi đấu!');
-      mcHideOnlineStatus();
-      return;
-    }
+window.mcRegisterNetworkMessage = function(msg) {
+  if (!msg) return;
 
-    await db.collection('active_players').doc('mcroom_' + roomId).update({
+  // Guest hears host ping, replies with join request
+  if (msg.type === 'MC_ROOM_PING' && window.mcOnlineRoomId === msg.roomId && window.mcOnlineRole === 'guest') {
+    if (typeof window.pvpChannel !== 'undefined') {
+      window.pvpChannel.postMessage({
+        type: 'MC_ROOM_JOIN',
+        roomId: window.mcOnlineRoomId,
+        guestId: myNetworkId,
+        guestName: window.player && window.player.name ? window.player.name : 'Guest'
+      });
+    }
+  }
+
+  // Host receives guest join, starts the duel and broadcasts mcroom_start
+  if (msg.type === 'MC_ROOM_JOIN' && window.mcOnlineRoomId === msg.roomId && window.mcOnlineRole === 'host') {
+    if (window.mcRoomPingInterval) {
+      clearInterval(window.mcRoomPingInterval);
+      window.mcRoomPingInterval = null;
+    }
+    mcHideOnlineStatus();
+
+    const name = window.player && window.player.name ? window.player.name : 'Host';
+    const room = {
       status: 'playing',
-      guestName: name,
-      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-    });
+      hostName: name,
+      guestName: msg.guestName
+    };
 
-    window.mcOnlineRole = 'guest';
-    window.mcOnlineRoomId = roomId;
+    mcStartOnlineDuel('host', room);
+
+    // Prepare initial state payload
+    const d = mcGame.duel;
+    let initialPayload = {
+      lastActionBy: 'host',
+      hostLP: d.playerLP,
+      guestLP: d.oppLP,
+      hostHand: d.playerHand,
+      guestHand: d.oppHand,
+      hostMonsters: d.playerMonsters,
+      guestMonsters: d.oppMonsters,
+      hostSpells: d.playerSpells,
+      guestSpells: d.oppSpells,
+      hostExtraZone: d.playerExtraZone,
+      guestExtraZone: d.oppExtraZone,
+      hostGY: d.playerGY,
+      guestGY: d.oppGY,
+      hostField: d.playerField,
+      guestField: d.oppField,
+      turn: 'host',
+      phase: d.phase,
+      turnCount: d.turnCount,
+      mode: d.mode,
+      pendingAttackFrom: d.pendingAttackFrom,
+      hasNormalSummoned: d.hasNormalSummoned,
+      logs: mcGame.logs
+    };
+
+    if (typeof window.pvpChannel !== 'undefined') {
+      window.pvpChannel.postMessage({
+        type: 'MC_ROOM_START',
+        roomId: window.mcOnlineRoomId,
+        guestId: msg.guestId,
+        hostName: name,
+        guestName: msg.guestName,
+        duelState: initialPayload
+      });
+    }
+  }
+
+  // Guest receives start event, starts the duel
+  if (msg.type === 'MC_ROOM_START' && window.mcOnlineRoomId === msg.roomId && window.mcOnlineRole === 'guest') {
+    if (msg.guestId !== myNetworkId) return;
     mcHideOnlineStatus();
 
-    window.mcRoomUnsubscribe = db.collection('active_players').doc('mcroom_' + roomId).onSnapshot(doc => {
-      const room = doc.data();
-      if (!room) return;
-      if (!mcGame.duel) {
-        mcStartOnlineDuel('guest', room);
-      } else {
-        mcSyncOnlineState(room);
-      }
-    });
-  } catch (err) {
-    alert('⚠️ Lỗi tham gia phòng: ' + err.message);
-    mcHideOnlineStatus();
+    const room = {
+      status: 'playing',
+      hostName: msg.hostName,
+      guestName: msg.guestName,
+      duelState: msg.duelState
+    };
+
+    mcStartOnlineDuel('guest', room);
+  }
+
+  // Both sync state during the duel
+  if (msg.type === 'MC_ROOM_STATE' && window.mcOnlineRoomId === msg.roomId) {
+    if (msg.lastActionBy === window.mcOnlineRole) return;
+
+    const room = {
+      duelState: msg.duelState
+    };
+    mcSyncOnlineState(room);
   }
 };
 
@@ -2771,9 +2820,14 @@ window.mcPushOnlineState = function() {
   payload.hasNormalSummoned = d.hasNormalSummoned;
   payload.logs = mcGame.logs;
 
-  db.collection('active_players').doc('mcroom_' + window.mcOnlineRoomId).update({
-    duelState: payload
-  }).catch(() => {});
+  if (typeof window.pvpChannel !== 'undefined') {
+    window.pvpChannel.postMessage({
+      type: 'MC_ROOM_STATE',
+      roomId: window.mcOnlineRoomId,
+      lastActionBy: window.mcOnlineRole,
+      duelState: payload
+    });
+  }
 };
 
 window.mcSyncOnlineState = function(room) {

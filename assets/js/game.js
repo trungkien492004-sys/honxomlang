@@ -1922,10 +1922,17 @@
         };
 
         function handleNetworkMessage(msg) {
+            if(!msg) return;
             if (typeof window.ygoRegisterNetworkMessage === 'function') {
                 window.ygoRegisterNetworkMessage(msg);
             }
-            if(!msg || msg.id === myNetworkId) return;
+            if (typeof window.mcRegisterNetworkMessage === 'function') {
+                window.mcRegisterNetworkMessage(msg);
+            }
+            if (typeof window.boardRegisterNetworkMessage === 'function') {
+                window.boardRegisterNetworkMessage(msg);
+            }
+            if(msg.id === myNetworkId) return;
 
             if(msg.type === 'PRESENCE') {
                 // Chúng ta không dùng Date.now() - msg.timestamp vì nếu đồng hồ thiết bị của user sai giờ, nó sẽ tự xoá hết người chơi khác!

@@ -2008,7 +2008,7 @@ window.boardCloseShop = function() {
 // ────────────────── BOARD GAME ONLINE MULTIPLAYER ──────────────────
 window.boardOnlineRole = null;
 window.boardOnlineRoomId = null;
-window.boardRoomUnsubscribe = null;
+window.boardRoomPingInterval = null;
 
 window.boardHostOnlineRoom = async function() {
     let betAmt = 0;
@@ -2030,83 +2030,61 @@ window.boardHostOnlineRoom = async function() {
     boardRefreshHud();
     closeBetModal();
 
+    window.boardOnlineRole = 'host';
+    window.boardOnlineRoomId = roomId;
+
+    if (window.boardRoomPingInterval) clearInterval(window.boardRoomPingInterval);
+
+    window.boardRoomPingInterval = setInterval(() => {
+        if (!window.boardOnlineRoomId || window.boardOnlineRole !== 'host') return;
+        if (typeof window.pvpChannel !== 'undefined') {
+            window.pvpChannel.postMessage({
+                type: 'BOARD_ROOM_PING',
+                roomId: window.boardOnlineRoomId,
+                hostId: myNetworkId,
+                hostName: player.name,
+                betAmount: betAmt
+            });
+        }
+    }, 1500);
+
     mcShowOnlineStatus(`Đang tạo phòng cờ "${roomId}" và chờ đối thủ tham gia...`, function() {
         player.gold += betAmt; // refund on cancel
         boardRefreshHud();
-        db.collection('active_players').doc('boardroom_' + roomId).delete().catch(() => {});
-        if (window.boardRoomUnsubscribe) {
-            window.boardRoomUnsubscribe();
-            window.boardRoomUnsubscribe = null;
+        if (window.boardRoomPingInterval) {
+            clearInterval(window.boardRoomPingInterval);
+            window.boardRoomPingInterval = null;
         }
         window.boardOnlineRoomId = null;
         window.boardOnlineRole = null;
-    });
-
-    try {
-        await db.collection('active_players').doc('boardroom_' + roomId).set({
-            roomId: roomId,
-            status: 'waiting',
-            hostName: player.name,
-            guestName: '',
-            betAmount: betAmt,
-            boardState: null,
-            lastActionBy: 'host',
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        window.boardOnlineRole = 'host';
-        window.boardOnlineRoomId = roomId;
-
-        window.boardRoomUnsubscribe = db.collection('active_players').doc('boardroom_' + roomId).onSnapshot(doc => {
-            const room = doc.data();
-            if (!room) return;
-            if (room.status === 'playing') {
-                mcHideOnlineStatus();
-                if (!boardGame) {
-                    boardStartOnlineMatch('host', room);
-                } else {
-                    boardSyncOnlineState(room);
-                }
-            }
-        });
-    } catch (err) {
-        player.gold += betAmt; // refund
-        boardRefreshHud();
-        alert('⚠️ Lỗi tạo phòng cờ: ' + err.message);
         mcHideOnlineStatus();
-    }
+    });
 };
 
 window.boardJoinOnlineRoom = async function() {
     const roomId = prompt('🔑 Nhập mã phòng cờ bạn muốn tham gia:');
     if (!roomId) return;
 
-    mcShowOnlineStatus(`Đang kết nối tới phòng cờ "${roomId}"...`, function() {
-        if (window.boardRoomUnsubscribe) {
-            window.boardRoomUnsubscribe();
-            window.boardRoomUnsubscribe = null;
-        }
+    window.boardOnlineRole = 'guest';
+    window.boardOnlineRoomId = roomId;
+
+    mcShowOnlineStatus(`Đang tìm kiếm phòng cờ "${roomId}"...`, function() {
         window.boardOnlineRoomId = null;
         window.boardOnlineRole = null;
+        mcHideOnlineStatus();
     });
+};
 
-    try {
-        const doc = await db.collection('active_players').doc('boardroom_' + roomId).get();
-        if (!doc.exists) {
-            alert('⚠️ Phòng không tồn tại!');
-            mcHideOnlineStatus();
-            return;
-        }
-        const room = doc.data();
-        if (room.status !== 'waiting') {
-            alert('⚠️ Phòng đã đầy hoặc đang chơi!');
-            mcHideOnlineStatus();
-            return;
-        }
+window.boardRegisterNetworkMessage = function(msg) {
+    if (!msg) return;
 
-        const betAmt = room.betAmount || 0;
+    // Guest hears host ping, checks bet amount, and replies with join request
+    if (msg.type === 'BOARD_ROOM_PING' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'guest') {
+        const betAmt = msg.betAmount || 0;
         if (player.gold < betAmt) {
-            alert(`⚠️ Bạn cần ít nhất ${betAmt} vàng để tham gia phòng cược này!`);
+            alert(`⚠️ Bạn không đủ vàng! Cần ít nhất ${betAmt} vàng để tham gia.`);
+            window.boardOnlineRoomId = null;
+            window.boardOnlineRole = null;
             mcHideOnlineStatus();
             return;
         }
@@ -2116,28 +2094,67 @@ window.boardJoinOnlineRoom = async function() {
         boardRefreshHud();
         closeBetModal();
 
-        await db.collection('active_players').doc('boardroom_' + roomId).update({
-            status: 'playing',
-            guestName: player.name,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        if (typeof window.pvpChannel !== 'undefined') {
+            window.pvpChannel.postMessage({
+                type: 'BOARD_ROOM_JOIN',
+                roomId: window.boardOnlineRoomId,
+                guestId: myNetworkId,
+                guestName: player.name,
+                betAmount: betAmt
+            });
+        }
+    }
 
-        window.boardOnlineRole = 'guest';
-        window.boardOnlineRoomId = roomId;
+    // Host receives guest join, starts the match and broadcasts boardroom_start
+    if (msg.type === 'BOARD_ROOM_JOIN' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'host') {
+        if (window.boardRoomPingInterval) {
+            clearInterval(window.boardRoomPingInterval);
+            window.boardRoomPingInterval = null;
+        }
         mcHideOnlineStatus();
 
-        window.boardRoomUnsubscribe = db.collection('active_players').doc('boardroom_' + roomId).onSnapshot(doc => {
-            const room = doc.data();
-            if (!room) return;
-            if (!boardGame) {
-                boardStartOnlineMatch('guest', room);
-            } else {
-                boardSyncOnlineState(room);
-            }
-        });
-    } catch (err) {
-        alert('⚠️ Lỗi tham gia phòng cờ: ' + err.message);
+        // Start match locally as host
+        const roomData = {
+            hostName: player.name,
+            guestName: msg.guestName,
+            betAmount: msg.betAmount
+        };
+        boardStartOnlineMatch('host', roomData);
+
+        // Broadcast BOARD_ROOM_START
+        if (typeof window.pvpChannel !== 'undefined') {
+            window.pvpChannel.postMessage({
+                type: 'BOARD_ROOM_START',
+                roomId: window.boardOnlineRoomId,
+                guestId: msg.guestId,
+                hostName: player.name,
+                guestName: msg.guestName,
+                betAmount: msg.betAmount,
+                boardState: JSON.parse(JSON.stringify(boardGame))
+            });
+        }
+    }
+
+    // Guest receives start event, starts the match
+    if (msg.type === 'BOARD_ROOM_START' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'guest') {
+        if (msg.guestId !== myNetworkId) return;
         mcHideOnlineStatus();
+
+        const roomData = {
+            hostName: msg.hostName,
+            guestName: msg.guestName,
+            betAmount: msg.betAmount
+        };
+        boardStartOnlineMatch('guest', roomData);
+
+        // Sync initial state
+        boardSyncOnlineState(msg);
+    }
+
+    // Both sync state during the match
+    if (msg.type === 'BOARD_ROOM_STATE' && window.boardOnlineRoomId === msg.roomId) {
+        if (msg.lastActionBy === window.boardOnlineRole) return;
+        boardSyncOnlineState(msg);
     }
 };
 
@@ -2208,20 +2225,22 @@ window.boardStartOnlineMatch = function(role, room) {
 
 window.boardPushOnlineState = function() {
     if (!window.boardOnlineRoomId || !boardGame) return;
-    db.collection('active_players').doc('boardroom_' + window.boardOnlineRoomId).update({
-        boardState: JSON.parse(JSON.stringify(boardGame)),
-        diceText: document.getElementById('diceResultText')?.textContent || '',
-        diceEmoji: document.getElementById('diceDisplay')?.textContent || '',
-        cardHtml: document.getElementById('boardCardDisplay')?.innerHTML || '',
-        lastActionBy: window.boardOnlineRole,
-        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(() => {});
+    if (typeof window.pvpChannel !== 'undefined') {
+        window.pvpChannel.postMessage({
+            type: 'BOARD_ROOM_STATE',
+            roomId: window.boardOnlineRoomId,
+            lastActionBy: window.boardOnlineRole,
+            boardState: JSON.parse(JSON.stringify(boardGame)),
+            diceText: document.getElementById('diceResultText')?.textContent || '',
+            diceEmoji: document.getElementById('diceDisplay')?.textContent || '',
+            cardHtml: document.getElementById('boardCardDisplay')?.innerHTML || ''
+        });
+    }
 };
 
 window.boardSyncOnlineState = function(room) {
     const bs = room.boardState;
     if (!bs) return;
-    if (room.lastActionBy === window.boardOnlineRole) return;
 
     boardGame = bs;
 
@@ -2262,11 +2281,7 @@ const origCloseBoardGame = window.closeBoardGame;
 window.closeBoardGame = function() {
     if (origCloseBoardGame) origCloseBoardGame.apply(this, arguments);
     if (window.boardOnlineRoomId) {
-        db.collection('active_players').doc('boardroom_' + window.boardOnlineRoomId).delete().catch(() => {});
-        if (window.boardRoomUnsubscribe) {
-            window.boardRoomUnsubscribe();
-            window.boardRoomUnsubscribe = null;
-        }
+        clearInterval(window.boardRoomPingInterval);
         window.boardOnlineRoomId = null;
         window.boardOnlineRole = null;
     }
