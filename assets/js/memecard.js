@@ -395,7 +395,7 @@ function mcCloseGame() {
   if (modal) modal.style.display = 'none';
   
   if (window.mcOnlineRoomId) {
-    db.collection('mc_rooms').doc(window.mcOnlineRoomId).delete().catch(() => {});
+    db.collection('active_players').doc('mcroom_' + window.mcOnlineRoomId).delete().catch(() => {});
     if (window.mcRoomUnsubscribe) {
       window.mcRoomUnsubscribe();
       window.mcRoomUnsubscribe = null;
@@ -2585,7 +2585,7 @@ window.mcHostOnlineRoom = async function() {
   const name = window.player && window.player.name ? window.player.name : 'Host';
   
   mcShowOnlineStatus(`Đang tạo phòng "${roomId}" và chờ đối thủ tham gia...`, function() {
-    db.collection('mc_rooms').doc(roomId).delete().catch(() => {});
+    db.collection('active_players').doc('mcroom_' + roomId).delete().catch(() => {});
     if (window.mcRoomUnsubscribe) {
       window.mcRoomUnsubscribe();
       window.mcRoomUnsubscribe = null;
@@ -2595,7 +2595,7 @@ window.mcHostOnlineRoom = async function() {
   });
 
   try {
-    await db.collection('mc_rooms').doc(roomId).set({
+    await db.collection('active_players').doc('mcroom_' + roomId).set({
       roomId: roomId,
       status: 'waiting',
       hostName: name,
@@ -2608,7 +2608,7 @@ window.mcHostOnlineRoom = async function() {
     window.mcOnlineRole = 'host';
     window.mcOnlineRoomId = roomId;
 
-    window.mcRoomUnsubscribe = db.collection('mc_rooms').doc(roomId).onSnapshot(doc => {
+    window.mcRoomUnsubscribe = db.collection('active_players').doc('mcroom_' + roomId).onSnapshot(doc => {
       const room = doc.data();
       if (!room) return;
       if (room.status === 'playing') {
@@ -2642,7 +2642,7 @@ window.mcJoinOnlineRoom = async function() {
   });
 
   try {
-    const doc = await db.collection('mc_rooms').doc(roomId).get();
+    const doc = await db.collection('active_players').doc('mcroom_' + roomId).get();
     if (!doc.exists) {
       alert('⚠️ Phòng không tồn tại!');
       mcHideOnlineStatus();
@@ -2655,7 +2655,7 @@ window.mcJoinOnlineRoom = async function() {
       return;
     }
 
-    await db.collection('mc_rooms').doc(roomId).update({
+    await db.collection('active_players').doc('mcroom_' + roomId).update({
       status: 'playing',
       guestName: name,
       lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
@@ -2665,7 +2665,7 @@ window.mcJoinOnlineRoom = async function() {
     window.mcOnlineRoomId = roomId;
     mcHideOnlineStatus();
 
-    window.mcRoomUnsubscribe = db.collection('mc_rooms').doc(roomId).onSnapshot(doc => {
+    window.mcRoomUnsubscribe = db.collection('active_players').doc('mcroom_' + roomId).onSnapshot(doc => {
       const room = doc.data();
       if (!room) return;
       if (!mcGame.duel) {
@@ -2771,7 +2771,7 @@ window.mcPushOnlineState = function() {
   payload.hasNormalSummoned = d.hasNormalSummoned;
   payload.logs = mcGame.logs;
 
-  db.collection('mc_rooms').doc(window.mcOnlineRoomId).update({
+  db.collection('active_players').doc('mcroom_' + window.mcOnlineRoomId).update({
     duelState: payload
   }).catch(() => {});
 };
