@@ -1212,6 +1212,9 @@
                           }
                       });
                       isInitialEvent = false;
+                  }, err => {
+                      console.error("🔥 network_events onSnapshot error:", err);
+                      showToast("⚠️ Lỗi kết nối Firestore: " + err.message);
                   });
 
                 // 3. Global Chat - 5-min lookback to avoid clock drift
