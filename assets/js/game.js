@@ -1446,7 +1446,7 @@
             if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
 
             setTimeout(() => {
-                if (mode === 'board' && window.openBoardGame) window.openBoardGame(false);
+                if (mode === 'board' && window.openBoardGameWithBet) window.openBoardGameWithBet();
                 else if (mode === 'meme' && window.openMemeCardGame) window.openMemeCardGame();
             }, 50);
         }
