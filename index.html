@@ -69,6 +69,32 @@
         </div>
     </div>
 
+    <!-- ===== MÀN HÌNH CHỌN CHẾ ĐỘ CHƠI (3 TAB) ===== -->
+    <div id="gameModeScreen" class="screen">
+        <div class="title-container">
+            <h1 style="font-size: 3rem;">CHỌN CHẾ ĐỘ CHƠI</h1>
+            <p>Chọn 1 trong 3 trải nghiệm của Xóm Anh Hùng</p>
+        </div>
+        <div class="class-container" style="max-width:900px;">
+            <div class="class-card" onclick="selectGameMode('world')" style="width:250px; position:relative;">
+                <div style="position:absolute; top:8px; right:8px; background:#ef4444; color:#fff; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:10px;">ĐANG FIX</div>
+                <div class="class-emoji">🏘️</div>
+                <div class="class-name">Hồn Xóm Làng</div>
+                <div class="class-desc">Game nhập vai sinh tồn thế giới mở — cốt truyện, quest, PvE/PvP. Đang được hoàn thiện dần.</div>
+            </div>
+            <div class="class-card" onclick="selectGameMode('board')" style="width:250px;">
+                <div class="class-emoji">🏁</div>
+                <div class="class-name">Cờ Đua Sinh Tồn</div>
+                <div class="class-desc">Minigame cờ đua 40 ô, rút thẻ bài, PvP đụng độ giữa đường, sống sót tới đích.</div>
+            </div>
+            <div class="class-card" onclick="selectGameMode('meme')" style="width:250px;">
+                <div class="class-emoji">🐸</div>
+                <div class="class-name">Đấu Trường Meme Xóm</div>
+                <div class="class-desc">TCG kiểu Speed Duel với bộ bài "chế" làng quê Việt Nam — xây deck, đấu bài.</div>
+            </div>
+        </div>
+    </div>
+
     <div id="classScreen" class="screen">
         <div class="title-container">
             <h1 style="font-size: 3rem;">CHỌN HÀNH NGHỀ</h1>
@@ -419,45 +445,205 @@
 
         <!-- ===== 🏁 CỜ ĐUA BOARD GAME MODAL ===== -->
         <div id="boardGameModal">
-            <div class="board-container">
-                <div class="board-title">🏁 CỜ ĐUA THẺ BÀI THẦN KỲ 🃏</div>
-                <div class="board-subtitle">RACING · CARD BATTLE · BET</div>
+            <!-- Title Sign overlay -->
+            <div class="board-title-banner">
+                <img src="assets/img/board/title_sign.png" alt="Hỗn Xóm Làng - Cờ Đua Sinh Tồn">
+            </div>
 
-                <!-- Bet pool display -->
-                <div class="board-bet-pool" id="boardBetPoolDisplay" style="display:none;">
-                    <span>🏆 Nồi Cược</span>
-                    <span class="pool-amount" id="boardBetPoolAmount">0 💰</span>
-                    <span id="boardBetPoolDesc" style="font-size:0.75rem;color:#94a3b8;"></span>
+            <!-- Main Scrollable Track Area -->
+            <div class="board-track-scroll-wrapper" id="boardGrid">
+                <!-- Programmatic canvas (1024x782) will be generated here -->
+            </div>
+
+            <!-- Top right overlay panel for status info (Dice, Cards Hand, Invite, Logs, etc.) -->
+            <div class="board-overlays-container">
+                <!-- Xúc xắc & Kết quả -->
+                <div class="board-overlay-panel dice-panel">
+                    <span class="dice-face" id="diceDisplay">🎲</span>
+                    <div class="dice-result-text" id="diceResultText">Sẵn sàng!</div>
+                    <button class="board-action-btn roll-btn" id="rollDiceBtn" onclick="boardRollDice()">🎲 Tung Xúc Xắc</button>
                 </div>
 
-                <div class="board-info-row">
-                    <div class="board-players-panel">
-                        <div class="board-panel-title">👥 Người Chơi</div>
-                        <div id="boardPlayersContainer"></div>
-                        <button class="board-btn add-bot" onclick="boardAddBot()" style="margin-top:8px;width:100%;font-size:0.78rem;padding:6px;">+ Thêm Bot</button>
+                <!-- Thẻ bài rút được -->
+                <div class="board-overlay-panel card-panel">
+                    <div class="overlay-panel-title">🃏 Thẻ Bài Mới Rút</div>
+                    <div class="board-card-display" id="boardCardDisplay">
+                        <span style="color:#aaa;font-size:0.8rem;">Chưa có thẻ bài được rút</span>
                     </div>
-                    <div class="board-card-panel">
-                        <div class="board-panel-title">🃏 Thẻ Bài Rút Được</div>
-                        <div class="board-card-display" id="boardCardDisplay">
-                            <span style="color:#666;font-size:0.8rem;">Tung xúc xắc để bắt đầu...</span>
+                </div>
+
+                <!-- Log hoạt động -->
+                <div class="board-overlay-panel log-panel">
+                    <div class="overlay-panel-title">📜 Nhật Ký Đấu Trường</div>
+                    <div class="board-log" id="boardLog"></div>
+                </div>
+            </div>
+
+            <!-- Bottom Dashboard Area -->
+            <div class="board-bottom-dashboard">
+                <!-- 1. Status effects bar strip -->
+                <div class="board-status-strip">
+                    <div class="status-strip-item"><span class="icon">🎁</span> Rút bài</div>
+                    <div class="status-strip-item"><span class="icon">⚔️</span> PVP</div>
+                    <div class="status-strip-item"><span class="icon">😈</span> Quái</div>
+                    <div class="status-strip-item"><span class="icon">💰</span> Vàng</div>
+                    <div class="status-strip-item"><span class="icon">🌀</span> Dịch chuyển</div>
+                    <div class="status-strip-item"><span class="icon">☠️</span> Bẫy</div>
+                    <div class="status-strip-item"><span class="icon">🏥</span> Hồi máu</div>
+                    <div class="status-strip-item"><span class="icon">🛡️</span> Khiên</div>
+                    <div class="status-strip-item"><span class="icon">🗡️</span> Vũ khí</div>
+                    <div class="status-strip-item"><span class="icon">🎲</span> Sự kiện</div>
+                </div>
+
+                <!-- 2. Main Dashboard Content (Grid: Characters on left, Info in center, Bet Pot on right) -->
+                <div class="board-dashboard-main">
+                    <!-- Characters section -->
+                    <div class="dashboard-section characters-section">
+                        <div class="char-card active" onclick="boardSelectCharacterDisplay(0)" id="charCard_0">
+                            <img src="assets/img/board/char_trau.png" alt="Trâu Trẻ Trâu">
+                        </div>
+                        <div class="char-card" onclick="boardSelectCharacterDisplay(1)" id="charCard_1">
+                            <img src="assets/img/board/char_mam.png" alt="Mầm Mềm Mẽ">
+                        </div>
+                        <div class="char-card" onclick="boardSelectCharacterDisplay(2)" id="charCard_2">
+                            <img src="assets/img/board/char_kien.png" alt="Kiến Bảo Vệ">
+                        </div>
+                        <div class="char-card" onclick="boardSelectCharacterDisplay(3)" id="charCard_3">
+                            <img src="assets/img/board/char_ut.png" alt="Út Mũ Rơm">
                         </div>
                     </div>
-                    <div class="board-dice-panel">
-                        <div class="board-panel-title" style="justify-content:center;">🎲 Xúc Xắc</div>
-                        <span class="dice-face" id="diceDisplay">🎲</span>
-                        <div class="dice-result-text" id="diceResultText">Sẵn sàng!</div>
+
+                    <!-- Character Info section -->
+                    <div class="dashboard-section info-section">
+                        <div class="info-title">THÔNG TIN NHÂN VẬT</div>
+                        <div class="info-body" id="boardCharInfoDisplay">
+                            <div class="info-row"><span class="label">❤️ Mạng:</span> <span class="val" id="boardInfoLives">3</span></div>
+                            <div class="info-row"><span class="label">🗡️ Vũ khí:</span> <span class="val" id="boardInfoWeapons">0</span></div>
+                            <div class="info-row"><span class="label">🛡️ Khiên:</span> <span class="val" id="boardInfoShields">0</span></div>
+                            <div class="info-row"><span class="label">💰 Vàng:</span> <span class="val" id="boardInfoGold">150</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Bet Pot section -->
+                    <div class="dashboard-section bet-pot-section" id="boardBetPoolDisplay" style="display:none;">
+                        <div class="bet-title">NỔI CƯỢC</div>
+                        <div class="pot-container">
+                            <img src="assets/img/board/pot_gold.png" alt="Nồi Cược Vàng">
+                            <div class="pot-amount" id="boardBetPoolAmount">0</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Racing Track Grid -->
-                <div class="track-grid" id="boardGrid"></div>
+                <!-- Action Button row below dashboard (Close, Hand Cards, Invite) -->
+                <div class="board-action-buttons-row">
+                    <button class="board-action-btn hand-btn" onclick="boardOpenHandPanel()">🎴 Bài Trên Tay</button>
+                    <button class="board-action-btn invite-btn" onclick="openBoardInviteModal()">📨 Mời Bạn</button>
+                    <!-- Violet Admin Panel button, visible only if username is 'admin' -->
+                    <button class="board-action-btn admin-btn" id="boardAdminBtn" onclick="boardOpenAdminModal()" style="display:none; background:linear-gradient(135deg, #a78bfa, #7c3aed); border-color:#8b5cf6; color:white;">🔧 Admin</button>
+                    <button class="board-action-btn close-btn" onclick="closeBoardGame()">✖ Đóng Game</button>
+                </div>
+            </div>
+        </div>
 
-                <div class="board-log" id="boardLog"></div>
+        <!-- ===== 🔧 BOARD GAME ADMIN MODAL ===== -->
+        <div id="boardAdminModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100050; align-items:center; justify-content:center; font-family:'Baloo 2', sans-serif;">
+            <div class="bet-modal-box" style="width:min(94vw, 500px); max-height:85vh; overflow-y:auto; background:#1e140c; border:3px solid #d4af37; color:#eae1d4; padding:20px; border-radius:14px; text-align:left; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+                <div style="font-size:1.3rem; font-weight:900; color:#fbbf24; text-align:center; border-bottom:2px solid #5c3e21; padding-bottom:8px; margin-bottom:15px;">🔧 BẢNG ĐIỀU KHIỂN ADMIN</div>
+                
+                <!-- Section 1: Cell Randomization & Edit -->
+                <div style="margin-bottom:18px;">
+                    <div style="font-weight:800; color:#fbbf24; margin-bottom:8px;">1. Thiết lập Ô cờ</div>
+                    <div style="display:flex; gap:10px; margin-bottom:8px;">
+                        <button class="board-action-btn" onclick="boardAdminRandomizeCells()" style="flex:1; padding:6px; font-size:0.78rem;">🎲 Random Lại Tất Cả Ô</button>
+                    </div>
+                    <div style="border:1.5px solid #5c3e21; border-radius:8px; padding:10px; background:rgba(0,0,0,0.25);">
+                        <div style="font-size:0.75rem; margin-bottom:6px; color:#a8a29e;">Sửa ô cụ thể:</div>
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <label style="font-size:0.75rem;">Ô số:</label>
+                            <input type="number" id="adminCellIdx" min="1" max="100" value="1" style="width:50px; background:#2a1b0c; border:1px solid #d4af37; color:#fff; padding:2px 4px; border-radius:4px; text-align:center;">
+                            
+                            <label style="font-size:0.75rem;">Loại ô:</label>
+                            <select id="adminCellType" style="background:#2a1b0c; border:1px solid #d4af37; color:#fff; padding:2px; border-radius:4px; font-size:0.75rem;">
+                                <option value="trap">💣 Ô Bẫy (Lùi 3 ô)</option>
+                                <option value="revealed">🏢 Ô Địa Danh (Revealed)</option>
+                                <option value="hidden">🌫️ Ô Bí Ẩn (Hidden)</option>
+                            </select>
+                            
+                            <button class="board-action-btn" onclick="boardAdminModifyCell()" style="padding:2px 10px; font-size:0.75rem;">Áp Dụng</button>
+                        </div>
+                    </div>
+                </div>
 
-                <div class="board-actions">
-                    <button class="board-btn roll" id="rollDiceBtn" onclick="boardRollDice()">🎲 Tung Xúc Xắc</button>
-                    <button class="board-btn invite-friend" onclick="openBoardInviteModal()">📨 Mời Bạn</button>
-                    <button class="board-btn close-board" onclick="closeBoardGame()">✖ Đóng</button>
+                <!-- Section 2: Edit Card Effects -->
+                <div style="margin-bottom:18px;">
+                    <div style="font-weight:800; color:#fbbf24; margin-bottom:6px;">2. Sửa Hiệu Ứng Thẻ Bài</div>
+                    <div id="adminCardsContainer" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; border:1.5px solid #5c3e21; border-radius:8px; padding:6px; background:rgba(0,0,0,0.25);">
+                        <!-- Programmatic list of cards will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
+                    <button class="board-action-btn close-btn" onclick="boardCloseAdminModal()" style="padding:6px 20px;">Đóng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ⚔️ PVP CHOICE MODAL ===== -->
+        <div id="boardPvpChoiceModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100060; align-items:center; justify-content:center; font-family:'Baloo 2', sans-serif;">
+            <div class="bet-modal-box" style="width:min(90vw, 400px); background:#1e140c; border:3px solid #ef4444; color:#eae1d4; padding:20px; border-radius:14px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.9);">
+                <div style="font-size:1.5rem; font-weight:900; color:#ef4444; margin-bottom:10px;">⚔️ ĐỤNG ĐỘ CHIẾN THUẬT!</div>
+                <div id="pvpChoiceTargetText" style="font-size:0.95rem; margin-bottom:18px; color:#cbd5e1;">Bạn và đối thủ đang đứng chung ô. Bạn có muốn dùng 1 Vũ Khí 🗡️ để tấn công không?</div>
+                <div style="display:flex; gap:12px; justify-content:center;">
+                    <button class="board-action-btn" id="pvpAttackBtn" style="background:linear-gradient(135deg, #ef4444, #b91c1c); border-color:#ef4444; color:#fff; padding:8px 24px;">⚔️ Tấn Công</button>
+                    <button class="board-action-btn" id="pvpSpareBtn" style="background:linear-gradient(135deg, #6b7280, #374151); border-color:#4b5563; color:#fff; padding:8px 24px;">🤝 Bỏ Qua</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 🛒 SHOP CELL MODAL ===== -->
+        <div id="boardShopModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100070; align-items:center; justify-content:center; font-family:'Baloo 2', sans-serif;">
+            <div class="bet-modal-box" style="width:min(94vw, 450px); background:#1e140c; border:3px solid #fbbf24; color:#eae1d4; padding:20px; border-radius:14px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.9);">
+                <div style="font-size:1.5rem; font-weight:900; color:#fbbf24; margin-bottom:4px;">🛒 CỬA HÀNG LÀNG</div>
+                <div id="shopWelcomeText" style="font-size:0.8rem; color:#cbd5e1; margin-bottom:12px;">Bạn ghé qua quán tạp hóa, hãy chọn món đồ muốn mua!</div>
+                
+                <!-- Gold display -->
+                <div style="font-size:1.1rem; font-weight:800; color:#fbbf24; background:rgba(0,0,0,0.4); padding:6px; border-radius:8px; display:inline-block; margin-bottom:15px; border:1px solid #d4af37;">
+                    💰 Vàng của bạn: <span id="shopPlayerGold">0</span>
+                </div>
+
+                <!-- Shop Items grid -->
+                <div style="display:flex; flex-direction:column; gap:8px; text-align:left; margin-bottom:15px;">
+                    <!-- Item 1: Weapon -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                        <div>
+                            <div style="font-weight:800; color:#fff;">🗡️ Kiếm Sắt Xóm</div>
+                            <div style="font-size:0.75rem; color:#a8a29e;">Nhận 1 Vũ Khí để phòng thân hoặc tấn công.</div>
+                        </div>
+                        <button class="board-action-btn" onclick="boardShopBuyItem('weapon', 50)" style="padding:4px 12px; font-size:0.8rem; background:#10b981; border-color:#10b981;">50 Vàng</button>
+                    </div>
+
+                    <!-- Item 2: Shield -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                        <div>
+                            <div style="font-weight:800; color:#fff;">🛡️ Khiên Gỗ Mộc</div>
+                            <div style="font-size:0.75rem; color:#a8a29e;">Nhận 1 Khiên chặn 1 đòn chí tử.</div>
+                        </div>
+                        <button class="board-action-btn" onclick="boardShopBuyItem('shield', 50)" style="padding:4px 12px; font-size:0.8rem; background:#10b981; border-color:#10b981;">50 Vàng</button>
+                    </div>
+
+                    <!-- Item 3: Health -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                        <div>
+                            <div style="font-weight:800; color:#fff;">❤️ Hộp Cứu Thương</div>
+                            <div style="font-size:0.75rem; color:#a8a29e;">Hồi phục 1 mạng (tối đa 3 mạng).</div>
+                        </div>
+                        <button class="board-action-btn" onclick="boardShopBuyItem('health', 100)" style="padding:4px 12px; font-size:0.8rem; background:#10b981; border-color:#10b981;">100 Vàng</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:12px; justify-content:center;">
+                    <button class="board-action-btn close-btn" onclick="boardCloseShop()" style="padding:8px 24px;">Rời Cửa Hàng 🚪</button>
                 </div>
             </div>
         </div>
@@ -1297,7 +1483,155 @@
                     <div style="font-size:3.5rem;">🃏</div>
                     <div style="font-size:1.1rem; color:#86efac; text-align:center;">Xây deck, triệu hồi quái, burn đối thủ về 0 LP!<br><span style="font-size:0.85rem;color:#6b7280;">Meme thuần Việt · Speed Duel · 30+ thẻ sẽ tăng dần</span></div>
                     <button class="mc-btn mc-btn-start" style="max-width:280px;" onclick="mcOpenDeckBuilder()">🗂️ Xây Deck & Vào Trận</button>
+                    <button class="mc-btn mc-btn-secondary" id="mcAdminCardsBtn" style="max-width:280px; display:none; background:#818cf8; color:#ffffff; border-color:#6366f1;" onclick="mcOpenAdminCardsManager()">📂 Quản Lý & Thêm Thẻ Bài</button>
+                    <button class="mc-btn mc-btn-secondary" id="mcAdminToggleBtn" style="max-width:280px; background:#f59e0b; color:#1c1a26; border-color:#d97706;" onclick="mcToggleAdminMode()">⚙️ Bật/Tắt Admin Mode</button>
                     <button class="mc-btn mc-btn-secondary" style="max-width:280px;" onclick="mcCloseGame()">🚪 Quay Lại</button>
+                </div>
+
+                <!-- ADMIN CARD MANAGER SCREEN -->
+                <div id="mcAdminCardsScreen" class="mc-screen" style="display:none; flex-direction:column; gap:12px; padding:15px; font-family:inherit; box-sizing:border-box;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #3b82f6; padding-bottom:8px;">
+                        <span style="font-size:1.3rem; font-weight:bold; color:#60a5fa; display:flex; align-items:center; gap:8px;">📂 QUẢN LÝ THẺ BÀI ADMIN</span>
+                        <button class="mc-btn mc-btn-secondary" style="margin:0; padding:6px 12px; font-size:0.85rem;" onclick="mcShowScreen('mcLobbyScreen')">🚪 Quay Lại</button>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:16px; box-sizing:border-box;">
+                        <!-- Left Side: Cards list and Search -->
+                        <div style="background:rgba(0,0,0,0.4); border:1px solid #334155; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; max-height:520px; box-sizing:border-box;">
+                            <div style="font-weight:bold; font-size:0.9rem; color:#94a3b8; display:flex; justify-content:space-between; align-items:center;">
+                                <span>Danh Sách Thẻ Bài</span>
+                                <input type="text" id="mcAdminSearch" placeholder="Tìm tên..." oninput="mcRenderAdminCardsList()" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:3px 6px; border-radius:4px; font-size:0.75rem; width:120px;">
+                            </div>
+                            <div id="mcAdminCardsList" style="overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-right:4px; max-height:450px;"></div>
+                        </div>
+
+                        <!-- Right Side: Edit / Add Form -->
+                        <div style="background:rgba(0,0,0,0.4); border:1px solid #334155; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; max-height:520px; overflow-y:auto; box-sizing:border-box;">
+                            <div style="font-weight:bold; font-size:0.9rem; color:#f59e0b; display:flex; justify-content:space-between; align-items:center;">
+                                <span id="mcAdminFormTitle">Thêm / Sửa Thẻ Bài</span>
+                                <button class="mc-btn mc-btn-secondary" style="margin:0; padding:2px 8px; font-size:0.7rem; background:#3b82f6; color:#fff;" onclick="mcResetAdminForm()">🧹 Nhập Mới</button>
+                            </div>
+
+                            <form id="mcAdminCardForm" onsubmit="event.preventDefault();" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; font-size:0.8rem; box-sizing:border-box;">
+                                <div style="display:flex; flex-direction:column; gap:2px; grid-column: span 2;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Mã ID thẻ (Không dấu, không khoảng cách):</label>
+                                    <input type="text" id="mcFormId" required placeholder="vidu: kiem_lam_bao_ve" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px; grid-column: span 2;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Tên thẻ bài:</label>
+                                    <input type="text" id="mcFormName" required placeholder="Kiến Lâm Bảo Vệ" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Loại bài (Type):</label>
+                                    <select id="mcFormCardType" onchange="mcOnFormCardTypeChange()" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                        <option value="Monster">Monster (Quái Thú)</option>
+                                        <option value="Spell">Spell (Phép Thuật)</option>
+                                        <option value="Trap">Trap (Cạm Bẫy)</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Số Sao (Stars):</label>
+                                    <input type="number" id="mcFormStars" value="1" min="1" max="12" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Sức tấn công (ATK):</label>
+                                    <input type="number" id="mcFormAtk" value="0" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Sức phòng thủ (DEF):</label>
+                                    <input type="number" id="mcFormDef" value="0" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Emoji đại diện:</label>
+                                    <input type="text" id="mcFormEmoji" value="🃏" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px; text-align:center;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Tộc quái (Tribe):</label>
+                                    <input type="text" id="mcFormTribe" value="Tộc Trẩu" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                </div>
+                                
+                                <div id="mcFormMonsterCatRow" style="display:flex; flex-direction:column; gap:2px; grid-column: span 2;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Phân nhóm Quái vật:</label>
+                                    <select id="mcFormMonsterCat" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                        <option value="Thường">Thường (Normal)</option>
+                                        <option value="Hiệu Ứng">Hiệu Ứng (Effect)</option>
+                                        <option value="Đồng Bộ">Đồng Bộ (Synchro)</option>
+                                        <option value="Nghi Lễ">Nghi Lễ (Ritual)</option>
+                                    </select>
+                                </div>
+                                <div id="mcFormSpellCatRow" style="display:none; flex-direction:column; gap:2px; grid-column: span 2;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Phân nhóm Phép thuật:</label>
+                                    <select id="mcFormSpellCat" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                        <option value="Thường">Thường (Normal)</option>
+                                        <option value="Môi Trường">Môi Trường (Field)</option>
+                                        <option value="Liên Tục">Liên Tục (Continuous)</option>
+                                        <option value="Trang Bị">Trang Bị (Equip)</option>
+                                        <option value="Nghi Lễ">Nghi Lễ (Ritual Spell)</option>
+                                    </select>
+                                </div>
+                                <div id="mcFormTrapCatRow" style="display:none; flex-direction:column; gap:2px; grid-column: span 2;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Phân nhóm Bẫy:</label>
+                                    <select id="mcFormTrapCat" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                        <option value="Thường">Thường (Normal)</option>
+                                        <option value="Phản Đòn">Phản Đòn (Counter)</option>
+                                        <option value="Liên Tục">Liên Tục (Continuous)</option>
+                                    </select>
+                                </div>
+
+                                <div style="display:flex; flex-direction:column; gap:2px; grid-column: span 2;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Hiệu ứng (Effect Code):</label>
+                                    <select id="mcFormEffectCode" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                        <option value="">Không có hiệu ứng</option>
+                                        <option value="draw_n">Rút n lá bài (draw_n)</option>
+                                        <option value="burn_n">Gây n sát thương (burn_n)</option>
+                                        <option value="heal_n">Hồi n sinh mệnh (heal_n)</option>
+                                        <option value="destroy_attacker">Phá hủy quái tấn công (destroy_attacker)</option>
+                                        <option value="destroy_all_opponent_monsters">Tiêu diệt toàn bộ quái đối thủ (destroy_all_opponent_monsters)</option>
+                                        <option value="negate_attack">Vô hiệu hóa đòn tấn công (negate_attack)</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Giá trị hiệu ứng:</label>
+                                    <input type="number" id="mcFormEffectValue" value="0" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Thời điểm kích hoạt:</label>
+                                    <select id="mcFormEffectTrigger" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                        <option value="">Kích hoạt tay / Bẫy phản đòn</option>
+                                        <option value="on_summon">Khi triệu hồi (on_summon)</option>
+                                        <option value="on_attack">Khi quái tấn công (on_attack)</option>
+                                    </select>
+                                </div>
+
+                                <div style="display:flex; flex-direction:column; gap:2px; grid-column: span 2;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Mô tả thẻ bài:</label>
+                                    <textarea id="mcFormDescription" required rows="3" placeholder="Mô tả công năng của lá bài..." style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px; font-family:inherit; resize:vertical;"></textarea>
+                                </div>
+
+                                <div style="display:flex; gap:8px; grid-column: span 2; margin-top:5px;">
+                                    <button class="mc-btn mc-btn-start" style="flex:1; margin:0; font-size:0.8rem; padding:8px;" onclick="mcSaveAdminForm()">💾 Lưu Lá Bài</button>
+                                    <button class="mc-btn mc-btn-danger" id="mcFormDeleteBtn" style="flex:0.6; margin:0; font-size:0.8rem; padding:8px; display:none;" onclick="mcDeleteAdminCard()">🗑️ Xoá Lá Bài</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Row: Excel / CSV Import Section -->
+                    <div style="background:rgba(0,0,0,0.4); border:1px solid #334155; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                        <div style="font-weight:bold; font-size:0.85rem; color:#38bdf8; display:flex; justify-content:space-between; align-items:center; width:100%;">
+                            <span>📥 NHẬP / XUẤT BÀI HÀNG LOẠT (EXCEL / CSV)</span>
+                            <button class="mc-btn mc-btn-start" style="margin:0; font-size:0.75rem; padding:4px 10px; background:#10b981; color:#fff; border:none;" onclick="mcExportAdminCsv()">📤 Tải Về File Excel/CSV</button>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <textarea id="mcAdminCsvInput" rows="2" placeholder="Dán cột dữ liệu CSV tại đây (id,name,card_type,stars,atk,def,description,emoji,tribe,monster_category,spell_category,trap_category)" style="flex:1; background:#0f172a; border:1px solid #475569; color:#fff; padding:6px; border-radius:4px; font-size:0.7rem; font-family:monospace;"></textarea>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <button class="mc-btn mc-btn-start" style="margin:0; font-size:0.75rem; padding:6px 12px;" onclick="mcImportAdminCsv()">📥 Nhập Dữ Liệu CSV</button>
+                                <input type="file" id="mcAdminCsvFile" accept=".csv" onchange="mcImportAdminCsvFile(this)" style="display:none;">
+                                <button class="mc-btn mc-btn-secondary" style="margin:0; font-size:0.75rem; padding:6px 12px;" onclick="document.getElementById('mcAdminCsvFile').click()">📁 Chọn File Excel/CSV</button>
+                            </div>
+                        </div>
+                        <div style="font-size:0.7rem; color:#6b7280; font-style:italic;">* Xuất file Excel dạng CSV phân tách bằng dấu phẩy để import nhanh chóng.</div>
+                    </div>
                 </div>
 
                 <!-- DECK BUILDER SCREEN -->
@@ -1388,6 +1722,17 @@
                     <!-- Phase action buttons -->
                     <div class="mc-phase-bar">
                         <div id="mcActionMenu" class="mc-action-row"></div>
+                    </div>
+
+                    <!-- Admin Test Panel -->
+                    <div id="mcAdminTestPanel" style="display:none; flex-direction:column; gap:6px; padding:10px; background:#1e1b29; border:2px dashed #f59e0b; border-radius:12px; margin-top:8px; font-size:0.75rem;">
+                        <div style="font-weight:bold; color:#f59e0b; display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>🛠️ ADMIN TEST PANEL</span>
+                            <span style="font-size:0.65rem; color:#888;">Chỉ khả dụng khi bật Admin Mode</span>
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px;" id="mcAdminTestActions">
+                            <!-- JS inserts test buttons here -->
+                        </div>
                     </div>
 
                     <!-- Duel log -->

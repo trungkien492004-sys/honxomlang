@@ -83,7 +83,7 @@ function mcCardArtHTML(card, size) {
 
 function mcCardTypeIcon(card) {
   if (card.card_type === 'Monster') {
-    if (card.monster_category === 'Dung Hợp') return '🌀';
+    if (card.monster_category === 'Đồng Bộ') return '🌀';
     if (card.monster_category === 'Nghi Lễ') return '🕯️';
     if (card.monster_category === 'Hiệu Ứng') return '⚡';
     return '⬛';
@@ -173,8 +173,12 @@ function mcRenderMonsterZone(who, idx, zoneEl) {
   } else if (who === 'player' && d.mode === null && d.phase === 'BATTLE' && d.turn === 'player') {
     if (slot && !slot.hasAttacked && slot.position === 'atk') {
       zoneEl.classList.add('mc-zone-can-attack');
-      zoneEl.onclick = (function(i) { return function() { mcDeclareAttack(i, false); }; })(idx);
     }
+  }
+
+  // Nếu ô không có tác vụ nào khác và là quái ngửa (hoặc quái úp của phe ta), bấm vào xem chi tiết bài
+  if (!zoneEl.onclick && slot && (slot.position !== 'def_down' || who === 'player')) {
+    zoneEl.onclick = function() { mcShowFieldCardDetails(slot.id, who, idx, false); };
   }
 }
 
@@ -197,10 +201,11 @@ function mcRenderSpellZone(who, idx, zoneEl) {
   if (slot.faceDown) {
     zoneEl.innerHTML = '<div class="mc-card-back-zone" title="Bài úp">🎴</div>';
     if (who === 'player') {
-      zoneEl.onclick = (function(i) { return function() { mcActivateFaceDownSpellTrap(i); }; })(idx);
+      zoneEl.onclick = function() { mcShowFieldCardDetails(slot.id, 'player', idx, false); };
     }
   } else {
     zoneEl.innerHTML = mcCardArtHTML(card, 42) + '<div class="mc-card-name-tiny">' + card.name + '</div>';
+    zoneEl.onclick = function() { mcShowFieldCardDetails(who, idx, slot.id, false); };
   }
 }
 
@@ -229,15 +234,22 @@ function mcRenderField() {
     pfEl.onclick = null;
     if (d.playerField) {
       const c = mcCardById(d.playerField.id);
-      if (c) pfEl.innerHTML = mcCardArtHTML(c, 42) + '<div class="mc-card-name-tiny">' + c.name + '</div>';
+      if (c) {
+        pfEl.innerHTML = mcCardArtHTML(c, 42) + '<div class="mc-card-name-tiny">' + c.name + '</div>';
+        pfEl.onclick = function() { mcShowFieldCardDetails(d.playerField.id, 'player', -1, false); };
+      }
     } else { pfEl.innerHTML = '<span class="mc-zone-empty">Môi Trường</span>'; }
   }
   const ofEl = document.getElementById('mcOppField');
   if (ofEl) {
     ofEl.innerHTML = '';
+    ofEl.onclick = null;
     if (d.oppField) {
       const c = mcCardById(d.oppField.id);
-      if (c) ofEl.innerHTML = mcCardArtHTML(c, 42) + '<div class="mc-card-name-tiny">' + c.name + '</div>';
+      if (c) {
+        ofEl.innerHTML = mcCardArtHTML(c, 42) + '<div class="mc-card-name-tiny">' + c.name + '</div>';
+        ofEl.onclick = function() { mcShowFieldCardDetails(d.oppField.id, 'opponent', -1, false); };
+      }
     } else { ofEl.innerHTML = '<span class="mc-zone-empty">Môi Trường</span>'; }
   }
 
@@ -257,8 +269,8 @@ function mcRenderField() {
       if (d.mode === null && d.phase === 'BATTLE' && d.turn === 'player'
           && !d.playerExtraZone.hasAttacked) {
         peEl.classList.add('mc-zone-can-attack');
-        peEl.onclick = function() { mcDeclareAttack(-1, true); };
       }
+      peEl.onclick = function() { mcShowFieldCardDetails(d.playerExtraZone.id, 'player', -1, true); };
     } else {
       peEl.innerHTML = '<span class="mc-zone-empty">Extra</span>';
     }
@@ -280,6 +292,9 @@ function mcRenderField() {
       oeEl.classList.add('mc-zone-target');
       oeEl.onclick = function() { mcResolveAttack('extra'); };
     }
+    if (!oeEl.onclick && d.oppExtraZone) {
+      oeEl.onclick = function() { mcShowFieldCardDetails(d.oppExtraZone.id, 'opponent', -1, true); };
+    }
   }
 
   // GY counts
@@ -296,6 +311,16 @@ function mcRenderAll() {
   mcRenderField();
   mcUpdateLP();
   mcRenderPhaseButtons();
+
+  const adminPanel = document.getElementById('mcAdminTestPanel');
+  if (adminPanel) {
+    if (mcIsAdmin() && mcGame.duel) {
+      adminPanel.style.display = 'flex';
+      mcRenderAdminTestPanel();
+    } else {
+      adminPanel.style.display = 'none';
+    }
+  }
 }
 
 // ────────────────── PHASE BUTTONS ──────────────────
@@ -353,10 +378,11 @@ function openMemeCardGame() {
   if (!modal) { console.error('[memecard] #memecardGameModal not found'); return; }
   modal.style.display = 'flex';
   mcShowScreen('mcLobbyScreen');
+  window.mcUpdateAdminBtnUI();
 }
 
 function mcShowScreen(id) {
-  ['mcLobbyScreen', 'mcDeckScreen', 'mcDuelScreen'].forEach(function(s) {
+  ['mcLobbyScreen', 'mcDeckScreen', 'mcDuelScreen', 'mcAdminCardsScreen'].forEach(function(s) {
     const el = document.getElementById(s);
     if (el) el.style.display = (s === id) ? 'flex' : 'none';
   });
@@ -367,8 +393,148 @@ function mcShowScreen(id) {
 function mcCloseGame() {
   const modal = document.getElementById('memecardGameModal');
   if (modal) modal.style.display = 'none';
+  
+  if (window.mcOnlineRoomId) {
+    db.collection('mc_rooms').doc(window.mcOnlineRoomId).delete().catch(() => {});
+    if (window.mcRoomUnsubscribe) {
+      window.mcRoomUnsubscribe();
+      window.mcRoomUnsubscribe = null;
+    }
+    window.mcOnlineRoomId = null;
+    window.mcOnlineRole = null;
+  }
   mcGame.duel = null;
 }
+
+// ────────────────── ADMIN: CHỈNH SỬA HIỆU ỨNG THẺ BÀI ──────────────────
+const MC_ADMIN_EMAIL = 'trungkien492004@gmail.com';
+function mcIsAdmin() {
+    const isPlayerAdmin = (window.player && window.player.name && window.player.name.toLowerCase() === 'admin');
+    const isLocalUserAdmin = (localStorage.getItem('username') && localStorage.getItem('username').toLowerCase() === 'admin');
+    return !!(window.currentFirebaseUser && window.currentFirebaseUser.email === MC_ADMIN_EMAIL) || 
+           localStorage.getItem('mc_admin_mode') === 'true' || 
+           isPlayerAdmin || 
+           isLocalUserAdmin;
+}
+
+window.mcUpdateAdminBtnUI = function() {
+  const btn = document.getElementById('mcAdminToggleBtn');
+  const cardsBtn = document.getElementById('mcAdminCardsBtn');
+  if (!btn) return;
+  const isAdmin = mcIsAdmin();
+  if (isAdmin) {
+    btn.textContent = '⚙️ Admin Mode: ĐANG BẬT';
+    btn.style.background = '#10b981'; 
+    btn.style.borderColor = '#059669';
+    btn.style.color = '#fff';
+    if (cardsBtn) cardsBtn.style.display = 'inline-block';
+  } else {
+    btn.textContent = '⚙️ Admin Mode: ĐANG TẮT';
+    btn.style.background = '#f59e0b'; 
+    btn.style.borderColor = '#d97706';
+    btn.style.color = '#1c1a26';
+    if (cardsBtn) cardsBtn.style.display = 'none';
+  }
+};
+
+window.mcToggleAdminMode = function() {
+  const current = localStorage.getItem('mc_admin_mode') === 'true';
+  localStorage.setItem('mc_admin_mode', !current ? 'true' : 'false');
+  if (typeof showToast === 'function') {
+    showToast(!current ? '⚙️ Đã kích hoạt Admin Mode!' : '⚙️ Đã tắt Admin Mode.');
+  } else {
+    alert(!current ? '⚙️ Đã kích hoạt Admin Mode!' : '⚙️ Đã tắt Admin Mode.');
+  }
+  window.mcUpdateAdminBtnUI();
+  // Refresh deck builder if open
+  const deckScreen = document.getElementById('mcDeckScreen');
+  if (deckScreen && deckScreen.style.display !== 'none') {
+    mcRenderDeckBuilder();
+  }
+};
+
+function mcOpenAdminCardEditor(cardId) {
+    let card = mcCardById(cardId);
+    if (!card) return;
+    document.querySelectorAll('.mc-admin-edit-modal').forEach(el => el.remove());
+
+    let modal = document.createElement('div');
+    modal.className = 'mc-admin-edit-modal';
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:100030; display:flex; align-items:center; justify-content:center;';
+
+    let box = document.createElement('div');
+    box.style.cssText = 'background:#1c1a26; border:2px solid #ff9eb5; border-radius:14px; width:min(92vw,420px); padding:16px; display:flex; flex-direction:column; gap:10px;';
+
+    let fields = [
+        { key: 'name', label: 'Tên bài', type: 'text' },
+        { key: 'description', label: 'Mô tả / câu thoại hiệu ứng', type: 'textarea' },
+        { key: 'effect_value', label: 'Giá trị hiệu ứng (effect_value)', type: 'number' }
+    ];
+    if (card.card_type === 'Monster') {
+        fields.push({ key: 'atk', label: 'ATK', type: 'number' }, { key: 'def', label: 'DEF', type: 'number' });
+    }
+
+    box.innerHTML = `<div style="font-weight:800; color:#ffb3c6;">🛠️ ADMIN — Sửa thẻ: ${card.name}</div>`;
+    let inputs = {};
+    fields.forEach(f => {
+        let row = document.createElement('div');
+        row.innerHTML = `<label style="font-size:0.78rem; color:#cbd5e1; display:block; margin-bottom:3px;">${f.label}</label>`;
+        let input = document.createElement(f.type === 'textarea' ? 'textarea' : 'input');
+        if (f.type !== 'textarea') input.type = f.type;
+        input.value = card[f.key] !== undefined && card[f.key] !== null ? card[f.key] : '';
+        input.style.cssText = 'width:100%; padding:6px 8px; border-radius:6px; border:1px solid #4d4566; background:#2c2840; color:#fff; font-family:inherit;';
+        if (f.type === 'textarea') input.rows = 3;
+        row.appendChild(input);
+        box.appendChild(row);
+        inputs[f.key] = input;
+    });
+
+    let btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex; gap:8px; margin-top:4px;';
+    let saveBtn = document.createElement('button');
+    saveBtn.textContent = '💾 Lưu';
+    saveBtn.style.cssText = 'flex:1; padding:8px; background:#7bd9a8; border:none; border-radius:6px; font-weight:bold; cursor:pointer;';
+    saveBtn.onclick = () => {
+        let patch = {};
+        fields.forEach(f => {
+            let v = inputs[f.key].value;
+            patch[f.key] = f.type === 'number' ? Number(v) : v;
+        });
+        let raw = localStorage.getItem(window.MC_ADMIN_OVERRIDE_KEY);
+        let overrides = {};
+        try { overrides = raw ? JSON.parse(raw) : {}; } catch (e) {}
+        overrides[cardId] = Object.assign(overrides[cardId] || {}, patch);
+        localStorage.setItem(window.MC_ADMIN_OVERRIDE_KEY, JSON.stringify(overrides));
+        window.applyMemeCardAdminOverrides();
+        modal.remove();
+        mcRenderDeckBuilder();
+        showToast(`🛠️ Đã lưu chỉnh sửa cho thẻ "${card.name}"`);
+    };
+    let resetBtn = document.createElement('button');
+    resetBtn.textContent = '↩️ Bỏ chỉnh sửa (về gốc)';
+    resetBtn.style.cssText = 'padding:8px 10px; background:#4b5563; border:none; border-radius:6px; color:#fff; cursor:pointer;';
+    resetBtn.onclick = () => {
+        let raw = localStorage.getItem(window.MC_ADMIN_OVERRIDE_KEY);
+        let overrides = {};
+        try { overrides = raw ? JSON.parse(raw) : {}; } catch (e) {}
+        delete overrides[cardId];
+        localStorage.setItem(window.MC_ADMIN_OVERRIDE_KEY, JSON.stringify(overrides));
+        modal.remove();
+        showToast(`↩️ Đã bỏ chỉnh sửa admin cho "${card.name}" — cần tải lại trang để về đúng dữ liệu gốc.`);
+    };
+    let cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Đóng';
+    cancelBtn.style.cssText = 'padding:8px 10px; background:#374151; border:none; border-radius:6px; color:#fff; cursor:pointer;';
+    cancelBtn.onclick = () => modal.remove();
+    btnRow.appendChild(saveBtn);
+    btnRow.appendChild(resetBtn);
+    btnRow.appendChild(cancelBtn);
+    box.appendChild(btnRow);
+
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+}
+window.mcOpenAdminCardEditor = mcOpenAdminCardEditor;
 
 // ────────────────── DECK BUILDER ──────────────────
 function mcOpenDeckBuilder() {
@@ -390,6 +556,7 @@ function mcRenderDeckBuilder() {
       const limit = MC_LIMITS[card.id] || 3;
       const div = document.createElement('div');
       div.className = 'mc-db-card mc-type-' + card.card_type.toLowerCase();
+      div.title = card.name + '\n' + (card.description || '');
       const subLine = card.card_type === 'Monster'
         ? '<div class="mc-db-card-sub">' + mcStarsHTML(card.stars) + ' ' + card.monster_category + ' | ATK ' + card.atk + ' DEF ' + card.def + '</div>'
         : '<div class="mc-db-card-sub">' + (card.spell_category || card.trap_category || '') + '</div>';
@@ -404,6 +571,7 @@ function mcRenderDeckBuilder() {
         +   '<span class="mc-db-count">' + inDeck + '/' + limit + '</span>'
         +   '<button onclick="mcAddToDeck(\'' + card.id + '\')" ' + (inDeck >= limit ? 'disabled' : '') + '>+</button>'
         +   '<button onclick="mcRemoveFromDeck(\'' + card.id + '\')" ' + (inDeck <= 0 ? 'disabled' : '') + '>−</button>'
+        +   (mcIsAdmin() ? '<button title="Admin: sửa hiệu ứng thẻ" style="background:#ffb3c6;color:#2c2840;" onclick="mcOpenAdminCardEditor(\'' + card.id + '\')">✏️</button>' : '')
         + '</div>';
       collEl.appendChild(div);
     });
@@ -441,7 +609,7 @@ function mcRenderDeckPanel() {
   startBtn.className = 'mc-btn mc-btn-start';
   startBtn.textContent = '⚔️ Bắt Đầu Đấu!';
   startBtn.disabled = !ok;
-  startBtn.onclick = mcStartDuel;
+  startBtn.onclick = mcShowDuelModeChoice;
   deckEl.appendChild(startBtn);
 
   const quickBtn = document.createElement('button');
@@ -592,12 +760,23 @@ function mcEndPlayerTurn() {
   }
   d.playerMonsters.forEach(function(s) { if (s) s.hasAttacked = false; });
   if (d.playerExtraZone) d.playerExtraZone.hasAttacked = false;
-  d.turn = 'opponent';
-  d.phase = 'DRAW';
-  d.turnCount++;
+
   d.selectedHandIndex = null;
   d.mode = null;
   mcHideCardMenu();
+
+  if (window.mcOnlineRoomId) {
+    d.turn = 'opponent';
+    d.phase = 'DRAW';
+    d.turnCount++;
+    mcLog('🔴 Đã kết thúc lượt. Đang chờ đối thủ hành động...');
+    mcUpdateAndSync();
+    return;
+  }
+
+  d.turn = 'opponent';
+  d.phase = 'DRAW';
+  d.turnCount++;
   mcLog('🔴 Lượt ' + d.turnCount + ' — Đối thủ');
   mcRenderAll();
   setTimeout(function() { mcRunPhase(); }, 700);
@@ -640,6 +819,8 @@ function mcBotDoMain() {
     const hIdx = d.oppHand.indexOf(id);
     if (hIdx < 0) return;
 
+    mcPlayCardZoomVFX(card.id, 'spell');
+
     if (card.spell_category === 'Môi Trường') {
       if (!d.oppField) {
         d.oppField = { id: card.id };
@@ -674,7 +855,7 @@ function mcBotDoMain() {
   if (!d.hasNormalSummoned) {
     const candidates = d.oppHand
       .map(function(id) { return mcCardById(id); })
-      .filter(function(c) { return c && c.card_type === 'Monster' && c.monster_category !== 'Dung Hợp' && c.monster_category !== 'Nghi Lễ'; })
+      .filter(function(c) { return c && c.card_type === 'Monster' && c.monster_category !== 'Đồng Bộ' && c.monster_category !== 'Nghi Lễ'; })
       .sort(function(a, b) { return (b.atk || 0) - (a.atk || 0); });
 
     for (let ci = 0; ci < candidates.length; ci++) {
@@ -704,6 +885,9 @@ function mcBotDoMain() {
       if (hi >= 0) d.oppHand.splice(hi, 1);
       d.hasNormalSummoned = true;
       mcLog('🤖 Đối thủ triệu hồi: ' + card.name + ' (ATK ' + card.atk + ')');
+      if (card.stars >= 5) {
+        mcPlayCardZoomVFX(card.id, 'summon');
+      }
       if (card.monster_category === 'Hiệu Ứng' && card.effect_trigger === 'on_summon') {
         mcExecuteEffect('opponent', card);
       }
@@ -721,7 +905,7 @@ function mcBotDoMain() {
     const hi = d.oppHand.indexOf(id);
     if (hi < 0) return;
     d.oppHand.splice(hi, 1);
-    d.oppSpells[emptySlot] = { id: card.id, faceDown: true };
+    d.oppSpells[emptySlot] = { id: card.id, faceDown: true, turnSet: d.turnCount };
     mcLog('🤖 Đối thủ úp 1 lá bẫy');
   });
 
@@ -765,6 +949,7 @@ function mcBotDoBattle() {
 
       if (!hasPlayerMons) {
         // Direct
+        mcPlayAttackVFX('opponent', att.idx, att.isExtra, -1, false);
         d.playerLP -= attackerATK;
         mcLog('💥 Đối thủ tấn công trực tiếp! ' + attackerCard.name + ' → Bạn mất ' + attackerATK + ' LP');
         mcUpdateLP();
@@ -796,6 +981,7 @@ function mcBotDoBattle() {
       }
 
       if (targetIsExtra) {
+        mcPlayAttackVFX('opponent', att.idx, att.isExtra, -1, true);
         const defCard = mcCardById(d.playerExtraZone.id);
         const defAtk = mcGetEffectiveAtk('player', -1, true);
         if (attackerATK > defAtk) {
@@ -827,6 +1013,7 @@ function mcBotDoBattle() {
 
 function mcResolveBotAttack(attackerCard, attackerSlot, attackerATK, attackerIdx, attackerIsExtra, targetIdx) {
   const d = mcGame.duel;
+  mcPlayAttackVFX('opponent', attackerIdx, attackerIsExtra, targetIdx, false);
   const target = d.playerMonsters[targetIdx];
   if (!target) return;
   const targetCard = mcCardById(target.id);
@@ -901,9 +1088,7 @@ function mcBotEndTurn() {
 // ────────────────── PLAYER ACTIONS ──────────────────
 function mcSelectHandCard(idx) {
   const d = mcGame.duel;
-  if (!d || d.turn !== 'player') return;
-  if (d.mode !== null) return;
-  if (d.phase !== 'MAIN1' && d.phase !== 'MAIN2') return;
+  if (!d) return;
 
   if (d.selectedHandIndex === idx) {
     d.selectedHandIndex = null;
@@ -924,7 +1109,28 @@ function mcShowCardMenu(idx) {
 
   const menuEl = document.getElementById('mcCardMenu');
   if (!menuEl) return;
-  menuEl.innerHTML = '<div class="mc-card-menu-title">' + mcCardTypeIcon(card) + ' ' + card.name + '</div>';
+  
+  let detailsHTML = `
+    <div class="mc-card-menu-details" style="display:flex; gap:10px; margin-bottom:8px; border-bottom:1px solid #1e3a2f; padding-bottom:8px; align-items:flex-start;">
+      ${mcCardArtHTML(card, 64)}
+      <div style="flex:1; display:flex; flex-direction:column; gap:2px; font-size:0.75rem; text-align:left;">
+        <div style="color:#d4af37; font-weight:800;">${card.name} (Trên tay)</div>
+        <div style="color:#86efac; font-size:0.7rem;">
+          ${card.card_type === 'Monster' 
+            ? `👾 Monster [${card.monster_category}] | ${'⭐'.repeat(card.stars || 0)}` 
+            : card.card_type === 'Spell' 
+            ? `💚 Spell [${card.spell_category || 'Thường'}]` 
+            : `🔴 Trap [${card.trap_category || 'Thường'}]`}
+        </div>
+        ${card.card_type === 'Monster' 
+          ? `<div style="font-weight:700; color:#fbbf24;">⚔️ ATK: ${card.atk || 0} | 🛡️ DEF: ${card.def || 0}</div>` 
+          : ''}
+        <div style="color:#eae1d4; font-size:0.7rem; margin-top:4px; font-style:italic; line-height:1.25;">${card.description || ''}</div>
+      </div>
+    </div>
+  `;
+  
+  menuEl.innerHTML = detailsHTML;
   menuEl.style.display = 'flex';
 
   const addBtn = function(text, cls, fn) {
@@ -935,24 +1141,29 @@ function mcShowCardMenu(idx) {
     menuEl.appendChild(b);
   };
 
-  if (card.card_type === 'Monster') {
-    const cat = card.monster_category;
-    if (cat !== 'Dung Hợp' && cat !== 'Nghi Lễ') {
-      addBtn('⬛ Triệu Hồi (Tấn Công)', '', function() { mcInitSummon(idx, 'atk'); });
-      addBtn('🛡️ Úp (Phòng Thủ)', 'mc-btn-secondary', function() { mcInitSummon(idx, 'def_down'); });
-    } else if (cat === 'Dung Hợp') {
-      addBtn('🌀 Triệu Hồi Dung Hợp', '', function() { mcInitFusion(idx); });
-    } else if (cat === 'Nghi Lễ') {
-      addBtn('🕯️ Triệu Hồi Nghi Lễ', '', function() { mcInitRitual(idx); });
+  // Chỉ cho phép kích hoạt / triệu hồi nếu đang trong lượt chính của phe mình
+  const canPlay = (d.turn === 'player' && (d.phase === 'MAIN1' || d.phase === 'MAIN2') && d.mode === null);
+  
+  if (canPlay) {
+    if (card.card_type === 'Monster') {
+      const cat = card.monster_category;
+      if (cat !== 'Đồng Bộ' && cat !== 'Nghi Lễ') {
+        addBtn('⬛ Triệu Hồi (Tấn Công)', '', function() { mcInitSummon(idx, 'atk'); });
+        addBtn('🛡️ Úp (Phòng Thủ)', 'mc-btn-secondary', function() { mcInitSummon(idx, 'def_down'); });
+      } else if (cat === 'Đồng Bộ') {
+        addBtn('🌀 Triệu Hồi Đồng Bộ', '', function() { mcInitFusion(idx); });
+      } else if (cat === 'Nghi Lễ') {
+        addBtn('🕯️ Triệu Hồi Nghi Lễ', '', function() { mcInitRitual(idx); });
+      }
+    } else if (card.card_type === 'Spell') {
+      if (card.spell_category !== 'Nghi Lễ') {
+        addBtn('💚 Kích Hoạt Bài Phép', '', function() { mcActivateSpell(idx); });
+      } else {
+        addBtn('🕯️ Kích Hoạt Nghi Lễ', '', function() { mcActivateSpell(idx); });
+      }
+    } else if (card.card_type === 'Trap') {
+      addBtn('🔴 Úp Bài Bẫy', 'mc-btn-secondary', function() { mcSetTrap(idx); });
     }
-  } else if (card.card_type === 'Spell') {
-    if (card.spell_category !== 'Nghi Lễ') {
-      addBtn('💚 Kích Hoạt Bài Phép', '', function() { mcActivateSpell(idx); });
-    } else {
-      addBtn('🕯️ Kích Hoạt Nghi Lễ', '', function() { mcActivateSpell(idx); });
-    }
-  } else if (card.card_type === 'Trap') {
-    addBtn('🔴 Úp Bài Bẫy', 'mc-btn-secondary', function() { mcSetTrap(idx); });
   }
 
   addBtn('❌ Đóng', 'mc-btn-danger', function() {
@@ -1045,8 +1256,17 @@ function mcSelectTribute(monsterIdx) {
     d.tributeSummonCard = null;
     d.selectedHandIndex = null;
     mcLog('✅ Triệu hồi hiến tế: ' + (card ? card.name : ''));
+    if (card && card.stars >= 5) {
+      mcPlayCardZoomVFX(cardId, 'summon');
+    }
     if (card && card.monster_category === 'Hiệu Ứng' && card.effect_trigger === 'on_summon') {
-      mcExecuteEffect('player', card);
+      if (card.stars >= 5) {
+        setTimeout(() => {
+          mcExecuteEffect('player', card);
+        }, 1200);
+      } else {
+        mcExecuteEffect('player', card);
+      }
     }
     mcRenderAll();
   } else {
@@ -1066,7 +1286,7 @@ function mcSetTrap(handIdx) {
     return;
   }
   const cardId = d.playerHand[handIdx];
-  d.playerSpells[emptySlot] = { id: cardId, faceDown: true };
+  d.playerSpells[emptySlot] = { id: cardId, faceDown: true, turnSet: d.turnCount };
   d.playerHand.splice(handIdx, 1);
   d.selectedHandIndex = null;
   mcLog('🔴 Úp 1 bài bẫy (ẩn)');
@@ -1081,6 +1301,39 @@ function mcActivateSpell(handIdx) {
   const cardId = d.playerHand[handIdx];
   const card = mcCardById(cardId);
   if (!card) return;
+
+  mcPlayCardZoomVFX(cardId, 'spell');
+
+  if (card.spell_category === 'Nghi Lễ') {
+    const ritualMonsterCard = MEME_CARDS.find(function(c) {
+      return c.card_type === 'Monster' && c.monster_category === 'Nghi Lễ' && c.ritual_requirement && c.ritual_requirement.spellId === cardId;
+    });
+    if (!ritualMonsterCard) {
+      mcLog('⚠️ Không tìm thấy quái vật Nghi Lễ tương ứng cho bài phép này!');
+      mcRenderAll();
+      return;
+    }
+    const monsterHandIdx = d.playerHand.indexOf(ritualMonsterCard.id);
+    if (monsterHandIdx < 0) {
+      mcLog('⚠️ Bạn cần có quái vật Nghi Lễ [' + ritualMonsterCard.name + '] trên tay để kích hoạt phép Nghi Lễ này!');
+      mcRenderAll();
+      return;
+    }
+    
+    const req = ritualMonsterCard.ritual_requirement || { minStars: 0 };
+    const available = d.playerMonsters.map(function(s, i) { return { s: s, i: i }; }).filter(function(x) { return x.s !== null; });
+    const totalStars = available.reduce(function(sum, x) { return sum + (mcCardById(x.s.id) ? (mcCardById(x.s.id).stars || 0) : 0); }, 0);
+    if (totalStars < req.minStars) {
+      mcLog('⚠️ Cần tổng sao của quái thú hiến tế trên sân ≥ ' + req.minStars + ' (hiện có: ' + totalStars + ' sao)!');
+      mcRenderAll();
+      return;
+    }
+    
+    setTimeout(() => {
+      mcInitRitual(monsterHandIdx);
+    }, 1000);
+    return;
+  }
 
   if (card.spell_category === 'Môi Trường') {
     if (d.playerField) d.playerGY.push(d.playerField.id);
@@ -1139,24 +1392,46 @@ function mcInitFusion(handIdx) {
   d.selectedHandIndex = null;
   const cardId = d.playerHand[handIdx];
   const card = mcCardById(cardId);
-  if (!card || card.monster_category !== 'Dung Hợp') return;
-  if (d.playerExtraZone) { mcLog('⚠️ Extra Zone đã có quái!'); mcRenderAll(); return; }
+  if (!card || card.monster_category !== 'Đồng Bộ') return;
 
   const req = card.fusion_requirement || { count: 2, minStars: 0 };
   const available = d.playerMonsters.map(function(s, i) { return { s: s, i: i }; }).filter(function(x) { return x.s !== null; });
   const totalStars = available.reduce(function(sum, x) { return sum + (mcCardById(x.s.id) ? (mcCardById(x.s.id).stars || 0) : 0); }, 0);
 
   if (available.length < req.count || totalStars < req.minStars) {
-    mcLog('⚠️ Dung Hợp cần ' + req.count + ' quái, tổng sao ≥' + req.minStars + ' (hiện: ' + available.length + ' quái, ' + totalStars + ' sao)');
+    mcLog('⚠️ Đồng Bộ cần ' + req.count + ' quái, tổng sao ≥' + req.minStars + ' (hiện: ' + available.length + ' quái, ' + totalStars + ' sao)');
     mcRenderAll();
     return;
   }
 
   const used = available.slice(0, req.count);
   used.forEach(function(x) { d.playerGY.push(x.s.id); d.playerMonsters[x.i] = null; });
-  d.playerExtraZone = { id: cardId, position: 'atk', hasAttacked: false, equipBonus: 0 };
+
+  let summonZone = null;
+  if (!d.playerExtraZone) {
+    summonZone = 'extra';
+  } else {
+    const emptySlot = d.playerMonsters.indexOf(null);
+    if (emptySlot >= 0) {
+      summonZone = emptySlot;
+    }
+  }
+
+  if (summonZone === null) {
+    mcLog('⚠️ Sân đã đầy, không còn ô trống để triệu hồi!');
+    mcRenderAll();
+    return;
+  }
+
+  if (summonZone === 'extra') {
+    d.playerExtraZone = { id: cardId, position: 'atk', hasAttacked: false, equipBonus: 0 };
+  } else {
+    d.playerMonsters[summonZone] = { id: cardId, position: 'atk', hasAttacked: false, equipBonus: 0 };
+  }
+
   d.playerHand.splice(handIdx, 1);
-  mcLog('🌀 Triệu hồi Dung Hợp: ' + card.name + ' (ATK ' + card.atk + ')');
+  mcLog('🌀 Triệu hồi Đồng Bộ: ' + card.name + ' (ATK ' + card.atk + ')');
+  mcPlayCardZoomVFX(cardId, 'summon');
   mcRenderAll();
 }
 
@@ -1168,7 +1443,6 @@ function mcInitRitual(handIdx) {
   const cardId = d.playerHand[handIdx];
   const card = mcCardById(cardId);
   if (!card || card.monster_category !== 'Nghi Lễ') return;
-  if (d.playerExtraZone) { mcLog('⚠️ Extra Zone đã có quái!'); mcRenderAll(); return; }
 
   const req = card.ritual_requirement || { spellId: null, minStars: 0 };
   const spellHIdx = d.playerHand.findIndex(function(id) { return id === req.spellId; });
@@ -1208,8 +1482,30 @@ function mcInitRitual(handIdx) {
   if (d.playerHand[finalHandIdx] === cardId) d.playerHand.splice(finalHandIdx, 1);
   else { const fi2 = d.playerHand.indexOf(cardId); if (fi2 >= 0) d.playerHand.splice(fi2, 1); }
 
-  d.playerExtraZone = { id: cardId, position: 'atk', hasAttacked: false, equipBonus: 0 };
+  let summonZone = null;
+  if (!d.playerExtraZone) {
+    summonZone = 'extra';
+  } else {
+    const emptySlot = d.playerMonsters.indexOf(null);
+    if (emptySlot >= 0) {
+      summonZone = emptySlot;
+    }
+  }
+
+  if (summonZone === null) {
+    mcLog('⚠️ Sân đã đầy, không còn ô trống để triệu hồi!');
+    mcRenderAll();
+    return;
+  }
+
+  if (summonZone === 'extra') {
+    d.playerExtraZone = { id: cardId, position: 'atk', hasAttacked: false, equipBonus: 0 };
+  } else {
+    d.playerMonsters[summonZone] = { id: cardId, position: 'atk', hasAttacked: false, equipBonus: 0 };
+  }
+
   mcLog('🕯️ Triệu hồi Nghi Lễ: ' + card.name + ' (ATK ' + card.atk + ')');
+  mcPlayCardZoomVFX(cardId, 'summon');
   mcRenderAll();
 }
 
@@ -1222,10 +1518,17 @@ function mcActivateFaceDownSpellTrap(slotIdx) {
   const card = mcCardById(slot.id);
   if (!card) return;
 
+  if (card.card_type === 'Trap' && slot.turnSet === d.turnCount) {
+    mcLog('⚠️ Thẻ bẫy vừa úp ở lượt này, phải chờ sang lượt sau mới được mở!');
+    return;
+  }
+
   if (card.card_type === 'Trap' && card.trap_category === 'Phản Đòn') {
     mcLog('⚠️ Bẫy Phản Đòn chỉ kích hoạt khi đối thủ tấn công!');
     return;
   }
+
+  mcPlayTrapRevealVFX('player', slotIdx, card);
 
   if (card.card_type === 'Trap' && card.trap_category === 'Liên Tục') {
     d.playerSpells[slotIdx] = { id: card.id, faceDown: false };
@@ -1247,6 +1550,10 @@ function mcActivateFaceDownSpellTrap(slotIdx) {
 function mcDeclareAttack(attackerIdx, isExtra) {
   const d = mcGame.duel;
   if (!d || d.turn !== 'player' || d.phase !== 'BATTLE') return;
+  if (d.turnCount === 1) {
+    mcLog('⚠️ Lượt đầu tiên (Lượt 1) của trận đấu không được phép tấn công!');
+    return;
+  }
   let attackerSlot = isExtra ? d.playerExtraZone : d.playerMonsters[attackerIdx];
   if (!attackerSlot || attackerSlot.hasAttacked) return;
   if (!isExtra && attackerSlot.position !== 'atk') return;
@@ -1277,6 +1584,8 @@ function mcResolveAttack(targetIdx) {
 
   d.mode = null;
   d.pendingAttackFrom = null;
+
+  mcPlayAttackVFX('player', attackerIdx, attackerIsExtra, targetIdx, targetIdx === 'extra');
 
   // Check opponent counter-traps
   const ctIdx = mcFindCounterTrap('opponent');
@@ -1407,6 +1716,7 @@ function mcFindCounterTrap(who) {
   const spells = who === 'player' ? d.playerSpells : d.oppSpells;
   for (let i = 0; i < MC_ZONES; i++) {
     if (spells[i] && spells[i].faceDown) {
+      if (spells[i].turnSet === d.turnCount) continue;
       const c = mcCardById(spells[i].id);
       if (c && c.card_type === 'Trap' && c.trap_category === 'Phản Đòn') return i;
     }
@@ -1424,6 +1734,9 @@ function mcActivateCounterTrap(who, slotIdx, attackerIdx, attackerIsExtra) {
 
   const card = mcCardById(spells[slotIdx].id);
   if (!card) return false;
+
+  mcPlayTrapRevealVFX(who, slotIdx, card);
+
   gy.push(card.id);
   spells[slotIdx] = null;
   mcLog('🪤 ' + (who === 'player' ? 'Bạn' : 'Đối thủ') + ' kích hoạt bẫy: ' + card.name);
@@ -1452,6 +1765,11 @@ function mcActivateCounterTrap(who, slotIdx, attackerIdx, attackerIsExtra) {
 function mcExecuteEffect(who, card) {
   const d = mcGame.duel;
   if (!d || !card || !card.effect_code) return;
+  
+  if (card.card_type === 'Monster') {
+    mcPlayCardZoomVFX(card.id, 'effect');
+  }
+
   const code = card.effect_code;
   const val  = card.effect_value || 0;
 
@@ -1595,4 +1913,963 @@ function mcCancelMode() {
   mcRenderAll();
 }
 
+window.mcShowFieldCardDetails = function(cardId, who = 'player', idx = -1, isExtra = false) {
+  const d = mcGame.duel;
+  if (!d) return;
+  const card = mcCardById(cardId);
+  if (!card) return;
+
+  const menuEl = document.getElementById('mcCardMenu');
+  if (!menuEl) return;
+
+  let detailsHTML = `
+    <div class="mc-card-menu-details" style="display:flex; gap:10px; margin-bottom:8px; border-bottom:1px solid #1e3a2f; padding-bottom:8px; align-items:flex-start;">
+      ${mcCardArtHTML(card, 64)}
+      <div style="flex:1; display:flex; flex-direction:column; gap:2px; font-size:0.75rem; text-align:left;">
+        <div style="color:#d4af37; font-weight:800;">${card.name} (${who === 'player' ? 'Phe Ta' : 'Đối Thủ'})</div>
+        <div style="color:#86efac; font-size:0.7rem;">
+          ${card.card_type === 'Monster' 
+            ? `👾 Monster [${card.monster_category}] | ${'⭐'.repeat(card.stars || 0)}` 
+            : card.card_type === 'Spell' 
+            ? `💚 Spell [${card.spell_category || 'Thường'}]` 
+            : `🔴 Trap [${card.trap_category || 'Thường'}]`}
+        </div>
+        ${card.card_type === 'Monster' 
+          ? `<div style="font-weight:700; color:#fbbf24;">⚔️ ATK: ${card.atk || 0} | 🛡️ DEF: ${card.def || 0}</div>` 
+          : ''}
+        <div style="color:#eae1d4; font-size:0.7rem; margin-top:4px; font-style:italic; line-height:1.25;">${card.description || ''}</div>
+      </div>
+    </div>
+  `;
+
+  menuEl.innerHTML = detailsHTML;
+  menuEl.style.display = 'flex';
+
+  const addBtn = function(text, cls, fn, disabled = false) {
+    const b = document.createElement('button');
+    b.className = 'mc-btn ' + (cls || '');
+    b.textContent = text;
+    b.onclick = fn;
+    if (disabled) {
+      b.disabled = true;
+      b.style.opacity = '0.5';
+      b.style.cursor = 'not-allowed';
+    }
+    menuEl.appendChild(b);
+  };
+
+  // Hiển thị nút hành động nếu là bài của phe ta và đang trong lượt của ta
+  if (who === 'player' && d.turn === 'player' && d.mode === null) {
+    if (card.card_type === 'Monster') {
+      const slot = isExtra ? d.playerExtraZone : d.playerMonsters[idx];
+      if (slot) {
+        if (d.phase === 'BATTLE' && slot.position === 'atk' && !slot.hasAttacked) {
+          if (d.turnCount > 1) {
+            addBtn('⚔️ Tấn Công', 'mc-btn-success', function() {
+              mcHideCardMenu();
+              mcDeclareAttack(idx, isExtra);
+            });
+          } else {
+            addBtn('⚔️ Lượt 1 Không Được Tấn Công', 'mc-btn-secondary', function() {}, true);
+          }
+        }
+      }
+    } else if (card.card_type === 'Trap' || card.card_type === 'Spell') {
+      const slot = d.playerSpells[idx];
+      if (slot && slot.faceDown) {
+        addBtn('⚡ Kích Hoạt Lật Ngửa', '', function() {
+          mcHideCardMenu();
+          mcActivateFaceDownSpellTrap(idx);
+        });
+      }
+    }
+  }
+
+  // Nút Đóng Chi Tiết
+  addBtn('❌ Đóng Chi Tiết', 'mc-btn-danger', function() {
+    mcHideCardMenu();
+  });
+};
+
 console.log('🐸 [memecard.js] Engine Đấu Trường Meme Xóm đã nạp thành công!');
+
+// ────────────────── CSS ANIMATION INJECTION ──────────────────
+(function() {
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    @keyframes mcShake {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      10% { transform: translate(-1px, -2px) rotate(-1deg); }
+      20% { transform: translate(-3px, 0px) rotate(1deg); }
+      30% { transform: translate(0px, 2px) rotate(0deg); }
+      40% { transform: translate(1px, -1px) rotate(1deg); }
+      55% { transform: translate(-1px, 2px) rotate(-1deg); }
+      60% { transform: translate(-3px, 1px) rotate(0deg); }
+      70% { transform: translate(2px, 1px) rotate(-1deg); }
+      80% { transform: translate(-1px, -1px) rotate(1deg); }
+      90% { transform: translate(2px, 2px) rotate(0deg); }
+      100% { transform: translate(1px, -2px) rotate(0deg); }
+    }
+    .mc-anim-shake {
+      animation: mcShake 0.4s ease-in-out !important;
+    }
+    @keyframes mcSlash {
+      0% { width: 0%; opacity: 0; }
+      50% { width: 100%; opacity: 1; }
+      100% { width: 120%; opacity: 0; }
+    }
+    .mc-slash-effect {
+      position: absolute;
+      top: 50%; left: -10%;
+      height: 6px; background: #fca5a5;
+      box-shadow: 0 0 12px #ef4444, 0 0 20px #dc2626;
+      transform: rotate(-35deg);
+      transform-origin: left center;
+      pointer-events: none;
+      z-index: 1000;
+      animation: mcSlash 0.5s ease-out forwards;
+    }
+    @keyframes mcFlash {
+      0% { box-shadow: 0 0 0px #60a5fa; }
+      50% { box-shadow: 0 0 25px #3b82f6, inset 0 0 15px #3b82f6; }
+      100% { box-shadow: 0 0 0px #60a5fa; }
+    }
+    .mc-anim-flash {
+      animation: mcFlash 0.6s ease-in-out !important;
+    }
+  `;
+  document.head.appendChild(styleEl);
+})();
+
+// ────────────────── VFX ANIMATION TRIGGERS ──────────────────
+window.mcPlayAttackVFX = function(attackerSide, attackerIdx, attackerIsExtra, defenderIdx, defenderIsExtra) {
+  let attId = '';
+  if (attackerSide === 'player') {
+    attId = attackerIsExtra ? 'mcPlayerExtra' : 'mcPMon' + attackerIdx;
+  } else {
+    attId = attackerIsExtra ? 'mcOppExtra' : 'mcOMon' + attackerIdx;
+  }
+  
+  let defId = '';
+  if (defenderIdx === -1 || defenderIdx === null || defenderIdx === undefined) {
+    defId = attackerSide === 'player' ? 'mcOppLP' : 'mcPlayerLP';
+  } else {
+    if (attackerSide === 'player') {
+      defId = defenderIsExtra ? 'mcOppExtra' : 'mcOMon' + defenderIdx;
+    } else {
+      defId = defenderIsExtra ? 'mcPlayerExtra' : 'mcPMon' + defenderIdx;
+    }
+  }
+
+  const attEl = document.getElementById(attId);
+  const defEl = document.getElementById(defId);
+
+  if (attEl) {
+    attEl.style.transition = 'transform 0.15s ease-out';
+    const directionY = attackerSide === 'player' ? -35 : 35;
+    attEl.style.transform = `translateY(${directionY}px)`;
+    setTimeout(() => {
+      attEl.style.transform = 'translateY(0px)';
+    }, 180);
+  }
+
+  if (defEl) {
+    setTimeout(() => {
+      defEl.classList.add('mc-anim-shake');
+      const slash = document.createElement('div');
+      slash.className = 'mc-slash-effect';
+      defEl.appendChild(slash);
+
+      setTimeout(() => {
+        defEl.classList.remove('mc-anim-shake');
+        slash.remove();
+      }, 500);
+    }, 150);
+  }
+};
+
+window.mcPlayCardZoomVFX = function(cardId, actionType) {
+  const card = mcCardById(cardId);
+  if (!card) return;
+
+  let titleText = '⚡ KÍCH HOẠT THẺ BÀI ⚡';
+  let emoji = '🃏';
+  let glowColor = '#6366f1'; 
+  let gradient = 'linear-gradient(135deg, #1e1b4b, #311042)';
+
+  if (actionType === 'summon') {
+    titleText = card.monster_category === 'Đồng Bộ' ? '🌀 TRIỆU HỒI ĐỒNG BỘ 🌀' : 
+                card.monster_category === 'Nghi Lễ' ? '🕯️ TRIỆU HỒI NGHI LỄ 🕯️' : 
+                '✨ TRIỆU HỒI CẤP CAO ✨';
+    emoji = '👾';
+    glowColor = '#fbbf24'; 
+    gradient = 'linear-gradient(135deg, #451a03, #78350f)';
+  } else if (actionType === 'spell') {
+    titleText = '💚 KÍCH HOẠT PHÉP THUẬT 💚';
+    emoji = '💚';
+    glowColor = '#10b981'; 
+    gradient = 'linear-gradient(135deg, #064e3b, #022c22)';
+  } else if (actionType === 'trap') {
+    titleText = '⚡ KÍCH HOẠT BẪY MA THUẬT ⚡';
+    emoji = '🪤';
+    glowColor = '#ec4899'; 
+    gradient = 'linear-gradient(135deg, #500724, #1f0310)';
+  } else if (actionType === 'effect') {
+    titleText = '🔥 HIỆU ỨNG QUÁI THÚ 🔥';
+    emoji = '⚡';
+    glowColor = '#f97316'; 
+    gradient = 'linear-gradient(135deg, #431407, #2c0e05)';
+  }
+
+  let overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.68); z-index:100050; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; opacity:0; transition:opacity 0.25s ease-out; font-family:inherit;';
+  overlay.innerHTML = `
+    <div style="background:${gradient}; border:3px solid ${glowColor}; border-radius:16px; padding:22px; text-align:center; min-width:280px; max-width:80%; box-shadow:0 0 35px ${glowColor}; transform:scale(0.85); transition:transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+      <div style="font-size:0.8rem; font-weight:800; color:${glowColor}; letter-spacing:3px; text-transform:uppercase; margin-bottom:6px;">${titleText}</div>
+      <div style="font-size:2rem; margin:10px 0;">${emoji}</div>
+      <div style="font-size:1.25rem; font-weight:bold; color:#fff; margin-bottom:8px;">${card.name}</div>
+      <div style="font-size:0.75rem; color:#cbd5e1; font-style:italic; line-height:1.4;">${card.description || ''}</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  
+  setTimeout(() => {
+    overlay.style.opacity = '1';
+    overlay.children[0].style.transform = 'scale(1)';
+  }, 10);
+  
+  setTimeout(() => {
+    overlay.style.opacity = '0';
+    overlay.children[0].style.transform = 'scale(0.9)';
+    setTimeout(() => overlay.remove(), 250);
+  }, 2000);
+};
+
+window.mcPlayTrapRevealVFX = function(who, slotIdx, card) {
+  const zoneId = who === 'player' ? 'mcPST' + slotIdx : 'mcOST' + slotIdx;
+  const zoneEl = document.getElementById(zoneId);
+  if (zoneEl) {
+    zoneEl.classList.add('mc-anim-flash');
+    setTimeout(() => {
+      zoneEl.classList.remove('mc-anim-flash');
+    }, 800);
+  }
+  
+  window.mcPlayCardZoomVFX(card.id, card.card_type === 'Spell' ? 'spell' : 'trap');
+};
+
+// ────────────────── ADMIN TEST PANEL RENDERING ──────────────────
+window.mcRenderAdminTestPanel = function() {
+  const actionsEl = document.getElementById('mcAdminTestActions');
+  if (!actionsEl) return;
+  actionsEl.innerHTML = '';
+
+  const addTestBtn = function(text, color, onClick) {
+    const b = document.createElement('button');
+    b.className = 'mc-btn';
+    b.style.cssText = `padding:4px 8px; font-size:0.7rem; background:${color}; color:#1c1a26; border:none; border-radius:4px; font-weight:bold; cursor:pointer;`;
+    b.textContent = text;
+    b.onclick = onClick;
+    actionsEl.appendChild(b);
+  };
+
+  addTestBtn('🌀 Test Đồng Bộ', '#c084fc', function() {
+    const d = mcGame.duel;
+    if (!d) return;
+    d.playerMonsters[0] = { id: 'trau_tre_len_doi', position: 'atk', hasAttacked: false, equipBonus: 0 };
+    d.playerMonsters[1] = { id: 'meo_map_lan_long', position: 'atk', hasAttacked: false, equipBonus: 0 };
+    if (d.playerHand.indexOf('dai_de_trau_tre_toi_thuong') < 0) {
+      d.playerHand.push('dai_de_trau_tre_toi_thuong');
+    }
+    mcLog('🛠️ [Test] Đã chuẩn bị quái trên sân (sao >= 5) và bài Đồng Bộ trong tay!');
+    mcRenderAll();
+  });
+
+  addTestBtn('🕯️ Test Nghi Lễ', '#fcd34d', function() {
+    const d = mcGame.duel;
+    if (!d) return;
+    d.playerMonsters[0] = { id: 'meo_map_lan_long', position: 'atk', hasAttacked: false, equipBonus: 0 };
+    d.playerMonsters[1] = { id: 'meo_map_lan_long', position: 'atk', hasAttacked: false, equipBonus: 0 };
+    if (d.playerHand.indexOf('than_linh_hon_trau') < 0) {
+      d.playerHand.push('than_linh_hon_trau');
+    }
+    if (d.playerHand.indexOf('nghi_le_goi_hon_trau_tre') < 0) {
+      d.playerHand.push('nghi_le_goi_hon_trau_tre');
+    }
+    mcLog('🛠️ [Test] Đã chuẩn bị tế phẩm (8 sao) và bài Nghi Lễ + Phép Nghi Lễ trong tay!');
+    mcRenderAll();
+  });
+
+  addTestBtn('🔋 Hồi 4000 LP', '#4ade80', function() {
+    const d = mcGame.duel;
+    if (!d) return;
+    d.playerLP = 4000;
+    mcLog('🛠️ [Test] Hồi LP của bạn về 4000');
+    mcUpdateLP();
+  });
+
+  addTestBtn('💥 Trừ Opp 100 LP', '#f87171', function() {
+    const d = mcGame.duel;
+    if (!d) return;
+    d.oppLP = 100;
+    mcLog('🛠️ [Test] Đặt LP của đối thủ về 100');
+    mcUpdateLP();
+  });
+
+  addTestBtn('🃏 Rút 3 Lá', '#60a5fa', function() {
+    mcDrawCard('player');
+    mcDrawCard('player');
+    mcDrawCard('player');
+    mcRenderAll();
+  });
+
+  addTestBtn('🧟 Spawns Quái Opp', '#f472b6', function() {
+    const d = mcGame.duel;
+    if (!d) return;
+    d.oppMonsters[0] = { id: 'ech_xanh_triet_ly', position: 'atk', hasAttacked: false, equipBonus: 0 };
+    d.oppMonsters[1] = { id: 'co_mat_job', position: 'def', hasAttacked: false, equipBonus: 0 };
+    mcLog('🛠️ [Test] Đã triệu hồi quái đối thủ lên sân để bạn test tấn công!');
+    mcRenderAll();
+  });
+
+  addTestBtn('🧹 Dọn Sạch Sân', '#9ca3af', function() {
+    const d = mcGame.duel;
+    if (!d) return;
+    d.playerMonsters = [null, null, null];
+    d.oppMonsters = [null, null, null];
+    d.playerExtraZone = null;
+    d.oppExtraZone = null;
+    d.playerSpells = [null, null, null];
+    d.oppSpells = [null, null, null];
+    d.playerField = null;
+    d.oppField = null;
+    mcLog('🛠️ [Test] Đã dọn sạch toàn bộ bàn đấu');
+    mcRenderAll();
+  });
+};
+
+// ────────────────── ADMIN CARD MANAGER LOGIC ──────────────────
+window.mcOpenAdminCardsManager = function() {
+  mcShowScreen('mcAdminCardsScreen');
+  mcResetAdminForm();
+  mcRenderAdminCardsList();
+};
+
+window.mcRenderAdminCardsList = function() {
+  const listEl = document.getElementById('mcAdminCardsList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  
+  const query = (document.getElementById('mcAdminSearch')?.value || '').toLowerCase();
+  
+  MEME_CARDS.forEach(function(c) {
+    if (query && c.name.toLowerCase().indexOf(query) < 0 && c.id.toLowerCase().indexOf(query) < 0) return;
+    
+    const item = document.createElement('div');
+    item.style.cssText = 'display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:6px; padding:6px; cursor:pointer; font-size:0.75rem; transition:background 0.2s;';
+    item.onclick = function() { mcSelectAdminCard(c.id); };
+    item.onmouseenter = function() { item.style.background = 'rgba(255,255,255,0.08)'; };
+    item.onmouseleave = function() { item.style.background = 'rgba(255,255,255,0.03)'; };
+    
+    const emoji = c.art ? c.art.emoji : '🃏';
+    const typeLabel = c.card_type === 'Monster' ? `👾 ${c.monster_category}` : c.card_type === 'Spell' ? `💚 Phép` : `🔴 Bẫy`;
+    const stats = c.card_type === 'Monster' ? ` ATK ${c.atk}/DEF ${c.def}` : '';
+    
+    item.innerHTML = `
+      <div style="font-size:1.2rem;">${emoji}</div>
+      <div style="flex:1;">
+        <div style="font-weight:bold; color:#eae1d4;">${c.name} <span style="font-size:0.65rem; color:#6b7280; font-weight:normal;">(${c.id})</span></div>
+        <div style="font-size:0.65rem; color:#94a3b8;">${typeLabel}${stats}</div>
+      </div>
+    `;
+    listEl.appendChild(item);
+  });
+};
+
+window.mcSelectAdminCard = function(cardId) {
+  const card = mcCardById(cardId);
+  if (!card) return;
+  
+  document.getElementById('mcFormId').value = card.id;
+  document.getElementById('mcFormId').disabled = true; 
+  document.getElementById('mcFormName').value = card.name;
+  document.getElementById('mcFormCardType').value = card.card_type;
+  document.getElementById('mcFormStars').value = card.stars || 1;
+  document.getElementById('mcFormAtk').value = card.atk || 0;
+  document.getElementById('mcFormDef').value = card.def || 0;
+  document.getElementById('mcFormEmoji').value = card.art ? (card.art.emoji || '🃏') : '🃏';
+  document.getElementById('mcFormTribe').value = card.tribe || '';
+  
+  document.getElementById('mcFormMonsterCat').value = card.monster_category || 'Thường';
+  document.getElementById('mcFormSpellCat').value = card.spell_category || 'Thường';
+  document.getElementById('mcFormTrapCat').value = card.trap_category || 'Thường';
+  
+  document.getElementById('mcFormEffectCode').value = card.effect_code || '';
+  document.getElementById('mcFormEffectValue').value = card.effect_value || 0;
+  document.getElementById('mcFormEffectTrigger').value = card.effect_trigger || '';
+  
+  document.getElementById('mcFormDescription').value = card.description || '';
+  
+  mcOnFormCardTypeChange();
+  
+  document.getElementById('mcAdminFormTitle').textContent = '📝 Sửa Thẻ Bài: ' + card.name;
+  
+  const overrides = JSON.parse(localStorage.getItem(window.MC_ADMIN_OVERRIDE_KEY) || '{}');
+  if (overrides[cardId]) {
+    document.getElementById('mcFormDeleteBtn').style.display = 'block';
+  } else {
+    document.getElementById('mcFormDeleteBtn').style.display = 'none';
+  }
+};
+
+window.mcResetAdminForm = function() {
+  document.getElementById('mcFormId').value = '';
+  document.getElementById('mcFormId').disabled = false;
+  document.getElementById('mcFormName').value = '';
+  document.getElementById('mcFormCardType').value = 'Monster';
+  document.getElementById('mcFormStars').value = '1';
+  document.getElementById('mcFormAtk').value = '0';
+  document.getElementById('mcFormDef').value = '0';
+  document.getElementById('mcFormEmoji').value = '🃏';
+  document.getElementById('mcFormTribe').value = 'Tộc Trẩu';
+  
+  document.getElementById('mcFormMonsterCat').value = 'Thường';
+  document.getElementById('mcFormSpellCat').value = 'Thường';
+  document.getElementById('mcFormTrapCat').value = 'Thường';
+  
+  document.getElementById('mcFormEffectCode').value = '';
+  document.getElementById('mcFormEffectValue').value = '0';
+  document.getElementById('mcFormEffectTrigger').value = '';
+  
+  document.getElementById('mcFormDescription').value = '';
+  
+  mcOnFormCardTypeChange();
+  
+  document.getElementById('mcAdminFormTitle').textContent = '➕ Thêm Thẻ Bài Mới';
+  document.getElementById('mcFormDeleteBtn').style.display = 'none';
+};
+
+window.mcOnFormCardTypeChange = function() {
+  const type = document.getElementById('mcFormCardType').value;
+  document.getElementById('mcFormMonsterCatRow').style.display = (type === 'Monster') ? 'flex' : 'none';
+  document.getElementById('mcFormSpellCatRow').style.display = (type === 'Spell') ? 'flex' : 'none';
+  document.getElementById('mcFormTrapCatRow').style.display = (type === 'Trap') ? 'flex' : 'none';
+};
+
+window.mcSaveAdminForm = function() {
+  const id = document.getElementById('mcFormId').value.trim();
+  const name = document.getElementById('mcFormName').value.trim();
+  if (!id || !name) { alert('⚠️ Vui lòng nhập đầy đủ ID và Tên thẻ bài!'); return; }
+  
+  const type = document.getElementById('mcFormCardType').value;
+  
+  let card = {
+    id: id,
+    name: name,
+    card_type: type,
+    stars: parseInt(document.getElementById('mcFormStars').value) || 1,
+    atk: parseInt(document.getElementById('mcFormAtk').value) || 0,
+    def: parseInt(document.getElementById('mcFormDef').value) || 0,
+    tribe: document.getElementById('mcFormTribe').value.trim(),
+    description: document.getElementById('mcFormDescription').value.trim(),
+    art: {
+      emoji: document.getElementById('mcFormEmoji').value.trim() || '🃏',
+      c1: '#374151',
+      c2: '#111827'
+    },
+    custom_image: null
+  };
+  
+  if (type === 'Monster') {
+    card.monster_category = document.getElementById('mcFormMonsterCat').value;
+  } else if (type === 'Spell') {
+    card.spell_category = document.getElementById('mcFormSpellCat').value;
+  } else if (type === 'Trap') {
+    card.trap_category = document.getElementById('mcFormTrapCat').value;
+  }
+  
+  const effectCode = document.getElementById('mcFormEffectCode').value;
+  if (effectCode) {
+    card.effect_code = effectCode;
+    card.effect_value = parseInt(document.getElementById('mcFormEffectValue').value) || 0;
+    card.effect_trigger = document.getElementById('mcFormEffectTrigger').value;
+  }
+  
+  let overrides = JSON.parse(localStorage.getItem(window.MC_ADMIN_OVERRIDE_KEY) || '{}');
+  overrides[id] = card;
+  localStorage.setItem(window.MC_ADMIN_OVERRIDE_KEY, JSON.stringify(overrides));
+  
+  window.applyMemeCardAdminOverrides();
+  
+  alert('💾 Đã lưu thành công lá bài "' + name + '"!');
+  mcResetAdminForm();
+  mcRenderAdminCardsList();
+};
+
+window.mcDeleteAdminCard = function() {
+  const id = document.getElementById('mcFormId').value.trim();
+  if (!id) return;
+  if (!confirm('🗑️ Bạn có chắc chắn muốn xoá lá bài này khỏi hệ thống?')) return;
+  
+  let overrides = JSON.parse(localStorage.getItem(window.MC_ADMIN_OVERRIDE_KEY) || '{}');
+  if (overrides[id]) {
+    delete overrides[id];
+    localStorage.setItem(window.MC_ADMIN_OVERRIDE_KEY, JSON.stringify(overrides));
+  }
+  
+  const idx = MEME_CARDS.findIndex(c => c.id === id);
+  if (idx >= 0) {
+    MEME_CARDS.splice(idx, 1);
+  }
+  
+  window.applyMemeCardAdminOverrides();
+  
+  alert('🗑️ Đã xoá lá bài thành công!');
+  mcResetAdminForm();
+  mcRenderAdminCardsList();
+};
+
+window.mcImportAdminCsv = function() {
+  const text = document.getElementById('mcAdminCsvInput').value.trim();
+  if (!text) { alert('⚠️ Vui lòng dán dữ liệu CSV vào ô nhập!'); return; }
+  
+  const lines = text.split('\n');
+  if (lines.length < 2) { alert('⚠️ Định dạng dữ liệu không hợp lệ!'); return; }
+  
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  let count = 0;
+  
+  let overrides = JSON.parse(localStorage.getItem(window.MC_ADMIN_OVERRIDE_KEY) || '{}');
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    const cols = line.split(',').map(c => c.trim());
+    let card = {
+      art: { emoji: '🃏', c1: '#374151', c2: '#111827' },
+      custom_image: null
+    };
+    
+    headers.forEach((h, idx) => {
+      let val = cols[idx] || '';
+      if (h === 'stars' || h === 'atk' || h === 'def' || h === 'effect_value') {
+        val = parseInt(val) || 0;
+      }
+      
+      if (h === 'emoji') {
+        card.art.emoji = val || '🃏';
+      } else {
+        card[h] = val;
+      }
+    });
+    
+    if (card.id && card.name && card.card_type) {
+      overrides[card.id] = card;
+      count++;
+    }
+  }
+  
+  localStorage.setItem(window.MC_ADMIN_OVERRIDE_KEY, JSON.stringify(overrides));
+  window.applyMemeCardAdminOverrides();
+  
+  alert('📥 Nhập thành công ' + count + ' lá bài từ Excel/CSV!');
+  document.getElementById('mcAdminCsvInput').value = '';
+  mcRenderAdminCardsList();
+};
+
+window.mcImportAdminCsvFile = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    document.getElementById('mcAdminCsvInput').value = text;
+    window.mcImportAdminCsv();
+  };
+  reader.readAsText(file);
+};
+
+window.mcExportAdminCsv = function() {
+  const headers = ['id', 'name', 'card_type', 'stars', 'atk', 'def', 'description', 'emoji', 'tribe', 'monster_category', 'spell_category', 'trap_category', 'effect_code', 'effect_value', 'effect_trigger'];
+  let csvContent = headers.join(',') + '\n';
+  
+  MEME_CARDS.forEach(function(c) {
+    const row = headers.map(function(h) {
+      let val = '';
+      if (h === 'emoji') {
+        val = c.art ? (c.art.emoji || '') : '';
+      } else {
+        val = c[h] !== undefined ? c[h] : '';
+      }
+      
+      let strVal = String(val).replace(/"/g, '""');
+      if (strVal.indexOf(',') >= 0 || strVal.indexOf('\n') >= 0 || strVal.indexOf('"') >= 0) {
+        strVal = '"' + strVal + '"';
+      }
+      return strVal;
+    });
+    csvContent += row.join(',') + '\n';
+  });
+  
+};
+
+// ────────────────── ONLINE MULTIPLAYER SYSTEM ──────────────────
+window.mcOnlineRole = null;
+window.mcOnlineRoomId = null;
+window.mcRoomUnsubscribe = null;
+
+window.mcShowDuelModeChoice = function() {
+  let choiceEl = document.getElementById('mcDuelModeChoiceOverlay');
+  if (!choiceEl) {
+    choiceEl = document.createElement('div');
+    choiceEl.id = 'mcDuelModeChoiceOverlay';
+    choiceEl.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100060; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; font-family:inherit; color:#fff;';
+    document.body.appendChild(choiceEl);
+  }
+  choiceEl.style.display = 'flex';
+  choiceEl.innerHTML = `
+    <div style="background:linear-gradient(135deg, #1e293b, #0f172a); border:3px solid #4ade80; border-radius:12px; padding:24px; text-align:center; min-width:280px; box-shadow:0 0 25px rgba(74,222,128,0.3); display:flex; flex-direction:column; gap:12px;">
+      <div style="font-size:2.5rem; margin-bottom:10px;">⚔️</div>
+      <div style="font-weight:bold; font-size:1.1rem; margin-bottom:8px;">CHỌN CHẾ ĐỘ ĐẤU BÀI</div>
+      <button class="mc-btn mc-btn-start" onclick="mcCloseDuelModeChoice(); mcStartDuel();" style="margin:0; width:100%;">🆚 Đấu Với Máy (AI Bot)</button>
+      <button class="mc-btn mc-btn-start" onclick="mcCloseDuelModeChoice(); mcHostOnlineRoom();" style="margin:0; width:100%; background:#10b981; border-color:#059669;">🌐 Tạo Phòng Đấu Online</button>
+      <button class="mc-btn mc-btn-start" onclick="mcCloseDuelModeChoice(); mcJoinOnlineRoom();" style="margin:0; width:100%; background:#818cf8; border-color:#6366f1;">🤝 Vào Phòng Đấu Online</button>
+      <button class="mc-btn mc-btn-danger" onclick="mcCloseDuelModeChoice();" style="margin:0; width:100%; font-size:0.8rem; padding:6px;">❌ Quay Lại</button>
+    </div>
+  `;
+};
+
+window.mcCloseDuelModeChoice = function() {
+  const el = document.getElementById('mcDuelModeChoiceOverlay');
+  if (el) el.style.display = 'none';
+};
+
+window.mcShowOnlineStatus = function(msg, onCancel) {
+  let el = document.getElementById('mcOnlineOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mcOnlineOverlay';
+    el.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100060; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; font-family:inherit; color:#fff;';
+    document.body.appendChild(el);
+  }
+  el.style.display = 'flex';
+  el.innerHTML = `
+    <div style="background:linear-gradient(135deg, #1e293b, #0f172a); border:2px solid #3b82f6; border-radius:12px; padding:24px; text-align:center; min-width:280px; box-shadow:0 0 25px rgba(59,130,246,0.3);">
+      <div style="font-size:2.5rem; margin-bottom:10px;">🌐</div>
+      <div style="font-weight:bold; font-size:1.1rem; margin-bottom:12px;">ĐẤU TRƯỜNG ONLINE</div>
+      <div id="mcOnlineStatusText" style="font-size:0.85rem; color:#cbd5e1; margin-bottom:20px; line-height:1.5;">${msg}</div>
+      <button class="mc-btn mc-btn-danger" id="mcOnlineCancelBtn" style="margin:0; padding:6px 16px; font-size:0.8rem;">❌ Hủy</button>
+    </div>
+  `;
+  const cancelBtn = el.querySelector('#mcOnlineCancelBtn');
+  if (cancelBtn) {
+    cancelBtn.onclick = function() {
+      el.style.display = 'none';
+      if (onCancel) onCancel();
+    };
+  }
+};
+
+window.mcHideOnlineStatus = function() {
+  const el = document.getElementById('mcOnlineOverlay');
+  if (el) el.style.display = 'none';
+};
+
+window.mcHostOnlineRoom = async function() {
+  const defaultRoomName = 'room_' + (window.player && window.player.name ? window.player.name : Math.floor(Math.random() * 1000));
+  const roomId = prompt('🔑 Nhập mã phòng của bạn (hoặc giữ mặc định):', defaultRoomName);
+  if (!roomId) return;
+
+  const name = window.player && window.player.name ? window.player.name : 'Host';
+  
+  mcShowOnlineStatus(`Đang tạo phòng "${roomId}" và chờ đối thủ tham gia...`, function() {
+    db.collection('mc_rooms').doc(roomId).delete().catch(() => {});
+    if (window.mcRoomUnsubscribe) {
+      window.mcRoomUnsubscribe();
+      window.mcRoomUnsubscribe = null;
+    }
+    window.mcOnlineRoomId = null;
+    window.mcOnlineRole = null;
+  });
+
+  try {
+    await db.collection('mc_rooms').doc(roomId).set({
+      roomId: roomId,
+      status: 'waiting',
+      hostName: name,
+      guestName: '',
+      turn: 'host',
+      duelState: null,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    window.mcOnlineRole = 'host';
+    window.mcOnlineRoomId = roomId;
+
+    window.mcRoomUnsubscribe = db.collection('mc_rooms').doc(roomId).onSnapshot(doc => {
+      const room = doc.data();
+      if (!room) return;
+      if (room.status === 'playing') {
+        mcHideOnlineStatus();
+        if (!mcGame.duel) {
+          mcStartOnlineDuel('host', room);
+        } else {
+          mcSyncOnlineState(room);
+        }
+      }
+    });
+  } catch (err) {
+    alert('⚠️ Lỗi tạo phòng: ' + err.message);
+    mcHideOnlineStatus();
+  }
+};
+
+window.mcJoinOnlineRoom = async function() {
+  const roomId = prompt('🔑 Nhập mã phòng bạn muốn tham gia:');
+  if (!roomId) return;
+
+  const name = window.player && window.player.name ? window.player.name : 'Guest';
+  
+  mcShowOnlineStatus(`Đang kết nối tới phòng "${roomId}"...`, function() {
+    if (window.mcRoomUnsubscribe) {
+      window.mcRoomUnsubscribe();
+      window.mcRoomUnsubscribe = null;
+    }
+    window.mcOnlineRoomId = null;
+    window.mcOnlineRole = null;
+  });
+
+  try {
+    const doc = await db.collection('mc_rooms').doc(roomId).get();
+    if (!doc.exists) {
+      alert('⚠️ Phòng không tồn tại!');
+      mcHideOnlineStatus();
+      return;
+    }
+    const room = doc.data();
+    if (room.status !== 'waiting') {
+      alert('⚠️ Phòng này đã đầy hoặc đang thi đấu!');
+      mcHideOnlineStatus();
+      return;
+    }
+
+    await db.collection('mc_rooms').doc(roomId).update({
+      status: 'playing',
+      guestName: name,
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    window.mcOnlineRole = 'guest';
+    window.mcOnlineRoomId = roomId;
+    mcHideOnlineStatus();
+
+    window.mcRoomUnsubscribe = db.collection('mc_rooms').doc(roomId).onSnapshot(doc => {
+      const room = doc.data();
+      if (!room) return;
+      if (!mcGame.duel) {
+        mcStartOnlineDuel('guest', room);
+      } else {
+        mcSyncOnlineState(room);
+      }
+    });
+  } catch (err) {
+    alert('⚠️ Lỗi tham gia phòng: ' + err.message);
+    mcHideOnlineStatus();
+  }
+};
+
+window.mcStartOnlineDuel = function(role, room) {
+  mcGame.duel = {
+    playerLP: MC_LP_START,
+    oppLP: MC_LP_START,
+    playerHand: [],
+    oppHand: [],
+    playerMonsters: [null, null, null],
+    oppMonsters: [null, null, null],
+    playerSpells: [null, null, null],
+    oppSpells: [null, null, null],
+    playerExtraZone: null,
+    oppExtraZone: null,
+    playerGY: [],
+    oppGY: [],
+    playerField: null,
+    oppField: null,
+    turnCount: 1,
+    phase: 'DRAW',
+    turn: (role === 'host') ? 'player' : 'opponent',
+    mode: null,
+    pendingAttackFrom: null,
+    hasNormalSummoned: false
+  };
+
+  const deck = [].concat(mcGame.deckList);
+  mcShuffle(deck);
+  mcGame.duel.playerDeck = deck;
+  
+  for (let i = 0; i < MC_HAND_START; i++) {
+    mcDrawCard('player');
+  }
+
+  mcGame.opponentName = (role === 'host') ? (room.guestName || 'Guest') : (room.hostName || 'Host');
+  mcGame.logs = [`🎮 Trận đấu online bắt đầu! Bạn là ${role.toUpperCase()}.`];
+  mcRenderLog();
+
+  mcShowScreen('mcDuelScreen');
+  mcUpdateAndSync();
+};
+
+window.mcPushOnlineState = function() {
+  if (!window.mcOnlineRole || !window.mcOnlineRoomId) return;
+  const d = mcGame.duel;
+  if (!d) return;
+
+  let payload = {
+    lastActionBy: window.mcOnlineRole,
+    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  if (window.mcOnlineRole === 'host') {
+    payload.hostLP = d.playerLP;
+    payload.guestLP = d.oppLP;
+    payload.hostHand = d.playerHand;
+    payload.guestHand = d.oppHand;
+    payload.hostMonsters = d.playerMonsters;
+    payload.guestMonsters = d.oppMonsters;
+    payload.hostSpells = d.playerSpells;
+    payload.guestSpells = d.oppSpells;
+    payload.hostExtraZone = d.playerExtraZone;
+    payload.guestExtraZone = d.oppExtraZone;
+    payload.hostGY = d.playerGY;
+    payload.guestGY = d.oppGY;
+    payload.hostField = d.playerField;
+    payload.guestField = d.oppField;
+    payload.turn = (d.turn === 'player') ? 'host' : 'guest';
+  } else {
+    payload.guestLP = d.playerLP;
+    payload.hostLP = d.oppLP;
+    payload.guestHand = d.playerHand;
+    payload.hostHand = d.oppHand;
+    payload.guestMonsters = d.playerMonsters;
+    payload.hostMonsters = d.oppMonsters;
+    payload.guestSpells = d.playerSpells;
+    payload.hostSpells = d.oppSpells;
+    payload.guestExtraZone = d.playerExtraZone;
+    payload.hostExtraZone = d.oppExtraZone;
+    payload.guestGY = d.playerGY;
+    payload.hostGY = d.oppGY;
+    payload.guestField = d.playerField;
+    payload.hostField = d.oppField;
+    payload.turn = (d.turn === 'player') ? 'guest' : 'host';
+  }
+
+  payload.phase = d.phase;
+  payload.turnCount = d.turnCount;
+  payload.mode = d.mode;
+  payload.pendingAttackFrom = d.pendingAttackFrom;
+  payload.hasNormalSummoned = d.hasNormalSummoned;
+  payload.logs = mcGame.logs;
+
+  db.collection('mc_rooms').doc(window.mcOnlineRoomId).update({
+    duelState: payload
+  }).catch(() => {});
+};
+
+window.mcSyncOnlineState = function(room) {
+  const ds = room.duelState;
+  if (!ds) return;
+  if (ds.lastActionBy === window.mcOnlineRole) return;
+
+  const d = mcGame.duel;
+  if (!d) return;
+
+  const activeTurnBefore = d.turn;
+
+  if (window.mcOnlineRole === 'host') {
+    d.playerLP = ds.hostLP;
+    d.oppLP = ds.guestLP;
+    d.playerHand = ds.hostHand;
+    d.oppHand = ds.guestHand;
+    d.playerMonsters = ds.hostMonsters;
+    d.oppMonsters = ds.guestMonsters;
+    d.playerSpells = ds.hostSpells;
+    d.oppSpells = ds.guestSpells;
+    d.playerExtraZone = ds.hostExtraZone;
+    d.oppExtraZone = ds.guestExtraZone;
+    d.playerGY = ds.hostGY;
+    d.oppGY = ds.guestGY;
+    d.playerField = ds.hostField;
+    d.oppField = ds.guestField;
+    d.turn = (ds.turn === 'host') ? 'player' : 'opponent';
+  } else {
+    d.playerLP = ds.guestLP;
+    d.oppLP = ds.hostLP;
+    d.playerHand = ds.guestHand;
+    d.oppHand = ds.hostHand;
+    d.playerMonsters = ds.guestMonsters;
+    d.oppMonsters = ds.hostMonsters;
+    d.playerSpells = ds.guestSpells;
+    d.oppSpells = ds.hostSpells;
+    d.playerExtraZone = ds.guestExtraZone;
+    d.oppExtraZone = ds.hostExtraZone;
+    d.playerGY = ds.guestGY;
+    d.oppGY = ds.hostGY;
+    d.playerField = ds.guestField;
+    d.oppField = ds.hostField;
+    d.turn = (ds.turn === 'guest') ? 'player' : 'opponent';
+  }
+
+  d.phase = ds.phase;
+  d.turnCount = ds.turnCount;
+  d.mode = ds.mode;
+  d.pendingAttackFrom = ds.pendingAttackFrom;
+  d.hasNormalSummoned = ds.hasNormalSummoned;
+
+  if (ds.logs) {
+    mcGame.logs = ds.logs;
+    mcRenderLog();
+  }
+
+  mcRenderAll();
+
+  // If turn switched to us
+  if (d.turn === 'player' && activeTurnBefore === 'opponent') {
+    d.phase = 'DRAW';
+    if (d.turnCount > 1) {
+      mcDrawCard('player');
+      mcLog(`🃏 Lượt ${d.turnCount} — Đến lượt bạn! Bạn rút 1 lá.`);
+    } else {
+      mcLog(`🃏 Lượt ${d.turnCount} — Đến lượt bạn!`);
+    }
+    d.phase = 'MAIN1';
+    mcUpdateAndSync();
+  }
+};
+
+window.mcUpdateAndSync = function() {
+  mcRenderAll();
+  if (window.mcOnlineRoomId) {
+    mcPushOnlineState();
+  }
+};
+
+// Hook state-changing actions dynamically
+const syncActions = [
+  'mcInitSummon', 'mcSelectTribute', 'mcSetTrap', 'mcActivateSpell',
+  'mcApplyEquip', 'mcInitFusion', 'mcInitRitual',
+  'mcActivateFaceDownSpellTrap', 'mcResolveAttack', 'mcEndPlayerTurn',
+  'mcDeclareAttack'
+];
+syncActions.forEach(name => {
+  const orig = window[name];
+  if (typeof orig === 'function') {
+    window[name] = function() {
+      const res = orig.apply(this, arguments);
+      if (window.mcOnlineRoomId) {
+        mcPushOnlineState();
+      }
+      return res;
+    };
+  }
+});

@@ -136,10 +136,10 @@ const MEME_CARDS = [
     art: { emoji: "🐊", c1: "#365314", c2: "#1a2e05" }, custom_image: null
 },
 
-// ════════════════ QUÁI THÚ — DUNG HỢP (Extra Zone) ════════════════
+// ════════════════ QUÁI THÚ — ĐỒNG BỘ (Extra Zone) ════════════════
 {
     id: "dai_de_trau_tre_toi_thuong", name: "Đại Đế Trẩu Tre Tối Thượng", card_type: "Monster",
-    stars: 8, tribe: "Tộc Trẩu", monster_category: "Dung Hợp", atk: 2800, def: 2200,
+    stars: 8, tribe: "Tộc Trẩu", monster_category: "Đồng Bộ", atk: 2800, def: 2200,
     fusion_requirement: { count: 2, minStars: 5 },
     description: "Hợp thể từ 2 quái thú bất kỳ trên sân (tổng sao tối thiểu 5). Đỉnh của chóp trong giới trẩu tre, "
         + "tay lái cứng tới mức không ai dám cà khịa.",
@@ -147,7 +147,7 @@ const MEME_CARDS = [
 },
 {
     id: "quai_vat_lay_loi_toi_thuong", name: "Quái Vật Lầy Lội Tối Thượng", card_type: "Monster",
-    stars: 9, tribe: "Tộc Đầm Lầy", monster_category: "Dung Hợp", atk: 3000, def: 2500,
+    stars: 9, tribe: "Tộc Đầm Lầy", monster_category: "Đồng Bộ", atk: 3000, def: 2500,
     fusion_requirement: { count: 2, minStars: 6 },
     description: "Hợp thể từ 2 quái thú bất kỳ trên sân (tổng sao tối thiểu 6). Lầy đến mức cả vũ trụ phải nể.",
     art: { emoji: "🐙", c1: "#4d7c0f", c2: "#1a2e05" }, custom_image: null
@@ -257,8 +257,20 @@ const MEME_CARDS = [
     description: "Phản Đòn: Khi đối thủ tuyên bố tấn công, phá huỷ ngay quái thú tấn công. Vừa thân thiện đó, "
         + "trở mặt cái là không nhận ra luôn.",
     art: { emoji: "🎭", c1: "#be185d", c2: "#500724" }, custom_image: null
+},
+{
+    id: "hiep_si_tra_sua", name: "Hiệp Sĩ Trà Sữa", card_type: "Monster",
+    stars: 4, tribe: "Tộc Lao Động", monster_category: "Hiệu Ứng", atk: 1600, def: 1200,
+    effect_code: "draw_n", effect_value: 1, effect_trigger: "on_summon",
+    description: "Sức mạnh từ trân châu đường đen. Triệu hồi thành công rút thêm 1 lá bài.",
+    art: { emoji: "🧋", c1: "#d97706", c2: "#78350f" }, custom_image: null
+},
+{
+    id: "kiem_lam_bao_ve", name: "Kiến Lâm Bảo Vệ", card_type: "Monster",
+    stars: 3, tribe: "Tộc Lao Động", monster_category: "Thường", atk: 1400, def: 1000,
+    description: "Siêu kiến gác chốt cổng làng. Đứng im cũng khiến mọi trẩu tre lạng lách e dè.",
+    art: { emoji: "🐜", c1: "#22c55e", c2: "#14532d" }, custom_image: null
 }
-
 ];
 
 // Chuẩn hoá: đảm bảo mọi thẻ có id, name, description hợp lệ trước khi game sử dụng
@@ -266,6 +278,38 @@ MEME_CARDS.forEach(c => {
     if (!c.custom_image) c.custom_image = null;
     if (c.card_type === 'Monster' && !c.monster_category) c.monster_category = 'Thường';
 });
+
+// Admin override: cho phép tài khoản admin chỉnh sửa hiệu ứng/chỉ số thẻ bài ngay
+// trong trình duyệt (không cần sửa file này), lưu ở localStorage và tự áp lại mỗi
+// lần game nạp bài. Chỉnh sửa qua mcOpenAdminCardEditor() trong memecard.js.
+const MC_ADMIN_OVERRIDE_KEY = 'memeCardAdminOverrides';
+function applyMemeCardAdminOverrides() {
+    let raw = localStorage.getItem(MC_ADMIN_OVERRIDE_KEY);
+    if (!raw) return;
+    let overrides;
+    try { overrides = JSON.parse(raw); } catch (e) { return; }
+    
+    // Update existing cards
+    MEME_CARDS.forEach(c => {
+        let ov = overrides[c.id];
+        if (!ov) return;
+        Object.assign(c, ov);
+    });
+
+    // Append new cards
+    Object.keys(overrides).forEach(id => {
+        const exists = MEME_CARDS.some(c => c.id === id);
+        if (!exists) {
+            let newCard = overrides[id];
+            if (!newCard.custom_image) newCard.custom_image = null;
+            if (newCard.card_type === 'Monster' && !newCard.monster_category) newCard.monster_category = 'Thường';
+            MEME_CARDS.push(newCard);
+        }
+    });
+}
+applyMemeCardAdminOverrides();
+window.applyMemeCardAdminOverrides = applyMemeCardAdminOverrides;
+window.MC_ADMIN_OVERRIDE_KEY = MC_ADMIN_OVERRIDE_KEY;
 
 window.MEME_CARDS = MEME_CARDS;
 console.log(`🐸 [memecard_data.js] Đã nạp ${MEME_CARDS.length} thẻ bài Đấu Trường Meme Xóm!`);

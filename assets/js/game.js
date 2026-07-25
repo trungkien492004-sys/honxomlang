@@ -2,7 +2,7 @@
         const WORLD_SIZE = 1600; 
         const MAP_SCALE = WORLD_SIZE / 4000;
         const SAVE_KEY = "XOM_ANH_HUNG_SAVE_V2";
-        const AUDIO_ENABLED = true;
+        const AUDIO_ENABLED = false;
 
         // Sound Engine Class utilizing HTML5 Audio Elements for Helbreath authentic assets
         class AudioSynthEngine {
@@ -983,32 +983,33 @@
             elder: { name: "Trưởng Làng Lâm", emoji: "🧙‍♂️", role: "Cốt Truyện & Đại Nhiệm Vụ", x: 2000, y: 2000, radius: 45 },
             blacksmith: { name: "Thợ Rèn Hùng", emoji: "👨‍🏭", role: "Lò Rèn Chế Tạo Trang Bị", x: 1750, y: 1950, radius: 45 },
             merchant: { name: "Cô Ba Tạp Hóa", emoji: "👩‍🌾", role: "Giao Thương Mua Bán Vật Phẩm", x: 2250, y: 2050, radius: 45 },
-            vinhsHouse: { name: "Nhà Vinh Đèn Lồng", emoji: "🏮", role: "Chủ Đèn Lồng", x: 1460, y: 1500, radius: 40 },
-            tankShop: { name: "Chú Tăng Bán Xe", emoji: "🚜", role: "Xe Tăng Xóm Giữa", x: 1620, y: 1380, radius: 40 },
-            flowerHouse: { name: "Nhà Hoa Cúc", emoji: "🌼", role: "Vườn Hoa Sắc Màu", x: 2000, y: 1620, radius: 38 },
+            vinhsHouse: { name: "Nhà Vinh Đèn Lồng", emoji: "🏮", role: "Chủ Đèn Lồng", x: 3200, y: 650, radius: 40 },
+            tankShop: { name: "Chú Tăng Bán Xe", emoji: "🚜", role: "Xe Tăng Xóm Giữa", x: 900, y: 3400, radius: 40 },
+            flowerHouse: { name: "Nhà Hoa Cúc", emoji: "🌼", role: "Vườn Hoa Sắc Màu", x: 2700, y: 3500, radius: 38 },
             poorHouse: { name: "Nhà Nghèo", emoji: "🏚️", role: "Gia Đình Khiêm Nhường", x: 2180, y: 1770, radius: 38 },
-            fruitVendor: { name: "Quầy Hoa Quả", emoji: "🍉", role: "Bán Hoa Quả & Rau", x: 2360, y: 1810, radius: 38 },
-            fishSeller: { name: "Bà Bán Cá", emoji: "🐟", role: "Đặc Sản Cá Đồng", x: 2520, y: 1960, radius: 38 },
+            fruitVendor: { name: "Quầy Hoa Quả", emoji: "🍉", role: "Bán Hoa Quả & Rau", x: 2500, y: 3650, radius: 38 },
+            fishSeller: { name: "Bà Bán Cá", emoji: "🐟", role: "Đặc Sản Cá Đồng", x: 2900, y: 2500, radius: 38 },
             barber: { name: "Tiệm Cắt Tóc", emoji: "💈", role: "Mốt Tóc Xóm", x: 2640, y: 1820, radius: 38 },
             dirtyPond: { name: "Ao Cạn Bẩn", emoji: "🪱", role: "Ao Tháng Ngâu", x: 2640, y: 1520, radius: 45 },
             richMaze: { name: "Mê Cung Siêu Giàu", emoji: "🏰", role: "Biệt Thự Vườn Lớn", x: 2440, y: 1340, radius: 50 },
-            
+
             // New Quest NPCs
             ba_nam: { name: "Bà Năm", emoji: "👵", role: "Người Lớn Tuổi Trong Làng", x: 1900, y: 1800, radius: 45 },
             be_na: { name: "Bé Na", emoji: "👧", role: "Cô Bé Đầu Làng", x: 1550, y: 1550, radius: 45 },
-            hunter_nam: { name: "Thợ Săn Nam", emoji: "🏹", role: "Thợ Săn Rừng Tân Thủ", x: 1200, y: 1600, radius: 45 },
-            prof_minh: { name: "Giáo Sư Minh", emoji: "👴", role: "Giáo Sư Khảo Cổ Học", x: 1300, y: 2400, radius: 45 },
-            wife_blacksmith: { name: "Vợ Thợ Rèn", emoji: "👩", role: "Người Vợ Lo Lắng", x: 1720, y: 1920, radius: 45 }
+            hunter_nam: { name: "Thợ Săn Nam", emoji: "🏹", role: "Thợ Săn Rừng Tân Thủ", x: 400, y: 2700, radius: 45 },
+            prof_minh: { name: "Giáo Sư Minh", emoji: "👴", role: "Giáo Sư Khảo Cổ Học", x: 2700, y: 2700, radius: 45 },
+            wife_blacksmith: { name: "Vợ Thợ Rèn", emoji: "👩", role: "Người Vợ Lo Lắng", x: 1720, y: 1920, radius: 45 },
+            dungeon_warden: { name: "Lính Canh Ngục", emoji: "🛡️", role: "Chọn Hầm Ngục Để Vào", x: 2050, y: 1720, radius: 45 }
         };
 
         const WORLD_THEME_AREAS = [
             // Khu trung tâm Làng (x: 1300-2700, y: 1200-2200)
-            { name: 'Đầu Xóm Đèn Lồng', x: 1400, y: 1450, w: 240, h: 180, color: 'rgba(244, 194, 56, 0.14)', icon: '🏮', label: 'Làng Đèn Lồng' },
-            { name: 'Cửa Hàng Xe Tăng', x: 1550, y: 1300, w: 240, h: 180, color: 'rgba(107, 114, 128, 0.14)', icon: '🚜', label: 'Xe Tăng Chú Tăng' },
-            { name: 'Vườn Hoa Cúc', x: 1880, y: 1570, w: 260, h: 210, color: 'rgba(236, 72, 153, 0.12)', icon: '🌼', label: 'Nhà Hoa Cúc' },
+            { name: 'Đầu Xóm Đèn Lồng', x: 3140, y: 600, w: 240, h: 180, color: 'rgba(244, 194, 56, 0.14)', icon: '🏮', label: 'Làng Đèn Lồng' },
+            { name: 'Cửa Hàng Xe Tăng', x: 840, y: 3350, w: 240, h: 180, color: 'rgba(107, 114, 128, 0.14)', icon: '🚜', label: 'Xe Tăng Chú Tăng' },
+            { name: 'Vườn Hoa Cúc', x: 2640, y: 3450, w: 260, h: 210, color: 'rgba(236, 72, 153, 0.12)', icon: '🌼', label: 'Nhà Hoa Cúc' },
             { name: 'Nhà Nghèo', x: 2120, y: 1700, w: 220, h: 170, color: 'rgba(120, 120, 120, 0.14)', icon: '🏚️', label: 'Nhà Nghèo' },
-            { name: 'Chợ Hoa Quả', x: 2280, y: 1750, w: 240, h: 160, color: 'rgba(34, 197, 94, 0.11)', icon: '🍉', label: 'Chợ Hoa Quả' },
-            { name: 'Chợ Cá Đồng', x: 2440, y: 1880, w: 220, h: 160, color: 'rgba(59, 130, 246, 0.13)', icon: '🐟', label: 'Chợ Cá' },
+            { name: 'Chợ Hoa Quả', x: 2440, y: 3600, w: 240, h: 160, color: 'rgba(34, 197, 94, 0.11)', icon: '🍉', label: 'Chợ Hoa Quả' },
+            { name: 'Chợ Cá Đồng', x: 2840, y: 2450, w: 220, h: 160, color: 'rgba(59, 130, 246, 0.13)', icon: '🐟', label: 'Chợ Cá' },
             { name: 'Tiệm Cắt Tóc', x: 2560, y: 1760, w: 240, h: 180, color: 'rgba(249, 115, 22, 0.13)', icon: '💈', label: 'Tiệm Tóc' },
             { name: 'Ao Cạn', x: 2560, y: 1420, w: 240, h: 160, color: 'rgba(22, 78, 99, 0.14)', icon: '🪱', label: 'Ao Cạn' },
             { name: 'Biệt Thự Mê Cung', x: 2340, y: 1240, w: 340, h: 240, color: 'rgba(168, 85, 247, 0.11)', icon: '🏰', label: 'Mê Cung Siêu Giàu' },
@@ -1150,7 +1151,7 @@
         });
 
         // Setup Multiplayer Synchronization using Firebase Firestore (True Online)
-        let pvpChannel = {
+        let pvpChannel = window.pvpChannel = {
             postMessage(msg) {
                 if(!window.currentFirebaseUser || typeof db === 'undefined') return;
                 if(msg.type === 'PRESENCE') {
@@ -1165,7 +1166,7 @@
             }
         };
 
-        let chatChannel = {
+        let chatChannel = window.chatChannel = {
             postMessage(msg) {
                 if(!window.currentFirebaseUser || typeof db === 'undefined') return;
                 db.collection('chat_messages').add({
@@ -1397,9 +1398,57 @@
             if(!nameInp) { alert("Vui lòng nhập tên Anh Hùng hợp lệ!"); return; }
             player.name = nameInp;
             audio.play('click');
-            
-            // Switch to class choice screen
-            switchScreen('classScreen');
+
+            // Switch to the 3-tab game mode picker (Hồn Xóm Làng / Cờ Đua / Meme Xóm)
+            switchScreen('gameModeScreen');
+        }
+
+        // Called from the 3 tab cards on #gameModeScreen. window._pendingCharFlow is
+        // set by createNewCharacter ('new') or selectExistingCharacter ('existing')
+        // in firebase.js right before this screen is shown.
+        function selectGameMode(mode) {
+            audio.play('click');
+            let isNewChar = window._pendingCharFlow === 'new';
+
+            if (mode === 'world') {
+                if (isNewChar) {
+                    switchScreen('classScreen');
+                } else {
+                    switchScreen('gameScreen');
+                    spawnInitialMonsters();
+                    requestAnimationFrame(mainGameLoop);
+                    if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
+                    if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
+                }
+                return;
+            }
+
+            // Cờ Đua / Meme Xóm don't need the full RPG class picker. For a brand new
+            // character, give it a lightweight default class first; an existing loaded
+            // character already has its own classId/stats, so leave those untouched.
+            if (isNewChar) {
+                player.classId = player.classId || Object.keys(CLASS_DATA)[0];
+                let t = CLASS_DATA[player.classId];
+                player.hp = player.maxHp = t.hp;
+                player.mp = player.maxMp = t.mp;
+                player.baseAtk = t.atk;
+                player.baseDef = t.def;
+                player.baseSpeed = t.speed;
+                player.skills = JSON.parse(JSON.stringify(t.skills));
+                player.assignedSkills = [t.skills[0].id, t.skills[1].id, t.skills[2].id];
+                player.activeBuffs = { hp: null, mp: null };
+            }
+
+            switchScreen('gameScreen');
+            spawnInitialMonsters();
+            requestAnimationFrame(mainGameLoop);
+            if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
+            if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
+
+            setTimeout(() => {
+                if (mode === 'board' && window.openBoardGame) window.openBoardGame(false);
+                else if (mode === 'meme' && window.openMemeCardGame) window.openMemeCardGame();
+            }, 50);
         }
 
         function selectClass(cId) {
@@ -1618,6 +1667,26 @@
             });
         }
 
+        // Dev/GM helper — run window.gmMaxLevel() in the browser console while logged in
+        // to instantly max your own character out for testing maps/portals.
+        window.gmMaxLevel = function(targetLevel = 99) {
+            while (player.level < targetLevel) {
+                player.level++;
+                player.baseAtk += 3;
+                player.baseDef += 2;
+                player.maxHp += 20;
+                player.maxMp += 10;
+                player.maxExp = Math.round(player.maxExp * 1.5);
+            }
+            player.exp = 0;
+            player.hp = getEffectiveMaxHp();
+            player.mp = player.maxMp;
+            player.gold += 999999;
+            refreshHudDisplay();
+            saveGameToLocal();
+            showToast(`🛠️ GM: đã lên cấp ${player.level}, hồi đầy máu/mana, +999999 vàng.`);
+        };
+
         window.getMapSize = function(mapId) {
             if (mapId === 'world') return WORLD_SIZE;
             if (mapId === 'beach') return 1400;
@@ -1661,6 +1730,54 @@
                 return (dx + dy) < (size - 120);
             }
             return true;
+        };
+
+        // Builds a Path2D (in screen coords) matching the exact playable shape of a map,
+        // so the ground/background can be clipped to it instead of always painting a square.
+        window.buildMapClipPath = function(mapId, camera) {
+            let size = window.getMapSize(mapId);
+            let cx = size / 2 - camera.x;
+            let cy = size / 2 - camera.y;
+            let path = new Path2D();
+
+            if (mapId === 'world') {
+                path.arc(cx, cy, size / 2 - 60, 0, Math.PI * 2);
+                return path;
+            }
+            if (mapId === 'beach') {
+                let r = size / 2 - 60;
+                path.ellipse(cx, cy, r, r, 0, 0, Math.PI * 2);
+                return path;
+            }
+            if (mapId === 'bamboo_forest' || mapId === 'ghost_forest') {
+                path.arc(cx, cy, size / 2 - 80, 0, Math.PI * 2);
+                return path;
+            }
+            if (mapId === 'demon_cave' || mapId === 'bat_cave' || mapId === 'dungeon') {
+                path.moveTo(cx + 250, cy);
+                path.arc(cx, cy, 250, 0, Math.PI * 2);
+                path.moveTo(cx + 200, cy - 300);
+                path.arc(cx, cy - 300, 200, 0, Math.PI * 2);
+                path.moveTo(cx + 200, cy + 300);
+                path.arc(cx, cy + 300, 200, 0, Math.PI * 2);
+                path.moveTo(cx - 300 + 200, cy);
+                path.arc(cx - 300, cy, 200, 0, Math.PI * 2);
+                path.moveTo(cx + 300 + 200, cy);
+                path.arc(cx + 300, cy, 200, 0, Math.PI * 2);
+                path.rect(cx - 80, cy - 400, 160, 800);
+                path.rect(cx - 400, cy - 80, 800, 160);
+                return path;
+            }
+            if (mapId === 'cemetery' || mapId === 'ancient_temple' || mapId === 'citadel') {
+                let r = size - 120;
+                path.moveTo(cx, cy - r);
+                path.lineTo(cx + r, cy);
+                path.lineTo(cx, cy + r);
+                path.lineTo(cx - r, cy);
+                path.closePath();
+                return path;
+            }
+            return null;
         };
 
         window.constrainToMapBoundary = function(mapId, x, y) {
@@ -2457,6 +2574,10 @@
             let cx = size / 2;
             let cy = size / 2;
             
+            // Làng Tân Thủ sits right at the world map's center — keep it monster-free
+            // so the hub doesn't feel cluttered/dangerous.
+            const VILLAGE_NO_SPAWN = { x1: 420, y1: 380, x2: 1200, y2: 1000 };
+
             let attempts = 0;
             while (attempts < 100) {
                 if (mapId === 'world') {
@@ -2478,11 +2599,16 @@
                     mx = cx + (Math.random() - 0.5) * (size - 160);
                     my = cy + (Math.random() - 0.5) * (size - 160);
                 }
-                
-                if (window.isInsideMapBoundary(mapId, mx, my)) {
+
+                let inVillage = mapId === 'world' && mx > VILLAGE_NO_SPAWN.x1 && mx < VILLAGE_NO_SPAWN.x2 && my > VILLAGE_NO_SPAWN.y1 && my < VILLAGE_NO_SPAWN.y2;
+                if (!inVillage && window.isInsideMapBoundary(mapId, mx, my)) {
                     break;
                 }
                 attempts++;
+            }
+            if (attempts >= 100 && mapId === 'world') {
+                // Couldn't find a valid non-village spot — drop this spawn entirely.
+                return;
             }
             if (attempts >= 100) {
                 mx = cx;
@@ -3710,11 +3836,42 @@ function toggleAutoFarm() {
 }
         
         // --- 8. NPC & DIALOGUE / QUEST IMPLEMENTATION ---
+        // Returns the quest-status marker to draw above an NPC's head:
+        // gold "?" = quest available to accept, gray "?" = accepted but not finished,
+        // gold "!" = accepted and ready to turn in. Null = nothing to show.
+        function getNpcQuestMarker(npcKey) {
+            if (player.currentQuestIdx !== undefined && STORY_QUESTS[player.currentQuestIdx]) {
+                let sQuest = STORY_QUESTS[player.currentQuestIdx];
+                let involves = (sQuest.npcAccept === npcKey || sQuest.npcFinish === npcKey || sQuest.target === npcKey);
+                if (involves && player.level >= sQuest.reqLevel) {
+                    if (!player.questAccepted) {
+                        return { sym: '❓', color: '#ffd54f' };
+                    }
+                    let done = (sQuest.type === 'talk') || ((player.questProgress || 0) >= (sQuest.req || 1));
+                    return done ? { sym: '❗', color: '#ffd54f' } : { sym: '❓', color: '#9ca3af' };
+                }
+            }
+            const REPEATABLE_QUEST_FIELD = { elder: 'dailyQuest', blacksmith: 'guildQuest', merchant: 'coupleQuest' };
+            let field = REPEATABLE_QUEST_FIELD[npcKey];
+            if (field) {
+                let q = player[field];
+                if (!q) return { sym: '❓', color: '#ffd54f' };
+                if (!q.done) {
+                    return (q.progress >= q.req) ? { sym: '❗', color: '#ffd54f' } : { sym: '❓', color: '#9ca3af' };
+                }
+            }
+            return null;
+        }
+
         function openNpcDialogueSystem(npcKey) {
+            if (npcKey === 'dungeon_warden') {
+                openDungeonWardenMenu();
+                return;
+            }
             let npc = NPC_DATA[npcKey];
             let layer = document.getElementById('npcDialogLayer');
             if(!npc || !layer) return;
-            
+
             document.getElementById('dialogNpcAvatar').textContent = npc.emoji;
             document.getElementById('dialogNpcName').textContent = npc.name;
             document.getElementById('dialogNpcRole').textContent = npc.role;
@@ -5127,7 +5284,17 @@ function toggleAutoFarm() {
         let lastGameLoopTime = 0;
         function mainGameLoop(timestamp) {
             if(currentScreen !== 'gameScreen') return;
-            
+
+            // One-time GM trigger via URL, e.g. ?gmmax=99 — no devtools/console needed.
+            if (!window._gmMaxUrlApplied) {
+                window._gmMaxUrlApplied = true;
+                let gmParam = new URLSearchParams(window.location.search).get('gmmax');
+                if (gmParam !== null) {
+                    let lvl = parseInt(gmParam, 10) || 99;
+                    window.gmMaxLevel(lvl);
+                }
+            }
+
             // Giới hạn FPS ở mức ~30-40 để giảm lag giật
             if (timestamp - lastGameLoopTime < 25) {
                 requestAnimationFrame(mainGameLoop);
@@ -5825,70 +5992,66 @@ function toggleAutoFarm() {
                 PORTALS.forEach(portal => {
                     let sx = portal.x - camera.x;
                     let sy = portal.y - camera.y;
+                    let pulse = 0.75 + Math.sin(timeTick * 2) * 0.25;
                     ctx.save();
+                    ctx.shadowBlur = 35;
+                    ctx.shadowColor = portal.color;
                     ctx.beginPath();
-                    ctx.arc(sx, sy, 35, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(34, 211, 238, 0.08)';
+                    ctx.arc(sx, sy, 55, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(34, 211, 238, 0.22)';
                     ctx.fill();
                     ctx.strokeStyle = portal.color;
-                    ctx.lineWidth = 3;
-                    ctx.setLineDash([8, 12]);
+                    ctx.lineWidth = 5;
+                    ctx.globalAlpha = pulse;
+                    ctx.setLineDash([10, 10]);
                     ctx.beginPath();
-                    ctx.arc(sx, sy, 25, timeTick, timeTick + Math.PI * 2);
+                    ctx.arc(sx, sy, 42, timeTick, timeTick + Math.PI * 2);
                     ctx.stroke();
                     ctx.setLineDash([]);
+                    ctx.globalAlpha = 1;
                     ctx.beginPath();
-                    ctx.arc(sx, sy, 8 + Math.sin(timeTick * 2) * 3, 0, Math.PI * 2);
+                    ctx.arc(sx, sy, 15 + Math.sin(timeTick * 2) * 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 10 + Math.sin(timeTick * 2) * 3, 0, Math.PI * 2);
                     ctx.fillStyle = portal.color;
                     ctx.fill();
-                    ctx.font = "bold 11px 'Baloo 2'";
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = '#000';
+                    ctx.font = "bold 18px 'Baloo 2'";
                     ctx.fillStyle = "#fff";
                     ctx.textAlign = "center";
-                    ctx.fillText("🌀 " + portal.name, sx, sy - 40);
+                    ctx.fillText("🌀 " + portal.name, sx, sy - 62);
                     ctx.restore();
                 });
 
-                DUNGEON_ENTRANCES.forEach(ent => {
-                    let sx = ent.x - camera.x;
-                    let sy = ent.y - camera.y;
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, 40, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
-                    ctx.fill();
-                    ctx.strokeStyle = ent.color;
-                    ctx.lineWidth = 4;
-                    ctx.setLineDash([12, 8]);
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, 30, -timeTick, -timeTick + Math.PI * 2);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, 12 + Math.cos(timeTick) * 3, 0, Math.PI * 2);
-                    ctx.fillStyle = ent.color;
-                    ctx.fill();
-                    ctx.font = "bold 12px 'Baloo 2'";
-                    ctx.fillStyle = "#fca5a5";
-                    ctx.textAlign = "center";
-                    ctx.fillText("🔮 " + ent.name, sx, sy - 45);
-                    ctx.restore();
-                });
+                // Dungeon entrances no longer render as world markers — access is now
+                // via the Lính Canh Ngục NPC dialog (openDungeonWardenMenu), which keeps
+                // the map from being cluttered with 10 glowing rings.
 
                 BUILDING_ENTRANCES.forEach(ent => {
                     let sx = ent.x - camera.x;
                     let sy = ent.y - camera.y;
+                    let pulse = 0.7 + Math.sin(timeTick * 2.5) * 0.3;
                     ctx.save();
+                    ctx.shadowBlur = 14;
+                    ctx.shadowColor = '#eab308';
+                    ctx.globalAlpha = pulse;
                     ctx.beginPath();
-                    ctx.ellipse(sx, sy, 20, 8, 0, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(234, 179, 8, 0.4)';
+                    ctx.ellipse(sx, sy, 22, 9, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(234, 179, 8, 0.5)';
                     ctx.fill();
-                    ctx.strokeStyle = '#eab308';
-                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 1;
+                    ctx.strokeStyle = '#fef08a';
+                    ctx.lineWidth = 2.5;
                     ctx.stroke();
-                    ctx.font = "bold 11px 'Baloo 2'";
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = '#000';
+                    ctx.font = "bold 12px 'Baloo 2'";
                     ctx.fillStyle = "#fef08a";
                     ctx.textAlign = "center";
-                    ctx.fillText("🚪 " + ent.name, sx, sy - 15);
+                    ctx.fillText("🚪 " + ent.name, sx, sy - 16);
                     ctx.restore();
                 });
             } else {
@@ -6024,9 +6187,15 @@ function toggleAutoFarm() {
                 tilePattern = 'checkers';
             }
 
-            ctx.fillStyle = color1;
+            let outsideColor = "#111625";
+            if (mapId === 'world' || mapId === 'bamboo_forest') outsideColor = "#1b3a24";
+            else if (mapId === 'ghost_forest') outsideColor = "#15121e";
+            else if (mapId === 'beach') outsideColor = "#1b4a63";
+            else if (mapId.includes('cave') || mapId.includes('dungeon')) outsideColor = "#0b0d12";
+            else if (mapId === 'cemetery' || mapId === 'ancient_temple' || mapId === 'citadel') outsideColor = "#14131c";
+            ctx.fillStyle = outsideColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             let pvpZoom = (window.currentMapId === 'pvp_arena');
             if (pvpZoom) {
                 ctx.save();
@@ -6034,7 +6203,16 @@ function toggleAutoFarm() {
                 ctx.scale(1.3, 1.3);
                 ctx.translate(-canvas.width / 2, -canvas.height / 2);
             }
-            
+
+            let mapClipPath = window.buildMapClipPath(mapId, camera);
+            if (mapClipPath) {
+                ctx.save();
+                ctx.clip(mapClipPath);
+            }
+
+            ctx.fillStyle = color1;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
             // Draw tile pattern
             let tileSize = 100;
             let startTileX = Math.floor(camera.x / tileSize);
@@ -6057,32 +6235,6 @@ function toggleAutoFarm() {
                         if ((tx + ty) % 2 === 0) {
                             ctx.fillStyle = color2;
                             ctx.fillRect(rx, ry, tileSize, tileSize);
-                        }
-                        if (mapId === 'world' || mapId === 'bamboo_forest' || mapId === 'pvp_arena') {
-                            let seed = (tx * 1337 + ty * 73) % 100;
-                            if (seed < 8) {
-                                ctx.fillStyle = seed < 4 ? "#fef08a" : "#fecdd3";
-                                ctx.beginPath();
-                                let fx = rx + 30 + (seed * 5) % 40;
-                                let fy = ry + 30 + (seed * 7) % 40;
-                                ctx.arc(fx, fy, 4, 0, Math.PI*2);
-                                ctx.fill();
-                                ctx.fillStyle = "#ffffff";
-                                ctx.beginPath();
-                                ctx.arc(fx, fy, 1.5, 0, Math.PI*2);
-                                ctx.fill();
-                            } else if (seed < 18) {
-                                ctx.strokeStyle = "#388e3c";
-                                ctx.lineWidth = 1.5;
-                                let fx = rx + 30 + (seed * 5) % 40;
-                                let fy = ry + 30 + (seed * 7) % 40;
-                                ctx.beginPath();
-                                ctx.moveTo(fx, fy);
-                                ctx.quadraticCurveTo(fx + 2, fy - 6, fx + 4, fy - 8);
-                                ctx.moveTo(fx + 3, fy);
-                                ctx.quadraticCurveTo(fx, fy - 5, fx - 2, fy - 7);
-                                ctx.stroke();
-                            }
                         }
                     } else if (tilePattern === 'wood') {
                         ctx.fillStyle = (tx + ty) % 2 === 0 ? color1 : color2;
@@ -6109,11 +6261,16 @@ function toggleAutoFarm() {
                 }
             }
             
-            renderWorldThemeAreas();
+            if (mapClipPath) {
+                ctx.restore();
+                ctx.save();
+                ctx.strokeStyle = (mapId === 'beach') ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.14)";
+                ctx.lineWidth = 6;
+                ctx.stroke(mapClipPath);
+                ctx.restore();
+            }
 
-            ctx.strokeStyle = "rgba(239,68,68,0.4)";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0 - camera.x, 0 - camera.y, WORLD_SIZE, WORLD_SIZE);
+            renderWorldThemeAreas();
 
             renderClickMarker();
             renderSkillTargetPreview();
@@ -6131,39 +6288,73 @@ function toggleAutoFarm() {
                     else if (nKey === 'blacksmith') targetMap = 'blacksmith_shop';
                     else if (nKey === 'merchant') targetMap = 'village_temple';
                     else if (nKey === 'barber') targetMap = 'school';
-                    
+                    // Per the Q1 "Rừng Tân Thủ" quest design, Thợ Săn Nam reappears
+                    // inside the bamboo forest dungeon map to hand out the wolf-hunt quest.
+                    else if (nKey === 'hunter_nam') targetMap = 'bamboo_forest';
+
                     if (window.currentMapId !== targetMap) continue;
                 } else {
                     if (nKey === 'dirtyPond' || nKey === 'richMaze') continue;
                 }
 
+                // Interior/dungeon maps have their own small coordinate space, so NPCs
+                // that reappear there need a local position instead of their world-map one.
+                let localX = npc.x, localY = npc.y;
+                if (window.currentMapId === 'bamboo_forest' && nKey === 'hunter_nam') {
+                    localX = 600; localY = 780;
+                }
+
                 drawList.push({
-                    y: npc.y,
+                    y: localY,
                     draw: () => {
-                        let sx = npc.x - camera.x;
-                        let sy = npc.y - camera.y;
+                        let sx = localX - camera.x;
+                        let sy = localY - camera.y;
+
+                        ctx.beginPath();
+                        ctx.ellipse(sx, sy + npc.radius * 0.7, npc.radius * 0.8, npc.radius * 0.28, 0, 0, Math.PI * 2);
+                        ctx.fillStyle = "rgba(0,0,0,0.35)";
+                        ctx.fill();
 
                         ctx.beginPath();
                         ctx.arc(sx, sy, npc.radius, 0, Math.PI * 2);
-                        ctx.fillStyle = "rgba(255,215,0,0.06)";
+                        ctx.fillStyle = "rgba(255,179,198,0.08)";
                         ctx.fill();
-                        ctx.strokeStyle = "rgba(255,215,0,0.3)";
+                        ctx.strokeStyle = "rgba(255,179,198,0.35)";
                         ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
 
-                        ctx.font = "32px Arial";
+                        ctx.save();
+                        ctx.font = "36px Arial";
                         ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                        ctx.strokeStyle = "#000";
+                        ctx.lineWidth = 3;
+                        ctx.strokeText(npc.emoji, sx, sy - 5);
                         ctx.fillText(npc.emoji, sx, sy - 5);
+                        ctx.restore();
 
-                        ctx.font = "bold 13px 'Baloo 2'";
-                        ctx.fillStyle = "var(--gold)";
-                        ctx.fillText(npc.name, sx, sy + 25);
-                        ctx.font = "10px sans-serif";
-                        ctx.fillStyle = "#4fc3f7";
-                        ctx.fillText(npc.role, sx, sy + 38);
+                        ctx.save();
+                        ctx.font = "bold 14px 'Baloo 2'";
+                        ctx.strokeStyle = "#000";
+                        ctx.lineWidth = 2.5;
+                        ctx.fillStyle = "#fff6d8";
+                        ctx.strokeText(npc.name, sx, sy + 27);
+                        ctx.fillText(npc.name, sx, sy + 27);
+                        ctx.font = "11px sans-serif";
+                        ctx.fillStyle = "#7fd4e8";
+                        ctx.fillText(npc.role, sx, sy + 40);
+                        ctx.restore();
 
-                        if(nKey === 'elder') {
-                            ctx.font = "bold 20px Arial"; ctx.fillStyle = "#ffeb3b";
-                            ctx.fillText("❓", sx, sy - 35);
+                        let qMarker = getNpcQuestMarker(nKey);
+                        if (qMarker) {
+                            let markBob = Math.sin(Date.now() / 300) * 3;
+                            ctx.save();
+                            ctx.font = "bold 30px Arial";
+                            ctx.textAlign = "center";
+                            ctx.strokeStyle = "#000";
+                            ctx.lineWidth = 4;
+                            ctx.fillStyle = qMarker.color;
+                            ctx.strokeText(qMarker.sym, sx, sy - 42 + markBob);
+                            ctx.fillText(qMarker.sym, sx, sy - 42 + markBob);
+                            ctx.restore();
                         }
 
                         if (npc.speechBubble && Date.now() < npc.speechBubbleTime) {
@@ -6213,6 +6404,19 @@ function toggleAutoFarm() {
                         draw: () => {
                             let sx = m.x - camera.x;
                             let sy = m.y - camera.y;
+                            let isMovingMon = Math.abs(m.vx || 0) > 0.05 || Math.abs(m.vy || 0) > 0.05;
+                            let bob = isMovingMon ? Math.sin(Date.now() / 130 + (m.x + m.y)) * 3 : Math.sin(Date.now() / 500 + (m.x + m.y)) * 1;
+
+                            // Ground glow ring so monsters stand out clearly against the terrain
+                            ctx.beginPath();
+                            ctx.ellipse(sx, sy + (m.isBoss ? 28 : 16), (m.isBoss ? 34 : 20), (m.isBoss ? 12 : 7), 0, 0, Math.PI * 2);
+                            ctx.fillStyle = m.isBoss ? "rgba(229,57,53,0.28)" : "rgba(0,0,0,0.3)";
+                            ctx.fill();
+                            if (m === player.targetMonster) {
+                                ctx.strokeStyle = "#fbbf24";
+                                ctx.lineWidth = 3;
+                                ctx.stroke();
+                            }
 
                             if(m.isBoss) {
                                 ctx.beginPath(); ctx.arc(sx, sy, 40, 0, Math.PI*2);
@@ -6222,24 +6426,22 @@ function toggleAutoFarm() {
 
                             let drawn = false;
                             if (window.drawHelbreathMonster) {
-                                drawn = window.drawHelbreathMonster(ctx, sx, sy, m);
+                                drawn = window.drawHelbreathMonster(ctx, sx, sy - bob, m);
                             }
                             if (!drawn) {
                                 ctx.save();
-                                ctx.font = m.isBoss ? "48px Arial" : "28px Arial";
+                                ctx.font = m.isBoss ? "52px Arial" : "32px Arial";
                                 ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                                ctx.shadowBlur = m.isBoss ? 16 : 8;
-                                ctx.shadowColor = m.isBoss ? "#ef4444" : "rgba(0, 0, 0, 0.7)";
                                 ctx.strokeStyle = "#000000";
                                 ctx.lineWidth = 4;
                                 if (m.vx < -0.05) {
-                                    ctx.translate(sx, sy);
+                                    ctx.translate(sx, sy - bob);
                                     ctx.scale(-1, 1);
                                     ctx.strokeText(m.emoji, 0, 0);
                                     ctx.fillText(m.emoji, 0, 0);
                                 } else {
-                                    ctx.strokeText(m.emoji, sx, sy);
-                                    ctx.fillText(m.emoji, sx, sy);
+                                    ctx.strokeText(m.emoji, sx, sy - bob);
+                                    ctx.fillText(m.emoji, sx, sy - bob);
                                 }
                                 ctx.restore();
                             }
@@ -6377,24 +6579,44 @@ function toggleAutoFarm() {
 
                     if (window.drawBeautifulRPGChibi) {
                         let faceDir = 'right';
-                        let dx = 0;
+                        let dx = 0, dy = 0;
                         if (window.pressedKeys) {
                             if (window.pressedKeys['a'] || window.pressedKeys['arrowleft']) dx = -1;
                             if (window.pressedKeys['d'] || window.pressedKeys['arrowright']) dx = 1;
+                            if (window.pressedKeys['w'] || window.pressedKeys['arrowup']) dy = -1;
+                            if (window.pressedKeys['s'] || window.pressedKeys['arrowdown']) dy = 1;
                         }
-                        if (dx === 0 && window.joystickActive && window.joystickVector) {
+                        if (dx === 0 && dy === 0 && window.joystickActive && window.joystickVector) {
                             dx = window.joystickVector.x;
+                            dy = window.joystickVector.y;
                         }
                         if (dx < -0.1) faceDir = 'left';
                         else if (dx > 0.1) faceDir = 'right';
-                        
+
                         let isSelfAttacking = (player.attackEffect && player.attackEffect.active && (Date.now() - player.attackEffect.startAt < 350));
                         if (isSelfAttacking) {
                             if (player.attackEffect.targetX < player.x) faceDir = 'left';
                             else faceDir = 'right';
                         }
-                        
+
+                        // Visual cue for up/down movement (no dedicated sprites): lean/scale the
+                        // character slightly so vertical walking reads differently from idle/horizontal.
+                        let vertTilt = 0, vertScaleY = 1;
+                        if (player.isMoving && Math.abs(dy) > 0.1 && dx === 0) {
+                            vertTilt = dy < 0 ? -0.05 : 0.05;
+                            vertScaleY = dy < 0 ? 1.04 : 0.97;
+                        }
+                        if (vertTilt !== 0 || vertScaleY !== 1) {
+                            ctx.save();
+                            ctx.translate(px, py - 10);
+                            ctx.rotate(vertTilt);
+                            ctx.scale(1, vertScaleY);
+                            ctx.translate(-px, -(py - 10));
+                        }
                         window.drawBeautifulRPGChibi(ctx, px, py - 10, player.classId, player.isMoving, 1.0, faceDir, false, player.equipment.skin, isSelfAttacking);
+                        if (vertTilt !== 0 || vertScaleY !== 1) {
+                            ctx.restore();
+                        }
                     } else {
                         ctx.font = "34px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                         ctx.save();
@@ -6751,28 +6973,22 @@ function toggleAutoFarm() {
 
             // 1. Draw Map Portals / Entrances
             if (mapId === 'world') {
+                let mmPulse = 4 + Math.sin(Date.now() / 250) * 1.5;
                 PORTALS.forEach(portal => {
+                    mCtx.strokeStyle = portal.color || "#22d3ee";
+                    mCtx.lineWidth = 1.5;
+                    mCtx.beginPath();
+                    mCtx.arc(portal.x * scale, portal.y * scale, 9 + mmPulse, 0, Math.PI * 2);
+                    mCtx.stroke();
                     mCtx.fillStyle = portal.color || "#22d3ee";
                     mCtx.beginPath();
-                    mCtx.arc(portal.x * scale, portal.y * scale, 4, 0, Math.PI * 2);
+                    mCtx.arc(portal.x * scale, portal.y * scale, 6, 0, Math.PI * 2);
                     mCtx.fill();
-                    mCtx.font = "8px sans-serif";
-                    mCtx.fillStyle = "#88edff";
+                    mCtx.font = "bold 9px sans-serif";
+                    mCtx.fillStyle = "#ffffff";
                     mCtx.textAlign = "center";
                     let shortName = portal.name.replace("Làng ", "").replace("Rừng ", "").replace("Hồ ", "").replace("Đồi ", "");
-                    mCtx.fillText(shortName, portal.x * scale, portal.y * scale - 6);
-                });
-
-                DUNGEON_ENTRANCES.forEach(ent => {
-                    mCtx.fillStyle = "#ef4444";
-                    mCtx.beginPath();
-                    mCtx.rect(ent.x * scale - 3, ent.y * scale - 3, 6, 6);
-                    mCtx.fill();
-                    mCtx.font = "8px sans-serif";
-                    mCtx.fillStyle = "#fca5a5";
-                    mCtx.textAlign = "center";
-                    let shortName = ent.name.substring(0, 4);
-                    mCtx.fillText(shortName, ent.x * scale, ent.y * scale - 6);
+                    mCtx.fillText(shortName, portal.x * scale, portal.y * scale - 12);
                 });
 
                 BUILDING_ENTRANCES.forEach(ent => {
@@ -6855,13 +7071,11 @@ function toggleAutoFarm() {
         }
 
         // --- MULTI-MAP PORTALS & TRANSITIONS ---
+        // Only real cross-map gates are listed here (walking triggers a map change).
+        // Same-map "fast travel" markers were removed entirely — the world is one
+        // seamless map now, so those were pure clutter.
         const PORTALS = [
-            { name: "Làng Trung Tâm", mapId: "world", x: 1520, y: 1450, color: '#22d3ee' },
-            { name: "Rừng Tre", mapId: "world", x: 600, y: 2800, color: '#10b981' },
-            { name: "Hồ Sen Tĩnh Lặng", mapId: "world", x: 2800, y: 2800, color: '#3b82f6' },
-            { name: "Đồi Cỏ Mặt Trời", mapId: "world", x: 3300, y: 800, color: '#eab308' },
-            { name: "Bãi Luyện Cấp (Dị Biến)", mapId: "world", x: 1200, y: 3500, color: '#f43f5e' },
-            { name: "Chợ Quê Xóm Dưới", mapId: "world", x: 2800, y: 3600, color: '#a855f7' }
+            { name: "Cổng Rừng Tre", mapId: "world", x: 600, y: 2800, color: '#10b981', targetMapId: 'bamboo_forest', spawnX: 200, spawnY: 200 }
         ];
 
         const DUNGEON_ENTRANCES = [
@@ -7102,6 +7316,68 @@ function toggleAutoFarm() {
             document.body.appendChild(menu);
         }
 
+        function openDungeonWardenMenu() {
+            document.querySelectorAll('.gm-dungeon-menu').forEach(el => el.remove());
+            let menu = document.createElement('div');
+            menu.className = 'gm-dungeon-menu';
+            menu.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:100020; display:flex; align-items:center; justify-content:center;';
+
+            let box = document.createElement('div');
+            box.style.cssText = 'background:#1c1a26; border:2px solid #ff9eb5; border-radius:14px; width:min(92vw,420px); max-height:80vh; overflow-y:auto; padding:0;';
+
+            let header = document.createElement('div');
+            header.style.cssText = 'background:#2c2840; padding:12px 16px; font-weight:bold; color:#ffb3c6; border-bottom:2px solid #4d4566;';
+            header.textContent = '🛡️ LÍNH CANH NGỤC — Chọn Hầm Ngục';
+            box.appendChild(header);
+
+            let body = document.createElement('div');
+            body.style.cssText = 'padding:12px; display:flex; flex-direction:column; gap:8px;';
+
+            DUNGEON_ENTRANCES.forEach(entrance => {
+                let baseLevel = 1;
+                if (entrance.targetMapId === 'sewer') baseLevel = 4;
+                else if (entrance.targetMapId === 'bat_cave') baseLevel = 5;
+                else if (entrance.targetMapId === 'mine') baseLevel = 8;
+                else if (entrance.targetMapId === 'cultist_camp') baseLevel = 10;
+                else if (entrance.targetMapId === 'nest_cave') baseLevel = 13;
+                else if (entrance.targetMapId === 'demon_cave') baseLevel = 15;
+                else if (entrance.targetMapId === 'cemetery') baseLevel = 25;
+                else if (entrance.targetMapId === 'ghost_forest') baseLevel = 35;
+                else if (entrance.targetMapId === 'ancient_temple') baseLevel = 45;
+                else if (entrance.targetMapId === 'dungeon') baseLevel = 55;
+
+                let btn = document.createElement('div');
+                btn.style.cssText = 'background:#2e2e38; border:1px solid #4a4a5a; border-radius:8px; padding:10px; cursor:pointer; transition:background 0.2s;';
+                btn.onmouseover = () => { btn.style.background = '#3e3e4a'; };
+                btn.onmouseout = () => { btn.style.background = '#2e2e38'; };
+                btn.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:0.9rem; color:#fff;">
+                        <span>${entrance.name}</span>
+                        <span style="color:#aaa; font-size:0.8rem;">Cấp ${baseLevel}+</span>
+                    </div>
+                `;
+                btn.onclick = () => {
+                    if (player.level < baseLevel) {
+                        showToast(`⚠️ Cần đạt cấp ${baseLevel} để vào đây!`);
+                        return;
+                    }
+                    menu.remove();
+                    openDifficultySelector(entrance);
+                };
+                body.appendChild(btn);
+            });
+
+            let cancel = document.createElement('button');
+            cancel.textContent = 'ĐÓNG';
+            cancel.style.cssText = 'width:100%; padding:8px; background:#4b5563; border:none; border-radius:6px; color:#fff; font-weight:bold; cursor:pointer; margin-top:4px;';
+            cancel.onclick = () => { menu.remove(); };
+            body.appendChild(cancel);
+
+            box.appendChild(body);
+            menu.appendChild(box);
+            document.body.appendChild(menu);
+        }
+
         function openDifficultySelector(entrance) {
             // Push player back slightly to prevent trigger loop
             let px = player.x;
@@ -7261,9 +7537,8 @@ function toggleAutoFarm() {
                 }
                 
                 if (currentStandingPortal) {
-                    // Bamboo forest transition portal
-                    if (currentStandingPortal.x === 600 && currentStandingPortal.y === 2800) {
-                        window.changeMap('bamboo_forest', 200, 200);
+                    if (currentStandingPortal.targetMapId) {
+                        window.changeMap(currentStandingPortal.targetMapId, currentStandingPortal.spawnX, currentStandingPortal.spawnY);
                         return;
                     }
                     if (window.lastPortalVisited !== currentStandingPortal) {
@@ -7275,40 +7550,9 @@ function toggleAutoFarm() {
                     window.lastPortalVisited = null;
                 }
 
-                for (let entrance of DUNGEON_ENTRANCES) {
-                    let dist = Math.sqrt((px - entrance.x)**2 + (py - entrance.y)**2);
-                    if (dist < 40) {
-                        let reqLevel = 1;
-                        if (entrance.targetMapId === 'sewer') reqLevel = 4;
-                        else if (entrance.targetMapId === 'bat_cave') reqLevel = 5;
-                        else if (entrance.targetMapId === 'mine') reqLevel = 8;
-                        else if (entrance.targetMapId === 'cultist_camp') reqLevel = 10;
-                        else if (entrance.targetMapId === 'nest_cave') reqLevel = 13;
-                        else if (entrance.targetMapId === 'demon_cave') reqLevel = 15;
-                        else if (entrance.targetMapId === 'cemetery') reqLevel = 25;
-                        else if (entrance.targetMapId === 'ghost_forest') reqLevel = 35;
-                        else if (entrance.targetMapId === 'ancient_temple') reqLevel = 45;
-                        else if (entrance.targetMapId === 'dungeon') reqLevel = 55;
-                        
-                        if (player.level < reqLevel) {
-                            showToast(`⚠️ Cần đạt cấp ${reqLevel} để đi vào hầm ngục này!`, '#ef4444');
-                            let dx = px - entrance.x;
-                            let dy = py - entrance.y;
-                            let pushDist = 60;
-                            if (dist === 0) { dx = 0; dy = 1; dist = 1; }
-                            player.x = entrance.x + (dx / dist) * pushDist;
-                            player.y = entrance.y + (dy / dist) * pushDist;
-                            player.destinationX = undefined;
-                            player.destinationY = undefined;
-                            player.targetMonster = null;
-                            return;
-                        }
-                        
-                        openDifficultySelector(entrance);
-                        return;
-                    }
-                }
-                
+                // Dungeon entrances are no longer walk-up triggers — talk to the
+                // Lính Canh Ngục NPC (dungeon_warden) to pick a dungeon instead.
+
                 for (let entrance of BUILDING_ENTRANCES) {
                     let dist = Math.sqrt((px - entrance.x)**2 + (py - entrance.y)**2);
                     if (dist < 35) {

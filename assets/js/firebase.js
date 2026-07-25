@@ -854,15 +854,11 @@ window.selectExistingCharacter = function(docId, data) {
     }
 
     _fbToast(`☁️ Tải save: ${data.name} Lv.${data.level}`, '#fbbf24');
-    
-    // Hide screens and start the game!
-    window.switchScreen('gameScreen');
-    
-    if (typeof spawnInitialMonsters === 'function') spawnInitialMonsters();
-    if (typeof mainGameLoop === 'function') requestAnimationFrame(mainGameLoop);
-    if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
-    if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
-    
+
+    // Cho chọn chế độ chơi thay vì vào thẳng thế giới mở
+    window._pendingCharFlow = 'existing';
+    window.switchScreen('gameModeScreen');
+
     try { audio.play('levelup'); } catch(e){}
 };
 
@@ -876,9 +872,10 @@ window.createNewCharacter = function(docId) {
         window.player.name = window.currentFirebaseUser.email.split('@')[0];
     }
     
-    // Chuyển thẳng sang classScreen (Bỏ qua loginScreen)
-    window.switchScreen('classScreen');
-    
+    // Chuyển sang màn chọn chế độ chơi (Hồn Xóm Làng / Cờ Đua / Meme Xóm)
+    window._pendingCharFlow = 'new';
+    window.switchScreen('gameModeScreen');
+
     // Ẩn nút Google vì đã login rồi
     const btnGoogle = document.querySelector('.btn-google');
     if(btnGoogle) btnGoogle.style.display = 'none';

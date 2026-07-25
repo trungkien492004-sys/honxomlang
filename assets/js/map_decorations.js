@@ -240,7 +240,7 @@ window.generateMapDecorations = function(mapId) {
         }
 
         // 6. Scattered grass tufts to break up the color checkerboard
-        for (let i = 0; i < 250; i++) {
+        for (let i = 0; i < 90; i++) {
             let x = 100 + random() * 3800;
             let y = 100 + random() * 3800;
             // Don't spawn inside village
@@ -258,10 +258,7 @@ window.generateMapDecorations = function(mapId) {
             return x - Math.floor(x);
         }
         let cx = 600, cy = 600, R = 520;
-        
-        // Spawn Ancient Wolf Idol in the middle
-        addDecoration('forest_idol_wolf', cx, cy - 30, 1.2);
-        
+
         // Spawn trees and props
         for (let i = 0; i < 90; i++) {
             let angle = random() * Math.PI * 2;
@@ -285,7 +282,7 @@ window.generateMapDecorations = function(mapId) {
             }
         }
         // Spawn grass details
-        for (let i = 0; i < 80; i++) {
+        for (let i = 0; i < 35; i++) {
             let angle = random() * Math.PI * 2;
             let r = random() * (R - 30);
             let x = cx + Math.cos(angle) * r;
@@ -326,7 +323,7 @@ window.generateMapDecorations = function(mapId) {
                 addDecoration(type, x, y, 0.7 + random() * 0.3);
             }
         }
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < 25; i++) {
             let angle = random() * Math.PI * 2;
             let r = random() * (R - 30);
             let x = cx + Math.cos(angle) * r;
@@ -486,7 +483,15 @@ window.generateMapDecorations = function(mapId) {
     });
 };
 
+// Nature clutter (trees/bushes/rocks/grass/mushrooms) removed by design request —
+// only architectural/building props are kept so maps read as clean, not messy.
+const CLUTTER_TYPE_PREFIXES = ['tree', 'rock', 'stone', 'stump', 'grass_tuft', 'forest_'];
+function isClutterType(type) {
+    return CLUTTER_TYPE_PREFIXES.some(prefix => type.startsWith(prefix));
+}
+
 function addDecoration(type, x, y, scale = 1.0) {
+    if (isClutterType(type)) return;
     if (window.currentMapId === 'world') {
         const factor = window.getMapSize('world') / 4000;
         x *= factor;

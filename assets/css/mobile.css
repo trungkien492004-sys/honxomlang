@@ -17,7 +17,7 @@ html, body {
     width: 42px;
     height: 42px;
     background: rgba(15,15,35,0.9);
-    border: 2px solid rgba(255,215,0,0.4);
+    border: 2px solid rgba(255,179,198,0.4);
     border-radius: 10px;
     z-index: 99995; /* TRÊN CẢ BOARD GAME */
     color: white;
@@ -113,10 +113,10 @@ html, body {
         max-width: 440px !important;
         height: auto !important;
         background: rgba(26, 15, 10, 0.72) !important;
-        border: 2px solid #fbbf24 !important;
+        border: 2px solid #ffb3c6 !important;
         border-radius: 20px !important;
         padding: 6px 12px !important;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.8), inset 0 0 10px rgba(251, 191, 36, 0.2) !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.8), inset 0 0 10px rgba(255,179,198, 0.2) !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -143,9 +143,9 @@ html, body {
         top: auto !important;
         width: 58px !important;
         height: 58px !important;
-        border: 2.2px solid #fbbf24 !important;
+        border: 2.2px solid #ffb3c6 !important;
         border-radius: 50% !important;
-        background: radial-gradient(circle, #2d1810 0%, #170a05 100%) !important;
+        background: radial-gradient(circle, #2c2840 0%, #1a1726 100%) !important;
         box-shadow: 0 4px 8px rgba(0,0,0,0.5) !important;
         overflow: visible !important;
     }
@@ -188,8 +188,8 @@ html, body {
     .skill-slot[data-slot="1"] {
         width: 72px !important;
         height: 72px !important;
-        border: 2.5px solid #fbbf24 !important;
-        box-shadow: 0 0 14px rgba(251, 191, 36, 0.6) !important;
+        border: 2.5px solid #ffb3c6 !important;
+        box-shadow: 0 0 14px rgba(255,179,198, 0.6) !important;
     }
     .skill-slot[data-slot="1"] .skill-icon {
         font-size: 2.1rem !important;
@@ -197,114 +197,107 @@ html, body {
     .skill-slot[data-slot="1"] .cooldown-text {
         font-size: 1.35rem !important;
     }
-
-    /* ---- BOARD GAME MOBILE PORTRAIT ADJUSTMENTS ---- */
-    #boardGameModal {
-        padding: 5px 0 !important;
-        align-items: flex-start !important;
+    /* ---- BOARD GAME MOBILE ADJUSTMENTS ---- */
+    .board-title-banner {
+        top: 10px;
+        left: 10px;
     }
-    .board-container {
-        width: 98vw !important;
-        max-height: 98vh !important;
-        height: 98vh !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
-        padding: 8px 5px !important;
-        border-radius: 12px !important;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1) !important;
-        overflow-y: hidden !important; /* Block scrolling inside */
+    .board-title-banner img {
+        height: 46px !important;
     }
-    .board-title { font-size: 1.1rem !important; margin-top: 2px !important; margin-bottom: 2px !important; }
-    .board-subtitle { display: none !important; } /* Hide subtitle on mobile to save vertical space */
-    .board-bet-pool { margin-bottom: 4px !important; padding: 4px !important; font-size: 0.75rem !important; }
-    
-    .board-info-row {
-        grid-template-columns: 1fr 1fr 1fr !important;
-        gap: 5px !important;
-        margin-bottom: 5px !important;
+    .board-overlays-container {
+        width: 180px !important;
+        top: 10px !important;
+        right: 10px !important;
+        gap: 6px !important;
     }
-    .board-players-panel, .board-card-panel, .board-dice-panel {
+    .board-overlay-panel {
+        padding: 6px 8px !important;
+        border-radius: 8px !important;
+    }
+    .dice-face {
+        font-size: 2.2rem !important;
+    }
+    .dice-result-text {
+        font-size: 0.7rem !important;
+        margin-bottom: 4px !important;
+    }
+    .board-action-btn.roll-btn {
         padding: 4px !important;
-        font-size: 0.68rem !important;
+        font-size: 0.78rem !important;
     }
-    .board-panel-title {
+    .log-panel {
+        max-height: 100px !important;
+    }
+    .board-log {
+        height: 60px !important;
+        font-size: 0.65rem !important;
+    }
+    .board-track-scroll-wrapper {
+        height: calc(100vh - 170px) !important;
+        padding: 5px !important;
+    }
+    .board-bottom-dashboard {
+        padding: 4px 10px 8px !important;
+        gap: 4px !important;
+    }
+    .board-status-strip {
+        padding: 2px !important;
+        font-size: 0.65rem !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+    }
+    .status-strip-item {
+        flex-shrink: 0 !important;
+    }
+    .board-dashboard-main {
+        gap: 8px !important;
+    }
+    .char-card {
+        width: 50px !important;
+        height: 66px !important;
+        border-width: 1.5px !important;
+    }
+    .info-section {
+        min-width: 130px !important;
+        height: 66px !important;
+        padding: 4px 6px !important;
+    }
+    .info-title {
         font-size: 0.65rem !important;
         margin-bottom: 2px !important;
     }
-    .board-players-panel button.add-bot {
-        display: none !important; /* Hide add bot on mobile to save space */
+    .info-body {
+        gap: 2px 4px !important;
     }
-    .dice-face {
-        font-size: 1.5rem !important;
-        line-height: 1 !important;
+    .info-row {
+        font-size: 0.68rem !important;
     }
-    .dice-result-text {
+    .bet-pot-section {
+        min-width: 65px !important;
+    }
+    .bet-title {
         font-size: 0.65rem !important;
     }
-    .board-card-display {
-        height: 45px !important;
-        padding: 4px !important;
-        font-size: 0.65rem !important;
+    .pot-container img {
+        height: 48px !important;
     }
-    .drawn-card {
-        padding: 2px !important;
-    }
-    .drawn-card div {
-        margin: 2px 0 !important;
+    .pot-amount {
         font-size: 0.75rem !important;
-    }
-    
-    .track-grid {
-        margin-bottom: 4px !important;
-        max-height: 230px !important; /* Scale down the track grid height on mobile */
-    }
-    .board-cell {
-        border-width: 0.5px !important;
-        min-height: unset !important;
-        height: 100% !important;
-    }
-    .board-cell .cell-num {
-        font-size: 0.4rem !important;
-        top: 1px !important;
-        left: 2px !important;
-    }
-    .board-token-large {
-        width: 14px !important;
-        height: 14px !important;
-        border-width: 1px !important;
-        font-size: 0.7rem !important;
-    }
-    .board-center-title {
-        font-size: 0.75rem !important;
-    }
-    .board-center > div:nth-child(2) {
-        margin-top: 4px !important;
-        gap: 6px !important;
-    }
-    .board-center > div:nth-child(2) > div {
-        min-width: 35px !important;
-        padding: 2px !important;
-    }
-    .board-center > div:nth-child(2) > div > div:first-child {
-        font-size: 0.8rem !important;
-    }
-    .board-center > div:nth-child(2) > div > div:nth-child(2) {
-        font-size: 0.5rem !important;
-    }
-    .board-log {
-        height: 45px !important; /* Shrink the log box height */
-        font-size: 0.65rem !important;
-        margin-bottom: 5px !important;
-        padding: 4px 6px !important;
-    }
-    .board-actions {
-        gap: 4px !important;
-    }
-    .board-btn {
-        padding: 8px 12px !important;
-        font-size: 0.8rem !important;
+        margin-top: -8px !important;
+        padding: 0px 6px !important;
         border-radius: 8px !important;
+    }
+    .board-action-buttons-row {
+        gap: 6px !important;
+        margin-top: 2px !important;
+    }
+    .board-action-btn {
+        padding: 4px 10px !important;
+        font-size: 0.72rem !important;
+        border-radius: 4px !important;
     }
 }
 
