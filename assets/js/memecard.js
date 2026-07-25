@@ -2600,6 +2600,7 @@ window.mcHostOnlineRoom = async function() {
     if (typeof window.pvpChannel !== 'undefined') {
       window.pvpChannel.postMessage({
         type: 'MC_ROOM_PING',
+        id: myNetworkId,
         roomId: window.mcOnlineRoomId,
         hostId: myNetworkId,
         hostName: name
@@ -2640,6 +2641,7 @@ window.mcRegisterNetworkMessage = function(msg) {
     if (typeof window.pvpChannel !== 'undefined') {
       window.pvpChannel.postMessage({
         type: 'MC_ROOM_JOIN',
+        id: myNetworkId,
         roomId: window.mcOnlineRoomId,
         guestId: myNetworkId,
         guestName: window.player && window.player.name ? window.player.name : 'Guest'
@@ -2694,6 +2696,7 @@ window.mcRegisterNetworkMessage = function(msg) {
     if (typeof window.pvpChannel !== 'undefined') {
       window.pvpChannel.postMessage({
         type: 'MC_ROOM_START',
+        id: myNetworkId,
         roomId: window.mcOnlineRoomId,
         guestId: msg.guestId,
         hostName: name,

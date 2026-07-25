@@ -1528,7 +1528,7 @@ window.openBoardGameWithBet = function() {
     audio.play('click');
     const modal = document.getElementById('boardBetModal');
     if(modal) modal.classList.add('active');
-    window._selectedBetAmount = 50;
+    window._selectedBetAmount = 0;
     const opts = document.querySelectorAll('.bet-option');
     if(opts.length > 0) {
         opts.forEach(el => el.classList.remove('selected'));
@@ -2011,7 +2011,7 @@ window.boardOnlineRoomId = null;
 window.boardRoomPingInterval = null;
 
 window.boardHostOnlineRoom = async function() {
-    let betAmt = 0;
+    let betAmt = window._selectedBetAmount || 0;
     const customInp = document.getElementById('customBetAmount');
     if(customInp && customInp.value) {
         betAmt = parseInt(customInp.value) || 0;
@@ -2040,6 +2040,7 @@ window.boardHostOnlineRoom = async function() {
         if (typeof window.pvpChannel !== 'undefined') {
             window.pvpChannel.postMessage({
                 type: 'BOARD_ROOM_PING',
+                id: myNetworkId,
                 roomId: window.boardOnlineRoomId,
                 hostId: myNetworkId,
                 hostName: player.name,
@@ -2097,6 +2098,7 @@ window.boardRegisterNetworkMessage = function(msg) {
         if (typeof window.pvpChannel !== 'undefined') {
             window.pvpChannel.postMessage({
                 type: 'BOARD_ROOM_JOIN',
+                id: myNetworkId,
                 roomId: window.boardOnlineRoomId,
                 guestId: myNetworkId,
                 guestName: player.name,
@@ -2125,6 +2127,7 @@ window.boardRegisterNetworkMessage = function(msg) {
         if (typeof window.pvpChannel !== 'undefined') {
             window.pvpChannel.postMessage({
                 type: 'BOARD_ROOM_START',
+                id: myNetworkId,
                 roomId: window.boardOnlineRoomId,
                 guestId: msg.guestId,
                 hostName: player.name,
@@ -2228,6 +2231,7 @@ window.boardPushOnlineState = function() {
     if (typeof window.pvpChannel !== 'undefined') {
         window.pvpChannel.postMessage({
             type: 'BOARD_ROOM_STATE',
+            id: myNetworkId,
             roomId: window.boardOnlineRoomId,
             lastActionBy: window.boardOnlineRole,
             boardState: JSON.parse(JSON.stringify(boardGame)),
