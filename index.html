@@ -1295,9 +1295,10 @@
                 <div class="bet-custom-row">
                     <input type="number" id="customBetAmount" placeholder="Tự nhập số vàng..." min="10" max="9999">
                 </div>
-                <div style="display:flex;gap:8px;">
-                    <button class="board-btn place-bet-btn" style="flex:1;" onclick="confirmBetAndStart()">🚀 Bắt Đầu Đua!</button>
-                    <button class="board-btn close-board" style="flex:1;" onclick="startBoardGameNoBet()">Chơi Không Cược</button>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <button class="board-btn place-bet-btn" style="grid-column: span 2;" onclick="confirmBetAndStart()">🆚 Đấu Với Máy (AI Bot)</button>
+                    <button class="board-btn" style="background:#10b981; border-color:#059669; color:#fff;" onclick="boardHostOnlineRoom()">🌐 Tạo Phòng Online</button>
+                    <button class="board-btn" style="background:#818cf8; border-color:#6366f1; color:#fff;" onclick="boardJoinOnlineRoom()">🤝 Vào Phòng Online</button>
                 </div>
                 <button class="board-btn close-board" style="width:100%;margin-top:8px;" onclick="closeBetModal()">✖ Huỷ</button>
             </div>
