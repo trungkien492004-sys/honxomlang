@@ -1652,7 +1652,6 @@ window.boardApplyNetworkState = function(msg) {
     boardGame.players.forEach((p, idx) => {
         p.idx = idx;
         p.isHuman = p.networkId === myNetworkId;
-        p.isBot = false;
     });
     boardGame.isRolling = false;
     document.getElementById('boardGameModal').classList.add('active');
