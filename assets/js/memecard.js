@@ -2,6 +2,9 @@
 // LP=4000 | Deck 20-30 lá | 3 ô quái + 3 ô phép/bẫy + 1 ô môi trường
 // + 1 ô Extra Zone (Dung Hợp/Nghi Lễ) + 1 ô mộ mỗi bên
 
+// Resolve myNetworkId() from global window (set by game.js)
+function myNetworkId() { return window.myNetworkId || ''; }
+
 // ────────────────── HẰNG SỐ ──────────────────
 const MC_LP_START   = 4000;
 const MC_DECK_MIN   = 20;
@@ -2600,9 +2603,9 @@ window.mcHostOnlineRoom = async function() {
     if (typeof window.pvpChannel !== 'undefined') {
       window.pvpChannel.postMessage({
         type: 'MC_ROOM_PING',
-        id: myNetworkId,
+        id: myNetworkId(),
         roomId: window.mcOnlineRoomId,
-        hostId: myNetworkId,
+        hostId: myNetworkId(),
         hostName: name
       });
     }
@@ -2641,9 +2644,9 @@ window.mcRegisterNetworkMessage = function(msg) {
     if (typeof window.pvpChannel !== 'undefined') {
       window.pvpChannel.postMessage({
         type: 'MC_ROOM_JOIN',
-        id: myNetworkId,
+        id: myNetworkId(),
         roomId: window.mcOnlineRoomId,
-        guestId: myNetworkId,
+        guestId: myNetworkId(),
         guestName: window.player && window.player.name ? window.player.name : 'Guest'
       });
     }
@@ -2696,7 +2699,7 @@ window.mcRegisterNetworkMessage = function(msg) {
     if (typeof window.pvpChannel !== 'undefined') {
       window.pvpChannel.postMessage({
         type: 'MC_ROOM_START',
-        id: myNetworkId,
+        id: myNetworkId(),
         roomId: window.mcOnlineRoomId,
         guestId: msg.guestId,
         hostName: name,
@@ -2930,3 +2933,4 @@ syncActions.forEach(name => {
     };
   }
 });
+

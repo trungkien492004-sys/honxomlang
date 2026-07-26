@@ -1132,7 +1132,8 @@
         let footballFixtures = [];
         let placedBets = [];
         let networkPlayers = {}; // PvP players cache from BroadcastChannel
-        let myNetworkId = "P_" + Math.random().toString(36).substring(2, 9);
+        window.myNetworkId = window.myNetworkId || "P_" + Math.random().toString(36).substring(2, 9);
+        let myNetworkId = window.myNetworkId;
 
         const FOOTBALL_LEAGUES = ['Premier League','La Liga','Bundesliga','Serie A','Ligue 1','World Cup'];
         const FOOTBALL_TEAMS = ['Manchester City','Liverpool','Real Madrid','Barcelona','Bayern Munich','Borussia Dortmund','Juventus','Inter Milan','Paris SG','Marseille','Brazil','Germany','Argentina','France'];

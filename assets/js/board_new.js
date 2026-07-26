@@ -1,21 +1,8 @@
 // ===== 🏁 BOARD_NEW.JS — Cờ Đua Sinh Tồn v4.0 (Yu-Gi-Oh Style) =====
 'use strict';
 
-// Resolve myNetworkId and networkPlayers globally
-if (!('myNetworkId' in window)) {
-    Object.defineProperty(window, 'myNetworkId', {
-        get() { return window._myNetworkId; },
-        set(v) { window._myNetworkId = v; },
-        configurable: true
-    });
-}
-if (!('networkPlayers' in window)) {
-    Object.defineProperty(window, 'networkPlayers', {
-        get() { return window._networkPlayers; },
-        set(v) { window._networkPlayers = v; },
-        configurable: true
-    });
-}
+// Resolve myNetworkId() from global window (set by game.js)
+function myNetworkId() { return window.myNetworkId || ''; }
 
 function boardRefreshHud() {
     if (typeof window.refreshHudDisplay === 'function' && window.refreshHudDisplay !== boardRefreshHud) {
@@ -464,7 +451,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                 boardGame.gameOver = true;
                 let prize = 200 + (boardGame.betPool||0);
                 boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
-                if (alive[0].networkId === myNetworkId || alive[0].isHuman) {
+                if (alive[0].networkId === myNetworkId() || alive[0].isHuman) {
                     player.gold += prize;
                     boardRefreshHud();
                 }
@@ -478,7 +465,7 @@ window.boardProcessTurn = function(p, roll, callback) {
             if(p.pos >= BOARD_TOTAL_CELLS - 1) {
                 boardGame.gameOver = true;
                 let prize = boardGame.betPool || 0;
-                if(p.networkId === myNetworkId || p.isHuman) {
+                if(p.networkId === myNetworkId() || p.isHuman) {
                     player.gold += (200 + prize);
                     boardRefreshHud();
                 }
@@ -525,7 +512,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                     boardGame.gameOver = true;
                     let prize = 200 + (boardGame.betPool||0);
                     boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
-                    if (alive[0].networkId === myNetworkId || alive[0].isHuman) {
+                    if (alive[0].networkId === myNetworkId() || alive[0].isHuman) {
                         player.gold += prize;
                         boardRefreshHud();
                     }
@@ -538,7 +525,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                 if(p.pos >= BOARD_TOTAL_CELLS - 1) {
                     boardGame.gameOver = true;
                     let prize = boardGame.betPool || 0;
-                    if(p.networkId === myNetworkId || p.isHuman) {
+                    if(p.networkId === myNetworkId() || p.isHuman) {
                         player.gold += (200 + prize);
                         boardRefreshHud();
                     }
@@ -585,7 +572,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                         boardGame.gameOver = true;
                         let prize = 200 + (boardGame.betPool||0);
                         boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
-                        if(alive[0].networkId === myNetworkId || alive[0].isHuman) {
+                        if(alive[0].networkId === myNetworkId() || alive[0].isHuman) {
                             player.gold += prize;
                             boardRefreshHud();
                         }
@@ -600,7 +587,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                     if(p.pos >= BOARD_TOTAL_CELLS - 1) {
                         boardGame.gameOver = true;
                         let prize = boardGame.betPool || 0;
-                        if(p.networkId === myNetworkId || p.isHuman) {
+                        if(p.networkId === myNetworkId() || p.isHuman) {
                             player.gold += (200 + prize);
                             boardRefreshHud();
                         }
@@ -1304,7 +1291,7 @@ window.openBoardGame = function(pvpMode = false) {
         players: [], currentTurn: 0, isRolling: false,
         trappedCells: {}, log: [], gameOver: false,
         revealedCells: { 0: true, [BOARD_TOTAL_CELLS - 1]: true },
-        pvp: !!pvpMode, hostId: pvpMode ? myNetworkId : null, betPool: betAmount,
+        pvp: !!pvpMode, hostId: pvpMode ? myNetworkId() : null, betPool: betAmount,
         cellZones: []
     };
 
@@ -1322,7 +1309,7 @@ window.openBoardGame = function(pvpMode = false) {
     
     // Human Player (Player 1) - Trâu Trẻ Trâu
     boardGame.players.push({
-        idx: 0, name: player.name + ' (Trâu)', networkId: myNetworkId, classId: player.classId, skin: player.equipment?.skin,
+        idx: 0, name: player.name + ' (Trâu)', networkId: myNetworkId(), classId: player.classId, skin: player.equipment?.skin,
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: RACE_PLAYER_COLORS[0],
         emoji: '👦',
@@ -1458,7 +1445,7 @@ window.openBoardInviteModal = function() {
         
         for(let id in players) {
             let p = players[id];
-            if(id === myNetworkId || (Date.now() - p.lastSeen > 12000)) continue;
+            if(id === myNetworkId() || (Date.now() - p.lastSeen > 12000)) continue;
             count++;
             let div = document.createElement('div');
             div.className = 'pvp-player-row';
@@ -1492,7 +1479,7 @@ window.sendBoardInvite = function(targetId, targetName) {
     if(typeof pvpChannel !== 'undefined') {
         pvpChannel.postMessage({
             type: 'BOARD_PVP_INVITE',
-            id: myNetworkId,
+            id: myNetworkId(),
             targetId: targetId,
             senderName: player.name
         });
@@ -1509,13 +1496,13 @@ window.showBoardInvite = function(msg) {
     
     document.getElementById('acceptPvpBtn').onclick = () => {
         document.getElementById('pvpChallengeModal').style.display = 'none';
-        if(typeof pvpChannel !== 'undefined') pvpChannel.postMessage({ type: 'BOARD_PVP_REPLY', id: myNetworkId, senderId: msg.id, targetId: msg.id, accepted: true, replierName: player.name });
+        if(typeof pvpChannel !== 'undefined') pvpChannel.postMessage({ type: 'BOARD_PVP_REPLY', id: myNetworkId(), senderId: msg.id, targetId: msg.id, accepted: true, replierName: player.name });
         showToast('⏳ Đã đồng ý! Đang chờ chủ phòng khởi tạo bàn cờ...');
     };
     
     document.getElementById('rejectPvpBtn').onclick = () => {
         document.getElementById('pvpChallengeModal').style.display = 'none';
-        if(typeof pvpChannel !== 'undefined') pvpChannel.postMessage({ type: 'BOARD_PVP_REPLY', id: myNetworkId, senderId: msg.id, targetId: msg.id, accepted: false, replierName: player.name });
+        if(typeof pvpChannel !== 'undefined') pvpChannel.postMessage({ type: 'BOARD_PVP_REPLY', id: myNetworkId(), senderId: msg.id, targetId: msg.id, accepted: false, replierName: player.name });
     };
     
     document.getElementById('pvpChallengeModal').style.display = 'flex';
@@ -1590,7 +1577,7 @@ window.boardIsMyTurn = function() {
     if(!boardGame || boardGame.gameOver) return false;
     let cur = boardGame.players[boardGame.currentTurn];
     if(!cur) return false;
-    if(boardGame.pvp) return cur.networkId === myNetworkId;
+    if(boardGame.pvp) return cur.networkId === myNetworkId();
     return !!cur.isHuman;
 };
 
@@ -1608,7 +1595,7 @@ window.boardRollDice = function() {
     if(!cur || !window.boardIsMyTurn()) return;
     if(boardGame.pvp && boardGame.hostId !== myNetworkId) {
         if(typeof pvpChannel !== 'undefined') {
-            pvpChannel.postMessage({ type: 'BOARD_ROLL_REQUEST', id: myNetworkId, hostId: boardGame.hostId });
+            pvpChannel.postMessage({ type: 'BOARD_ROLL_REQUEST', id: myNetworkId(), hostId: boardGame.hostId });
         }
         boardGame.isRolling = true;
         window.boardUpdateRollBtn();
@@ -1636,8 +1623,8 @@ window.boardBroadcastState = function(kind) {
     if(typeof pvpChannel !== 'undefined') {
         pvpChannel.postMessage({
             type: kind === 'start' ? 'BOARD_PVP_START' : 'BOARD_PVP_STATE',
-            id: myNetworkId,
-            hostId: myNetworkId,
+            id: myNetworkId(),
+            hostId: myNetworkId(),
             targetIds: boardGame.players.map(p => p.networkId).filter(Boolean),
             boardGame: JSON.parse(JSON.stringify(boardGame)),
             cardHtml: document.getElementById('boardCardDisplay')?.innerHTML || '',
@@ -1651,7 +1638,7 @@ window.boardApplyNetworkState = function(msg) {
     boardGame = msg.boardGame;
     boardGame.players.forEach((p, idx) => {
         p.idx = idx;
-        p.isHuman = p.networkId === myNetworkId;
+        p.isHuman = p.networkId === myNetworkId();
     });
     boardGame.isRolling = false;
     document.getElementById('boardGameModal').classList.add('active');
@@ -1716,13 +1703,13 @@ window.boardStartPvpAsHost = function(guestId, guestName) {
     boardGame = {
         players: [], currentTurn: 0, isRolling: false,
         trappedCells: {}, log: [], gameOver: false,
-        pvp: true, hostId: myNetworkId, betPool: 0,
+        pvp: true, hostId: myNetworkId(), betPool: 0,
         turnStartTime: Date.now()
     };
     
     // Thêm Chủ phòng (A)
     boardGame.players.push({
-        idx: 0, name: player.name, networkId: myNetworkId, classId: player.classId, skin: player.equipment?.skin,
+        idx: 0, name: player.name, networkId: myNetworkId(), classId: player.classId, skin: player.equipment?.skin,
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: RACE_PLAYER_COLORS[0],
         emoji: CLASS_DATA[player.classId]?.emoji || '🏃',
@@ -2040,9 +2027,9 @@ window.boardHostOnlineRoom = async function() {
         if (typeof window.pvpChannel !== 'undefined') {
             window.pvpChannel.postMessage({
                 type: 'BOARD_ROOM_PING',
-                id: myNetworkId,
+                id: myNetworkId(),
                 roomId: window.boardOnlineRoomId,
-                hostId: myNetworkId,
+                hostId: myNetworkId(),
                 hostName: player.name,
                 betAmount: betAmt
             });
@@ -2098,9 +2085,9 @@ window.boardRegisterNetworkMessage = function(msg) {
         if (typeof window.pvpChannel !== 'undefined') {
             window.pvpChannel.postMessage({
                 type: 'BOARD_ROOM_JOIN',
-                id: myNetworkId,
+                id: myNetworkId(),
                 roomId: window.boardOnlineRoomId,
-                guestId: myNetworkId,
+                guestId: myNetworkId(),
                 guestName: player.name,
                 betAmount: betAmt
             });
@@ -2127,7 +2114,7 @@ window.boardRegisterNetworkMessage = function(msg) {
         if (typeof window.pvpChannel !== 'undefined') {
             window.pvpChannel.postMessage({
                 type: 'BOARD_ROOM_START',
-                id: myNetworkId,
+                id: myNetworkId(),
                 roomId: window.boardOnlineRoomId,
                 guestId: msg.guestId,
                 hostName: player.name,
@@ -2167,7 +2154,7 @@ window.boardStartOnlineMatch = function(role, room) {
         players: [], currentTurn: 0, isRolling: false,
         trappedCells: {}, log: [], gameOver: false,
         revealedCells: { 0: true, [BOARD_TOTAL_CELLS - 1]: true },
-        pvp: true, hostId: (role === 'host') ? myNetworkId : 'host_id_placeholder',
+        pvp: true, hostId: (role === 'host') ? myNetworkId() : 'host_id_placeholder',
         betPool: (room.betAmount || 0) * 2,
         cellZones: []
     };
@@ -2186,7 +2173,7 @@ window.boardStartOnlineMatch = function(role, room) {
 
     // Add Host (idx 0)
     boardGame.players.push({
-        idx: 0, name: room.hostName + ' (Trâu)', networkId: (role === 'host') ? myNetworkId : 'host_net_id',
+        idx: 0, name: room.hostName + ' (Trâu)', networkId: (role === 'host') ? myNetworkId() : 'host_net_id',
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: RACE_PLAYER_COLORS[0], emoji: '👦', isHuman: (role === 'host'), isBot: false, gold: 0,
         hand: boardDealHand(5)
@@ -2194,7 +2181,7 @@ window.boardStartOnlineMatch = function(role, room) {
 
     // Add Guest (idx 1)
     boardGame.players.push({
-        idx: 1, name: room.guestName + ' (Trẩu)', networkId: (role === 'guest') ? myNetworkId : 'guest_net_id',
+        idx: 1, name: room.guestName + ' (Trẩu)', networkId: (role === 'guest') ? myNetworkId() : 'guest_net_id',
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: RACE_PLAYER_COLORS[1], emoji: '👾', isHuman: (role === 'guest'), isBot: false, gold: 0,
         hand: boardDealHand(5)
@@ -2231,7 +2218,7 @@ window.boardPushOnlineState = function() {
     if (typeof window.pvpChannel !== 'undefined') {
         window.pvpChannel.postMessage({
             type: 'BOARD_ROOM_STATE',
-            id: myNetworkId,
+            id: myNetworkId(),
             roomId: window.boardOnlineRoomId,
             lastActionBy: window.boardOnlineRole,
             boardState: JSON.parse(JSON.stringify(boardGame)),
@@ -2251,7 +2238,7 @@ window.boardSyncOnlineState = function(room) {
     // Symmetrically map isHuman / isBot
     boardGame.players.forEach((p, idx) => {
         p.idx = idx;
-        p.isHuman = (p.networkId === myNetworkId || (window.boardOnlineRole === 'host' && idx === 0) || (window.boardOnlineRole === 'guest' && idx === 1));
+        p.isHuman = (p.networkId === myNetworkId() || (window.boardOnlineRole === 'host' && idx === 0) || (window.boardOnlineRole === 'guest' && idx === 1));
     });
 
     if (room.diceText) document.getElementById('diceResultText').textContent = room.diceText;
@@ -2271,7 +2258,7 @@ window.boardRenderPlayers = function() {
     if (window.boardOnlineRoomId && boardGame) {
         let cur = boardGame.players[boardGame.currentTurn];
         if (cur) {
-            const isOurTurn = cur.networkId === myNetworkId || (window.boardOnlineRole === 'host' && boardGame.currentTurn === 0) || (window.boardOnlineRole === 'guest' && boardGame.currentTurn === 1);
+            const isOurTurn = cur.networkId === myNetworkId() || (window.boardOnlineRole === 'host' && boardGame.currentTurn === 0) || (window.boardOnlineRole === 'guest' && boardGame.currentTurn === 1);
             const isHostHandlingBot = (window.boardOnlineRole === 'host' && cur.isBot);
             if (isOurTurn || isHostHandlingBot) {
                 boardPushOnlineState();
@@ -2290,3 +2277,4 @@ window.closeBoardGame = function() {
         window.boardOnlineRole = null;
     }
 };
+
