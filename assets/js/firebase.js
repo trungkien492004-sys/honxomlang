@@ -852,7 +852,23 @@ window.openCharacterSelection = async function(user) {
     });
 };
 
+// game.js chạy sau firebase.js trong <script> nhưng auth callback của Firebase có
+// thể tự resolve rất nhanh (session đã cache) và bắn trước khi game.js kịp chạy
+// xong (window.player/switchScreen/CLASS_DATA chưa tồn tại) — gây crash khi bấm
+// vào nhân vật ngay lập tức. Chờ game engine sẵn sàng rồi mới chạy callback thật.
+function _whenGameReady(fn) {
+    if (window.player && typeof window.switchScreen === 'function' && typeof CLASS_DATA !== 'undefined') {
+        fn();
+    } else {
+        setTimeout(() => _whenGameReady(fn), 60);
+    }
+}
+
 window.selectExistingCharacter = function(docId, data) {
+  _whenGameReady(() => _doSelectExistingCharacter(docId, data));
+};
+
+function _doSelectExistingCharacter(docId, data) {
   try {
     window.currentSlotId = docId;
     window._cloudSaveData = data;
@@ -881,6 +897,7 @@ window.selectExistingCharacter = function(docId, data) {
 };
 
 window.createNewCharacter = function(docId) {
+  try {
     window.currentSlotId = docId;
     window._cloudSaveData = null; // Bắt đầu mới
 
@@ -893,16 +910,20 @@ window.createNewCharacter = function(docId) {
     const charName = prompt('🧙 Nhập tên nhân vật của bạn:', defaultName);
     if (!charName || charName.trim() === '') return; // Người dùng bấm Cancel
 
-    window.player = window.player || {};
-    window.player.name = charName.trim();
-
-    // Chuyển sang màn chọn chế độ chơi (Hồn Xóm Làng / Cờ Đua / Meme Xóm)
-    window._pendingCharFlow = 'new';
-    window.switchScreen('gameModeScreen');
-
     // Ẩn nút Google vì đã login rồi
     const btnGoogle = document.querySelector('.btn-google');
     if(btnGoogle) btnGoogle.style.display = 'none';
+
+    _whenGameReady(() => {
+        window.player = window.player || {};
+        window.player.name = charName.trim();
+        window._pendingCharFlow = 'new';
+        window.switchScreen('gameModeScreen');
+    });
+  } catch (err) {
+    console.error('[createNewCharacter] lỗi:', err);
+    alert('LỖI khi tạo nhân vật: ' + err.message + '\n\n' + (err.stack || '').split('\n').slice(0,3).join('\n'));
+  }
 };
 
 // ── signOutUser ───────────────────────────────────────────────
