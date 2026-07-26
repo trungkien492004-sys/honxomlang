@@ -1256,7 +1256,10 @@
         window.pressedKeys = {};
 
         // --- 4. LOGIN & INITIALIZATION & SAVE SYSTEM ---
-        window.onload = () => {
+        // Script is at bottom of <body> so DOM is ready. Run init immediately
+        // instead of waiting for window.onload (which fires after images load
+        // and could be delayed past firebase auth resolving).
+        const _gameInit = () => {
             setupCanvasSize();
             checkAndDisplayLocalSave();
 
@@ -7629,3 +7632,7 @@ function toggleAutoFarm() {
                 }
             }
         };
+        // Call immediately - DOM is ready since this script is at bottom of <body>.
+        // window.onload fires late (after images), which caused firebase auth to show
+        // gameModeScreen before window.selectGameMode was assigned.
+        _gameInit();
