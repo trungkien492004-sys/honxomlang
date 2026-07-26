@@ -76,18 +76,18 @@
             <p>Chọn 1 trong 3 trải nghiệm của Xóm Anh Hùng</p>
         </div>
         <div class="class-container" style="max-width:900px;">
-            <div class="class-card" onclick="selectGameMode('world')" style="width:250px; position:relative;">
+            <div class="class-card" onclick="window.selectGameMode('world')" style="width:250px; position:relative;">
                 <div style="position:absolute; top:8px; right:8px; background:#ef4444; color:#fff; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:10px;">ĐANG FIX</div>
                 <div class="class-emoji">🏘️</div>
                 <div class="class-name">Hồn Xóm Làng</div>
                 <div class="class-desc">Game nhập vai sinh tồn thế giới mở — cốt truyện, quest, PvE/PvP. Đang được hoàn thiện dần.</div>
             </div>
-            <div class="class-card" onclick="selectGameMode('board')" style="width:250px;">
+            <div class="class-card" onclick="window.selectGameMode('board')" style="width:250px;">
                 <div class="class-emoji">🏁</div>
                 <div class="class-name">Cờ Đua Sinh Tồn</div>
                 <div class="class-desc">Minigame cờ đua 40 ô, rút thẻ bài, PvP đụng độ giữa đường, sống sót tới đích.</div>
             </div>
-            <div class="class-card" onclick="selectGameMode('meme')" style="width:250px;">
+            <div class="class-card" onclick="window.selectGameMode('meme')" style="width:250px;">
                 <div class="class-emoji">🐸</div>
                 <div class="class-name">Đấu Trường Meme Xóm</div>
                 <div class="class-desc">TCG kiểu Speed Duel với bộ bài "chế" làng quê Việt Nam — xây deck, đấu bài.</div>
@@ -101,28 +101,28 @@
             <p>Mỗi nghề nghiệp mang một bộ kỹ năng và sức mạnh sinh tồn riêng biệt</p>
         </div>
         <div class="class-container">
-            <div class="class-card cop" onclick="selectClass('cop')">
+            <div class="class-card cop" onclick="window.selectClass('cop')">
                 <div class="class-emoji">👮‍♂️</div>
                 <div class="class-name">Anh Cảnh Sát</div>
                 <div class="class-desc">Giáp trâu, thủ mạnh, phản công tầm gần và bảo vệ trị an cực tốt.</div>
             </div>
-            <div class="class-card teacher" onclick="selectClass('teacher')">
+            <div class="class-card teacher" onclick="window.selectClass('teacher')">
                 <div class="class-emoji">👩‍🏫</div>
                 <div class="class-name">Cô Giáo Làng</div>
                 <div class="class-desc">Sát thương phép diện rộng, dùng tri thức để khống chế và dập tắt quái vật.</div>
             </div>
-            <div class="class-card merchant" onclick="selectClass('merchant')">
+            <div class="class-card merchant" onclick="window.selectClass('merchant')">
                 <div class="class-emoji">🕵️‍♂️</div>
                 <div class="class-name">Chú Buôn Lậu</div>
                 <div class="class-desc">Tốc độ đánh nhanh, chí mạng lớn, bạo kích mạnh mẽ và rất giàu có.</div>
             </div>
-            <div class="class-card engineer" onclick="selectClass('engineer')">
+            <div class="class-card engineer" onclick="window.selectClass('engineer')">
                 <div class="class-emoji">👨‍💻</div>
                 <div class="class-name">Anh Kỹ Sư</div>
                 <div class="class-desc">Hồi phục mana nhanh, đặt ụ súng công nghệ cao tự động bắn dọn dẹp quái.</div>
             </div>
         </div>
-        <button class="btn" style="width: 250px;" onclick="confirmClass()">XUẤT TRẬN ⚔️</button>
+        <button class="btn" style="width: 250px;" onclick="window.confirmClass()">XUẤT TRẬN ⚔️</button>
     </div>
 
     <div id="gameScreen" class="screen">
@@ -1333,7 +1333,7 @@
             <div class="lore-box">
                 <h2>CỐT TRUYỆN: SỰ TÍCH XÓM ANH HÙNG</h2>
                 <p id="loreContentText">Loading...</p>
-                <button class="btn" onclick="closeLoreOverlay()" style="width:180px; margin:0 auto;">BẮT ĐẦU CHƠI</button>
+                <button class="btn" onclick="window.closeLoreOverlay()" style="width:180px; margin:0 auto;">BẮT ĐẦU CHƠI</button>
             </div>
         </div>
 
@@ -1819,3 +1819,4 @@
     </script>
 </body>
 </html>
+
