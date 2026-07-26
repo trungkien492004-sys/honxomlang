@@ -1411,6 +1411,7 @@
         // set by createNewCharacter ('new') or selectExistingCharacter ('existing')
         // in firebase.js right before this screen is shown.
         function selectGameMode(mode) {
+            console.log('[DEBUG] selectGameMode called, mode:', mode, '_pendingCharFlow:', window._pendingCharFlow, 'player.classId:', player.classId, 'CLASS_DATA keys:', Object.keys(CLASS_DATA || {}));
             audio.play('click');
             let isNewChar = window._pendingCharFlow === 'new';
 

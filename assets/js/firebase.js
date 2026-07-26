@@ -572,6 +572,7 @@ window.switchScreen = function(sId) {
 };
 
 window.loginAsLocalUser = function(username) {
+    console.log('[DEBUG] loginAsLocalUser called:', username);
     let localUser = {
         uid: 'local_' + username.toLowerCase(),
         displayName: username,
@@ -586,10 +587,13 @@ window.loginAsLocalUser = function(username) {
     _showSignOutBtn(username);
     
     let savedServer = localStorage.getItem('xom_saved_server');
+    console.log('[DEBUG] savedServer:', savedServer);
     if(savedServer) {
         window.currentServerId = savedServer;
+        console.log('[DEBUG] calling openCharacterSelection...');
         window.openCharacterSelection(localUser);
     } else {
+        console.log('[DEBUG] calling openServerSelection...');
         window.openServerSelection();
     }
 };
@@ -780,15 +784,24 @@ window.selectServer = async function(serverId) {
 
 // ── Màn hình Chọn Nhân Vật (3 Slots) ─────────────────────────
 window.openCharacterSelection = async function(user) {
+    console.log('[DEBUG] openCharacterSelection called, user:', user);
     window.switchScreen('characterSelectScreen');
     
     const container = document.getElementById('characterSlotsContainer');
     container.innerHTML = '<div style="color:#94a3b8; width:100%; text-align:center;">Đang tải dữ liệu Cloud...</div>';
 
-    // Đọc 3 slot (Lưu ý: Thêm prefix ServerId để phân biệt nhân vật giữa các Server)
     const serverPrefix = window.currentServerId ? window.currentServerId + "_" : "S1_";
     const slotIDs = [`${serverPrefix}${user.uid}_1`, `${serverPrefix}${user.uid}_2`, `${serverPrefix}${user.uid}_3`];
-    const slotsData = await Promise.all(slotIDs.map(id => loadGameFromCloud(id)));
+    console.log('[DEBUG] slotIDs:', slotIDs);
+    
+    let slotsData;
+    try {
+        slotsData = await Promise.all(slotIDs.map(id => loadGameFromCloud(id)));
+        console.log('[DEBUG] slotsData loaded:', slotsData);
+    } catch(err) {
+        console.error('[DEBUG] Error loading slots:', err);
+        slotsData = [null, null, null];
+    }
 
     container.innerHTML = '';
     slotsData.forEach((data, index) => {
