@@ -1462,6 +1462,7 @@
                 else if (mode === 'meme' && window.openMemeCardGame) window.openMemeCardGame();
             }, 50);
         }
+        window.selectGameMode = selectGameMode;
 
         function selectClass(cId) {
             audio.play('click');
@@ -1469,6 +1470,7 @@
             document.querySelector(`.class-card.${cId}`).classList.add('selected');
             player.classId = cId;
         }
+        window.selectClass = selectClass;
 
         function confirmClass() {
             if(!player.classId) { alert("Vui lòng nhấp chọn một loại Nghề Nghiệp!"); return; }
@@ -1488,6 +1490,7 @@
             // Run lore/story overview intro sequence
             showLoreOverlay();
         }
+        window.confirmClass = confirmClass;
 
         function showLoreOverlay() {
             switchScreen('gameScreen');
@@ -1507,6 +1510,7 @@
             refreshHudDisplay();
             showToast("🎮 Chào mừng bạn! Nhấp chuột lên bãi đất trống để di chuyển.");
         }
+        window.closeLoreOverlay = closeLoreOverlay;
 
         window.switchScreen = function(sId) { window.currentScreen = sId;
             currentScreen = sId;
