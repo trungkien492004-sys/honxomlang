@@ -7635,4 +7635,9 @@ function toggleAutoFarm() {
         // Call immediately - DOM is ready since this script is at bottom of <body>.
         // window.onload fires late (after images), which caused firebase auth to show
         // gameModeScreen before window.selectGameMode was assigned.
-        _gameInit();
+        try {
+            _gameInit();
+        } catch (e) {
+            console.error('[_gameInit] CRASHED — this is why buttons like selectGameMode are missing:', e);
+            window.__gameInitError = e;
+        }

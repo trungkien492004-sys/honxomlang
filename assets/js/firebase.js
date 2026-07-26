@@ -853,12 +853,13 @@ window.openCharacterSelection = async function(user) {
 };
 
 window.selectExistingCharacter = function(docId, data) {
+  try {
     window.currentSlotId = docId;
     window._cloudSaveData = data;
-    
+
     // Inject the data into the game player object directly!
     Object.assign(window.player, data);
-    
+
     // Đảm bảo có init class stats và đồng bộ tốc độ chạy mới
     if(typeof CLASS_DATA !== 'undefined' && data.classId) {
         let t = CLASS_DATA[data.classId];
@@ -873,6 +874,10 @@ window.selectExistingCharacter = function(docId, data) {
     window.switchScreen('gameModeScreen');
 
     try { audio.play('levelup'); } catch(e){}
+  } catch (err) {
+    console.error('[selectExistingCharacter] lỗi:', err);
+    alert('LỖI khi vào nhân vật: ' + err.message + '\n\n' + (err.stack || '').split('\n').slice(0,3).join('\n'));
+  }
 };
 
 window.createNewCharacter = function(docId) {
