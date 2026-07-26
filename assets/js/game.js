@@ -1431,8 +1431,9 @@
             // character, give it a lightweight default class first; an existing loaded
             // character already has its own classId/stats, so leave those untouched.
             if (isNewChar) {
-                player.classId = player.classId || Object.keys(CLASS_DATA)[0];
-                let t = CLASS_DATA[player.classId];
+                const firstClassKey = Object.keys(CLASS_DATA)[0];
+                player.classId = player.classId || firstClassKey;
+                let t = CLASS_DATA[player.classId] || CLASS_DATA[firstClassKey];
                 player.hp = player.maxHp = t.hp;
                 player.mp = player.maxMp = t.mp;
                 player.baseAtk = t.atk;
@@ -1441,6 +1442,12 @@
                 player.skills = JSON.parse(JSON.stringify(t.skills));
                 player.assignedSkills = [t.skills[0].id, t.skills[1].id, t.skills[2].id];
                 player.activeBuffs = { hp: null, mp: null };
+                // Ensure player has a name
+                if (!player.name || player.name.trim() === '') {
+                    player.name = (window.currentFirebaseUser && window.currentFirebaseUser.displayName)
+                        ? window.currentFirebaseUser.displayName
+                        : 'Anh Hùng';
+                }
             }
 
             switchScreen('gameScreen');

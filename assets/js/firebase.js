@@ -865,13 +865,19 @@ window.selectExistingCharacter = function(docId, data) {
 window.createNewCharacter = function(docId) {
     window.currentSlotId = docId;
     window._cloudSaveData = null; // Bắt đầu mới
-    
-    // Gán tên tài khoản làm tên mặc định
-    if(window.currentFirebaseUser && window.currentFirebaseUser.email) {
-        window.player = window.player || {};
-        window.player.name = window.currentFirebaseUser.email.split('@')[0];
-    }
-    
+
+    // Hỏi tên nhân vật
+    const defaultName = (window.currentFirebaseUser && window.currentFirebaseUser.displayName)
+        ? window.currentFirebaseUser.displayName
+        : (window.currentFirebaseUser && window.currentFirebaseUser.email
+            ? window.currentFirebaseUser.email.split('@')[0]
+            : 'Anh Hùng');
+    const charName = prompt('🧙 Nhập tên nhân vật của bạn:', defaultName);
+    if (!charName || charName.trim() === '') return; // Người dùng bấm Cancel
+
+    window.player = window.player || {};
+    window.player.name = charName.trim();
+
     // Chuyển sang màn chọn chế độ chơi (Hồn Xóm Làng / Cờ Đua / Meme Xóm)
     window._pendingCharFlow = 'new';
     window.switchScreen('gameModeScreen');
