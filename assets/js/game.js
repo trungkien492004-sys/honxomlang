@@ -1414,56 +1414,69 @@
         // set by createNewCharacter ('new') or selectExistingCharacter ('existing')
         // in firebase.js right before this screen is shown.
         function selectGameMode(mode) {
-            console.log('[DEBUG] selectGameMode called, mode:', mode, '_pendingCharFlow:', window._pendingCharFlow, 'player.classId:', player.classId, 'CLASS_DATA keys:', Object.keys(CLASS_DATA || {}));
-            audio.play('click');
-            let isNewChar = window._pendingCharFlow === 'new';
+            try {
+                console.log('[DEBUG] selectGameMode called, mode:', mode, '_pendingCharFlow:', window._pendingCharFlow, 'player.classId:', player.classId, 'CLASS_DATA keys:', Object.keys(CLASS_DATA || {}));
+                try { if (window.audio) window.audio.play('click'); } catch(e){}
+                let isNewChar = window._pendingCharFlow === 'new';
 
-            if (mode === 'world') {
+                if (mode === 'world') {
+                    if (isNewChar) {
+                        switchScreen('classScreen');
+                    } else {
+                        switchScreen('gameScreen');
+                        spawnInitialMonsters();
+                        requestAnimationFrame(mainGameLoop);
+                        if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
+                        if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
+                    }
+                    return;
+                }
+
+                // Cờ Đua / Meme Xóm don't need the full RPG class picker. For a brand new
+                // character, give it a lightweight default class first; an existing loaded
+                // character already has its own classId/stats, so leave those untouched.
                 if (isNewChar) {
-                    switchScreen('classScreen');
-                } else {
-                    switchScreen('gameScreen');
-                    spawnInitialMonsters();
-                    requestAnimationFrame(mainGameLoop);
-                    if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
-                    if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
+                    const firstClassKey = Object.keys(CLASS_DATA)[0];
+                    player.classId = player.classId || firstClassKey;
+                    let t = CLASS_DATA[player.classId] || CLASS_DATA[firstClassKey];
+                    player.hp = player.maxHp = t.hp;
+                    player.mp = player.maxMp = t.mp;
+                    player.baseAtk = t.atk;
+                    player.baseDef = t.def;
+                    player.baseSpeed = t.speed;
+                    player.skills = JSON.parse(JSON.stringify(t.skills));
+                    player.assignedSkills = [t.skills[0].id, t.skills[1].id, t.skills[2].id];
+                    player.activeBuffs = { hp: null, mp: null };
+                    // Ensure player has a name
+                    if (!player.name || player.name.trim() === '') {
+                        player.name = (window.currentFirebaseUser && window.currentFirebaseUser.displayName)
+                            ? window.currentFirebaseUser.displayName
+                            : 'Anh Hùng';
+                    }
                 }
-                return;
-            }
 
-            // Cờ Đua / Meme Xóm don't need the full RPG class picker. For a brand new
-            // character, give it a lightweight default class first; an existing loaded
-            // character already has its own classId/stats, so leave those untouched.
-            if (isNewChar) {
-                const firstClassKey = Object.keys(CLASS_DATA)[0];
-                player.classId = player.classId || firstClassKey;
-                let t = CLASS_DATA[player.classId] || CLASS_DATA[firstClassKey];
-                player.hp = player.maxHp = t.hp;
-                player.mp = player.maxMp = t.mp;
-                player.baseAtk = t.atk;
-                player.baseDef = t.def;
-                player.baseSpeed = t.speed;
-                player.skills = JSON.parse(JSON.stringify(t.skills));
-                player.assignedSkills = [t.skills[0].id, t.skills[1].id, t.skills[2].id];
-                player.activeBuffs = { hp: null, mp: null };
-                // Ensure player has a name
-                if (!player.name || player.name.trim() === '') {
-                    player.name = (window.currentFirebaseUser && window.currentFirebaseUser.displayName)
-                        ? window.currentFirebaseUser.displayName
-                        : 'Anh Hùng';
+                switchScreen('gameScreen');
+                spawnInitialMonsters();
+                requestAnimationFrame(mainGameLoop);
+                if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
+                if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
+
+                if (mode === 'board') {
+                    if (window.openBoardGameWithBet) {
+                        window.openBoardGameWithBet();
+                    } else {
+                        alert('⚠️ Lỗi: Không tìm thấy hàm window.openBoardGameWithBet!');
+                    }
+                } else if (mode === 'meme') {
+                    if (window.openMemeCardGame) {
+                        window.openMemeCardGame();
+                    } else {
+                        alert('⚠️ Lỗi: Không tìm thấy hàm window.openMemeCardGame!');
+                    }
                 }
-            }
-
-            switchScreen('gameScreen');
-            spawnInitialMonsters();
-            requestAnimationFrame(mainGameLoop);
-            if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
-            if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
-
-            if (mode === 'board') {
-                try { if (window.openBoardGameWithBet) window.openBoardGameWithBet(); } catch(e) { console.error('openBoardGameWithBet error:', e); }
-            } else if (mode === 'meme') {
-                try { if (window.openMemeCardGame) window.openMemeCardGame(); } catch(e) { console.error('openMemeCardGame error:', e); }
+            } catch (err) {
+                console.error('[selectGameMode Error]', err);
+                alert('❌ LỖI VÀO GAME (' + mode + '): ' + err.message + '\n\n' + (err.stack || ''));
             }
         }
         window.selectGameMode = selectGameMode;
