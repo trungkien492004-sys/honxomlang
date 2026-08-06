@@ -1284,7 +1284,7 @@ window.boardRenderPlayers = function() {
 };
 
 // ── Khởi tạo ──────────────────────────────────────────────────
-window.openBoardGame = function(pvpMode = false) {
+function openBoardGame(pvpMode = false) {
     try { if (window.audio) window.audio.play('click'); } catch(e){}
     let betAmount = 0; // default bet
     boardGame = {
@@ -1308,8 +1308,12 @@ window.openBoardGame = function(pvpMode = false) {
     }
     
     // Human Player (Player 1) - Trâu Trẻ Trâu
+    const playerName = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
+    const playerClass = (window.player && window.player.classId) ? window.player.classId : 'cop';
+    const playerSkin = window.player && window.player.equipment ? window.player.equipment.skin : null;
+
     boardGame.players.push({
-        idx: 0, name: player.name + ' (Trâu)', networkId: myNetworkId(), classId: player.classId, skin: player.equipment?.skin,
+        idx: 0, name: playerName + ' (Trâu)', networkId: myNetworkId(), classId: playerClass, skin: playerSkin,
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: RACE_PLAYER_COLORS[0],
         emoji: '👦',
@@ -1337,7 +1341,7 @@ window.openBoardGame = function(pvpMode = false) {
     // Toggle Admin panel button if username is 'admin'
     const adminBtn = document.getElementById('boardAdminBtn');
     if (adminBtn) {
-        if (player.name && player.name.toLowerCase() === 'admin') {
+        if (window.player && window.player.name && window.player.name.toLowerCase() === 'admin') {
             adminBtn.style.display = 'inline-block';
         } else {
             adminBtn.style.display = 'none';
@@ -1350,9 +1354,11 @@ window.openBoardGame = function(pvpMode = false) {
     boardRenderGrid();
     boardRenderPlayers();
     boardUpdateRollBtn();
-    document.getElementById('boardGameModal').classList.add('active');
+    const bgModal = document.getElementById('boardGameModal');
+    if (bgModal) bgModal.classList.add('active');
     boardAddLog(`🏁 ĐẤU TRƯỜNG BẮT ĐẦU! Ai hết 3 ❤️ sẽ chết. Đi tới ô ${BOARD_TOTAL_CELLS} (Quảng Trường) để thắng!`, 'special');
-};
+}
+window.openBoardGame = openBoardGame;
 
 window.boardAddBot = function() {
     if(boardGame.players.length >= 4) return;
@@ -1539,29 +1545,31 @@ window.closeBetModal = function() {
 
 window.confirmBetAndStart = function() {
     try { if (window.audio) window.audio.play('click'); } catch(e){}
-    let amt = window._selectedBetAmount;
+    let amt = window._selectedBetAmount || 0;
     const customInp = document.getElementById('customBetAmount');
     if(customInp && customInp.value) {
         amt = parseInt(customInp.value) || 0;
     }
-    if(player.gold < amt) {
-        showToast('⚠️ Không đủ vàng để cược!');
+    const currentGold = (window.player && typeof window.player.gold !== 'undefined') ? window.player.gold : 150;
+    if(currentGold < amt) {
+        if (typeof showToast === 'function') showToast('⚠️ Không đủ vàng để cược!');
+        else alert('⚠️ Không đủ vàng để cược!');
         return;
     }
-    player.gold -= amt;
-    boardRefreshHud();
-    closeBetModal();
+    if (window.player) window.player.gold = currentGold - amt;
+    if (typeof boardRefreshHud === 'function') boardRefreshHud();
+    window.closeBetModal();
     
     // Bắt đầu game với tiền cược
-    openBoardGame(false); 
-    boardGame.betPool = amt; 
-    boardRenderGrid(); // Render lại để hiện Nồi Cược
+    window.openBoardGame(false); 
+    if (window.boardGame) window.boardGame.betPool = amt; 
+    if (typeof boardRenderGrid === 'function') boardRenderGrid();
 };
 
 window.startBoardGameNoBet = function() {
     try { if (window.audio) window.audio.play('click'); } catch(e){}
-    closeBetModal();
-    openBoardGame(false);
+    window.closeBetModal();
+    window.openBoardGame(false);
 };
 
 window.boardAddLog = function(text, type) {
