@@ -1468,6 +1468,12 @@
         }
         window.selectGameMode = selectGameMode;
 
+        window.switchInventoryTab = function(tabName) {
+            document.querySelectorAll('#panel-inventory .tab-btn').forEach(btn => btn.classList.remove('active'));
+            const tabBtn = document.getElementById(tabName === 'equip' ? 'invTabEquip' : (tabName === 'usable' ? 'invTabUsable' : 'invTabMaterial'));
+            if (tabBtn) tabBtn.classList.add('active');
+        };
+
         function selectClass(cId) {
             audio.play('click');
             document.querySelectorAll('.class-card').forEach(card => card.classList.remove('selected'));

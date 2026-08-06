@@ -1584,7 +1584,15 @@ window.ygoOpenSummonPositionModal = function(idx) {
     }
     
     document.getElementById('ygoSummonPositionModal').style.display = 'flex';
+window.ygoChainRespondClick = function() {
+    const modal = document.getElementById('ygoChainModal');
+    if (modal) modal.style.display = 'none';
 };
+window.ygoChainPassClick = function() {
+    const modal = document.getElementById('ygoChainModal');
+    if (modal) modal.style.display = 'none';
+};
+
 
 window.ygoSummonPositionSelect = function(posType) {
     document.getElementById('ygoSummonPositionModal').style.display = 'none';
