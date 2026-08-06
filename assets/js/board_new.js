@@ -263,7 +263,8 @@ const RACE_CARDS = [
     },
     { id: 'giasam', name: "Bão Thổi Ngược", type: 'fun_spell', rarity: 'rare', desc: "Tạo bão xoáy thổi ngược đứa dẫn đầu lùi 4 ô.",
       effect: function(p) {
-          const leading = boardGame.players.filter(x=>!x.eliminated && x.idx !== p.idx).reduce((a,b) => a.pos > b.pos ? a : b, null);
+          const cand = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
+          const leading = cand.length > 0 ? cand.reduce((a, b) => (a.pos > b.pos ? a : b)) : null;
           if (leading) {
               boardMovePlayer(leading.idx, -4, true);
               return `Tạo bão thổi bay ${leading.name} lùi lại 4 ô!`;
@@ -291,7 +292,8 @@ const RACE_CARDS = [
     },
     { id: 'trollportal', name: "Cổng Dịch Chuyển Troll", type: 'fun_spell', rarity: 'epic', desc: "Mở cổng không gian bay thẳng đến đứng chung ô với đứa dẫn đầu.",
       effect: function(p) {
-          const leading = boardGame.players.filter(x=>!x.eliminated && x.idx !== p.idx).reduce((a,b) => a.pos > b.pos ? a : b, null);
+          const cand = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
+          const leading = cand.length > 0 ? cand.reduce((a, b) => (a.pos > b.pos ? a : b)) : null;
           if (leading && leading.pos > p.pos) {
               p.pos = leading.pos;
               return `Dịch chuyển bay vèo tới đứng chung ô với ${leading.name} (ô số ${p.pos+1})!`;
@@ -309,7 +311,8 @@ const RACE_CARDS = [
       effect: function(p) { return boardTakeDamage(p, this.damage, "lọt hố chông"); } },
     { id: 'trap_set', name: "Sét Đánh", type: 'trap', rarity: 'epic', desc: "Sét đánh trúng đứa dẫn đầu làm mất 1 mạng.", damage: 1,
       effect: function(p) {
-          const L = boardGame.players.filter(x=>!x.eliminated).reduce((a,b) => a.pos > b.pos ? a : b, null); 
+          const candL = boardGame.players.filter(x => !x.eliminated);
+          const L = candL.length > 0 ? candL.reduce((a, b) => (a.pos > b.pos ? a : b)) : null; 
           if(L) return boardTakeDamage(L, this.damage, "bị sét đánh"); 
           return 'Sét đánh hụt.';
       } 
