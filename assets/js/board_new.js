@@ -1285,7 +1285,7 @@ window.boardRenderPlayers = function() {
 
 // ── Khởi tạo ──────────────────────────────────────────────────
 window.openBoardGame = function(pvpMode = false) {
-    audio.play('click');
+    try { if (window.audio) window.audio.play('click'); } catch(e){}
     let betAmount = 0; // default bet
     boardGame = {
         players: [], currentTurn: 0, isRolling: false,
@@ -1512,7 +1512,7 @@ console.log('🏁 [board_new.js] Cờ Đua Sinh Tồn v4 loaded!');
 
 // ── Bet Modal & Triggers ──────────────────────────────────────
 window.openBoardGameWithBet = function() {
-    audio.play('click');
+    try { if (window.audio) window.audio.play('click'); } catch(e){}
     const modal = document.getElementById('boardBetModal');
     if(modal) modal.classList.add('active');
     window._selectedBetAmount = 0;
@@ -1524,20 +1524,20 @@ window.openBoardGameWithBet = function() {
 };
 
 window.selectBetAmount = function(amt) {
-    audio.play('click');
+    try { if (window.audio) window.audio.play('click'); } catch(e){}
     window._selectedBetAmount = amt;
     document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('selected'));
     if(event && event.currentTarget) event.currentTarget.classList.add('selected');
 };
 
 window.closeBetModal = function() {
-    audio.play('click');
+    try { if (window.audio) window.audio.play('click'); } catch(e){}
     const modal = document.getElementById('boardBetModal');
     if(modal) modal.classList.remove('active');
 };
 
 window.confirmBetAndStart = function() {
-    audio.play('click');
+    try { if (window.audio) window.audio.play('click'); } catch(e){}
     let amt = window._selectedBetAmount;
     const customInp = document.getElementById('customBetAmount');
     if(customInp && customInp.value) {
@@ -1558,7 +1558,7 @@ window.confirmBetAndStart = function() {
 };
 
 window.startBoardGameNoBet = function() {
-    audio.play('click');
+    try { if (window.audio) window.audio.play('click'); } catch(e){}
     closeBetModal();
     openBoardGame(false);
 };

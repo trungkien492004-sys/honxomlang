@@ -77,7 +77,7 @@
                 audioEl.play().catch(e => {});
             }
         }
-        const audio = new AudioSynthEngine();
+        const audio = window.audio = new AudioSynthEngine();
 
         // --- 2. DATA DICTIONARIES (CLASSES, MONSTERS, ITEMS, RECIPES, NPCS) ---
         
