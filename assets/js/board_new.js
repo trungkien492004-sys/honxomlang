@@ -2207,7 +2207,9 @@ window.boardRegisterNetworkMessage = function(msg) {
             const roomData = {
                 hostName: playerName,
                 guestName: msg.guestName,
-                betAmount: msg.betAmount
+                betAmount: msg.betAmount,
+                hostId: getMyNetworkId(),
+                guestId: msg.guestId
             };
             boardStartOnlineMatch('host', roomData);
 
@@ -2218,6 +2220,7 @@ window.boardRegisterNetworkMessage = function(msg) {
                     id: getMyNetworkId(),
                     roomId: window.boardOnlineRoomId,
                     guestId: msg.guestId,
+                    hostId: getMyNetworkId(),
                     hostName: playerName,
                     guestName: msg.guestName,
                     betAmount: msg.betAmount,
@@ -2234,7 +2237,9 @@ window.boardRegisterNetworkMessage = function(msg) {
             const roomData = {
                 hostName: msg.hostName,
                 guestName: msg.guestName,
-                betAmount: msg.betAmount
+                betAmount: msg.betAmount,
+                hostId: msg.hostId,
+                guestId: msg.guestId
             };
             boardStartOnlineMatch('guest', roomData);
 
@@ -2258,7 +2263,7 @@ window.boardStartOnlineMatch = function(role, room) {
         players: [], currentTurn: 0, isRolling: false,
         trappedCells: {}, log: [], gameOver: false,
         revealedCells: { 0: true, [BOARD_TOTAL_CELLS - 1]: true },
-        pvp: true, hostId: (role === 'host') ? getMyNetworkId() : 'host_id_placeholder',
+        pvp: true, hostId: (role === 'host') ? getMyNetworkId() : (room.hostId || 'host_id_placeholder'),
         betPool: (room.betAmount || 0) * 2,
         cellZones: []
     };
@@ -2277,7 +2282,7 @@ window.boardStartOnlineMatch = function(role, room) {
 
     // Add Host (idx 0)
     boardGame.players.push({
-        idx: 0, name: room.hostName + ' (Trâu)', networkId: (role === 'host') ? getMyNetworkId() : 'host_net_id',
+        idx: 0, name: room.hostName + ' (Trâu)', networkId: (role === 'host') ? getMyNetworkId() : (room.hostId || 'host_net_id'),
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: RACE_PLAYER_COLORS[0], emoji: '👦', isHuman: (role === 'host'), isBot: false, gold: 0,
         hand: boardDealHand(5)
@@ -2285,7 +2290,7 @@ window.boardStartOnlineMatch = function(role, room) {
 
     // Add Guest (idx 1)
     boardGame.players.push({
-        idx: 1, name: room.guestName + ' (Trẩu)', networkId: (role === 'guest') ? getMyNetworkId() : 'guest_net_id',
+        idx: 1, name: room.guestName + ' (Trẩu)', networkId: (role === 'guest') ? getMyNetworkId() : (room.guestId || 'guest_net_id'),
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: RACE_PLAYER_COLORS[1], emoji: '👾', isHuman: (role === 'guest'), isBot: false, gold: 0,
         hand: boardDealHand(5)
