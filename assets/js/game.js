@@ -1460,10 +1460,11 @@
             if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
             if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
 
-            setTimeout(() => {
-                if (mode === 'board' && window.openBoardGameWithBet) window.openBoardGameWithBet();
-                else if (mode === 'meme' && window.openMemeCardGame) window.openMemeCardGame();
-            }, 50);
+            if (mode === 'board') {
+                try { if (window.openBoardGameWithBet) window.openBoardGameWithBet(); } catch(e) { console.error('openBoardGameWithBet error:', e); }
+            } else if (mode === 'meme') {
+                try { if (window.openMemeCardGame) window.openMemeCardGame(); } catch(e) { console.error('openMemeCardGame error:', e); }
+            }
         }
         window.selectGameMode = selectGameMode;
 

@@ -376,7 +376,7 @@ function mcRenderPhaseButtons() {
 }
 
 // ────────────────── OPEN / CLOSE / SCREENS ──────────────────
-function openMemeCardGame() {
+window.openMemeCardGame = function openMemeCardGame() {
   const modal = document.getElementById('memecardGameModal');
   if (!modal) { console.error('[memecard] #memecardGameModal not found'); return; }
   modal.style.display = 'flex';

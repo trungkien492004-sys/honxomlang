@@ -1523,11 +1523,12 @@ window.openBoardGameWithBet = function() {
     }
 };
 
-window.selectBetAmount = function(amt) {
+window.selectBetAmount = function(amt, ev) {
     try { if (window.audio) window.audio.play('click'); } catch(e){}
     window._selectedBetAmount = amt;
     document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('selected'));
-    if(event && event.currentTarget) event.currentTarget.classList.add('selected');
+    const target = (ev && ev.currentTarget) ? ev.currentTarget : (typeof event !== 'undefined' && event ? event.currentTarget : null);
+    if (target) target.classList.add('selected');
 };
 
 window.closeBetModal = function() {
