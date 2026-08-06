@@ -2275,6 +2275,12 @@ window.boardLobbyCancel = function() {
 window.boardLobbyStartMatch = function() {
     if (window.boardOnlineRole !== 'host') return;
     
+    // Clear Host presence ping interval to stop broadcasting lobby ping
+    if (window.boardRoomPingInterval) {
+        clearInterval(window.boardRoomPingInterval);
+        window.boardRoomPingInterval = null;
+    }
+    
     // Start match locally as host
     const roomData = {
         hostName: window.boardLobbyData.hostName,
@@ -2456,6 +2462,12 @@ window.boardRegisterNetworkMessage = function(msg) {
 
         // Host receives guest join, updates lobby UI and notifies Guest
         if (msg.type === 'BOARD_ROOM_JOIN' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'host') {
+            // Ignore join request if the match has already started (lobby overlay is closed)
+            const el = document.getElementById('boardLobbyOverlay');
+            if (!el || el.style.display === 'none') {
+                return;
+            }
+
             window.boardLobbyData.guestName = msg.guestName;
             window.boardLobbyData.guestId = msg.guestId;
             
