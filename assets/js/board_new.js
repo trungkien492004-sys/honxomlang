@@ -1183,7 +1183,7 @@ window.boardRenderGrid = function() {
         'display:flex',
         'align-items:flex-start',
         'justify-content:flex-start',
-        'padding:10px'
+        'padding:10px 600px 350px 10px'
     ].join(';');
 
     const canvas = document.createElement('div');
