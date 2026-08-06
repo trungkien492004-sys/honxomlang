@@ -2108,14 +2108,195 @@ window.boardRenderActiveRoomsList = function() {
     });
 };
 
+window.boardLobbyData = {
+    hostName: '',
+    guestName: '',
+    guestId: null,
+    betAmount: 0,
+    botCount: 2
+};
+
+window.boardShowLobbyUI = function(roomId, role, data) {
+    if (data) {
+        window.boardLobbyData = { ...window.boardLobbyData, ...data };
+    }
+    
+    let el = document.getElementById('boardLobbyOverlay');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'boardLobbyOverlay';
+        el.style.cssText = 'position:fixed; inset:0; background:rgba(15,10,25,0.92); z-index:100060; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; font-family:\'Baloo 2\', \'Quicksand\', sans-serif; color:#fff;';
+        document.body.appendChild(el);
+    }
+    el.style.display = 'flex';
+
+    const isHost = (role === 'host');
+    const guestLabel = window.boardLobbyData.guestName ? `🟢 Khách: ${window.boardLobbyData.guestName}` : `⏳ Chờ người chơi tham gia...`;
+    
+    // Host can select bot count
+    let botSelectorHTML = '';
+    if (isHost) {
+        botSelectorHTML = `
+            <div style="margin: 15px 0; text-align:left; width:100%;">
+                <label style="font-size:0.85rem; color:#aaa; display:block; margin-bottom:5px;">🤖 Số lượng BOT thêm vào:</label>
+                <select id="boardLobbyBotSelect" style="background:#242230; color:#fff; border:1px solid #4d4566; padding:6px 12px; border-radius:6px; width:100%; font-family:inherit; cursor:pointer;" onchange="window.boardLobbyChangeBot(this.value)">
+                    <option value="0" ${window.boardLobbyData.botCount === 0 ? 'selected' : ''}>0 Bot (Đấu đôi)</option>
+                    <option value="1" ${window.boardLobbyData.botCount === 1 ? 'selected' : ''}>1 Bot (3 người)</option>
+                    <option value="2" ${window.boardLobbyData.botCount === 2 ? 'selected' : ''}>2 Bot (Đủ 4 người)</option>
+                </select>
+            </div>
+        `;
+    } else {
+        botSelectorHTML = `
+            <div style="margin: 15px 0; text-align:left; width:100%; background:#242230; padding:8px 12px; border-radius:6px; border:1px solid #4d4566; box-sizing:border-box;">
+                <span style="font-size:0.85rem; color:#aaa;">🤖 Số lượng BOT thêm vào:</span>
+                <strong style="color:#ffb3c6; font-size:0.9rem; float:right;">${window.boardLobbyData.botCount} Bots</strong>
+            </div>
+        `;
+    }
+
+    let actionButtonHTML = '';
+    if (isHost) {
+        const canStart = !!window.boardLobbyData.guestName;
+        actionButtonHTML = `
+            <button class="btn" id="boardLobbyStartBtn" style="background:#10b981; border:none; padding:10px 20px; font-size:0.95rem; color:#fff; border-radius:8px; cursor:pointer; width:100%; font-weight:bold; ${canStart ? '' : 'background:#4b5563; cursor:not-allowed;'}" ${canStart ? '' : 'disabled'} onclick="window.boardLobbyStartMatch()">🚀 BẮT ĐẦU TRẬN ĐẤU</button>
+        `;
+    } else {
+        actionButtonHTML = `
+            <div style="text-align:center; font-size:0.85rem; color:#cbd5e1; font-style:italic; padding:10px 0;">⏳ Chờ chủ phòng bắt đầu trận đấu...</div>
+        `;
+    }
+
+    el.innerHTML = `
+        <div style="background:linear-gradient(135deg, #1b162b, #0f0b18); border:2px solid #6366f1; border-radius:16px; padding:28px; text-align:center; width:340px; box-shadow:0 0 30px rgba(99,102,241,0.4);">
+            <div style="font-size:2.8rem; margin-bottom:10px;">🎮</div>
+            <div style="font-weight:bold; font-size:1.3rem; color:#a5b4fc; margin-bottom:4px;">PHÒNG CHỜ TRẬN ĐẤU</div>
+            <div style="font-size:0.8rem; color:#818cf8; margin-bottom:20px; background:rgba(99,102,241,0.1); padding:4px 8px; border-radius:6px; display:inline-block;">Mã phòng: ${roomId}</div>
+            
+            <div style="background:rgba(255,255,255,0.03); border-radius:10px; padding:12px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.05); text-align:left;">
+                <div style="font-size:0.85rem; font-weight:bold; color:#a5b4fc; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px; margin-bottom:8px;">👥 Danh sách thành viên:</div>
+                <div style="font-size:0.9rem; margin-bottom:6px; color:#22c55e;">👑 Chủ phòng: ${window.boardLobbyData.hostName}</div>
+                <div style="font-size:0.9rem; color:${window.boardLobbyData.guestName ? '#38bdf8' : '#aaa'};">${guestLabel}</div>
+            </div>
+            
+            ${botSelectorHTML}
+            
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+                ${actionButtonHTML}
+                <button class="btn" style="background:#ef4444; border:none; padding:8px 16px; font-size:0.85rem; color:#fff; border-radius:8px; cursor:pointer;" onclick="window.boardLobbyCancel()">❌ Thoát phòng</button>
+            </div>
+        </div>
+    `;
+};
+
+window.boardLobbyChangeBot = function(val) {
+    const count = parseInt(val) || 0;
+    window.boardLobbyData.botCount = count;
+    // Broadcast update to Guest
+    if (typeof pvpChannel !== 'undefined') {
+        pvpChannel.postMessage({
+            type: 'BOARD_ROOM_LOBBY_UPDATE',
+            roomId: window.boardOnlineRoomId,
+            id: getMyNetworkId(),
+            hostName: window.boardLobbyData.hostName,
+            guestName: window.boardLobbyData.guestName,
+            botCount: count
+        });
+    }
+};
+
+window.boardLobbyCancel = function() {
+    // Refund gold if Host
+    if (window.boardOnlineRole === 'host' && window.boardLobbyData && window.boardLobbyData.betAmount > 0) {
+        if (window.player) {
+            window.player.gold += window.boardLobbyData.betAmount;
+            if (typeof boardRefreshHud === 'function') boardRefreshHud();
+        }
+    }
+    
+    // Clear intervals
+    if (window.boardRoomPingInterval) {
+        clearInterval(window.boardRoomPingInterval);
+        window.boardRoomPingInterval = null;
+    }
+    
+    // Notify room leave if PVP
+    if (typeof pvpChannel !== 'undefined' && window.boardOnlineRoomId) {
+        pvpChannel.postMessage({
+            type: 'BOARD_ROOM_LEAVE',
+            roomId: window.boardOnlineRoomId,
+            id: getMyNetworkId(),
+            role: window.boardOnlineRole
+        });
+    }
+
+    window.boardOnlineRoomId = null;
+    window.boardOnlineRole = null;
+    
+    const el = document.getElementById('boardLobbyOverlay');
+    if (el) el.style.display = 'none';
+};
+
+window.boardLobbyStartMatch = function() {
+    if (window.boardOnlineRole !== 'host') return;
+    
+    // Start match locally as host
+    const roomData = {
+        hostName: window.boardLobbyData.hostName,
+        guestName: window.boardLobbyData.guestName,
+        betAmount: window.boardLobbyData.betAmount || 0,
+        hostId: getMyNetworkId(),
+        guestId: window.boardLobbyData.guestId,
+        botCount: window.boardLobbyData.botCount
+    };
+    
+    // Start game state
+    boardStartOnlineMatch('host', roomData);
+    
+    // Close Lobby Overlay
+    const el = document.getElementById('boardLobbyOverlay');
+    if (el) el.style.display = 'none';
+    
+    // Broadcast BOARD_ROOM_START with state and botCount
+    if (typeof window.pvpChannel !== 'undefined') {
+        window.pvpChannel.postMessage({
+            type: 'BOARD_ROOM_START',
+            id: getMyNetworkId(),
+            roomId: window.boardOnlineRoomId,
+            guestId: window.boardLobbyData.guestId,
+            hostId: getMyNetworkId(),
+            hostName: window.boardLobbyData.hostName,
+            guestName: window.boardLobbyData.guestName,
+            betAmount: window.boardLobbyData.betAmount || 0,
+            botCount: window.boardLobbyData.botCount,
+            colors: window.boardGameColors,
+            boardState: JSON.parse(JSON.stringify(boardGame))
+        });
+    }
+};
+
 window.boardQuickJoinRoom = function(roomId) {
+    const playerName = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
     window.boardOnlineRole = 'guest';
     window.boardOnlineRoomId = roomId;
-    if (typeof mcShowOnlineStatus === 'function') {
-        mcShowOnlineStatus(`Đang kết nối tới phòng cờ "${roomId}"...`, function() {
-            window.boardOnlineRoomId = null;
-            window.boardOnlineRole = null;
-            if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
+    
+    // Set lobby data and open lobby UI for Guest
+    window.boardLobbyData = {
+        hostName: 'Chủ phòng',
+        guestName: playerName,
+        guestId: getMyNetworkId(),
+        botCount: 2
+    };
+    window.boardShowLobbyUI(roomId, 'guest');
+
+    // Notify Host we joined
+    if (typeof window.pvpChannel !== 'undefined') {
+        window.pvpChannel.postMessage({
+            type: 'BOARD_ROOM_JOIN',
+            id: getMyNetworkId(),
+            roomId: roomId,
+            guestId: getMyNetworkId(),
+            guestName: playerName
         });
     }
 };
@@ -2146,6 +2327,14 @@ window.boardHostOnlineRoom = async function() {
 
         window.boardOnlineRole = 'host';
         window.boardOnlineRoomId = roomId;
+        
+        window.boardLobbyData = {
+            hostName: playerName,
+            guestName: '',
+            guestId: null,
+            betAmount: betAmt,
+            botCount: 2
+        };
 
         if (window.boardRoomPingInterval) clearInterval(window.boardRoomPingInterval);
 
@@ -2163,19 +2352,8 @@ window.boardHostOnlineRoom = async function() {
             }
         }, 1500);
 
-        if (typeof mcShowOnlineStatus === 'function') {
-            mcShowOnlineStatus(`Đang tạo phòng cờ "${roomId}" và chờ đối thủ tham gia...`, function() {
-                if (window.player) window.player.gold += betAmt; // refund on cancel
-                if (typeof boardRefreshHud === 'function') boardRefreshHud();
-                if (window.boardRoomPingInterval) {
-                    clearInterval(window.boardRoomPingInterval);
-                    window.boardRoomPingInterval = null;
-                }
-                window.boardOnlineRoomId = null;
-                window.boardOnlineRole = null;
-                if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
-            });
-        }
+        // Open Lobby UI
+        window.boardShowLobbyUI(roomId, 'host');
     } catch(err) {
         console.error('[boardHostOnlineRoom Error]', err);
         alert('❌ Lỗi khi tạo phòng Online: ' + err.message);
@@ -2187,16 +2365,7 @@ window.boardJoinOnlineRoom = async function() {
         const roomId = prompt('🔑 Nhập mã phòng cờ bạn muốn tham gia:');
         if (!roomId) return;
 
-        window.boardOnlineRole = 'guest';
-        window.boardOnlineRoomId = roomId;
-
-        if (typeof mcShowOnlineStatus === 'function') {
-            mcShowOnlineStatus(`Đang tìm kiếm phòng cờ "${roomId}"...`, function() {
-                window.boardOnlineRoomId = null;
-                window.boardOnlineRole = null;
-                if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
-            });
-        }
+        window.boardQuickJoinRoom(roomId);
     } catch(err) {
         console.error('[boardJoinOnlineRoom Error]', err);
         alert('❌ Lỗi khi vào phòng Online: ' + err.message);
@@ -2250,47 +2419,61 @@ window.boardRegisterNetworkMessage = function(msg) {
             }
         }
 
-        // Host receives guest join, starts the match and broadcasts boardroom_start
+        // Host receives guest join, updates lobby UI and notifies Guest
         if (msg.type === 'BOARD_ROOM_JOIN' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'host') {
-            if (window.boardRoomPingInterval) {
-                clearInterval(window.boardRoomPingInterval);
-                window.boardRoomPingInterval = null;
-            }
-            if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
-
-            // Start match locally as host
-            const gameColors = [...RACE_PLAYER_COLORS].sort(() => Math.random() - 0.5);
-            const roomData = {
-                hostName: playerName,
-                guestName: msg.guestName,
-                betAmount: msg.betAmount,
-                hostId: getMyNetworkId(),
-                guestId: msg.guestId,
-                colors: gameColors
-            };
-            boardStartOnlineMatch('host', roomData);
-
-            // Broadcast BOARD_ROOM_START
+            window.boardLobbyData.guestName = msg.guestName;
+            window.boardLobbyData.guestId = msg.guestId;
+            
+            // Refresh Host Lobby UI (enables Start button)
+            window.boardShowLobbyUI(window.boardOnlineRoomId, 'host');
+            
+            // Send Lobby update to Guest containing hostName, guestName, botCount, etc.
             if (typeof window.pvpChannel !== 'undefined') {
                 window.pvpChannel.postMessage({
-                    type: 'BOARD_ROOM_START',
-                    id: getMyNetworkId(),
+                    type: 'BOARD_ROOM_LOBBY_UPDATE',
                     roomId: window.boardOnlineRoomId,
-                    guestId: msg.guestId,
-                    hostId: getMyNetworkId(),
+                    id: getMyNetworkId(),
                     hostName: playerName,
                     guestName: msg.guestName,
-                    betAmount: msg.betAmount,
-                    colors: gameColors,
-                    boardState: JSON.parse(JSON.stringify(boardGame))
+                    botCount: window.boardLobbyData.botCount
                 });
+            }
+        }
+
+        // Guest receives lobby details from Host
+        if (msg.type === 'BOARD_ROOM_LOBBY_UPDATE' && window.boardOnlineRoomId === msg.roomId) {
+            if (window.boardOnlineRole === 'guest') {
+                window.boardLobbyData.hostName = msg.hostName;
+                window.boardLobbyData.guestName = msg.guestName;
+                window.boardLobbyData.botCount = msg.botCount;
+                window.boardShowLobbyUI(window.boardOnlineRoomId, 'guest');
+            }
+        }
+
+        // Handles room exits / cancels from lobby
+        if (msg.type === 'BOARD_ROOM_LEAVE' && window.boardOnlineRoomId === msg.roomId) {
+            if (msg.role === 'host') {
+                alert('⚠️ Chủ phòng đã hủy phòng chờ.');
+                window.boardOnlineRoomId = null;
+                window.boardOnlineRole = null;
+                const el = document.getElementById('boardLobbyOverlay');
+                if (el) el.style.display = 'none';
+            } else if (msg.role === 'guest') {
+                if (window.boardOnlineRole === 'host') {
+                    window.boardLobbyData.guestName = '';
+                    window.boardLobbyData.guestId = null;
+                    window.boardShowLobbyUI(window.boardOnlineRoomId, 'host');
+                }
             }
         }
 
         // Guest receives start event, starts the match
         if (msg.type === 'BOARD_ROOM_START' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'guest') {
             if (msg.guestId !== getMyNetworkId()) return;
-            if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
+            
+            // Close Lobby Overlay
+            const el = document.getElementById('boardLobbyOverlay');
+            if (el) el.style.display = 'none';
 
             const roomData = {
                 hostName: msg.hostName,
@@ -2298,7 +2481,8 @@ window.boardRegisterNetworkMessage = function(msg) {
                 betAmount: msg.betAmount,
                 hostId: msg.hostId,
                 guestId: msg.guestId,
-                colors: msg.colors
+                colors: msg.colors,
+                botCount: msg.botCount
             };
             boardStartOnlineMatch('guest', roomData);
 
@@ -2383,10 +2567,11 @@ window.boardStartOnlineMatch = function(role, room) {
         hand: boardDealHand(5)
     });
 
-    // Add 2 bots to fill up 4 slots
+    // Add bots to fill up remaining slots based on botCount selection
     const botNames = ['Mầm Mềm Mẽ', 'Kiến Bảo Vệ'];
     const botEmojis = ['👩‍🦰', '👮‍♂️'];
-    for (let i = 0; i < 2; i++) {
+    const botCount = typeof room.botCount === 'number' ? room.botCount : 2;
+    for (let i = 0; i < botCount; i++) {
         boardGame.players.push({
             idx: 2 + i, name: botNames[i], networkId: null,
             pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
