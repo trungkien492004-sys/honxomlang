@@ -735,7 +735,7 @@
             if (layer) layer.style.display = 'none';
         };
 
-	const CLASS_DATA = {
+	const CLASS_DATA = window.CLASS_DATA = {
             cop: { name: "Anh Cảnh Sát", emoji: "👮‍♂️", hp: 160, mp: 40, atk: 12, def: 8, speed: 8.5, skills: [
                 { id: "cop_bash", name: "Dùi Cùi Trấn Áp", icon: "🔨", desc: "Đập mạnh gây sát thương vật lý và làm chậm mục tiêu.", mp: 8, cd: 3000, type: 'target', range: 180, multiplier: 3.2, lastUsed: 0 },
                 { id: "cop_shield", name: "Khiên Công Lý", icon: "🛡️", desc: "Tạo khiên hấp thụ sát thương và hồi HP tức thời.", mp: 12, cd: 6000, type: 'self', lastUsed: 0 },

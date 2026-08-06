@@ -857,7 +857,7 @@ window.openCharacterSelection = async function(user) {
 // xong (window.player/switchScreen/CLASS_DATA chưa tồn tại) — gây crash khi bấm
 // vào nhân vật ngay lập tức. Chờ game engine sẵn sàng rồi mới chạy callback thật.
 function _whenGameReady(fn) {
-    if (window.player && typeof window.switchScreen === 'function' && typeof CLASS_DATA !== 'undefined') {
+    if (window.selectGameMode && window.player && window.CLASS_DATA) {
         fn();
     } else {
         setTimeout(() => _whenGameReady(fn), 60);
