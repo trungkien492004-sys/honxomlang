@@ -821,7 +821,7 @@ window.openCharacterSelection = async function(user) {
                 <div class="class-desc" style="color:#fbbf24;font-weight:bold;margin-bottom:2px;min-height:unset;">Cấp độ: ${data.level || 1}</div>
                 <div class="class-desc" style="min-height:unset;color:#cbd5e1;">💰 ${data.gold || 0} vàng</div>
             `;
-            card.onclick = () => selectExistingCharacter(docId, data);
+            card.onclick = () => window.selectExistingCharacter(docId, data);
             
             // Bắt sự kiện vẽ sau khi thẻ đã được đưa vào DOM
             setTimeout(() => {
@@ -846,7 +846,7 @@ window.openCharacterSelection = async function(user) {
                 <div style="font-size:2.2rem;color:#475569;margin-bottom:8px;">➕</div>
                 <div style="color:#94a3b8;font-weight:bold;font-size:0.95rem;">Tạo Nhân Vật</div>
             `;
-            card.onclick = () => createNewCharacter(docId);
+            card.onclick = () => window.createNewCharacter(docId);
         }
         container.appendChild(card);
     });
