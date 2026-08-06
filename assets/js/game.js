@@ -1339,8 +1339,9 @@
 
             // Lắng nghe bàn phím di chuyển (WASD / Phím mũi tên) và phím tắt menu
             window.addEventListener('keydown', (e) => {
-                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-                let key = e.key.toLowerCase();
+                if (!e || !e.key) return;
+                if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) return;
+                let key = String(e.key).toLowerCase();
                 window.pressedKeys[key] = true;
                 handleKeyDown(e);
                 // ESC Key support to close NPC Dialog & open Game Panels
@@ -1350,12 +1351,19 @@
                 }
             });
             window.addEventListener('keyup', (e) => {
-                let key = e.key.toLowerCase();
+                if (!e || !e.key) return;
+                let key = String(e.key).toLowerCase();
                 window.pressedKeys[key] = false;
             });
 
             // PvP Network Broadcast Incoming Message Route
-            pvpChannel.onmessage = (e) => { handleNetworkMessage(e.data); };
+            pvpChannel.onmessage = (e) => {
+                try {
+                    if (e && e.data) handleNetworkMessage(e.data);
+                } catch(err) {
+                    console.error('[pvpChannel error]', err);
+                }
+            };
             chatChannel.onmessage = (e) => {
                 if(!e.data || !e.data.type) return;
                 if(e.data.type === 'CHAT_MESSAGE') {
