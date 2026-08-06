@@ -2724,7 +2724,7 @@ window.mcRegisterNetworkMessage = function(msg) {
 
   // Guest receives start event, starts the duel
   if (msg.type === 'MC_ROOM_START' && window.mcOnlineRoomId === msg.roomId && window.mcOnlineRole === 'guest') {
-    if (msg.guestId !== myNetworkId) return;
+    if (msg.guestId !== getMyNetworkId()) return;
     mcHideOnlineStatus();
 
     const room = {

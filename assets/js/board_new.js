@@ -2007,153 +2007,176 @@ window.boardOnlineRoomId = null;
 window.boardRoomPingInterval = null;
 
 window.boardHostOnlineRoom = async function() {
-    let betAmt = window._selectedBetAmount || 0;
-    const customInp = document.getElementById('customBetAmount');
-    if(customInp && customInp.value) {
-        betAmt = parseInt(customInp.value) || 0;
-    }
-    if (player.gold < betAmt) {
-        showToast('⚠️ Không đủ vàng để cược!');
-        return;
-    }
+    try {
+        let betAmt = window._selectedBetAmount || 0;
+        const customInp = document.getElementById('customBetAmount');
+        if(customInp && customInp.value) {
+            betAmt = parseInt(customInp.value) || 0;
+        }
+        const currentGold = (window.player && typeof window.player.gold !== 'undefined') ? window.player.gold : 150;
+        if (currentGold < betAmt) {
+            if (typeof showToast === 'function') showToast('⚠️ Không đủ vàng để cược!');
+            else alert('⚠️ Không đủ vàng để cược!');
+            return;
+        }
 
-    const defaultRoomName = 'board_' + (window.player && window.player.name ? window.player.name : Math.floor(Math.random() * 1000));
-    const roomId = prompt('🔑 Nhập mã phòng Cờ Đua của bạn:', defaultRoomName);
-    if (!roomId) return;
+        const playerName = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
+        const defaultRoomName = 'board_' + playerName;
+        const roomId = prompt('🔑 Nhập mã phòng Cờ Đua của bạn:', defaultRoomName);
+        if (!roomId) return;
 
-    // Deduct bet amount upfront
-    player.gold -= betAmt;
-    boardRefreshHud();
-    closeBetModal();
+        // Deduct bet amount upfront
+        if (window.player) window.player.gold -= betAmt;
+        if (typeof boardRefreshHud === 'function') boardRefreshHud();
+        if (typeof window.closeBetModal === 'function') window.closeBetModal();
 
-    window.boardOnlineRole = 'host';
-    window.boardOnlineRoomId = roomId;
+        window.boardOnlineRole = 'host';
+        window.boardOnlineRoomId = roomId;
 
-    if (window.boardRoomPingInterval) clearInterval(window.boardRoomPingInterval);
+        if (window.boardRoomPingInterval) clearInterval(window.boardRoomPingInterval);
 
-    window.boardRoomPingInterval = setInterval(() => {
-        if (!window.boardOnlineRoomId || window.boardOnlineRole !== 'host') return;
-        if (typeof window.pvpChannel !== 'undefined') {
-            window.pvpChannel.postMessage({
-                type: 'BOARD_ROOM_PING',
-                id: getMyNetworkId(),
-                roomId: window.boardOnlineRoomId,
-                hostId: getMyNetworkId(),
-                hostName: player.name,
-                betAmount: betAmt
+        window.boardRoomPingInterval = setInterval(() => {
+            if (!window.boardOnlineRoomId || window.boardOnlineRole !== 'host') return;
+            if (typeof window.pvpChannel !== 'undefined') {
+                window.pvpChannel.postMessage({
+                    type: 'BOARD_ROOM_PING',
+                    id: getMyNetworkId(),
+                    roomId: window.boardOnlineRoomId,
+                    hostId: getMyNetworkId(),
+                    hostName: playerName,
+                    betAmount: betAmt
+                });
+            }
+        }, 1500);
+
+        if (typeof mcShowOnlineStatus === 'function') {
+            mcShowOnlineStatus(`Đang tạo phòng cờ "${roomId}" và chờ đối thủ tham gia...`, function() {
+                if (window.player) window.player.gold += betAmt; // refund on cancel
+                if (typeof boardRefreshHud === 'function') boardRefreshHud();
+                if (window.boardRoomPingInterval) {
+                    clearInterval(window.boardRoomPingInterval);
+                    window.boardRoomPingInterval = null;
+                }
+                window.boardOnlineRoomId = null;
+                window.boardOnlineRole = null;
+                if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
             });
         }
-    }, 1500);
-
-    mcShowOnlineStatus(`Đang tạo phòng cờ "${roomId}" và chờ đối thủ tham gia...`, function() {
-        player.gold += betAmt; // refund on cancel
-        boardRefreshHud();
-        if (window.boardRoomPingInterval) {
-            clearInterval(window.boardRoomPingInterval);
-            window.boardRoomPingInterval = null;
-        }
-        window.boardOnlineRoomId = null;
-        window.boardOnlineRole = null;
-        mcHideOnlineStatus();
-    });
+    } catch(err) {
+        console.error('[boardHostOnlineRoom Error]', err);
+        alert('❌ Lỗi khi tạo phòng Online: ' + err.message);
+    }
 };
 
 window.boardJoinOnlineRoom = async function() {
-    const roomId = prompt('🔑 Nhập mã phòng cờ bạn muốn tham gia:');
-    if (!roomId) return;
+    try {
+        const roomId = prompt('🔑 Nhập mã phòng cờ bạn muốn tham gia:');
+        if (!roomId) return;
 
-    window.boardOnlineRole = 'guest';
-    window.boardOnlineRoomId = roomId;
+        window.boardOnlineRole = 'guest';
+        window.boardOnlineRoomId = roomId;
 
-    mcShowOnlineStatus(`Đang tìm kiếm phòng cờ "${roomId}"...`, function() {
-        window.boardOnlineRoomId = null;
-        window.boardOnlineRole = null;
-        mcHideOnlineStatus();
-    });
+        if (typeof mcShowOnlineStatus === 'function') {
+            mcShowOnlineStatus(`Đang tìm kiếm phòng cờ "${roomId}"...`, function() {
+                window.boardOnlineRoomId = null;
+                window.boardOnlineRole = null;
+                if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
+            });
+        }
+    } catch(err) {
+        console.error('[boardJoinOnlineRoom Error]', err);
+        alert('❌ Lỗi khi vào phòng Online: ' + err.message);
+    }
 };
 
 window.boardRegisterNetworkMessage = function(msg) {
     if (!msg) return;
+    try {
+        const playerName = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
 
-    // Guest hears host ping, checks bet amount, and replies with join request
-    if (msg.type === 'BOARD_ROOM_PING' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'guest') {
-        const betAmt = msg.betAmount || 0;
-        if (player.gold < betAmt) {
-            alert(`⚠️ Bạn không đủ vàng! Cần ít nhất ${betAmt} vàng để tham gia.`);
-            window.boardOnlineRoomId = null;
-            window.boardOnlineRole = null;
-            mcHideOnlineStatus();
-            return;
+        // Guest hears host ping, checks bet amount, and replies with join request
+        if (msg.type === 'BOARD_ROOM_PING' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'guest') {
+            const betAmt = msg.betAmount || 0;
+            const currentGold = (window.player && typeof window.player.gold !== 'undefined') ? window.player.gold : 150;
+            if (currentGold < betAmt) {
+                alert(`⚠️ Bạn không đủ vàng! Cần ít nhất ${betAmt} vàng để tham gia.`);
+                window.boardOnlineRoomId = null;
+                window.boardOnlineRole = null;
+                if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
+                return;
+            }
+
+            // Deduct bet amount
+            if (window.player) window.player.gold -= betAmt;
+            if (typeof boardRefreshHud === 'function') boardRefreshHud();
+            if (typeof window.closeBetModal === 'function') window.closeBetModal();
+
+            if (typeof window.pvpChannel !== 'undefined') {
+                window.pvpChannel.postMessage({
+                    type: 'BOARD_ROOM_JOIN',
+                    id: getMyNetworkId(),
+                    roomId: window.boardOnlineRoomId,
+                    guestId: getMyNetworkId(),
+                    guestName: playerName,
+                    betAmount: betAmt
+                });
+            }
         }
 
-        // Deduct bet amount
-        player.gold -= betAmt;
-        boardRefreshHud();
-        closeBetModal();
+        // Host receives guest join, starts the match and broadcasts boardroom_start
+        if (msg.type === 'BOARD_ROOM_JOIN' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'host') {
+            if (window.boardRoomPingInterval) {
+                clearInterval(window.boardRoomPingInterval);
+                window.boardRoomPingInterval = null;
+            }
+            if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
 
-        if (typeof window.pvpChannel !== 'undefined') {
-            window.pvpChannel.postMessage({
-                type: 'BOARD_ROOM_JOIN',
-                id: getMyNetworkId(),
-                roomId: window.boardOnlineRoomId,
-                guestId: getMyNetworkId(),
-                guestName: player.name,
-                betAmount: betAmt
-            });
-        }
-    }
-
-    // Host receives guest join, starts the match and broadcasts boardroom_start
-    if (msg.type === 'BOARD_ROOM_JOIN' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'host') {
-        if (window.boardRoomPingInterval) {
-            clearInterval(window.boardRoomPingInterval);
-            window.boardRoomPingInterval = null;
-        }
-        mcHideOnlineStatus();
-
-        // Start match locally as host
-        const roomData = {
-            hostName: player.name,
-            guestName: msg.guestName,
-            betAmount: msg.betAmount
-        };
-        boardStartOnlineMatch('host', roomData);
-
-        // Broadcast BOARD_ROOM_START
-        if (typeof window.pvpChannel !== 'undefined') {
-            window.pvpChannel.postMessage({
-                type: 'BOARD_ROOM_START',
-                id: getMyNetworkId(),
-                roomId: window.boardOnlineRoomId,
-                guestId: msg.guestId,
-                hostName: player.name,
+            // Start match locally as host
+            const roomData = {
+                hostName: playerName,
                 guestName: msg.guestName,
-                betAmount: msg.betAmount,
-                boardState: JSON.parse(JSON.stringify(boardGame))
-            });
+                betAmount: msg.betAmount
+            };
+            boardStartOnlineMatch('host', roomData);
+
+            // Broadcast BOARD_ROOM_START
+            if (typeof window.pvpChannel !== 'undefined') {
+                window.pvpChannel.postMessage({
+                    type: 'BOARD_ROOM_START',
+                    id: getMyNetworkId(),
+                    roomId: window.boardOnlineRoomId,
+                    guestId: msg.guestId,
+                    hostName: playerName,
+                    guestName: msg.guestName,
+                    betAmount: msg.betAmount,
+                    boardState: JSON.parse(JSON.stringify(boardGame))
+                });
+            }
         }
-    }
 
-    // Guest receives start event, starts the match
-    if (msg.type === 'BOARD_ROOM_START' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'guest') {
-        if (msg.guestId !== myNetworkId) return;
-        mcHideOnlineStatus();
+        // Guest receives start event, starts the match
+        if (msg.type === 'BOARD_ROOM_START' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'guest') {
+            if (msg.guestId !== getMyNetworkId()) return;
+            if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
 
-        const roomData = {
-            hostName: msg.hostName,
-            guestName: msg.guestName,
-            betAmount: msg.betAmount
-        };
-        boardStartOnlineMatch('guest', roomData);
+            const roomData = {
+                hostName: msg.hostName,
+                guestName: msg.guestName,
+                betAmount: msg.betAmount
+            };
+            boardStartOnlineMatch('guest', roomData);
 
-        // Sync initial state
-        boardSyncOnlineState(msg);
-    }
+            // Sync initial state
+            boardSyncOnlineState(msg);
+        }
 
-    // Both sync state during the match
-    if (msg.type === 'BOARD_ROOM_STATE' && window.boardOnlineRoomId === msg.roomId) {
-        if (msg.lastActionBy === window.boardOnlineRole) return;
-        boardSyncOnlineState(msg);
+        // Both sync state during the match
+        if (msg.type === 'BOARD_ROOM_STATE' && window.boardOnlineRoomId === msg.roomId) {
+            if (msg.lastActionBy === window.boardOnlineRole) return;
+            boardSyncOnlineState(msg);
+        }
+    } catch (err) {
+        console.error('[boardRegisterNetworkMessage Error]', err);
     }
 };
 
