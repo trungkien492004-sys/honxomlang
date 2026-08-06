@@ -1584,6 +1584,7 @@ window.ygoOpenSummonPositionModal = function(idx) {
     }
     
     document.getElementById('ygoSummonPositionModal').style.display = 'flex';
+};
 window.ygoChainRespondClick = function() {
     const modal = document.getElementById('ygoChainModal');
     if (modal) modal.style.display = 'none';

@@ -790,7 +790,13 @@ window.boardMovePlayer = function(idx, steps, animate) {
     let next = p.pos + steps;
     p.pos = Math.max(0, Math.min(BOARD_TOTAL_CELLS - 1, next));
     boardGame.revealedCells[p.pos] = true; // ô chỉ lộ hình khi thật sự có người đi tới
-    if(animate) { boardRenderGrid(); boardRenderPlayers(); }
+    if(animate) { 
+        boardRenderGrid(); 
+        boardRenderPlayers(); 
+        if (window.boardScrollToCurrentPlayer) {
+            window.boardScrollToCurrentPlayer(idx);
+        }
+    }
 };
 
 // ── Bài trên tay (Hand Cards) — 5 lá có lợi ngẫu nhiên/người, dùng bất cứ lúc nào ──
@@ -1242,9 +1248,10 @@ window.boardRenderGrid = function() {
 
 // Lia màn hình bàn cờ tới đúng ô của người đang tới lượt (bàn 100 ô không thể
 // hiện hết cùng lúc nên cần "camera" bám theo lượt chơi).
-window.boardScrollToCurrentPlayer = function() {
+window.boardScrollToCurrentPlayer = function(targetIdx) {
     if (!boardGame || !boardGame.players.length) return;
-    let cur = boardGame.players[boardGame.currentTurn];
+    let idx = (typeof targetIdx === 'number') ? targetIdx : boardGame.currentTurn;
+    let cur = boardGame.players[idx];
     if (!cur) return;
     let cellEl = document.getElementById(`bcell_${cur.pos}`);
     let grid = document.getElementById('boardGrid');
@@ -1621,6 +1628,9 @@ window.boardRollForCurrentPlayer = function() {
     if(!cur) return;
     boardGame.isRolling = true;
     window.boardUpdateRollBtn();
+    if (window.boardScrollToCurrentPlayer) {
+        window.boardScrollToCurrentPlayer(boardGame.currentTurn);
+    }
     window.boardDoRollAnimation(cur, () => {
         boardGame.isRolling = false;
         // Đã bỏ luật "tung 6 được thêm lượt" theo yêu cầu — mỗi lượt chỉ đi 1 lần dù ra số gì.
@@ -2008,6 +2018,52 @@ window.boardCloseShop = function() {
 window.boardOnlineRole = null;
 window.boardOnlineRoomId = null;
 window.boardRoomPingInterval = null;
+window.boardActiveRooms = {};
+
+window.boardRenderActiveRoomsList = function() {
+    const listEl = document.getElementById('boardActiveRoomsList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    
+    // Clean expired rooms (> 5s)
+    const now = Date.now();
+    for (let id in window.boardActiveRooms) {
+        if (now - window.boardActiveRooms[id].lastSeen > 5000) {
+            delete window.boardActiveRooms[id];
+        }
+    }
+    
+    const rooms = Object.values(window.boardActiveRooms);
+    if (rooms.length === 0) {
+        listEl.innerHTML = '<div style="font-size:0.75rem; color:#666; text-align:center; padding: 4px 0;">Chưa phát hiện phòng online nào đang chờ...</div>';
+        return;
+    }
+    
+    rooms.forEach(room => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#242230; border:1px solid #4d4566; border-radius:8px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center;';
+        row.innerHTML = `
+            <div style="text-align:left;">
+                <div style="font-weight:bold; font-size:0.8rem; color:#ffb3c6;">🎮 Phòng: ${room.roomId}</div>
+                <div style="font-size:0.7rem; color:#aaa;">Chủ: ${room.hostName} | Cược: ${room.betAmount}💰</div>
+            </div>
+            <button class="btn-sm" style="background:#10b981; border:none; padding:4px 8px; font-size:0.75rem; color:#fff; border-radius:4px; cursor:pointer;" onclick="window.boardQuickJoinRoom('${room.roomId}')">Vào chơi</button>
+        `;
+        listEl.appendChild(row);
+    });
+};
+
+window.boardQuickJoinRoom = function(roomId) {
+    window.boardOnlineRole = 'guest';
+    window.boardOnlineRoomId = roomId;
+    if (typeof mcShowOnlineStatus === 'function') {
+        mcShowOnlineStatus(`Đang kết nối tới phòng cờ "${roomId}"...`, function() {
+            window.boardOnlineRoomId = null;
+            window.boardOnlineRole = null;
+            if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
+        });
+    }
+};
 
 window.boardHostOnlineRoom = async function() {
     try {
@@ -2096,6 +2152,19 @@ window.boardRegisterNetworkMessage = function(msg) {
     if (!msg) return;
     try {
         const playerName = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
+
+        if (msg.type === 'BOARD_ROOM_PING') {
+            window.boardActiveRooms = window.boardActiveRooms || {};
+            window.boardActiveRooms[msg.roomId] = {
+                roomId: msg.roomId,
+                hostName: msg.hostName,
+                betAmount: msg.betAmount,
+                lastSeen: Date.now()
+            };
+            if (typeof window.boardRenderActiveRoomsList === 'function') {
+                window.boardRenderActiveRoomsList();
+            }
+        }
 
         // Guest hears host ping, checks bet amount, and replies with join request
         if (msg.type === 'BOARD_ROOM_PING' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'guest') {
