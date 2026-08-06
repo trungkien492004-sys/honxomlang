@@ -464,6 +464,13 @@ window.boardProcessTurn = function(p, roll, callback) {
             if(callback) callback();
         };
 
+        // PVP Check: Only Host calculates cell land rules on fasthidden finalize
+        const isHost = !boardGame.pvp || boardGame.hostId === getMyNetworkId();
+        if (!isHost) {
+            finalizeTurn();
+            return;
+        }
+
         const handleWinOrCard = () => {
             if(p.pos >= BOARD_TOTAL_CELLS - 1) {
                 boardGame.gameOver = true;
@@ -524,6 +531,14 @@ window.boardProcessTurn = function(p, roll, callback) {
                 boardRenderPlayers();
                 if(callback) callback();
             };
+            
+            // PVP Check: Only Host calculates cell land rules on hidden interval finalize
+            const isHost = !boardGame.pvp || boardGame.hostId === getMyNetworkId();
+            if (!isHost) {
+                finalizeTurn();
+                return;
+            }
+
             const handleWinOrCard = () => {
                 if(p.pos >= BOARD_TOTAL_CELLS - 1) {
                     boardGame.gameOver = true;
@@ -563,6 +578,15 @@ window.boardProcessTurn = function(p, roll, callback) {
             
             setTimeout(() => {
                 if(p.eliminated) {
+                    if(callback) callback();
+                    return;
+                }
+
+                // PVP Check: Only Host calculates cell land rules on normal interval finalize
+                const isHost = !boardGame.pvp || boardGame.hostId === getMyNetworkId();
+                if (!isHost) {
+                    boardRenderGrid();
+                    boardRenderPlayers();
                     if(callback) callback();
                     return;
                 }
