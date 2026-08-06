@@ -20,11 +20,11 @@
             <input type="text" id="usernameInp" class="login-input" placeholder="Tài khoản..." maxlength="20" style="padding:12px; border-radius:8px; border:2px solid #334155; background:#1e293b; color:white; font-size:1.1rem; text-align:center; outline:none;">
             <input type="password" id="passwordInp" class="login-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)..." maxlength="20" style="padding:12px; border-radius:8px; border:2px solid #334155; background:#1e293b; color:white; font-size:1.1rem; text-align:center; outline:none;">
             <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="submitClassicLogin('login')" id="classicLoginBtn" style="flex:1;">ĐĂNG NHẬP</button>
-                <button class="btn" onclick="submitClassicLogin('register')" id="classicRegisterBtn" style="flex:1; background:#0ea5e9;">ĐĂNG KÝ</button>
+                <button class="btn" onclick="window.submitClassicLogin('login')" id="classicLoginBtn" style="flex:1;">ĐĂNG NHẬP</button>
+                <button class="btn" onclick="window.submitClassicLogin('register')" id="classicRegisterBtn" style="flex:1; background:#0ea5e9;">ĐĂNG KÝ</button>
             </div>
             <div style="text-align:center; color:#94a3b8; font-size:0.9rem;">HOẶC</div>
-            <button class="btn btn-google" onclick="loginWithGoogle()">
+            <button class="btn btn-google" onclick="window.loginWithGoogle()">
                 <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.3 30.2 0 24 0 14.7 0 6.7 5.4 2.7 13.3l7.9 6.1C12.5 13.3 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.2-.4-4.7H24v9h12.4c-.5 2.8-2.2 5.2-4.6 6.8l7.2 5.6C46.1 24.5 0 24 0 24s1 8.8 2.7 12.8l7.9-6.1z"/><path fill="#FBBC05" d="M10.6 28.7c-.6-1.7-.9-3.4-.9-5.2s.3-3.6.9-5.2l-7.9-6.1C1 15.2 0 19.5 0 24s1 8.8 2.7 12.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.2-5.6c-2 1.4-4.6 2.2-8 2.2-6.2 0-11.5-3.8-13.4-9.4l-7.9 6.1C6.7 42.6 14.7 48 24 48z"/></svg>
                 Đăng nhập bằng Google
             </button>
@@ -39,19 +39,19 @@
             <p>Vui lòng chọn máy chủ để tiếp tục cuộc hành trình</p>
         </div>
         <div class="class-container" id="serverListContainer" style="max-width:600px;">
-            <div class="class-card" onclick="selectServer('S1')">
+            <div class="class-card" onclick="window.selectServer('S1')">
                 <h2 style="color:#fbbf24; margin-bottom:10px;">[S1] Tân Thủ</h2>
                 <p style="font-size:0.9rem; color:#94a3b8;">Máy chủ khởi nguyên. Rất đông đúc.</p>
                 <div style="margin-top:10px; font-weight:bold; color:#4ade80;">Trạng thái: Tốt</div>
             </div>
-            <div class="class-card" onclick="selectServer('S2')">
+            <div class="class-card" onclick="window.selectServer('S2')">
                 <h2 style="color:#f87171; margin-bottom:10px;">[S2] Hỗn Độn</h2>
                 <p style="font-size:0.9rem; color:#94a3b8;">Máy chủ mới mở. EXP x2.</p>
                 <div style="margin-top:10px; font-weight:bold; color:#fbbf24;">Trạng thái: Đang Hot</div>
             </div>
         </div>
         <div style="text-align:center; margin-top:20px;">
-            <button class="btn" style="background:#475569;" onclick="signOutUser()">Đăng Xuất</button>
+            <button class="btn" style="background:#475569;" onclick="window.signOutUser()">Đăng Xuất</button>
         </div>
     </div>
 
@@ -65,7 +65,7 @@
             <div style="color:#94a3b8; width:100%; text-align:center;">Đang tải dữ liệu Cloud...</div>
         </div>
         <div style="text-align:center; margin-top:20px;">
-            <button class="btn" style="background:#475569;" onclick="signOutUser()">Đăng Xuất</button>
+            <button class="btn" style="background:#475569;" onclick="window.signOutUser()">Đăng Xuất</button>
         </div>
     </div>
 
@@ -129,7 +129,7 @@
         <canvas id="gameCanvas"></canvas>
 
         <div class="top-hud">
-            <div class="player-info" style="cursor: pointer;" onclick="togglePanel('status')">
+            <div class="player-info" style="cursor: pointer;" onclick="window.togglePanel('status')">
                 <div class="avatar" id="hudAvatar" style="padding:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); border:2px solid var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.2);"><canvas id="hudAvatarCanvas" width="60" height="60" style="width:60px; height:60px; display:block; image-rendering: -webkit-optimize-contrast;"></canvas></div>
                 <div>
                     <div style="font-weight: 800; font-size: 1.05rem; color:var(--gold);" id="hudName">Player (Lv.1)</div>
@@ -154,7 +154,7 @@
             <div id="buffContainer" style="display:flex; gap:6px; margin-top:8px; pointer-events:none;"></div>
         </div>
 
-        <button id="mainMenuBtn" onclick="toggleMainMenu()" style="position:fixed; top:12px; right:12px; z-index:99999; background:#8b5a2b; border:2.5px solid #d4af37; border-radius:8px; width:45px; height:45px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; font-size:1.5rem; font-family:'Baloo 2', sans-serif; box-shadow:0 4px 8px rgba(0,0,0,0.5);">☰</button>
+        <button id="mainMenuBtn" onclick="window.toggleMainMenu()" style="position:fixed; top:12px; right:12px; z-index:99999; background:#8b5a2b; border:2.5px solid #d4af37; border-radius:8px; width:45px; height:45px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; font-size:1.5rem; font-family:'Baloo 2', sans-serif; box-shadow:0 4px 8px rgba(0,0,0,0.5);">☰</button>
 
         <div class="right-top-box">
             <canvas id="minimap"></canvas>
@@ -174,19 +174,19 @@
                 <div style="font-size:1.8rem; pointer-events:none;">☰</div>
             </div>
             <div id="hudNavContainer" class="nav-container">
-                <button class="nav-btn" onclick="togglePanel('auto')" style="background:rgba(16,185,129,0.2); border-color:#10b981;">🤖 Tự Động</button>
-                <button class="nav-btn" onclick="togglePanel('inventory')">🎒 Hành Trang</button>
-                <button class="nav-btn" onclick="togglePanel('skills')">⚡ Kỹ Năng</button>
-                <button class="nav-btn" onclick="togglePanel('equipment')">🛡️ Trang Bị</button>
-                <button class="nav-btn" onclick="togglePanel('quests')">📜 Nhiệm Vụ</button>
-                <button class="nav-btn" onclick="togglePanel('pvp')">⚔️ Đấu Trường</button>
-                <button class="nav-btn" onclick="togglePanel('party')">🤝 Tổ Đội</button>
-                <button class="nav-btn" id="chatNavBtn" onclick="togglePanel('chat')">💬 Chat Tổng</button>
-                <button class="nav-btn" onclick="togglePanel('bet')">🏟️ Cược Bóng</button>
+                <button class="nav-btn" onclick="window.togglePanel('auto')" style="background:rgba(16,185,129,0.2); border-color:#10b981;">🤖 Tự Động</button>
+                <button class="nav-btn" onclick="window.togglePanel('inventory')">🎒 Hành Trang</button>
+                <button class="nav-btn" onclick="window.togglePanel('skills')">⚡ Kỹ Năng</button>
+                <button class="nav-btn" onclick="window.togglePanel('equipment')">🛡️ Trang Bị</button>
+                <button class="nav-btn" onclick="window.togglePanel('quests')">📜 Nhiệm Vụ</button>
+                <button class="nav-btn" onclick="window.togglePanel('pvp')">⚔️ Đấu Trường</button>
+                <button class="nav-btn" onclick="window.togglePanel('party')">🤝 Tổ Đội</button>
+                <button class="nav-btn" id="chatNavBtn" onclick="window.togglePanel('chat')">💬 Chat Tổng</button>
+                <button class="nav-btn" onclick="window.togglePanel('bet')">🏟️ Cược Bóng</button>
                 <button class="nav-btn" onclick="openBoardGameWithBet()" style="background:linear-gradient(135deg,#f97316,#7c3aed);">🏁 Cờ Đua</button>
                 <button class="nav-btn" onclick="openYugiohGame()" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); border-color:#d4af37;">🃏 Bài Ma Thuật</button>
                 <button class="btn btn-google" onclick="window.toggleMobileMenu()" style="padding: 5px 10px; margin-left: 10px;">☰</button>
-                <button class="nav-btn" onclick="signOutUser()" style="background:#dc2626; border-color:#ef4444;">🚪 Đăng Xuất</button>
+                <button class="nav-btn" onclick="window.signOutUser()" style="background:#dc2626; border-color:#ef4444;">🚪 Đăng Xuất</button>
             </div>
         </div>
 
@@ -211,7 +211,7 @@
             <div class="middle-hud">
 
                                 <div class="game-panel" id="panel-auto">
-                    <div class="panel-header"><span>🤖 CÀI ĐẶT TỰ ĐỘNG (AUTO)</span><span class="panel-close" onclick="togglePanel('auto')">✖</span></div>
+                    <div class="panel-header"><span>🤖 CÀI ĐẶT TỰ ĐỘNG (AUTO)</span><span class="panel-close" onclick="window.togglePanel('auto')">✖</span></div>
                     <div class="panel-body" style="padding: 12px; font-family:'Baloo 2', sans-serif; display:flex; flex-direction:column; gap:10px;">
                         <!-- Auto Battle Settings Grid -->
                         <div style="background:rgba(0,0,0,0.3); border:2px solid #704214; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
@@ -258,7 +258,7 @@
                 </div>
 
                 <div class="game-panel" id="panel-inventory">
-                    <div class="panel-header"><span>🎒 HÀNH TRANG Anh Hùng</span><span class="panel-close" onclick="togglePanel('inventory')">✖</span></div>
+                    <div class="panel-header"><span>🎒 HÀNH TRANG Anh Hùng</span><span class="panel-close" onclick="window.togglePanel('inventory')">✖</span></div>
                     <div class="panel-body">
                         <div class="tab-headers" style="display:flex; gap:5px; margin-bottom:10px;">
                             <button class="tab-btn active" id="invTabEquip" onclick="switchInventoryTab('equip')" style="flex:1; padding:8px; font-size:0.85rem;">Trang Bị</button>
@@ -274,12 +274,12 @@
                 </div>
 
                 <div class="game-panel" id="panel-skills">
-                    <div class="panel-header"><span>⚡ KỸ NĂNG BẢN THÂN</span><span class="panel-close" onclick="togglePanel('skills')">✖</span></div>
+                    <div class="panel-header"><span>⚡ KỸ NĂNG BẢN THÂN</span><span class="panel-close" onclick="window.togglePanel('skills')">✖</span></div>
                     <div class="panel-body" id="skillsList" style="gap:10px;"></div>
                 </div>
 
                 <div class="game-panel" id="panel-equipment">
-                    <div class="panel-header"><span>🛡️ TRANG BỊ ĐANG MẶC</span><span class="panel-close" onclick="togglePanel('equipment')">✖</span></div>
+                    <div class="panel-header"><span>🛡️ TRANG BỊ ĐANG MẶC</span><span class="panel-close" onclick="window.togglePanel('equipment')">✖</span></div>
                     <div class="panel-body">
                         <div class="equip-layout">
                             <div class="equip-slots">
@@ -298,12 +298,12 @@
                 </div>
 
                 <div class="game-panel" id="panel-quests">
-                    <div class="panel-header"><span>📜 NHIỆM VỤ DÂN LÀNG</span><span class="panel-close" onclick="togglePanel('quests')">✖</span></div>
+                    <div class="panel-header"><span>📜 NHIỆM VỤ DÂN LÀNG</span><span class="panel-close" onclick="window.togglePanel('quests')">✖</span></div>
                     <div class="panel-body" id="questsList"></div>
                 </div>
 
                 <div class="game-panel" id="panel-shop">
-                    <div class="panel-header"><span id="shopPanelTitle">🏪 CỬA HÀNG / CHẾ TẠO</span><span class="panel-close" onclick="togglePanel('shop')">✖</span></div>
+                    <div class="panel-header"><span id="shopPanelTitle">🏪 CỬA HÀNG / CHẾ TẠO</span><span class="panel-close" onclick="window.togglePanel('shop')">✖</span></div>
                     <div class="panel-body">
                         <div class="tab-headers">
                             <button class="tab-btn active" id="tabBuyBtn" onclick="switchShopTab('buy')">Mua Vật Phẩm</button>
@@ -317,7 +317,7 @@
                 </div>
 
                 <div class="game-panel" id="panel-pvp">
-                    <div class="panel-header"><span>⚔️ ĐẤU TRƯỜNG PVP LIÊN TAB</span><span class="panel-close" onclick="togglePanel('pvp')">✖</span></div>
+                    <div class="panel-header"><span>⚔️ ĐẤU TRƯỜNG PVP LIÊN TAB</span><span class="panel-close" onclick="window.togglePanel('pvp')">✖</span></div>
                     <div class="panel-body">
                         <div class="party-auto-box">
                             <div class="party-auto-title">⚙️ CÀI ĐẶT TỰ ĐỘNG PVP</div>
@@ -345,7 +345,7 @@
                 </div>
 
                 <div class="game-panel" id="panel-party">
-                    <div class="panel-header"><span>🤝 TỔ ĐỘI ANH HÙNG</span><span class="panel-close" onclick="togglePanel('party')">✖</span></div>
+                    <div class="panel-header"><span>🤝 TỔ ĐỘI ANH HÙNG</span><span class="panel-close" onclick="window.togglePanel('party')">✖</span></div>
                     <div class="panel-body" id="partyPanelBody">
                         <div class="party-auto-box">
                             <div class="party-auto-title">⚙️ CÀI ĐẶT TỰ ĐỘNG</div>
@@ -374,7 +374,7 @@
                 </div>
 
                 <div class="game-panel" id="panel-chat">
-                    <div class="panel-header"><span>💬 Chat Tổng</span><span class="panel-close" onclick="togglePanel('chat')">✖</span></div>
+                    <div class="panel-header"><span>💬 Chat Tổng</span><span class="panel-close" onclick="window.togglePanel('chat')">✖</span></div>
                     <div class="panel-body chat-panel">
                         <div class="chat-log" id="chatLog"></div>
                         <div class="chat-input-row">
@@ -386,7 +386,7 @@
                 </div>
 
                 <div class="game-panel" id="panel-bet">
-                    <div class="panel-header"><span>🏟️ Khu Đặt Cược Bóng</span><span class="panel-close" onclick="togglePanel('bet')">✖</span></div>
+                    <div class="panel-header"><span>🏟️ Khu Đặt Cược Bóng</span><span class="panel-close" onclick="window.togglePanel('bet')">✖</span></div>
                     <div class="panel-body">
                         <button class="btn-sm" style="background:#10b981; width:100%;" onclick="loadFootballFixtures()">Cập nhật dữ liệu trận đấu</button>
                         <div class="bet-wallet" id="betWalletInfo">Số dư cược: <span>150 Vàng</span></div>
@@ -1287,21 +1287,21 @@
                 <div class="bet-modal-title">💰 ĐẶT CƯỢC TRƯỚC KHI ĐUA</div>
                 <div class="bet-modal-desc">Chọn số vàng cược. Người thắng ôm tất cả!</div>
                 <div class="bet-options" id="betOptionButtons">
-                    <div class="bet-option" onclick="selectBetAmount(0)">Không Cược (0💰)</div>
-                    <div class="bet-option" onclick="selectBetAmount(50)">50 💰</div>
-                    <div class="bet-option" onclick="selectBetAmount(100)">100 💰</div>
-                    <div class="bet-option" onclick="selectBetAmount(200)">200 💰</div>
-                    <div class="bet-option" onclick="selectBetAmount(500)">500 💰</div>
+                    <div class="bet-option" onclick="window.selectBetAmount(0)">Không Cược (0💰)</div>
+                    <div class="bet-option" onclick="window.selectBetAmount(50)">50 💰</div>
+                    <div class="bet-option" onclick="window.selectBetAmount(100)">100 💰</div>
+                    <div class="bet-option" onclick="window.selectBetAmount(200)">200 💰</div>
+                    <div class="bet-option" onclick="window.selectBetAmount(500)">500 💰</div>
                 </div>
                 <div class="bet-custom-row">
                     <input type="number" id="customBetAmount" placeholder="Tự nhập số vàng..." min="10" max="9999">
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                    <button class="board-btn place-bet-btn" style="grid-column: span 2;" onclick="confirmBetAndStart()">🆚 Đấu Với Máy (AI Bot)</button>
-                    <button class="board-btn" style="background:#10b981; border-color:#059669; color:#fff;" onclick="boardHostOnlineRoom()">🌐 Tạo Phòng Online</button>
-                    <button class="board-btn" style="background:#818cf8; border-color:#6366f1; color:#fff;" onclick="boardJoinOnlineRoom()">🤝 Vào Phòng Online</button>
+                    <button class="board-btn place-bet-btn" style="grid-column: span 2;" onclick="window.confirmBetAndStart()">🆚 Đấu Với Máy (AI Bot)</button>
+                    <button class="board-btn" style="background:#10b981; border-color:#059669; color:#fff;" onclick="window.boardHostOnlineRoom()">🌐 Tạo Phòng Online</button>
+                    <button class="board-btn" style="background:#818cf8; border-color:#6366f1; color:#fff;" onclick="window.boardJoinOnlineRoom()">🤝 Vào Phòng Online</button>
                 </div>
-                <button class="board-btn close-board" style="width:100%;margin-top:8px;" onclick="closeBetModal()">✖ Huỷ</button>
+                <button class="board-btn close-board" style="width:100%;margin-top:8px;" onclick="window.closeBetModal()">✖ Huỷ</button>
             </div>
         </div>
 
@@ -1313,7 +1313,7 @@
                 <div class="invite-player-list" id="boardInvitePlayerList">
                     <div style="color:#666;text-align:center;padding:20px;">Không có người chơi online. Mở thêm tab trình duyệt!</div>
                 </div>
-                <button class="board-btn close-board" style="width:100%;margin-top:8px;" onclick="closeBoardInviteModal()">✖ Đóng</button>
+                <button class="board-btn close-board" style="width:100%;margin-top:8px;" onclick="window.closeBoardInviteModal()">✖ Đóng</button>
             </div>
         </div>
 
@@ -1339,7 +1339,7 @@
 
         <!-- ===== PANEL TRẠNG THÁI NHÂN VẬT (STATUS PANEL) ===== -->
         <div class="game-panel" id="panel-status">
-            <div class="panel-header"><span>📊 TRẠNG THÁI ANH HÙNG</span><span class="panel-close" onclick="togglePanel('status')">✖</span></div>
+            <div class="panel-header"><span>📊 TRẠNG THÁI ANH HÙNG</span><span class="panel-close" onclick="window.togglePanel('status')">✖</span></div>
             <div class="panel-body" style="padding: 12px; font-family:'Baloo 2', sans-serif;">
                 <div style="display:flex; gap:12px; align-items:center; border-bottom:1.5px solid #704214; padding-bottom:10px; margin-bottom:10px;">
                     <div class="avatar" id="statusAvatar" style="width:55px; height:55px; padding:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); border:2px solid var(--gold); border-radius:50%;"><canvas id="statusAvatarCanvas" width="60" height="60" style="width:55px; height:55px; image-rendering: -webkit-optimize-contrast;"></canvas></div>
@@ -1476,7 +1476,7 @@
             </style>
 
             <div class="mc-container" style="position:relative;">
-                <button class="mc-close-btn" onclick="mcCloseGame()">✖</button>
+                <button class="mc-close-btn" onclick="window.mcCloseGame()">✖</button>
                 <div class="mc-title">🐸 ĐẤU TRƯỜNG MEME XÓM</div>
                 <div class="mc-subtitle">Speed Duel · LP 4000 · Deck 20–30 lá · 3 ô quái + Extra Zone</div>
 
@@ -1484,17 +1484,17 @@
                 <div id="mcLobbyScreen" class="mc-screen" style="align-items:center; gap:18px; padding:20px 0;">
                     <div style="font-size:3.5rem;">🃏</div>
                     <div style="font-size:1.1rem; color:#86efac; text-align:center;">Xây deck, triệu hồi quái, burn đối thủ về 0 LP!<br><span style="font-size:0.85rem;color:#6b7280;">Meme thuần Việt · Speed Duel · 30+ thẻ sẽ tăng dần</span></div>
-                    <button class="mc-btn mc-btn-start" style="max-width:280px;" onclick="mcOpenDeckBuilder()">🗂️ Xây Deck & Vào Trận</button>
-                    <button class="mc-btn mc-btn-secondary" id="mcAdminCardsBtn" style="max-width:280px; display:none; background:#818cf8; color:#ffffff; border-color:#6366f1;" onclick="mcOpenAdminCardsManager()">📂 Quản Lý & Thêm Thẻ Bài</button>
-                    <button class="mc-btn mc-btn-secondary" id="mcAdminToggleBtn" style="max-width:280px; background:#f59e0b; color:#1c1a26; border-color:#d97706;" onclick="mcToggleAdminMode()">⚙️ Bật/Tắt Admin Mode</button>
-                    <button class="mc-btn mc-btn-secondary" style="max-width:280px;" onclick="mcCloseGame()">🚪 Quay Lại</button>
+                    <button class="mc-btn mc-btn-start" style="max-width:280px;" onclick="window.mcOpenDeckBuilder()">🗂️ Xây Deck & Vào Trận</button>
+                    <button class="mc-btn mc-btn-secondary" id="mcAdminCardsBtn" style="max-width:280px; display:none; background:#818cf8; color:#ffffff; border-color:#6366f1;" onclick="window.mcOpenAdminCardsManager()">📂 Quản Lý & Thêm Thẻ Bài</button>
+                    <button class="mc-btn mc-btn-secondary" id="mcAdminToggleBtn" style="max-width:280px; background:#f59e0b; color:#1c1a26; border-color:#d97706;" onclick="window.mcToggleAdminMode()">⚙️ Bật/Tắt Admin Mode</button>
+                    <button class="mc-btn mc-btn-secondary" style="max-width:280px;" onclick="window.mcCloseGame()">🚪 Quay Lại</button>
                 </div>
 
                 <!-- ADMIN CARD MANAGER SCREEN -->
                 <div id="mcAdminCardsScreen" class="mc-screen" style="display:none; flex-direction:column; gap:12px; padding:15px; font-family:inherit; box-sizing:border-box;">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #3b82f6; padding-bottom:8px;">
                         <span style="font-size:1.3rem; font-weight:bold; color:#60a5fa; display:flex; align-items:center; gap:8px;">📂 QUẢN LÝ THẺ BÀI ADMIN</span>
-                        <button class="mc-btn mc-btn-secondary" style="margin:0; padding:6px 12px; font-size:0.85rem;" onclick="mcShowScreen('mcLobbyScreen')">🚪 Quay Lại</button>
+                        <button class="mc-btn mc-btn-secondary" style="margin:0; padding:6px 12px; font-size:0.85rem;" onclick="window.mcShowScreen('mcLobbyScreen')">🚪 Quay Lại</button>
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:16px; box-sizing:border-box;">
@@ -1511,7 +1511,7 @@
                         <div style="background:rgba(0,0,0,0.4); border:1px solid #334155; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; max-height:520px; overflow-y:auto; box-sizing:border-box;">
                             <div style="font-weight:bold; font-size:0.9rem; color:#f59e0b; display:flex; justify-content:space-between; align-items:center;">
                                 <span id="mcAdminFormTitle">Thêm / Sửa Thẻ Bài</span>
-                                <button class="mc-btn mc-btn-secondary" style="margin:0; padding:2px 8px; font-size:0.7rem; background:#3b82f6; color:#fff;" onclick="mcResetAdminForm()">🧹 Nhập Mới</button>
+                                <button class="mc-btn mc-btn-secondary" style="margin:0; padding:2px 8px; font-size:0.7rem; background:#3b82f6; color:#fff;" onclick="window.mcResetAdminForm()">🧹 Nhập Mới</button>
                             </div>
 
                             <form id="mcAdminCardForm" onsubmit="event.preventDefault();" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; font-size:0.8rem; box-sizing:border-box;">
@@ -1611,8 +1611,8 @@
                                 </div>
 
                                 <div style="display:flex; gap:8px; grid-column: span 2; margin-top:5px;">
-                                    <button class="mc-btn mc-btn-start" style="flex:1; margin:0; font-size:0.8rem; padding:8px;" onclick="mcSaveAdminForm()">💾 Lưu Lá Bài</button>
-                                    <button class="mc-btn mc-btn-danger" id="mcFormDeleteBtn" style="flex:0.6; margin:0; font-size:0.8rem; padding:8px; display:none;" onclick="mcDeleteAdminCard()">🗑️ Xoá Lá Bài</button>
+                                    <button class="mc-btn mc-btn-start" style="flex:1; margin:0; font-size:0.8rem; padding:8px;" onclick="window.mcSaveAdminForm()">💾 Lưu Lá Bài</button>
+                                    <button class="mc-btn mc-btn-danger" id="mcFormDeleteBtn" style="flex:0.6; margin:0; font-size:0.8rem; padding:8px; display:none;" onclick="window.mcDeleteAdminCard()">🗑️ Xoá Lá Bài</button>
                                 </div>
                             </form>
                         </div>
@@ -1622,12 +1622,12 @@
                     <div style="background:rgba(0,0,0,0.4); border:1px solid #334155; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
                         <div style="font-weight:bold; font-size:0.85rem; color:#38bdf8; display:flex; justify-content:space-between; align-items:center; width:100%;">
                             <span>📥 NHẬP / XUẤT BÀI HÀNG LOẠT (EXCEL / CSV)</span>
-                            <button class="mc-btn mc-btn-start" style="margin:0; font-size:0.75rem; padding:4px 10px; background:#10b981; color:#fff; border:none;" onclick="mcExportAdminCsv()">📤 Tải Về File Excel/CSV</button>
+                            <button class="mc-btn mc-btn-start" style="margin:0; font-size:0.75rem; padding:4px 10px; background:#10b981; color:#fff; border:none;" onclick="window.mcExportAdminCsv()">📤 Tải Về File Excel/CSV</button>
                         </div>
                         <div style="display:flex; gap:10px; align-items:center;">
                             <textarea id="mcAdminCsvInput" rows="2" placeholder="Dán cột dữ liệu CSV tại đây (id,name,card_type,stars,atk,def,description,emoji,tribe,monster_category,spell_category,trap_category)" style="flex:1; background:#0f172a; border:1px solid #475569; color:#fff; padding:6px; border-radius:4px; font-size:0.7rem; font-family:monospace;"></textarea>
                             <div style="display:flex; flex-direction:column; gap:6px;">
-                                <button class="mc-btn mc-btn-start" style="margin:0; font-size:0.75rem; padding:6px 12px;" onclick="mcImportAdminCsv()">📥 Nhập Dữ Liệu CSV</button>
+                                <button class="mc-btn mc-btn-start" style="margin:0; font-size:0.75rem; padding:6px 12px;" onclick="window.mcImportAdminCsv()">📥 Nhập Dữ Liệu CSV</button>
                                 <input type="file" id="mcAdminCsvFile" accept=".csv" onchange="mcImportAdminCsvFile(this)" style="display:none;">
                                 <button class="mc-btn mc-btn-secondary" style="margin:0; font-size:0.75rem; padding:6px 12px;" onclick="document.getElementById('mcAdminCsvFile').click()">📁 Chọn File Excel/CSV</button>
                             </div>
@@ -1750,35 +1750,35 @@
                 <h1 style="color:#d4af37; font-size:1.6rem; text-align:center; border-bottom:3px solid #704214; padding-bottom:8px; margin-bottom:12px; letter-spacing:1px;">📜 BẢNG MENU CHÍNH</h1>
                 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; overflow-y:auto; flex:1; padding-right:5px;" id="menuButtonsGrid">
-                    <button class="menu-popup-btn" onclick="menuAction('auto')" style="background:linear-gradient(135deg, #10b981, #047857);">🤖 Tự Động</button>
-                    <button class="menu-popup-btn" onclick="menuAction('inventory')">🎒 Hành Trang</button>
-                    <button class="menu-popup-btn" onclick="menuAction('skills')">⚡ Kỹ Năng</button>
-                    <button class="menu-popup-btn" onclick="menuAction('equipment')">🛡️ Trang Bị</button>
-                    <button class="menu-popup-btn" onclick="menuAction('status')">📊 Trạng Thái</button>
-                    <button class="menu-popup-btn" onclick="menuAction('quests')">📜 Nhiệm Vụ</button>
-                    <button class="menu-popup-btn" onclick="menuAction('party')">🤝 Tổ Đội</button>
-                    <button class="menu-popup-btn" onclick="menuAction('pvp')">⚔️ Đấu Trường</button>
-                    <button class="menu-popup-btn" onclick="menuAction('chat')">💬 Chat Tổng</button>
-                    <button class="menu-popup-btn" onclick="menuAction('board')">🏁 Cờ Đua</button>
-                    <button class="menu-popup-btn" onclick="menuAction('yugioh')" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); border-color:#d4af37;">🃏 Bài Ma Thuật</button>
-                    <button class="menu-popup-btn" onclick="menuAction('memecard')" style="background:linear-gradient(135deg, #15803d, #14532d); border-color:#4ade80;">🐸 Meme Xóm</button>
-                    <button class="menu-popup-btn" onclick="menuAction('bet')">🏟️ Cược Bóng</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('auto')" style="background:linear-gradient(135deg, #10b981, #047857);">🤖 Tự Động</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('inventory')">🎒 Hành Trang</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('skills')">⚡ Kỹ Năng</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('equipment')">🛡️ Trang Bị</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('status')">📊 Trạng Thái</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('quests')">📜 Nhiệm Vụ</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('party')">🤝 Tổ Đội</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('pvp')">⚔️ Đấu Trường</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('chat')">💬 Chat Tổng</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('board')">🏁 Cờ Đua</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('yugioh')" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); border-color:#d4af37;">🃏 Bài Ma Thuật</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('memecard')" style="background:linear-gradient(135deg, #15803d, #14532d); border-color:#4ade80;">🐸 Meme Xóm</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('bet')">🏟️ Cược Bóng</button>
                 </div>
                 
                 <div style="display:flex; gap:8px; margin-top:12px;">
-                    <button class="menu-popup-btn" onclick="menuAction('logout')" style="background:#dc2626; border-color:#ef4444; flex:1; padding:8px 0; font-size:0.9rem;">🚪 Đăng Xuất</button>
-                    <button class="menu-popup-btn" onclick="toggleMainMenu()" style="background:#475569; border-color:#64748b; flex:1; padding:8px 0; font-size:0.9rem;">✖ Đóng</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('logout')" style="background:#dc2626; border-color:#ef4444; flex:1; padding:8px 0; font-size:0.9rem;">🚪 Đăng Xuất</button>
+                    <button class="menu-popup-btn" onclick="window.toggleMainMenu()" style="background:#475569; border-color:#64748b; flex:1; padding:8px 0; font-size:0.9rem;">✖ Đóng</button>
                 </div>
             </div>
         </div>
         <!-- ===== 🔥 BẢNG THÔNG BÁO SỰ KIỆN LỚN ===== -->
         <div id="bigEventOverlay" style="display:none; position:fixed; inset:0; background:rgba(10,10,15,0.9); z-index:100010; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px;">
             <div style="background:rgba(30,41,59,0.95); border:3px solid #f59e0b; border-radius:20px; padding:30px; max-width:450px; width:90%; box-shadow:0 15px 35px rgba(0,0,0,0.6); position:relative;">
-                <span onclick="closeBigEvent()" style="position:absolute; top:12px; right:18px; font-size:1.6rem; color:#94a3b8; cursor:pointer; font-weight:bold; transition:color 0.2s;" onmouseover="this.style.color='#f59e0b'" onmouseout="this.style.color='#94a3b8'">✖</span>
+                <span onclick="window.closeBigEvent()" style="position:absolute; top:12px; right:18px; font-size:1.6rem; color:#94a3b8; cursor:pointer; font-weight:bold; transition:color 0.2s;" onmouseover="this.style.color='#f59e0b'" onmouseout="this.style.color='#94a3b8'">✖</span>
                 <div id="bigEventTitle" style="font-family:'Baloo 2', sans-serif; font-size:2.2rem; color:#fcd34d; text-shadow:0 0 15px rgba(245,158,11,0.5); margin-bottom:12px; font-weight:900;">SỰ KIỆN</div>
                 <div id="bigEventDesc" style="font-size:1.15rem; color:#fff; line-height:1.5; margin-bottom:15px;">Chi tiết sự kiện...</div>
                 <div id="bigEventExtra" style="font-size:0.95rem; color:#22c55e; font-weight:bold; margin-bottom:25px;"></div>
-                <button class="board-btn close-board" onclick="closeBigEvent()" style="padding:10px 30px; font-size:1.05rem; background:linear-gradient(135deg, #475569, #334155); color:#fff; border:none; border-radius:10px; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">✖ Đóng</button>
+                <button class="board-btn close-board" onclick="window.closeBigEvent()" style="padding:10px 30px; font-size:1.05rem; background:linear-gradient(135deg, #475569, #334155); color:#fff; border:none; border-radius:10px; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">✖ Đóng</button>
             </div>
         </div>
 
@@ -1819,4 +1819,5 @@
     </script>
 </body>
 </html>
+
 

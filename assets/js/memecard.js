@@ -409,6 +409,19 @@ function mcCloseGame() {
   mcGame.duel = null;
 }
 
+window.mcShowScreen = mcShowScreen;
+window.mcCloseGame = mcCloseGame;
+window.mcIsAdmin = mcIsAdmin;
+window.mcOpenDeckBuilder = mcOpenDeckBuilder;
+window.mcRenderDeckBuilder = mcRenderDeckBuilder;
+window.mcAddToDeck = mcAddToDeck;
+window.mcRemoveFromDeck = mcRemoveFromDeck;
+window.mcQuickDeck = mcQuickDeck;
+window.mcStartDuel = mcStartDuel;
+window.mcEndPlayerTurn = mcEndPlayerTurn;
+window.mcPlayAgain = mcPlayAgain;
+window.mcCancelMode = mcCancelMode;
+
 // ────────────────── ADMIN: CHỈNH SỬA HIỆU ỨNG THẺ BÀI ──────────────────
 const MC_ADMIN_EMAIL = 'trungkien492004@gmail.com';
 function mcIsAdmin() {
