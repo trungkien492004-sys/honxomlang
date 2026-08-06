@@ -9,7 +9,16 @@
     <link rel="stylesheet" href="assets/css/mobile.css?v=7">
     <script>
         window.onerror = function(msg, url, line, col, error) {
-            var errText = '🚨 LỖI JS: ' + msg + ' (' + (url ? url.split('/').pop() : 'script') + ':' + line + ')';
+            var detail = msg;
+            if (error) {
+                detail = error.message || msg;
+                if (error.stack) {
+                    // Extract first few lines of stack trace for the banner
+                    var lines = error.stack.split('\n');
+                    detail += ' | ' + lines.slice(0, 3).join(' ');
+                }
+            }
+            var errText = '🚨 LỖI JS: ' + detail + ' (' + (url ? url.split('/').pop() : 'script') + ':' + line + ')';
             console.error(errText, error);
             var box = document.getElementById('globalErrorBanner');
             if (!box) {

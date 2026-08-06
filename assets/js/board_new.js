@@ -2121,6 +2121,10 @@ window.boardShowLobbyUI = function(roomId, role, data) {
         window.boardLobbyData = { ...window.boardLobbyData, ...data };
     }
     
+    // Hide active board game modal to prevent background clutter while in waiting lobby
+    const bgModal = document.getElementById('boardGameModal');
+    if (bgModal) bgModal.classList.remove('active');
+    
     let el = document.getElementById('boardLobbyOverlay');
     if (!el) {
         el = document.createElement('div');
@@ -2550,6 +2554,7 @@ window.boardStartOnlineMatch = function(role, room) {
 
     // Shuffled match colors
     const gameColors = room.colors || [...RACE_PLAYER_COLORS];
+    window.boardGameColors = gameColors;
 
     // Add Host (idx 0)
     boardGame.players.push({
