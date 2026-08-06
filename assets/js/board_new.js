@@ -2,7 +2,7 @@
 'use strict';
 
 // Resolve getMyNetworkId() from global window (set by game.js)
-function getMyNetworkId() { return window.myNetworkId || ''; }
+function getMyNetworkId() { return window.getMyNetworkId() || ''; }
 
 function boardRefreshHud() {
     if (typeof window.refreshHudDisplay === 'function' && window.refreshHudDisplay !== boardRefreshHud) {
@@ -384,10 +384,10 @@ window.boardDrawRandomCard = function(p, reason, callback) {
 };
 
 // ── Hoạt ảnh xúc xắc ──────────────────────────────────────────
-window.boardDoRollAnimation = function(boardPlayer, callback) {
+window.boardDoRollAnimation = function(boardPlayer, callback, predefinedRoll) {
     const diceEl  = document.getElementById('diceDisplay');
     const resultEl = document.getElementById('diceResultText');
-    const roll = 1 + Math.floor(Math.random() * 6);
+    const roll = (typeof predefinedRoll === 'number') ? predefinedRoll : (1 + Math.floor(Math.random() * 6));
     if (document.hidden) {
         if(diceEl) diceEl.textContent = RACE_DICE_EMOJIS[roll - 1];
         if(resultEl) resultEl.textContent = `${boardPlayer.name} đi ${roll} bước`;
@@ -727,18 +727,13 @@ function boardHandleCombat(p, callback) {
 window._bigEventTimer = null;
 window._bigEventCallback = null;
 
-window.boardShowBigNotice = function(title, desc, extra = '', callback, persist = false) {
-    let curPlayer = boardGame && boardGame.players && boardGame.players[boardGame.currentTurn];
-    if ((curPlayer && curPlayer.isBot) || document.hidden) {
-        if(callback) callback();
-        return;
-    }
+window.boardShowBigNoticeLocal = function(title, desc, extra = '', callback, persist = false) {
     const overlay = document.getElementById('bigEventOverlay');
     if(!overlay) {
         if(callback) callback();
         return;
     }
-    try { audio.play('hit'); } catch(e){}
+    try { if (window.audio) window.audio.play('hit'); } catch(e){}
     document.getElementById('bigEventTitle').textContent = title;
     document.getElementById('bigEventDesc').innerHTML = desc;
     document.getElementById('bigEventExtra').innerHTML = extra;
@@ -763,6 +758,21 @@ window.boardShowBigNotice = function(title, desc, extra = '', callback, persist 
             window.closeBigEvent();
         }, 20000);
     }
+};
+
+window.boardShowBigNotice = function(title, desc, extra = '', callback, persist = false) {
+    if (boardGame && boardGame.pvp && typeof pvpChannel !== 'undefined') {
+        pvpChannel.postMessage({
+            type: 'BOARD_PVP_BIG_NOTICE',
+            roomId: window.boardOnlineRoomId,
+            id: getMyNetworkId(),
+            title: title,
+            desc: desc,
+            extra: extra,
+            persist: persist
+        });
+    }
+    window.boardShowBigNoticeLocal(title, desc, extra, callback, persist);
 };
 
 window.closeBigEvent = function() {
@@ -1259,7 +1269,11 @@ window.boardScrollToCurrentPlayer = function(targetIdx) {
     
     const zoomFactor = 1.35;
     let targetLeft = (cellEl.offsetLeft * zoomFactor) - (grid.clientWidth / 2) + (cellEl.clientWidth * zoomFactor / 2);
-    let targetTop = (cellEl.offsetTop * zoomFactor) - (grid.clientHeight / 2) + (cellEl.clientHeight * zoomFactor / 2);
+    
+    // If player is past cell 20, center them higher in the viewport (28% from top) to clear bottom dashboard HUD
+    let heightRatio = (cur.pos >= 20) ? 0.28 : 0.48;
+    let targetTop = (cellEl.offsetTop * zoomFactor) - (grid.clientHeight * heightRatio) + (cellEl.clientHeight * zoomFactor / 2);
+    
     grid.scrollTo({ left: Math.max(0, targetLeft), top: Math.max(0, targetTop), behavior: 'smooth' });
 };
 
@@ -1267,28 +1281,47 @@ window.boardScrollToCurrentPlayer = function(targetIdx) {
 window.boardRenderPlayers = function() {
     if (!boardGame || !boardGame.players) return;
 
-    // Update bottom character cards visual state (highlight active, gray out dead)
-    boardGame.players.forEach((p, idx) => {
-        const cardEl = document.getElementById(`charCard_${p.idx}`);
-        if (cardEl) {
+    // Dynamically reorder display list: human player first, then others
+    let displayOrder = [...boardGame.players];
+    displayOrder.sort((a, b) => {
+        let aIsUs = (a.networkId === getMyNetworkId() || a.isHuman);
+        let bIsUs = (b.networkId === getMyNetworkId() || b.isHuman);
+        if (aIsUs && !bIsUs) return -1;
+        if (!aIsUs && bIsUs) return 1;
+        return a.idx - b.idx;
+    });
+
+    const charSection = document.querySelector('.characters-section');
+    if (charSection) {
+        charSection.innerHTML = displayOrder.map(p => {
+            const charImages = [
+                'assets/img/board/char_trau.png',
+                'assets/img/board/char_mam.png',
+                'assets/img/board/char_kien.png',
+                'assets/img/board/char_ut.png'
+            ];
+            const img = charImages[p.idx] || charImages[0];
+            const isSelected = p.idx === window.boardSelectedCharDisplayIdx;
+            const activeClass = isSelected ? 'active' : '';
+            
+            let cardStyles = '';
+            let turnClasses = '';
+            if (p.idx === boardGame.currentTurn && !boardGame.gameOver) {
+                turnClasses = ' active-turn';
+                cardStyles = `border-color: ${p.color}; box-shadow: 0 0 15px ${p.color};`;
+            }
             if (p.eliminated) {
-                cardEl.classList.add('eliminated');
-            } else {
-                cardEl.classList.remove('eliminated');
+                turnClasses += ' eliminated';
             }
             
-            if (p.idx === boardGame.currentTurn && !boardGame.gameOver) {
-                cardEl.classList.add('active-turn');
-                cardEl.style.borderColor = p.color;
-                cardEl.style.boxShadow = `0 0 15px ${p.color}`;
-            } else {
-                cardEl.classList.remove('active-turn');
-                cardEl.style.borderColor = '';
-                cardEl.style.boxShadow = '';
-            }
-        }
-    });
-    
+            return `
+                <div class="char-card ${activeClass}${turnClasses}" onclick="window.boardSelectCharacterDisplay(${p.idx})" id="charCard_${p.idx}" style="${cardStyles}">
+                    <img src="${img}" alt="${p.name}">
+                </div>
+            `;
+        }).join('');
+    }
+
     // Update selected character info
     window.boardUpdateCharPanel();
 };
@@ -1322,10 +1355,13 @@ function openBoardGame(pvpMode = false) {
     const playerClass = (window.player && window.player.classId) ? window.player.classId : 'cop';
     const playerSkin = window.player && window.player.equipment ? window.player.equipment.skin : null;
 
+    // Shuffled player colors
+    window.boardGameColors = [...RACE_PLAYER_COLORS].sort(() => Math.random() - 0.5);
+
     boardGame.players.push({
         idx: 0, name: playerName + ' (Trâu)', networkId: getMyNetworkId(), classId: playerClass, skin: playerSkin,
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
-        color: RACE_PLAYER_COLORS[0],
+        color: window.boardGameColors[0],
         emoji: '👦',
         isHuman: true, isBot: false, skipTurn: false,
         gold: 0,
@@ -1374,12 +1410,12 @@ window.boardAddBot = function() {
     if(boardGame.players.length >= 4) return;
     const idx = boardGame.players.length;
     const botNames  = ['Mầm Mềm Mẽ', 'Kiến Bảo Vệ', 'Út Mũ Rơm'];
-    const botColors = ['#e084fc', '#22c55e', '#3b82f6'];
     const botEmojis = ['👩‍🦰', '👮‍♂️', '👦'];
+    const color = (window.boardGameColors && window.boardGameColors[idx]) ? window.boardGameColors[idx] : '#f59e0b';
     boardGame.players.push({
         idx, name: botNames[idx-1] || `Bot ${idx}`, networkId: null,
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
-        color: botColors[idx-1] || '#f59e0b',
+        color: color,
         emoji: botEmojis[idx-1] || '👾',
         isHuman: false, isBot: true, skipTurn: false,
         hand: boardDealHand(5),
@@ -1612,7 +1648,7 @@ window.boardRollDice = function() {
     if(!boardGame || boardGame.isRolling || boardGame.gameOver) return;
     let cur = boardGame.players[boardGame.currentTurn];
     if(!cur || !window.boardIsMyTurn()) return;
-    if(boardGame.pvp && boardGame.hostId !== myNetworkId) {
+    if(boardGame.pvp && boardGame.hostId !== getMyNetworkId()) {
         if(typeof pvpChannel !== 'undefined') {
             pvpChannel.postMessage({ type: 'BOARD_ROLL_REQUEST', id: getMyNetworkId(), hostId: boardGame.hostId });
         }
@@ -1631,17 +1667,36 @@ window.boardRollForCurrentPlayer = function() {
     if (window.boardScrollToCurrentPlayer) {
         window.boardScrollToCurrentPlayer(boardGame.currentTurn);
     }
+
+    const isHost = !boardGame.pvp || boardGame.hostId === getMyNetworkId();
+    let roll = 1 + Math.floor(Math.random() * 6);
+
+    if (boardGame.pvp && isHost) {
+        // Broadcast roll value to Guest
+        if (typeof pvpChannel !== 'undefined') {
+            pvpChannel.postMessage({
+                type: 'BOARD_PVP_ROLL_EVENT',
+                roomId: window.boardOnlineRoomId,
+                id: getMyNetworkId(),
+                playerId: cur.idx,
+                rollValue: roll
+            });
+        }
+    }
+
     window.boardDoRollAnimation(cur, () => {
         boardGame.isRolling = false;
         // Đã bỏ luật "tung 6 được thêm lượt" theo yêu cầu — mỗi lượt chỉ đi 1 lần dù ra số gì.
         window.boardNextTurn();
         window.boardUpdateRollBtn();
-        window.boardBroadcastState('state');
-    });
+        if (isHost) {
+            window.boardBroadcastState('state');
+        }
+    }, roll);
 };
 
 window.boardBroadcastState = function(kind) {
-    if(!boardGame || !boardGame.pvp || boardGame.hostId !== myNetworkId) return;
+    if(!boardGame || !boardGame.pvp || boardGame.hostId !== getMyNetworkId()) return;
     if(typeof pvpChannel !== 'undefined') {
         pvpChannel.postMessage({
             type: kind === 'start' ? 'BOARD_PVP_START' : 'BOARD_PVP_STATE',
@@ -1656,7 +1711,7 @@ window.boardBroadcastState = function(kind) {
 };
 
 window.boardApplyNetworkState = function(msg) {
-    if(!msg.boardGame || !msg.targetIds?.includes(myNetworkId)) return;
+    if(!msg.boardGame || !msg.targetIds?.includes(getMyNetworkId())) return;
     boardGame = msg.boardGame;
     boardGame.players.forEach((p, idx) => {
         p.idx = idx;
@@ -1680,7 +1735,7 @@ window.boardApplyNetworkState = function(msg) {
             }
             return;
         }
-        if (boardGame.hostId === myNetworkId) return; // Chỉ khách kiểm tra chủ phòng
+        if (boardGame.hostId === getMyNetworkId()) return; // Chỉ khách kiểm tra chủ phòng
         
         // Kiểm tra xem chủ phòng còn online không
         if (window.networkPlayers && !window.networkPlayers[boardGame.hostId]) {
@@ -1770,11 +1825,11 @@ window.boardStartPvpAsHost = function(guestId, guestName) {
             }
             return;
         }
-        if (boardGame.hostId !== myNetworkId) return; // Chỉ chủ phòng kiểm tra AFK và mất kết nối
+        if (boardGame.hostId !== getMyNetworkId()) return; // Chỉ chủ phòng kiểm tra AFK và mất kết nối
         if (boardGame.isRolling) return;
         
         // 1. Kiểm tra đối thủ mất kết nối
-        let guestPlayer = boardGame.players.find(p => p.networkId && p.networkId !== myNetworkId);
+        let guestPlayer = boardGame.players.find(p => p.networkId && p.networkId !== getMyNetworkId());
         if (guestPlayer && window.networkPlayers && !window.networkPlayers[guestPlayer.networkId]) {
             boardAddLog(`⚠️ Đối thủ ${guestPlayer.name} đã mất kết nối! Bạn thắng cuộc!`, 'special');
             window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${guestPlayer.name} đã mất kết nối. Bạn thắng cuộc!`, "", () => {
@@ -2204,12 +2259,14 @@ window.boardRegisterNetworkMessage = function(msg) {
             if (typeof mcHideOnlineStatus === 'function') mcHideOnlineStatus();
 
             // Start match locally as host
+            const gameColors = [...RACE_PLAYER_COLORS].sort(() => Math.random() - 0.5);
             const roomData = {
                 hostName: playerName,
                 guestName: msg.guestName,
                 betAmount: msg.betAmount,
                 hostId: getMyNetworkId(),
-                guestId: msg.guestId
+                guestId: msg.guestId,
+                colors: gameColors
             };
             boardStartOnlineMatch('host', roomData);
 
@@ -2224,6 +2281,7 @@ window.boardRegisterNetworkMessage = function(msg) {
                     hostName: playerName,
                     guestName: msg.guestName,
                     betAmount: msg.betAmount,
+                    colors: gameColors,
                     boardState: JSON.parse(JSON.stringify(boardGame))
                 });
             }
@@ -2239,7 +2297,8 @@ window.boardRegisterNetworkMessage = function(msg) {
                 guestName: msg.guestName,
                 betAmount: msg.betAmount,
                 hostId: msg.hostId,
-                guestId: msg.guestId
+                guestId: msg.guestId,
+                colors: msg.colors
             };
             boardStartOnlineMatch('guest', roomData);
 
@@ -2251,6 +2310,31 @@ window.boardRegisterNetworkMessage = function(msg) {
         if (msg.type === 'BOARD_ROOM_STATE' && window.boardOnlineRoomId === msg.roomId) {
             if (msg.lastActionBy === window.boardOnlineRole) return;
             boardSyncOnlineState(msg);
+        }
+
+        // Synchronize roll and walk animation on guest/other tab
+        if (msg.type === 'BOARD_PVP_ROLL_EVENT' && window.boardOnlineRoomId === msg.roomId) {
+            if (window.boardOnlineRole === 'guest') {
+                let cur = boardGame.players[msg.playerId];
+                if (cur) {
+                    boardGame.isRolling = true;
+                    window.boardUpdateRollBtn();
+                    if (window.boardScrollToCurrentPlayer) {
+                        window.boardScrollToCurrentPlayer(msg.playerId);
+                    }
+                    window.boardDoRollAnimation(cur, () => {
+                        boardGame.isRolling = false;
+                        window.boardUpdateRollBtn();
+                    }, msg.rollValue);
+                }
+            }
+        }
+
+        // Synchronize big notice popups (including bot alerts)
+        if (msg.type === 'BOARD_PVP_BIG_NOTICE' && window.boardOnlineRoomId === msg.roomId) {
+            if (window.boardOnlineRole === 'guest') {
+                window.boardShowBigNoticeLocal(msg.title, msg.desc, msg.extra, null, msg.persist);
+            }
         }
     } catch (err) {
         console.error('[boardRegisterNetworkMessage Error]', err);
@@ -2280,11 +2364,14 @@ window.boardStartOnlineMatch = function(role, room) {
         }
     }
 
+    // Shuffled match colors
+    const gameColors = room.colors || [...RACE_PLAYER_COLORS];
+
     // Add Host (idx 0)
     boardGame.players.push({
         idx: 0, name: room.hostName + ' (Trâu)', networkId: (role === 'host') ? getMyNetworkId() : (room.hostId || 'host_net_id'),
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
-        color: RACE_PLAYER_COLORS[0], emoji: '👦', isHuman: (role === 'host'), isBot: false, gold: 0,
+        color: gameColors[0], emoji: '👦', isHuman: (role === 'host'), isBot: false, gold: 0,
         hand: boardDealHand(5)
     });
 
@@ -2292,19 +2379,18 @@ window.boardStartOnlineMatch = function(role, room) {
     boardGame.players.push({
         idx: 1, name: room.guestName + ' (Trẩu)', networkId: (role === 'guest') ? getMyNetworkId() : (room.guestId || 'guest_net_id'),
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
-        color: RACE_PLAYER_COLORS[1], emoji: '👾', isHuman: (role === 'guest'), isBot: false, gold: 0,
+        color: gameColors[1], emoji: '👾', isHuman: (role === 'guest'), isBot: false, gold: 0,
         hand: boardDealHand(5)
     });
 
     // Add 2 bots to fill up 4 slots
     const botNames = ['Mầm Mềm Mẽ', 'Kiến Bảo Vệ'];
-    const botColors = ['#e084fc', '#22c55e'];
     const botEmojis = ['👩‍🦰', '👮‍♂️'];
     for (let i = 0; i < 2; i++) {
         boardGame.players.push({
             idx: 2 + i, name: botNames[i], networkId: null,
             pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
-            color: botColors[i], emoji: botEmojis[i],
+            color: gameColors[2 + i] || '#f59e0b', emoji: botEmojis[i],
             isHuman: false, isBot: true, skipTurn: false,
             hand: boardDealHand(5), gold: 0
         });
@@ -2386,5 +2472,6 @@ window.closeBoardGame = function() {
         window.boardOnlineRole = null;
     }
 };
+
 
 
