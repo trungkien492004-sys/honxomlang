@@ -852,35 +852,23 @@ window.openCharacterSelection = async function(user) {
     });
 };
 
-// game.js chạy sau firebase.js trong <script> nhưng auth callback của Firebase có
-// thể tự resolve rất nhanh (session đã cache) và bắn trước khi game.js kịp chạy
-// xong (window.player/switchScreen/CLASS_DATA chưa tồn tại) — gây crash khi bấm
-// vào nhân vật ngay lập tức. Chờ game engine sẵn sàng rồi mới chạy callback thật.
-function _whenGameReady(fn) {
-    if (window.selectGameMode && window.player && window.CLASS_DATA) {
-        fn();
-    } else {
-        setTimeout(() => _whenGameReady(fn), 60);
-    }
-}
-
 window.selectExistingCharacter = function(docId, data) {
-  _whenGameReady(() => _doSelectExistingCharacter(docId, data));
-};
-
-function _doSelectExistingCharacter(docId, data) {
   try {
     window.currentSlotId = docId;
     window._cloudSaveData = data;
 
     // Inject the data into the game player object directly!
-    Object.assign(window.player, data);
+    if (window.player) {
+      Object.assign(window.player, data);
+    }
 
     // Đảm bảo có init class stats và đồng bộ tốc độ chạy mới
-    if(typeof CLASS_DATA !== 'undefined' && data.classId) {
-        let t = CLASS_DATA[data.classId];
-        if(!window.player.skills || window.player.skills.length === 0) window.player.skills = JSON.parse(JSON.stringify(t.skills));
-        window.player.baseSpeed = t.speed; // Đồng bộ tốc độ chạy mới nâng cấp
+    if (window.CLASS_DATA && data.classId) {
+        let t = window.CLASS_DATA[data.classId];
+        if (t) {
+            if (!window.player.skills || window.player.skills.length === 0) window.player.skills = JSON.parse(JSON.stringify(t.skills));
+            window.player.baseSpeed = t.speed;
+        }
     }
 
     _fbToast(`☁️ Tải save: ${data.name} Lv.${data.level}`, '#fbbf24');
@@ -889,7 +877,7 @@ function _doSelectExistingCharacter(docId, data) {
     window._pendingCharFlow = 'existing';
     window.switchScreen('gameModeScreen');
 
-    try { audio.play('levelup'); } catch(e){}
+    try { if (window.audio) window.audio.play('levelup'); } catch(e){}
   } catch (err) {
     console.error('[selectExistingCharacter] lỗi:', err);
     alert('LỖI khi vào nhân vật: ' + err.message + '\n\n' + (err.stack || '').split('\n').slice(0,3).join('\n'));
@@ -914,12 +902,10 @@ window.createNewCharacter = function(docId) {
     const btnGoogle = document.querySelector('.btn-google');
     if(btnGoogle) btnGoogle.style.display = 'none';
 
-    _whenGameReady(() => {
-        window.player = window.player || {};
-        window.player.name = charName.trim();
-        window._pendingCharFlow = 'new';
-        window.switchScreen('gameModeScreen');
-    });
+    window.player = window.player || {};
+    window.player.name = charName.trim();
+    window._pendingCharFlow = 'new';
+    window.switchScreen('gameModeScreen');
   } catch (err) {
     console.error('[createNewCharacter] lỗi:', err);
     alert('LỖI khi tạo nhân vật: ' + err.message + '\n\n' + (err.stack || '').split('\n').slice(0,3).join('\n'));
