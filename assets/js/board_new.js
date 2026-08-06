@@ -869,7 +869,14 @@ window.boardUseHandCard = function(playerIdx, handIndex) {
     let card = p.hand[handIndex];
     p.hand.splice(handIndex, 1);
 
-    let result = card.effect(p);
+    // Look up original definition to restore functions lost in JSON serialization over network
+    const origCard = RACE_CARDS.find(c => c.id === card.id) || card;
+    if (typeof origCard.effect !== 'function') {
+        console.error('Card effect function not found for card:', card);
+        return;
+    }
+
+    let result = origCard.effect(p);
     const typeIcon = card.type === 'monster' ? '👾' : card.type === 'equip' ? '🛡️' : card.type === 'trap' ? '💣' : card.type === 'fun_spell' ? '✨' : '🌪️';
     boardAddLog(`🎴 ${p.name} dùng bài tay [${card.name}] — ${result}`, 'card');
     window.boardShowBigNotice(`${typeIcon} ${card.name}`, card.desc, `👉 ${result}`, () => {
