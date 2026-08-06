@@ -741,6 +741,8 @@ window.submitClassicLogin = async function(mode) {
 
 // 🌟 loginWithGoogle — dùng POPUP 🌟🌟🌟🌟🌟🌟
 window.loginWithGoogle = async function() {
+    if (window._isGoogleLoggingIn) return;
+    window._isGoogleLoggingIn = true;
     _fbToast('⏳ Đang mở cửa sổ đăng nhập...', '#4fc3f7');
     try {
         const result = await auth.signInWithPopup(googleProvider);
@@ -763,9 +765,13 @@ window.loginWithGoogle = async function() {
         if (err.code === 'auth/popup-blocked') {
             alert('⚠️ Trình duyệt chặn Popup! Vui lòng cho phép popup trên trang này (nút trên thanh địa chỉ).');
             _fbToast('⚠️ Trình duyệt chặn Popup!', '#ef4444');
+        } else if (err.code === 'auth/cancelled-popup-request') {
+            _fbToast('⏳ Vui lòng hoàn tất đăng nhập trong cửa sổ vừa mở!', '#e5c158');
         } else {
             _fbToast(`❌ Lỗi: ${err.message}`, '#ef4444');
         }
+    } finally {
+        window._isGoogleLoggingIn = false;
     }
 };
 
