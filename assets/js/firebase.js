@@ -889,21 +889,29 @@ window.createNewCharacter = function(docId) {
     window.currentSlotId = docId;
     window._cloudSaveData = null; // Bắt đầu mới
 
-    // Hỏi tên nhân vật
+    // Gợi ý tên nhân vật mặc định
     const defaultName = (window.currentFirebaseUser && window.currentFirebaseUser.displayName)
         ? window.currentFirebaseUser.displayName
         : (window.currentFirebaseUser && window.currentFirebaseUser.email
             ? window.currentFirebaseUser.email.split('@')[0]
             : 'Anh Hùng');
-    const charName = prompt('🧙 Nhập tên nhân vật của bạn:', defaultName);
-    if (!charName || charName.trim() === '') return; // Người dùng bấm Cancel
+
+    let charName = defaultName;
+    try {
+        const inputName = prompt('🧙 Nhập tên nhân vật của bạn:', defaultName);
+        if (inputName && inputName.trim() !== '') {
+            charName = inputName.trim();
+        }
+    } catch(e) {
+        console.warn('Prompt suppressed:', e);
+    }
 
     // Ẩn nút Google vì đã login rồi
     const btnGoogle = document.querySelector('.btn-google');
     if(btnGoogle) btnGoogle.style.display = 'none';
 
     window.player = window.player || {};
-    window.player.name = charName.trim();
+    window.player.name = charName;
     window._pendingCharFlow = 'new';
     window.switchScreen('gameModeScreen');
   } catch (err) {
@@ -970,24 +978,27 @@ window.saveGameToCloud = async function(playerData) {
 
 // ── loadGameFromCloud ─────────────────────────────────────────
 window.loadGameFromCloud = async function(docId) {
+    let backupData = localStorage.getItem('xom_char_' + docId);
+    let localObj = null;
+    if (backupData) {
+        try { localObj = JSON.parse(backupData); } catch(e){}
+    }
+
+    if (typeof db === 'undefined') return localObj;
+
     try {
-        const doc = await db.collection('players').doc(docId).get();
-        if (doc.exists) {
-            let data = doc.data();
-            // Cập nhật lại bản sao cục bộ để sử dụng khi offline
-            localStorage.setItem('xom_char_' + docId, JSON.stringify(data));
-            return data;
+        const timeoutPromise = new Promise(res => setTimeout(() => res(null), 1200));
+        const fetchPromise = db.collection('players').doc(docId).get().then(doc => (doc && doc.exists) ? doc.data() : null).catch(() => null);
+        const cloudData = await Promise.race([fetchPromise, timeoutPromise]);
+        if (cloudData) {
+            localStorage.setItem('xom_char_' + docId, JSON.stringify(cloudData));
+            return cloudData;
         }
     } catch (err) {
         console.error('[Firebase] Cloud Load error, checking LocalStorage backup:', err);
     }
 
-    // Backup: Đọc từ LocalStorage nếu Firestore lỗi hoặc không có mạng
-    let backupData = localStorage.getItem('xom_char_' + docId);
-    if (backupData) {
-        try { return JSON.parse(backupData); } catch(e){}
-    }
-    return null;
+    return localObj;
 };
 
 // ── Patch save functions sau khi game.js load ─────────────────
