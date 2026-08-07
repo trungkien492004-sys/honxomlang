@@ -52,6 +52,10 @@ function mcDrawCard(who) {
     return false;
   }
   hand.push(deck.shift());
+  // Play draw sound for human player
+  if (who === 'player') {
+    try { if (window.audio) window.audio.play('quest'); } catch(e){}
+  }
   return true;
 }
 
@@ -2059,6 +2063,8 @@ console.log('🐸 [memecard.js] Engine Đấu Trường Meme Xóm đã nạp th�
 
 // ────────────────── VFX ANIMATION TRIGGERS ──────────────────
 window.mcPlayAttackVFX = function(attackerSide, attackerIdx, attackerIsExtra, defenderIdx, defenderIsExtra) {
+  // Play damage sound
+  try { if (window.audio) window.audio.play('hit'); } catch(e){}
   let attId = '';
   if (attackerSide === 'player') {
     attId = attackerIsExtra ? 'mcPlayerExtra' : 'mcPMon' + attackerIdx;
@@ -2107,6 +2113,19 @@ window.mcPlayAttackVFX = function(attackerSide, attackerIdx, attackerIsExtra, de
 window.mcPlayCardZoomVFX = function(cardId, actionType) {
   const card = mcCardById(cardId);
   if (!card) return;
+
+  // Play sound effects during zoom VFX
+  try {
+    if (window.audio) {
+      if (actionType === 'summon') {
+        window.audio.play('skill');
+      } else if (actionType === 'spell' || actionType === 'trap') {
+        window.audio.play('levelup');
+      } else if (actionType === 'effect') {
+        window.audio.play('quest');
+      }
+    }
+  } catch(e){}
 
   let titleText = '⚡ KÍCH HOẠT THẺ BÀI ⚡';
   let emoji = '🃏';
@@ -2326,6 +2345,23 @@ window.mcSelectAdminCard = function(cardId) {
   
   document.getElementById('mcFormDescription').value = card.description || '';
   
+  // Load custom image preview
+  window._mcFormCustomImageBase64 = card.custom_image || null;
+  const preview = document.getElementById('mcFormImagePreview');
+  const previewImg = document.getElementById('mcFormImagePreviewImg');
+  const urlInput = document.getElementById('mcFormImageUrl');
+  if (preview && previewImg && urlInput) {
+    if (card.custom_image) {
+      previewImg.src = card.custom_image;
+      preview.style.display = 'flex';
+      urlInput.value = card.custom_image.startsWith('data:') ? '' : card.custom_image;
+    } else {
+      preview.style.display = 'none';
+      previewImg.src = '';
+      urlInput.value = '';
+    }
+  }
+  
   mcOnFormCardTypeChange();
   
   document.getElementById('mcAdminFormTitle').textContent = '📝 Sửa Thẻ Bài: ' + card.name;
@@ -2358,6 +2394,17 @@ window.mcResetAdminForm = function() {
   document.getElementById('mcFormEffectTrigger').value = '';
   
   document.getElementById('mcFormDescription').value = '';
+  
+  // Clear custom image preview
+  window._mcFormCustomImageBase64 = null;
+  const preview = document.getElementById('mcFormImagePreview');
+  const previewImg = document.getElementById('mcFormImagePreviewImg');
+  const urlInput = document.getElementById('mcFormImageUrl');
+  if (preview && previewImg && urlInput) {
+    preview.style.display = 'none';
+    previewImg.src = '';
+    urlInput.value = '';
+  }
   
   mcOnFormCardTypeChange();
   
@@ -2393,7 +2440,7 @@ window.mcSaveAdminForm = function() {
       c1: '#374151',
       c2: '#111827'
     },
-    custom_image: null
+    custom_image: window._mcFormCustomImageBase64 || null
   };
   
   if (type === 'Monster') {
@@ -2946,5 +2993,37 @@ syncActions.forEach(name => {
     };
   }
 });
+
+// --- CUSTOM CARD IMAGE UPLOAD HANDLERS ---
+window._mcFormCustomImageBase64 = null;
+
+window.mcOnCardImageUpload = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    window._mcFormCustomImageBase64 = e.target.result;
+    const preview = document.getElementById('mcFormImagePreview');
+    const previewImg = document.getElementById('mcFormImagePreviewImg');
+    if (preview && previewImg) {
+      previewImg.src = e.target.result;
+      preview.style.display = 'flex';
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+window.mcOnCardImageUrlChange = function() {
+  const url = document.getElementById('mcFormImageUrl').value.trim();
+  if (url) {
+    window._mcFormCustomImageBase64 = url;
+    const preview = document.getElementById('mcFormImagePreview');
+    const previewImg = document.getElementById('mcFormImagePreviewImg');
+    if (preview && previewImg) {
+      previewImg.src = url;
+      preview.style.display = 'flex';
+    }
+  }
+};
 
 

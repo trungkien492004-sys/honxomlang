@@ -1411,94 +1411,97 @@
         <!-- ===== 🐸 MEME CARD GAME MODAL ===== -->
         <div id="memecardGameModal" style="display:none; position:fixed; inset:0; background:rgba(5,20,10,0.98); z-index:100000; overflow-y:auto; font-family:'Baloo 2','Segoe UI',Tahoma,Geneva,Verdana,sans-serif; color:white; align-items:flex-start; justify-content:center; padding:12px;">
             <style>
-                .mc-container { max-width:980px; margin:0 auto; background:#0d1f10; border:3px solid #4ade80; border-radius:16px; padding:18px; box-shadow:0 0 30px rgba(74,222,128,0.2); }
-                .mc-title { font-size:1.9rem; text-align:center; color:#4ade80; text-shadow:0 0 10px rgba(74,222,128,0.5); font-weight:900; margin-bottom:4px; }
-                .mc-subtitle { font-size:0.82rem; text-align:center; color:#86efac; margin-bottom:16px; }
-                .mc-screen { display:flex; flex-direction:column; gap:14px; }
-                .mc-btn { background:linear-gradient(135deg,#15803d,#14532d); color:#fff; border:2px solid #4ade80; border-radius:10px; padding:10px 18px; font-size:0.95rem; font-family:inherit; cursor:pointer; font-weight:700; transition:filter 0.15s; }
-                .mc-btn:hover { filter:brightness(1.2); }
-                .mc-btn:disabled { opacity:0.4; cursor:not-allowed; }
+                .mc-container { max-width:980px; margin:0 auto; background:radial-gradient(circle, #091c10 20%, #030805 100%); border:2px solid #10b981; border-radius:18px; padding:20px; box-shadow:0 0 40px rgba(16,185,129,0.3); }
+                .mc-title { font-size:2.2rem; text-align:center; color:#10b981; text-shadow:0 0 15px rgba(16,185,129,0.6); font-weight:900; margin-bottom:4px; letter-spacing:1px; }
+                .mc-subtitle { font-size:0.85rem; text-align:center; color:#34d399; margin-bottom:20px; }
+                .mc-screen { display:flex; flex-direction:column; gap:16px; }
+                .mc-btn { background:linear-gradient(135deg,#059669,#065f46); color:#fff; border:1px solid #34d399; border-radius:12px; padding:10px 22px; font-size:0.95rem; font-family:inherit; cursor:pointer; font-weight:700; transition:all 0.2s; box-shadow:0 4px 6px rgba(0,0,0,0.3); }
+                .mc-btn:hover { filter:brightness(1.15); transform:translateY(-1px); box-shadow:0 6px 12px rgba(52,211,153,0.2); }
+                .mc-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; box-shadow:none; }
                 .mc-btn-secondary { background:linear-gradient(135deg,#334155,#1e293b); border-color:#64748b; }
-                .mc-btn-danger { background:linear-gradient(135deg,#7f1d1d,#450a0a); border-color:#f87171; }
-                .mc-btn-start { background:linear-gradient(135deg,#166534,#14532d); border-color:#86efac; font-size:1.05rem; padding:12px 24px; margin-top:10px; width:100%; }
-                .mc-close-btn { position:absolute; top:12px; right:16px; background:none; border:none; color:#86efac; font-size:1.6rem; cursor:pointer; z-index:10; }
+                .mc-btn-danger { background:linear-gradient(135deg,#b91c1c,#7f1d1d); border-color:#f87171; }
+                .mc-btn-start { background:linear-gradient(135deg,#059669,#047857); border-color:#6ee7b7; font-size:1.05rem; padding:12px 24px; margin-top:10px; width:100%; }
+                .mc-close-btn { position:absolute; top:12px; right:16px; background:none; border:none; color:#34d399; font-size:1.8rem; cursor:pointer; z-index:10; transition:color 0.2s; }
+                .mc-close-btn:hover { color:#ef4444; }
 
                 /* Deck builder */
-                .mc-deck-layout { display:grid; grid-template-columns:1fr 280px; gap:14px; max-height:75vh; }
-                .mc-panel-title { font-size:1rem; color:#4ade80; border-bottom:2px solid #166534; padding-bottom:6px; margin-bottom:10px; }
-                .mc-db-card { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; border:1px solid #1e3a2f; margin-bottom:6px; background:#0f2a15; cursor:default; }
-                .mc-db-card.mc-type-monster { border-color:#b45309; }
-                .mc-db-card.mc-type-spell   { border-color:#15803d; }
-                .mc-db-card.mc-type-trap    { border-color:#7f1d1d; }
+                .mc-deck-layout { display:grid; grid-template-columns:1fr 300px; gap:16px; max-height:75vh; }
+                .mc-panel-title { font-size:1.05rem; color:#34d399; border-bottom:2px solid #065f46; padding-bottom:6px; margin-bottom:12px; font-weight:bold; }
+                .mc-db-card { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:10px; border:1px solid rgba(52,211,153,0.2); margin-bottom:8px; background:rgba(15,42,21,0.6); cursor:default; transition:transform 0.15s; }
+                .mc-db-card:hover { transform:translateX(3px); background:rgba(16,185,129,0.1); }
+                .mc-db-card.mc-type-monster { border-color:#d97706; }
+                .mc-db-card.mc-type-spell   { border-color:#059669; }
+                .mc-db-card.mc-type-trap    { border-color:#dc2626; }
                 .mc-db-card-info { flex:1; min-width:0; }
-                .mc-db-card-name { font-size:0.82rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-                .mc-db-card-sub  { font-size:0.72rem; color:#86efac; }
-                .mc-db-card-desc { font-size:0.7rem; color:#6b7280; }
-                .mc-db-card-actions { display:flex; align-items:center; gap:4px; flex-shrink:0; }
-                .mc-db-card-actions button { background:#166534; color:#fff; border:1px solid #4ade80; border-radius:6px; width:24px; height:24px; cursor:pointer; font-size:1rem; line-height:1; }
-                .mc-db-card-actions button:disabled { opacity:0.3; cursor:default; }
-                .mc-db-count { font-size:0.78rem; color:#86efac; min-width:28px; text-align:center; }
-                .mc-deck-status { padding:6px 10px; border-radius:8px; text-align:center; font-size:0.85rem; font-weight:700; margin-bottom:8px; }
-                .mc-deck-ok  { background:#14532d; color:#86efac; }
-                .mc-deck-err { background:#7f1d1d; color:#fca5a5; }
-                .mc-deck-entry { font-size:0.82rem; padding:3px 0; border-bottom:1px solid #1e3a2f; display:flex; justify-content:space-between; }
-                .mc-deck-entry-count { color:#4ade80; font-weight:700; }
+                .mc-db-card-name { font-size:0.85rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff; }
+                .mc-db-card-sub  { font-size:0.75rem; color:#6ee7b7; }
+                .mc-db-card-desc { font-size:0.72rem; color:#94a3b8; line-height:1.3; }
+                .mc-db-card-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+                .mc-db-card-actions button { background:#047857; color:#fff; border:1px solid #34d399; border-radius:8px; width:28px; height:28px; cursor:pointer; font-size:1.1rem; line-height:1; font-weight:bold; transition:all 0.15s; }
+                .mc-db-card-actions button:hover { background:#059669; transform:scale(1.1); }
+                .mc-db-card-actions button:disabled { opacity:0.3; cursor:default; transform:none; }
+                .mc-db-count { font-size:0.8rem; color:#34d399; min-width:32px; text-align:center; font-weight:bold; }
+                .mc-deck-status { padding:8px 12px; border-radius:10px; text-align:center; font-size:0.88rem; font-weight:700; margin-bottom:10px; box-shadow:0 4px 6px rgba(0,0,0,0.2); }
+                .mc-deck-ok  { background:rgba(4,120,87,0.3); color:#34d399; border:1px solid #059669; }
+                .mc-deck-err { background:rgba(220,38,38,0.25); color:#fca5a5; border:1px solid #dc2626; }
+                .mc-deck-entry { font-size:0.85rem; padding:5px 0; border-bottom:1px solid rgba(52,211,153,0.15); display:flex; justify-content:space-between; }
+                .mc-deck-entry-count { color:#34d399; font-weight:700; }
                 #mcCollectionPanel { overflow-y:auto; max-height:65vh; padding-right:4px; }
                 #mcDeckPanel { overflow-y:auto; max-height:75vh; display:flex; flex-direction:column; gap:0; }
 
                 /* Duel field */
-                .mc-duel-layout { display:grid; grid-template-columns:56px 1fr 56px; gap:8px; align-items:start; }
-                .mc-side-col { display:flex; flex-direction:column; gap:6px; align-items:center; }
-                .mc-center-col { display:flex; flex-direction:column; gap:4px; }
-                .mc-row { display:flex; gap:5px; justify-content:center; }
-                .mc-zone { width:68px; height:80px; border:2px solid #1e3a2f; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; background:#0a1f10; cursor:default; position:relative; font-size:0.6rem; text-align:center; flex-shrink:0; }
-                .mc-zone-monster { border-color:#166534; }
-                .mc-zone-spell   { border-color:#1e3a8a; }
-                .mc-zone-empty   { color:#374151; font-size:0.65rem; }
-                .mc-zone-available { border-color:#4ade80 !important; cursor:pointer; box-shadow:0 0 8px rgba(74,222,128,0.4); }
-                .mc-zone-target    { border-color:#ef4444 !important; cursor:pointer; box-shadow:0 0 8px rgba(239,68,68,0.5); animation:mc-pulse 0.8s infinite alternate; }
-                .mc-zone-can-attack { border-color:#f59e0b !important; cursor:pointer; box-shadow:0 0 8px rgba(245,158,11,0.4); }
-                @keyframes mc-pulse { from { box-shadow:0 0 4px rgba(239,68,68,0.4); } to { box-shadow:0 0 14px rgba(239,68,68,0.9); } }
-                .mc-card-back-zone { font-size:1.8rem; }
-                .mc-card-name-tiny { font-size:0.55rem; color:#d1fae5; line-height:1.2; max-width:64px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
-                .mc-card-stats { font-size:0.62rem; color:#fbbf24; }
-                .mc-equip-badge { font-size:0.58rem; color:#86efac; background:#14532d; border-radius:4px; padding:1px 3px; }
-                .mc-zone-pos-label { font-size:0.55rem; color:#86efac; }
+                .mc-duel-layout { display:grid; grid-template-columns:60px 1fr 60px; gap:12px; align-items:start; }
+                .mc-side-col { display:flex; flex-direction:column; gap:8px; align-items:center; }
+                .mc-center-col { display:flex; flex-direction:column; gap:6px; background:rgba(0,0,0,0.25); padding:10px; border-radius:12px; border:1px solid rgba(52,211,153,0.1); }
+                .mc-row { display:flex; gap:8px; justify-content:center; }
+                .mc-zone { width:74px; height:88px; border:1.5px solid rgba(52,211,153,0.25); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; background:rgba(4,15,8,0.7); cursor:default; position:relative; font-size:0.6rem; text-align:center; flex-shrink:0; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow:inset 0 0 12px rgba(0,0,0,0.8); }
+                .mc-zone-monster { border-color:rgba(217,119,6,0.35); background:rgba(20,10,2,0.6); }
+                .mc-zone-spell   { border-color:rgba(6,182,212,0.35); background:rgba(2,16,24,0.6); }
+                .mc-zone-empty   { color:#4b5563; font-size:0.65rem; font-weight:bold; }
+                .mc-zone-available { border-color:#34d399 !important; cursor:pointer; box-shadow:0 0 12px rgba(52,211,153,0.65), inset 0 0 8px rgba(52,211,153,0.3); transform:scale(1.02); }
+                .mc-zone-target    { border-color:#ef4444 !important; cursor:pointer; box-shadow:0 0 15px rgba(239,68,68,0.85), inset 0 0 8px rgba(239,68,68,0.4); animation:mc-pulse 0.8s infinite alternate; transform:scale(1.02); }
+                .mc-zone-can-attack { border-color:#f59e0b !important; cursor:pointer; box-shadow:0 0 12px rgba(245,158,11,0.7), inset 0 0 8px rgba(245,158,11,0.3); transform:scale(1.02); }
+                @keyframes mc-pulse { from { box-shadow:0 0 4px rgba(239,68,68,0.4); } to { box-shadow:0 0 16px rgba(239,68,68,0.9); } }
+                .mc-card-back-zone { font-size:2rem; text-shadow:0 0 10px rgba(52,211,153,0.4); }
+                .mc-card-name-tiny { font-size:0.6rem; color:#fff; font-weight:800; line-height:1.2; max-width:68px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; text-shadow:1px 1px 2px #000; }
+                .mc-card-stats { font-size:0.65rem; color:#fbbf24; font-weight:bold; text-shadow:1px 1px 1px #000; }
+                .mc-equip-badge { font-size:0.58rem; color:#a7f3d0; background:#065f46; border-radius:4px; padding:1px 4px; font-weight:bold; }
+                .mc-zone-pos-label { font-size:0.58rem; color:#34d399; font-weight:bold; text-shadow:1px 1px 1px #000; }
 
                 /* Hand */
-                .mc-hand-row { display:flex; gap:5px; overflow-x:auto; padding:4px 0; min-height:88px; }
-                .mc-hand-card { display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px; border:2px solid #1e3a2f; border-radius:8px; cursor:pointer; background:#0f2a15; flex-shrink:0; transition:transform 0.15s, border-color 0.15s; }
-                .mc-hand-card:hover { transform:translateY(-4px); }
-                .mc-hand-card.mc-selected { border-color:#4ade80; transform:translateY(-6px); box-shadow:0 0 10px rgba(74,222,128,0.5); }
-                .mc-hand-card.mc-type-monster { border-color:#92400e; }
-                .mc-hand-card.mc-type-spell   { border-color:#166534; }
-                .mc-hand-card.mc-type-trap    { border-color:#7f1d1d; }
-                .mc-hand-card.mc-card-back    { border-color:#1e3a2f; cursor:default; }
+                .mc-hand-row { display:flex; gap:8px; overflow-x:auto; padding:8px 0; min-height:98px; }
+                .mc-hand-card { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px; border:2px solid rgba(52,211,153,0.25); border-radius:10px; cursor:pointer; background:linear-gradient(145deg, #102a15, #08150c); flex-shrink:0; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow:0 4px 6px rgba(0,0,0,0.4); }
+                .mc-hand-card:hover { transform:translateY(-6px); box-shadow:0 8px 12px rgba(0,0,0,0.5); }
+                .mc-hand-card.mc-selected { border-color:#34d399; transform:translateY(-8px); box-shadow:0 0 15px rgba(52,211,153,0.6); }
+                .mc-hand-card.mc-type-monster { border-color:#d97706; background:linear-gradient(145deg, #2a1505, #100802); }
+                .mc-hand-card.mc-type-spell   { border-color:#059669; background:linear-gradient(145deg, #052010, #020c06); }
+                .mc-hand-card.mc-type-trap    { border-color:#dc2626; background:linear-gradient(145deg, #2a0505, #100202); }
+                .mc-hand-card.mc-card-back    { border-color:rgba(52,211,153,0.2); cursor:default; }
 
                 /* LP bars */
-                .mc-lp-box { text-align:center; padding:6px 12px; border-radius:10px; border:2px solid #166534; background:#071a0b; min-width:120px; }
-                .mc-lp-label { font-size:0.72rem; color:#86efac; }
+                .mc-lp-box { text-align:center; padding:8px 18px; border-radius:12px; border:1px solid rgba(52,211,153,0.3); background:rgba(6,25,12,0.85); min-width:140px; box-shadow:0 4px 10px rgba(0,0,0,0.6), inset 0 0 10px rgba(52,211,153,0.15); backdrop-filter:blur(8px); }
+                .mc-lp-label { font-size:0.75rem; color:#a7f3d0; font-weight:bold; }
                 .mc-lp-num { font-size:1.4rem; font-weight:900; color:#4ade80; }
 
                 /* Log */
-                .mc-log { height:110px; overflow-y:auto; background:#050f07; border:1px solid #1e3a2f; border-radius:8px; padding:6px 8px; font-size:0.75rem; color:#d1fae5; }
-                .mc-log-line { padding:2px 0; border-bottom:1px solid #0d2710; }
+                .mc-log { height:110px; overflow-y:auto; background:#050f07; border:1px solid rgba(52,211,153,0.25); border-radius:8px; padding:6px 8px; font-size:0.75rem; color:#d1fae5; }
+                .mc-log-line { padding:2px 0; border-bottom:1px solid rgba(52,211,153,0.1); }
 
                 /* Card menu */
-                .mc-card-menu { display:none; flex-direction:column; gap:6px; padding:10px; background:#0f2a15; border:2px solid #4ade80; border-radius:12px; margin-top:8px; }
-                .mc-card-menu-title { font-size:0.9rem; font-weight:700; color:#4ade80; margin-bottom:4px; }
+                .mc-card-menu { display:none; flex-direction:column; gap:6px; padding:10px; background:#0f2a15; border:2px solid #34d399; border-radius:12px; margin-top:8px; }
+                .mc-card-menu-title { font-size:0.9rem; font-weight:700; color:#34d399; margin-bottom:4px; }
 
                 /* Result */
-                .mc-result-box { background:#0d1f10; border:3px solid #4ade80; border-radius:16px; padding:30px; text-align:center; max-width:360px; width:90%; display:flex; flex-direction:column; gap:12px; }
+                .mc-result-box { background:#0d1f10; border:3px solid #34d399; border-radius:16px; padding:30px; text-align:center; max-width:360px; width:90%; display:flex; flex-direction:column; gap:12px; }
                 .mc-result-emoji { font-size:4rem; }
-                .mc-result-title { font-size:1.8rem; font-weight:900; color:#4ade80; }
-                .mc-result-sub { font-size:0.9rem; color:#86efac; }
+                .mc-result-title { font-size:1.8rem; font-weight:900; color:#34d399; }
+                .mc-result-sub { font-size:0.9rem; color:#6ee7b7; }
 
                 /* GY/Deck counters */
-                .mc-gy-btn, .mc-deck-count { font-size:0.75rem; background:#071a0b; border:1px solid #1e3a2f; border-radius:6px; padding:4px 6px; color:#86efac; text-align:center; cursor:default; }
+                .mc-gy-btn, .mc-deck-count { font-size:0.75rem; background:#071a0b; border:1px solid rgba(52,211,153,0.2); border-radius:6px; padding:4px 6px; color:#6ee7b7; text-align:center; cursor:default; }
 
                 /* Phase / Action area */
-                .mc-phase-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; padding:6px 10px; background:#071a0b; border-radius:8px; border:1px solid #1e3a2f; }
+                .mc-phase-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; padding:6px 10px; background:#071a0b; border-radius:8px; border:1px solid rgba(52,211,153,0.2); }
                 .mc-action-row { display:flex; gap:6px; flex-wrap:wrap; }
 
                 @media (max-width: 600px) {
@@ -1583,6 +1586,17 @@
                                 <div style="display:flex; flex-direction:column; gap:2px;">
                                     <label style="color:#94a3b8; font-size:0.75rem;">Tộc quái (Tribe):</label>
                                     <input type="text" id="mcFormTribe" value="Tộc Trẩu" style="background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px;">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px; grid-column: span 2;">
+                                    <label style="color:#94a3b8; font-size:0.75rem;">Hình ảnh thẻ bài (Meme Image):</label>
+                                    <div style="display:flex; gap:8px; align-items:center;">
+                                        <input type="file" id="mcFormImageFile" accept="image/*" onchange="window.mcOnCardImageUpload(this)" style="display:none;">
+                                        <button class="mc-btn mc-btn-secondary" style="margin:0; padding:6px 12px; font-size:0.75rem; border-color:#10b981;" onclick="document.getElementById('mcFormImageFile').click()">📁 Tải Ảnh Lên</button>
+                                        <input type="text" id="mcFormImageUrl" placeholder="Hoặc dán URL ảnh..." onchange="window.mcOnCardImageUrlChange()" style="flex:1; background:#0f172a; border:1px solid #475569; color:#fff; padding:5px; border-radius:4px; font-size:0.75rem;">
+                                    </div>
+                                    <div id="mcFormImagePreview" style="margin-top:6px; display:none; justify-content:center;">
+                                        <img id="mcFormImagePreviewImg" src="" style="max-height:80px; border-radius:6px; border:1.5px solid #4ade80; object-fit:cover;">
+                                    </div>
                                 </div>
                                 
                                 <div id="mcFormMonsterCatRow" style="display:flex; flex-direction:column; gap:2px; grid-column: span 2;">
@@ -1720,7 +1734,7 @@
                                 <div class="mc-zone mc-zone-monster" id="mcOMon0"></div>
                             </div>
                             <!-- Divider -->
-                            <div style="border-top:2px dashed #1e3a2f; margin:2px 0;"></div>
+                            <div style="height:2px; background:linear-gradient(90deg, transparent, #10b981, transparent); margin:8px 0; opacity:0.8; box-shadow:0 0 8px #10b981;"></div>
                             <!-- Player monster row -->
                             <div class="mc-row">
                                 <div class="mc-zone mc-zone-monster" id="mcPMon0"></div>
