@@ -1477,17 +1477,35 @@ window.boardInitCameraDrag = function() {
 window.boardStartCameraLoop = function() {
     if (window._boardCameraLoopId) return;
     
+    // Float coordinates to decouple math from browser integer rounding jitter
+    window._cameraCurrentX = null;
+    window._cameraCurrentY = null;
+    
     const loop = () => {
         const grid = document.getElementById('boardGrid');
-        if (grid && window.boardCameraAutoFollow) {
-            let currentX = grid.scrollLeft;
-            let currentY = grid.scrollTop;
-            let dx = window._cameraTargetX - currentX;
-            let dy = window._cameraTargetY - currentY;
+        if (grid) {
+            if (window._cameraCurrentX === null) window._cameraCurrentX = grid.scrollLeft;
+            if (window._cameraCurrentY === null) window._cameraCurrentY = grid.scrollTop;
             
-            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-                grid.scrollLeft = currentX + dx * 0.08; // smooth LERP interpolation
-                grid.scrollTop = currentY + dy * 0.08;
+            if (window.boardCameraAutoFollow) {
+                let dx = window._cameraTargetX - window._cameraCurrentX;
+                let dy = window._cameraTargetY - window._cameraCurrentY;
+                
+                // Snap directly if within sub-pixel range to prevent infinite wobble/shaking
+                if (Math.abs(dx) < 1.5 && Math.abs(dy) < 1.5) {
+                    window._cameraCurrentX = window._cameraTargetX;
+                    window._cameraCurrentY = window._cameraTargetY;
+                } else {
+                    window._cameraCurrentX += dx * 0.08;
+                    window._cameraCurrentY += dy * 0.08;
+                }
+                
+                grid.scrollLeft = Math.round(window._cameraCurrentX);
+                grid.scrollTop = Math.round(window._cameraCurrentY);
+            } else {
+                // Keep float values updated with user drag panned positions
+                window._cameraCurrentX = grid.scrollLeft;
+                window._cameraCurrentY = grid.scrollTop;
             }
         }
         window._boardCameraLoopId = requestAnimationFrame(loop);
