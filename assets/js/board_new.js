@@ -1331,6 +1331,10 @@ window.boardRenderPlayers = function() {
                 'assets/img/board/char_kien.png',
                 'assets/img/board/char_ut.png'
             ];
+            const isUs = (p.networkId === getMyNetworkId() || p.isHuman);
+            const userTag = isUs ? `<div class="user-card-tag" style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:#e11d48; color:#fff; font-size:0.62rem; padding:1px 6px; border-radius:4px; border:1px solid #fda4af; font-weight:bold; white-space:nowrap; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,0.5);">BẠN (Nhân Vật)</div>` : '';
+            const displayName = p.name || 'Người chơi';
+
             const img = charImages[p.idx] || charImages[0];
             const isSelected = p.idx === window.boardSelectedCharDisplayIdx;
             const activeClass = isSelected ? 'active' : '';
@@ -1344,10 +1348,16 @@ window.boardRenderPlayers = function() {
             if (p.eliminated) {
                 turnClasses += ' eliminated';
             }
-            
+
             return `
-                <div class="char-card ${activeClass}${turnClasses}" onclick="window.boardSelectCharacterDisplay(${p.idx})" id="charCard_${p.idx}" style="${cardStyles}">
-                    <img src="${img}" alt="${p.name}">
+                <div class="char-card-container" style="display:flex; flex-direction:column; align-items:center; position:relative; margin-top:12px;">
+                    ${userTag}
+                    <div class="char-card ${activeClass}${turnClasses}" onclick="window.boardSelectCharacterDisplay(${p.idx})" id="charCard_${p.idx}" style="${cardStyles}">
+                        <img src="${img}" alt="${displayName}">
+                    </div>
+                    <div style="font-size:0.75rem; font-weight:bold; color:${p.color}; margin-top:4px; text-shadow:1px 1px 2px #000; text-align:center; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${displayName}">
+                        ${displayName}
+                    </div>
                 </div>
             `;
         }).join('');
