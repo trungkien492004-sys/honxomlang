@@ -1337,11 +1337,25 @@ window.boardRenderGrid = function() {
     }
 
     grid.appendChild(canvas);
-    boardScrollToCurrentPlayer();
+
+    // Initialize drag-to-scroll camera and LERP scroll loop
+    if (typeof window.boardInitCameraDrag === 'function') {
+        window.boardInitCameraDrag();
+    }
+    if (typeof window.boardStartCameraLoop === 'function') {
+        window.boardStartCameraLoop();
+    }
+
+    window.boardScrollToCurrentPlayer();
 };
 
-// Lia màn hình bàn cờ tới đúng ô của người đang tới lượt (bàn 100 ô không thể
-// hiện hết cùng lúc nên cần "camera" bám theo lượt chơi).
+// --- CAMERA SYSTEM (World Board vs Viewport) ---
+window.boardCameraAutoFollow = true;
+window._cameraTargetX = 0;
+window._cameraTargetY = 0;
+window._boardCameraLoopId = null;
+
+// Calculates proper target position centering player within USABLE viewport area (excluding UI panels)
 window.boardScrollToCurrentPlayer = function(targetIdx) {
     if (!boardGame || !boardGame.players.length) return;
     let idx = (typeof targetIdx === 'number') ? targetIdx : boardGame.currentTurn;
@@ -1352,13 +1366,139 @@ window.boardScrollToCurrentPlayer = function(targetIdx) {
     if (!cellEl || !grid) return;
     
     const zoomFactor = 1.35;
-    let targetLeft = (cellEl.offsetLeft * zoomFactor) - (grid.clientWidth / 2) + (cellEl.clientWidth * zoomFactor / 2);
     
-    // If player is past cell 20, center them higher in the viewport (28% from top) to clear bottom dashboard HUD
-    let heightRatio = (cur.pos >= 20) ? 0.28 : 0.48;
-    let targetTop = (cellEl.offsetTop * zoomFactor) - (grid.clientHeight * heightRatio) + (cellEl.clientHeight * zoomFactor / 2);
+    // 1. Calculate usable viewport size by subtracting right panel (330px) and bottom HUD (230px)
+    const rightPanelWidth = 330;
+    const bottomPanelHeight = 230;
     
-    grid.scrollTo({ left: Math.max(0, targetLeft), top: Math.max(0, targetTop), behavior: 'smooth' });
+    const usableWidth = Math.max(300, grid.clientWidth - rightPanelWidth);
+    const usableHeight = Math.max(300, grid.clientHeight - bottomPanelHeight);
+    
+    // 2. Compute absolute player center coordinates on the canvas
+    let playerX = (cellEl.offsetLeft * zoomFactor) + (cellEl.clientWidth * zoomFactor / 2);
+    let playerY = (cellEl.offsetTop * zoomFactor) + (cellEl.clientHeight * zoomFactor / 2);
+    
+    // 3. Center the player within the USABLE area
+    let targetLeft = playerX - (usableWidth / 2);
+    let targetTop = playerY - (usableHeight / 2);
+    
+    // 4. Boundary constraints clamping (to keep camera inside the map bounds)
+    const maxScrollLeft = grid.scrollWidth - grid.clientWidth;
+    const maxScrollTop = grid.scrollHeight - grid.clientHeight;
+    
+    window._cameraTargetX = Math.max(0, Math.min(maxScrollLeft, targetLeft));
+    window._cameraTargetY = Math.max(0, Math.min(maxScrollTop, targetTop));
+};
+
+// Desktop click-drag to scroll & Mobile touch-drag to scroll
+window.boardInitCameraDrag = function() {
+    const grid = document.getElementById('boardGrid');
+    if (!grid) return;
+    
+    let isDragging = false;
+    let startX, startY;
+    let scrollLeft, scrollTop;
+    
+    // Desktop mouse drag
+    grid.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input') || e.target.closest('.board-overlay-panel')) {
+            return;
+        }
+        isDragging = true;
+        window.boardCameraAutoFollow = false; // Suspend auto-follow when dragging manually
+        grid.style.cursor = 'grabbing';
+        
+        startX = e.pageX - grid.offsetLeft;
+        startY = e.pageY - grid.offsetTop;
+        scrollLeft = grid.scrollLeft;
+        scrollTop = grid.scrollTop;
+    });
+    
+    grid.addEventListener('mouseleave', () => {
+        isDragging = false;
+        grid.style.cursor = 'default';
+    });
+    
+    grid.addEventListener('mouseup', () => {
+        isDragging = false;
+        grid.style.cursor = 'default';
+    });
+    
+    grid.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - grid.offsetLeft;
+        const y = e.pageY - grid.offsetTop;
+        const walkX = (x - startX) * 1.5;
+        const walkY = (y - startY) * 1.5;
+        grid.scrollLeft = scrollLeft - walkX;
+        grid.scrollTop = scrollTop - walkY;
+        
+        // Sync target pos to drag scroll so auto-follow doesn't snap back on resume
+        window._cameraTargetX = grid.scrollLeft;
+        window._cameraTargetY = grid.scrollTop;
+    });
+    
+    // Mobile touch drag
+    grid.addEventListener('touchstart', (e) => {
+        if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input') || e.target.closest('.board-overlay-panel')) {
+            return;
+        }
+        isDragging = true;
+        window.boardCameraAutoFollow = false;
+        
+        const touch = e.touches[0];
+        startX = touch.pageX - grid.offsetLeft;
+        startY = touch.pageY - grid.offsetTop;
+        scrollLeft = grid.scrollLeft;
+        scrollTop = grid.scrollTop;
+    }, { passive: true });
+    
+    grid.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+    
+    grid.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const x = touch.pageX - grid.offsetLeft;
+        const y = touch.pageY - grid.offsetTop;
+        const walkX = (x - startX) * 1.5;
+        const walkY = (y - startY) * 1.5;
+        grid.scrollLeft = scrollLeft - walkX;
+        grid.scrollTop = scrollTop - walkY;
+        
+        window._cameraTargetX = grid.scrollLeft;
+        window._cameraTargetY = grid.scrollTop;
+    }, { passive: true });
+};
+
+// Starts requestAnimationFrame rendering loop for smooth camera transitions (LERP)
+window.boardStartCameraLoop = function() {
+    if (window._boardCameraLoopId) return;
+    
+    const loop = () => {
+        const grid = document.getElementById('boardGrid');
+        if (grid && window.boardCameraAutoFollow) {
+            let currentX = grid.scrollLeft;
+            let currentY = grid.scrollTop;
+            let dx = window._cameraTargetX - currentX;
+            let dy = window._cameraTargetY - currentY;
+            
+            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                grid.scrollLeft = currentX + dx * 0.08; // smooth LERP interpolation
+                grid.scrollTop = currentY + dy * 0.08;
+            }
+        }
+        window._boardCameraLoopId = requestAnimationFrame(loop);
+    };
+    window._boardCameraLoopId = requestAnimationFrame(loop);
+};
+
+// Recenter camera onto active player and re-enable auto-follow
+window.boardRecenterCamera = function() {
+    window.boardCameraAutoFollow = true;
+    window.boardScrollToCurrentPlayer();
 };
 
 // ── Render Danh sách ──────────────────────────────────────────
@@ -1545,7 +1685,8 @@ window.boardNextTurn = function() {
     
     boardRenderPlayers();
     boardUpdateRollBtn();
-    if (window.boardScrollToCurrentPlayer) window.boardScrollToCurrentPlayer();
+    window.boardCameraAutoFollow = true; // Auto-follow active player at start of turn
+    if (window.boardScrollToCurrentPlayer) window.boardScrollToCurrentPlayer(nextIdx);
     
     let next = boardGame.players[boardGame.currentTurn];
     if(next && next.isBot && !next.eliminated && !boardGame.gameOver) {
