@@ -316,19 +316,72 @@ const RACE_CARDS = [
           if(L) return boardTakeDamage(L, this.damage, "bị sét đánh"); 
           return 'Sét đánh hụt.';
       } 
+    },
+    { id: 'huydebuff', name: "Thanh Lọc Độc Tố", type: 'fun_spell', rarity: 'common', desc: "Xóa trạng thái mất lượt (ngủ gật) của bản thân.",
+      effect: function(p) {
+          if (p.skipTurn) {
+              p.skipTurn = false;
+              return "Giải độc thành công! Trạng thái ngủ gật/mất lượt đã bị xóa bỏ.";
+          }
+          return "Bản thân không có trạng thái ngủ gật nào.";
+      }
+    },
+    { id: 'trombai', name: "Bàn Tay Nhanh Nhẹn", type: 'fun_spell', rarity: 'rare', desc: "Trộm 1 lá bài trên tay của đối thủ gần nhất.",
+      effect: function(p) {
+          let nearest = null; let minDist = Infinity;
+          boardGame.players.forEach((pl,i) => {
+              if(i !== p.idx && !pl.eliminated) {
+                  let d = Math.abs((pl.pos || 0) - (p.pos || 0));
+                  if(d < minDist) { minDist = d; nearest = pl; }
+              }
+          });
+          if(nearest && nearest.hand && nearest.hand.length > 0) {
+              let cardIdx = Math.floor(Math.random() * nearest.hand.length);
+              let stolenCard = nearest.hand.splice(cardIdx, 1)[0];
+              p.hand.push(stolenCard);
+              return `Ăn trộm thành công lá bài [${stolenCard.name}] từ tay ${nearest.name}!`;
+          }
+          return 'Đối thủ gần nhất không có bài trên tay.';
+      }
+    },
+    { id: 'doidat', name: "Đảo Lộn Cạm Bẫy", type: 'fun_spell', rarity: 'epic', desc: "Gỡ toàn bộ bẫy xung quanh bạn và đặt sang ô của người dẫn đầu.",
+      effect: function(p) {
+          const cand = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
+          const leading = cand.length > 0 ? cand.reduce((a, b) => (a.pos > b.pos ? a : b)) : null;
+          if (leading) {
+              let trapsRemoved = 0;
+              for (let i = Math.max(0, p.pos - 2); i <= Math.min(BOARD_TOTAL_CELLS - 1, p.pos + 2); i++) {
+                  if (boardGame.trappedCells[i]) {
+                      delete boardGame.trappedCells[i];
+                      trapsRemoved++;
+                  }
+              }
+              boardGame.trappedCells[leading.pos] = true;
+              return `Gỡ bỏ ${trapsRemoved} bẫy quanh bạn và đặt 1 bẫy nổ ngay dưới chân ${leading.name}!`;
+          }
+          return 'Không tìm thấy người dẫn đầu.';
+      }
+    },
+    { id: 'baohothanky', name: "Bảo Hộ Thần Kỳ", type: 'fun_spell', rarity: 'common', desc: "Nhận 1 🛡️ Khiên và tiến lên 2 ô.",
+      effect: function(p) {
+          p.shields++;
+          boardMovePlayer(p.idx, 2, true);
+          return "Nhận 1 Khiên chắn và tiến thêm 2 ô.";
+      }
     }
 ];
+
+window.boardShuffleDeck = function() {
+    RACE_CARDS.sort(() => Math.random() - 0.5);
+};
 
 // Hàm Xử lý Đánh Quái (Tự động)
 function boardFightMonster(p, card) {
     const mName = card.name;
-    const reward = card.reward || 30;
     const damage = card.damage || 1;
     if (p.weapons > 0) {
         p.weapons--;
-        p.gold = (p.gold || 0) + reward;
-        if(p.isHuman) boardRefreshHud();
-        return `Dùng hàng nóng 🗡️ vả sml ${mName}! Húp trọn ${reward}💰 thưởng.`;
+        return `Tiêu diệt ${mName} bằng 1 🗡️ Vũ Khí thành công!`;
     } else {
         return boardTakeDamage(p, damage, `bị ${mName} cắn cụt mông`);
     }
@@ -482,7 +535,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                 boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
                 finalizeTurn();
             } else {
-                if (typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
+                if (p.pos >= 20 && typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
                     boardHandleShop(p, cellName, finalizeTurn);
                 } else {
                     boardDrawRandomCard(p, cellName, finalizeTurn);
@@ -550,7 +603,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                     boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
                     finalizeTurn();
                 } else {
-                    if (typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
+                    if (p.pos >= 20 && typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
                         boardHandleShop(p, cellName, finalizeTurn);
                     } else {
                         boardDrawRandomCard(p, cellName, finalizeTurn);
@@ -622,7 +675,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                         window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, finalizeTurn, true);
                         try { audio.play('levelup'); } catch(e){}
                     } else {
-                        if (typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
+                        if (p.pos >= 20 && typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
                             boardHandleShop(p, cellName, finalizeTurn);
                         } else {
                             boardDrawRandomCard(p, cellName, finalizeTurn);
@@ -1370,6 +1423,12 @@ window.boardRenderPlayers = function() {
 // ── Khởi tạo ──────────────────────────────────────────────────
 function openBoardGame(pvpMode = false) {
     try { if (window.audio) window.audio.play('click'); } catch(e){}
+    
+    // Shuffle deck for a completely randomized card pool this match
+    if (typeof window.boardShuffleDeck === 'function') {
+        window.boardShuffleDeck();
+    }
+    
     let betAmount = 0; // default bet
     boardGame = {
         players: [], currentTurn: 0, isRolling: false,
@@ -1691,7 +1750,12 @@ window.boardRollDice = function() {
     if(!cur || !window.boardIsMyTurn()) return;
     if(boardGame.pvp && boardGame.hostId !== getMyNetworkId()) {
         if(typeof pvpChannel !== 'undefined') {
-            pvpChannel.postMessage({ type: 'BOARD_ROLL_REQUEST', id: getMyNetworkId(), hostId: boardGame.hostId });
+            pvpChannel.postMessage({ 
+                type: 'BOARD_ROLL_REQUEST', 
+                roomId: window.boardOnlineRoomId,
+                id: getMyNetworkId(), 
+                hostId: boardGame.hostId 
+            });
         }
         boardGame.isRolling = true;
         window.boardUpdateRollBtn();
@@ -2028,11 +2092,11 @@ window.boardHandleShop = function(p, shopName, callback) {
         let botGold = p.gold !== undefined ? p.gold : 150;
         let boughtSomething = false;
         
-        // Ưu tiên 1: Mua máu nếu < 3 mạng và đủ 100 vàng
-        if (p.lives < 3 && botGold >= 100) {
-            botGold -= 100;
+        // Ưu tiên 1: Mua máu nếu < 3 mạng và đủ 60 vàng
+        if (p.lives < 3 && botGold >= 60) {
+            botGold -= 60;
             p.lives++;
-            boardAddLog(`🛒 CỬA HÀNG: ${p.name} ghé mua 1 Hộp Cứu Thương (-100 Vàng, +1 ❤️)`);
+            boardAddLog(`🛒 CỬA HÀNG: ${p.name} ghé mua 1 Hộp Cứu Thương (-60 Vàng, +1 ❤️)`);
             boughtSomething = true;
         }
         // Ưu tiên 2: Mua vũ khí nếu có 0 vũ khí và đủ 50 vàng
@@ -2428,6 +2492,11 @@ window.boardRegisterNetworkMessage = function(msg) {
     try {
         const playerName = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
 
+        // Host receives roll request from Guest, rolls and broadcasts
+        if (msg.type === 'BOARD_ROLL_REQUEST' && window.boardOnlineRoomId === msg.roomId && window.boardOnlineRole === 'host') {
+            window.boardRollForCurrentPlayer();
+        }
+
         if (msg.type === 'BOARD_ROOM_PING') {
             window.boardActiveRooms = window.boardActiveRooms || {};
             window.boardActiveRooms[msg.roomId] = {
@@ -2583,6 +2652,11 @@ window.boardRegisterNetworkMessage = function(msg) {
 };
 
 window.boardStartOnlineMatch = function(role, room) {
+    // Shuffle the master deck for a completely randomized card distribution this match
+    if (typeof window.boardShuffleDeck === 'function') {
+        window.boardShuffleDeck();
+    }
+
     // Reset local boardGame state
     boardGame = {
         players: [], currentTurn: 0, isRolling: false,
