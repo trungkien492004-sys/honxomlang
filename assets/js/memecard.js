@@ -382,11 +382,25 @@ function mcRenderPhaseButtons() {
 // ────────────────── OPEN / CLOSE / SCREENS ──────────────────
 window.openMemeCardGame = function openMemeCardGame() {
   const modal = document.getElementById('memecardGameModal');
+  const frame = document.getElementById('memecardFrame');
   if (!modal) { console.error('[memecard] #memecardGameModal not found'); return; }
-  modal.style.display = 'flex';
-  mcShowScreen('mcLobbyScreen');
-  window.mcUpdateAdminBtnUI();
-}
+  modal.style.display = 'block';
+  if (frame && (!frame.src || frame.src === 'about:blank' || !frame.src.includes('memecard.html'))) {
+    frame.src = 'memecard.html';
+  }
+};
+
+window.closeMemeCardGame = function closeMemeCardGame() {
+  const modal = document.getElementById('memecardGameModal');
+  if (modal) modal.style.display = 'none';
+};
+window.mcCloseGame = window.closeMemeCardGame;
+
+window.addEventListener('message', function(e) {
+  if (e && e.data && e.data.type === 'CLOSE_MEMECARD') {
+    window.closeMemeCardGame();
+  }
+});
 
 function mcShowScreen(id) {
   ['mcLobbyScreen', 'mcDeckScreen', 'mcDuelScreen', 'mcAdminCardsScreen'].forEach(function(s) {
@@ -396,25 +410,7 @@ function mcShowScreen(id) {
   const res = document.getElementById('mcResultScreen');
   if (res) res.style.display = 'none';
 }
-
-function mcCloseGame() {
-  const modal = document.getElementById('memecardGameModal');
-  if (modal) modal.style.display = 'none';
-  
-  if (window.mcOnlineRoomId) {
-    db.collection('active_players').doc('mcroom_' + window.mcOnlineRoomId).delete().catch(() => {});
-    if (window.mcRoomUnsubscribe) {
-      window.mcRoomUnsubscribe();
-      window.mcRoomUnsubscribe = null;
-    }
-    window.mcOnlineRoomId = null;
-    window.mcOnlineRole = null;
-  }
-  mcGame.duel = null;
-}
-
 window.mcShowScreen = mcShowScreen;
-window.mcCloseGame = mcCloseGame;
 window.mcIsAdmin = mcIsAdmin;
 window.mcOpenDeckBuilder = mcOpenDeckBuilder;
 window.mcRenderDeckBuilder = mcRenderDeckBuilder;

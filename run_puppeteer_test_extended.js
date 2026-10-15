@@ -4,6 +4,7 @@ const path = require('path');
 (async () => {
     console.log('🚀 Starting EXTENDED Puppeteer Test for Xóm Anh Hùng v3.0...');
     const browser = await puppeteer.launch({
+        executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-web-security']
     });
