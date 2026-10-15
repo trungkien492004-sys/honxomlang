@@ -1724,6 +1724,9 @@ window.closeBoardGame = function() {
         clearInterval(window.boardPvpTimerInterval);
         window.boardPvpTimerInterval = null;
     }
+    if (typeof window.switchScreen === 'function') {
+        window.switchScreen('gameModeScreen');
+    }
 };
 
 window.closeBoardInviteModal = function() {

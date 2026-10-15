@@ -393,6 +393,9 @@ window.openMemeCardGame = function openMemeCardGame() {
 window.closeMemeCardGame = function closeMemeCardGame() {
   const modal = document.getElementById('memecardGameModal');
   if (modal) modal.style.display = 'none';
+  if (typeof window.switchScreen === 'function') {
+    window.switchScreen('gameModeScreen');
+  }
 };
 window.mcCloseGame = window.closeMemeCardGame;
 

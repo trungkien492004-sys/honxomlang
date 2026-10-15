@@ -1423,51 +1423,31 @@
         // in firebase.js right before this screen is shown.
         function selectGameMode(mode) {
             try {
-                console.log('[DEBUG] selectGameMode called, mode:', mode, '_pendingCharFlow:', window._pendingCharFlow, 'player.classId:', player.classId, 'CLASS_DATA keys:', Object.keys(CLASS_DATA || {}));
+                console.log('[DEBUG] selectGameMode called, mode:', mode, 'player:', player);
                 try { if (window.audio) window.audio.play('click'); } catch(e){}
-                let isNewChar = window._pendingCharFlow === 'new';
 
-                if (mode === 'world') {
-                    if (isNewChar) {
-                        switchScreen('classScreen');
-                    } else {
-                        switchScreen('gameScreen');
-                        spawnInitialMonsters();
-                        requestAnimationFrame(mainGameLoop);
-                        if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
-                        if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
-                    }
-                    return;
-                }
-
-                // Cờ Đua / Meme Xóm don't need the full RPG class picker. For a brand new
-                // character, give it a lightweight default class first; an existing loaded
-                // character already has its own classId/stats, so leave those untouched.
-                if (isNewChar) {
-                    const firstClassKey = Object.keys(CLASS_DATA)[0];
-                    player.classId = player.classId || firstClassKey;
-                    let t = CLASS_DATA[player.classId] || CLASS_DATA[firstClassKey];
-                    player.hp = player.maxHp = t.hp;
-                    player.mp = player.maxMp = t.mp;
-                    player.baseAtk = t.atk;
-                    player.baseDef = t.def;
-                    player.baseSpeed = t.speed;
-                    player.skills = JSON.parse(JSON.stringify(t.skills));
-                    player.assignedSkills = [t.skills[0].id, t.skills[1].id, t.skills[2].id];
-                    player.activeBuffs = { hp: null, mp: null };
-                    // Ensure player has a name
-                    if (!player.name || player.name.trim() === '') {
-                        player.name = (window.currentFirebaseUser && window.currentFirebaseUser.displayName)
-                            ? window.currentFirebaseUser.displayName
-                            : 'Anh Hùng';
+                // Đảm bảo thông tin player cơ bản
+                const firstClassKey = (typeof CLASS_DATA !== 'undefined' && Object.keys(CLASS_DATA).length > 0) ? Object.keys(CLASS_DATA)[0] : 'cop';
+                player.classId = player.classId || firstClassKey;
+                if (typeof CLASS_DATA !== 'undefined' && CLASS_DATA[player.classId]) {
+                    let t = CLASS_DATA[player.classId];
+                    player.hp = player.hp || t.hp;
+                    player.maxHp = player.maxHp || t.hp;
+                    player.mp = player.mp || t.mp;
+                    player.maxMp = player.maxMp || t.mp;
+                    player.baseAtk = player.baseAtk || t.atk;
+                    player.baseDef = player.baseDef || t.def;
+                    player.baseSpeed = player.baseSpeed || t.speed;
+                    if (!player.skills || player.skills.length === 0) {
+                        player.skills = JSON.parse(JSON.stringify(t.skills));
+                        player.assignedSkills = [t.skills[0].id, t.skills[1].id, t.skills[2].id];
                     }
                 }
-
-                switchScreen('gameScreen');
-                spawnInitialMonsters();
-                requestAnimationFrame(mainGameLoop);
-                if (typeof rebuildQuickSkillBarUI === 'function') rebuildQuickSkillBarUI();
-                if (typeof refreshHudDisplay === 'function') refreshHudDisplay();
+                if (!player.name || player.name.trim() === '') {
+                    player.name = (window.currentFirebaseUser && window.currentFirebaseUser.displayName)
+                        ? window.currentFirebaseUser.displayName
+                        : 'Người chơi';
+                }
 
                 if (mode === 'board') {
                     if (window.openBoardGameWithBet) {

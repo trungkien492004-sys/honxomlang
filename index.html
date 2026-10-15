@@ -59,98 +59,35 @@
         </div>
     </div>
 
-    <!-- ===== MÀN HÌNH CHỌN SERVER ===== -->
-    <div id="serverScreen" class="screen">
-        <div class="title-container">
-            <h1 style="font-size: 3rem;">CHỌN MÁY CHỦ</h1>
-            <p>Vui lòng chọn máy chủ để tiếp tục cuộc hành trình</p>
-        </div>
-        <div class="class-container" id="serverListContainer" style="max-width:600px;">
-            <div class="class-card" onclick="window.selectServer('S1')">
-                <h2 style="color:#fbbf24; margin-bottom:10px;">[S1] Tân Thủ</h2>
-                <p style="font-size:0.9rem; color:#94a3b8;">Máy chủ khởi nguyên. Rất đông đúc.</p>
-                <div style="margin-top:10px; font-weight:bold; color:#4ade80;">Trạng thái: Tốt</div>
-            </div>
-            <div class="class-card" onclick="window.selectServer('S2')">
-                <h2 style="color:#f87171; margin-bottom:10px;">[S2] Hỗn Độn</h2>
-                <p style="font-size:0.9rem; color:#94a3b8;">Máy chủ mới mở. EXP x2.</p>
-                <div style="margin-top:10px; font-weight:bold; color:#fbbf24;">Trạng thái: Đang Hot</div>
-            </div>
-        </div>
-        <div style="text-align:center; margin-top:20px;">
-            <button class="btn" style="background:#475569;" onclick="window.signOutUser()">Đăng Xuất</button>
-        </div>
-    </div>
-
-    <!-- ===== MÀN HÌNH CHỌN NHÂN VẬT (3 SLOTS) ===== -->
-    <div id="characterSelectScreen" class="screen">
-        <div class="title-container">
-            <h1 style="font-size: 3rem;">CHỌN NHÂN VẬT</h1>
-            <p>Chọn nhân vật có sẵn hoặc tạo mới để tham gia sinh tồn</p>
-        </div>
-        <div class="class-container" id="characterSlotsContainer" style="max-width:800px;">
-            <div style="color:#94a3b8; width:100%; text-align:center;">Đang tải dữ liệu Cloud...</div>
-        </div>
-        <div style="text-align:center; margin-top:20px;">
-            <button class="btn" style="background:#475569;" onclick="window.signOutUser()">Đăng Xuất</button>
-        </div>
-    </div>
-
-    <!-- ===== MÀN HÌNH CHỌN CHẾ ĐỘ CHƠI (3 TAB) ===== -->
+    <!-- ===== MÀN HÌNH CHỌN TRÒ CHƠI ===== -->
     <div id="gameModeScreen" class="screen">
         <div class="title-container">
-            <h1 style="font-size: 3rem;">CHỌN CHẾ ĐỘ CHƠI</h1>
-            <p>Chọn 1 trong 3 trải nghiệm của Xóm Anh Hùng</p>
+            <h1 style="font-size: 3rem; text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);">CHỌN TRÒ CHƠI</h1>
+            <p style="font-size: 1.1rem; color: #94a3b8;">Chọn trải nghiệm giải trí bạn muốn tham gia</p>
         </div>
-        <div class="class-container" style="max-width:900px;">
-            <div class="class-card" onclick="window.selectGameMode('world')" style="width:250px; position:relative;">
-                <div style="position:absolute; top:8px; right:8px; background:#ef4444; color:#fff; font-size:0.65rem; font-weight:800; padding:2px 8px; border-radius:10px;">ĐANG FIX</div>
-                <div class="class-emoji">🏘️</div>
-                <div class="class-name">Hồn Xóm Làng</div>
-                <div class="class-desc">Game nhập vai sinh tồn thế giới mở — cốt truyện, quest, PvE/PvP. Đang được hoàn thiện dần.</div>
+        <div class="class-container" style="max-width:800px; display:flex; justify-content:center; gap:32px; flex-wrap:wrap; margin-top:20px;">
+            <div class="class-card" onclick="window.selectGameMode('meme')" style="width:330px; cursor:pointer; padding:28px 20px; border:2px solid #22c55e; background:rgba(15, 23, 42, 0.85); border-radius:16px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 8px 24px rgba(34,197,94,0.2);">
+                <div class="class-emoji" style="font-size:4.5rem; margin-bottom:12px;">🐸</div>
+                <div class="class-name" style="font-size:1.6rem; color:#4ade80; font-weight:800; margin-bottom:10px;">Đấu Trường Meme Xóm</div>
+                <div class="class-desc" style="font-size:0.95rem; color:#cbd5e1; line-height:1.5; min-height:80px;">Game thẻ bài TCG phong cách Speed Duel với bộ bài meme thuần Việt hài hước — tùy biến deck, rút bài và đấu trí!</div>
+                <button class="btn" style="margin-top:20px; width:100%; background:linear-gradient(135deg, #22c55e, #16a34a); font-weight:bold; font-size:1.1rem; padding:12px;">VÀO ĐẤU BÀI ⚔️</button>
             </div>
-            <div class="class-card" onclick="window.selectGameMode('board')" style="width:250px;">
-                <div class="class-emoji">🏁</div>
-                <div class="class-name">Cờ Đua Sinh Tồn</div>
-                <div class="class-desc">Minigame cờ đua 40 ô, rút thẻ bài, PvP đụng độ giữa đường, sống sót tới đích.</div>
+            <div class="class-card" onclick="window.selectGameMode('board')" style="width:330px; cursor:pointer; padding:28px 20px; border:2px solid #38bdf8; background:rgba(15, 23, 42, 0.85); border-radius:16px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 8px 24px rgba(56,189,248,0.2);">
+                <div class="class-emoji" style="font-size:4.5rem; margin-bottom:12px;">🏁</div>
+                <div class="class-name" style="font-size:1.6rem; color:#38bdf8; font-weight:800; margin-bottom:10px;">Cờ Đua Sinh Tồn</div>
+                <div class="class-desc" style="font-size:0.95rem; color:#cbd5e1; line-height:1.5; min-height:80px;">Minigame cờ đua 40 ô sống động, lắc xí ngầu, bẫy quái, rút thẻ bài bất ngờ và sống sót về đích!</div>
+                <button class="btn" style="margin-top:20px; width:100%; background:linear-gradient(135deg, #0284c7, #0369a1); font-weight:bold; font-size:1.1rem; padding:12px;">VÀO CỜ ĐUA 🎲</button>
             </div>
-            <div class="class-card" onclick="window.selectGameMode('meme')" style="width:250px;">
-                <div class="class-emoji">🐸</div>
-                <div class="class-name">Đấu Trường Meme Xóm</div>
-                <div class="class-desc">TCG kiểu Speed Duel với bộ bài "chế" làng quê Việt Nam — xây deck, đấu bài.</div>
-            </div>
+        </div>
+        <div style="text-align:center; margin-top:35px;">
+            <button class="btn" style="background:#475569; padding:10px 28px; font-size:1rem; border-radius:8px;" onclick="window.signOutUser()">🚪 Đăng Xuất</button>
         </div>
     </div>
 
-    <div id="classScreen" class="screen">
-        <div class="title-container">
-            <h1 style="font-size: 3rem;">CHỌN HÀNH NGHỀ</h1>
-            <p>Mỗi nghề nghiệp mang một bộ kỹ năng và sức mạnh sinh tồn riêng biệt</p>
-        </div>
-        <div class="class-container">
-            <div class="class-card cop" onclick="window.selectClass('cop')">
-                <div class="class-emoji">👮‍♂️</div>
-                <div class="class-name">Anh Cảnh Sát</div>
-                <div class="class-desc">Giáp trâu, thủ mạnh, phản công tầm gần và bảo vệ trị an cực tốt.</div>
-            </div>
-            <div class="class-card teacher" onclick="window.selectClass('teacher')">
-                <div class="class-emoji">👩‍🏫</div>
-                <div class="class-name">Cô Giáo Làng</div>
-                <div class="class-desc">Sát thương phép diện rộng, dùng tri thức để khống chế và dập tắt quái vật.</div>
-            </div>
-            <div class="class-card merchant" onclick="window.selectClass('merchant')">
-                <div class="class-emoji">🕵️‍♂️</div>
-                <div class="class-name">Chú Buôn Lậu</div>
-                <div class="class-desc">Tốc độ đánh nhanh, chí mạng lớn, bạo kích mạnh mẽ và rất giàu có.</div>
-            </div>
-            <div class="class-card engineer" onclick="window.selectClass('engineer')">
-                <div class="class-emoji">👨‍💻</div>
-                <div class="class-name">Anh Kỹ Sư</div>
-                <div class="class-desc">Hồi phục mana nhanh, đặt ụ súng công nghệ cao tự động bắn dọn dẹp quái.</div>
-            </div>
-        </div>
-        <button class="btn" style="width: 250px;" onclick="window.confirmClass()">XUẤT TRẬN ⚔️</button>
-    </div>
+    <!-- Giữ lại placeholder ẩn để tương thích mã cũ -->
+    <div id="serverScreen" style="display:none;"></div>
+    <div id="characterSelectScreen" style="display:none;"><div id="characterSlotsContainer"></div></div>
+    <div id="classScreen" style="display:none;"></div>
 
     <div id="gameScreen" class="screen">
         <canvas id="gameCanvas"></canvas>

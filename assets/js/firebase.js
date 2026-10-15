@@ -571,7 +571,40 @@ window.switchScreen = function(sId) {
     if(el) el.classList.add('active');
 };
 
-window.loginAsLocalUser = function(username) {
+window.initUserSession = async function(user) {
+    console.log('[DEBUG] initUserSession for user:', user);
+    window.currentFirebaseUser = user;
+    window._cloudSaveEnabled = true;
+    window.currentServerId = 'S1';
+    window.currentSlotId = `S1_${user.uid}_1`;
+    _showSignOutBtn(user.displayName || (user.email ? user.email.split('@')[0] : 'Người chơi'));
+
+    let savedData = null;
+    try {
+        if (typeof window.loadGameFromCloud === 'function') {
+            savedData = await window.loadGameFromCloud(window.currentSlotId);
+        }
+    } catch(e) {
+        console.warn('Lỗi load cloud, dùng mặc định:', e);
+    }
+
+    window.player = window.player || {};
+    if (savedData && savedData.name) {
+        Object.assign(window.player, savedData);
+    } else {
+        window.player.name = user.displayName || (user.email ? user.email.split('@')[0] : 'Người chơi');
+        window.player.classId = window.player.classId || 'cop';
+        window.player.level = window.player.level || 1;
+        window.player.gold = (window.player.gold !== undefined) ? window.player.gold : 500;
+        window.player.hp = window.player.maxHp = 100;
+        window.player.mp = window.player.maxMp = 50;
+    }
+
+    window._pendingCharFlow = 'existing';
+    window.switchScreen('gameModeScreen');
+};
+
+window.loginAsLocalUser = async function(username) {
     console.log('[DEBUG] loginAsLocalUser called:', username);
     let localUser = {
         uid: 'local_' + username.toLowerCase(),
@@ -580,55 +613,20 @@ window.loginAsLocalUser = function(username) {
     };
     
     localStorage.setItem('xom_logged_local_user', JSON.stringify(localUser));
-    
-    window.currentFirebaseUser = localUser;
-    window._cloudSaveEnabled = true;
-    
-    _showSignOutBtn(username);
-    
-    let savedServer = localStorage.getItem('xom_saved_server');
-    console.log('[DEBUG] savedServer:', savedServer);
-    if(savedServer) {
-        window.currentServerId = savedServer;
-        console.log('[DEBUG] calling openCharacterSelection...');
-        window.openCharacterSelection(localUser);
-    } else {
-        console.log('[DEBUG] calling openServerSelection...');
-        window.openServerSelection();
-    }
+    await window.initUserSession(localUser);
 };
 
 // 🌟 Auth State
 auth.onAuthStateChanged(async (user) => {
     if (user) {
-        window.currentFirebaseUser = user;
-        window._cloudSaveEnabled = true;
-        _showSignOutBtn(user.email ? user.email.split('@')[0] : 'Người chơi');
-        
-        let savedServer = localStorage.getItem('xom_saved_server');
-        if(savedServer) {
-            window.currentServerId = savedServer;
-            await openCharacterSelection(user);
-        } else {
-            openServerSelection();
-        }
+        await window.initUserSession(user);
     } else {
         // Kiểm tra xem có session đăng nhập local trước đó không
         let localUserStr = localStorage.getItem('xom_logged_local_user');
         if (localUserStr) {
             try {
                 let localUser = JSON.parse(localUserStr);
-                window.currentFirebaseUser = localUser;
-                window._cloudSaveEnabled = true;
-                _showSignOutBtn(localUser.displayName);
-                
-                let savedServer = localStorage.getItem('xom_saved_server');
-                if(savedServer) {
-                    window.currentServerId = savedServer;
-                    await openCharacterSelection(localUser);
-                } else {
-                    openServerSelection();
-                }
+                await window.initUserSession(localUser);
                 return;
             } catch(e){}
         }
@@ -747,19 +745,8 @@ window.loginWithGoogle = async function() {
     try {
         const result = await auth.signInWithPopup(googleProvider);
         const user = result.user;
-        window.currentFirebaseUser = user;
-        window._cloudSaveEnabled = true;
-
         _fbToast(`✅ Đăng nhập thành công! Xin chào ${user.displayName} 🎉`, '#22c55e');
-        _showSignOutBtn(user.displayName);
-        
-        let savedServer = localStorage.getItem('xom_saved_server');
-        if(savedServer) {
-            window.currentServerId = savedServer;
-            await openCharacterSelection(user);
-        } else {
-            openServerSelection();
-        }
+        await window.initUserSession(user);
     } catch (err) {
         console.error('[Firebase] Popup error:', err);
         if (err.code === 'auth/popup-blocked') {
@@ -776,86 +763,18 @@ window.loginWithGoogle = async function() {
 };
 
 window.openServerSelection = function() {
-    window.switchScreen('serverScreen');
+    window.switchScreen('gameModeScreen');
 };
 
 window.selectServer = async function(serverId) {
-    window.currentServerId = serverId;
-    localStorage.setItem('xom_saved_server', serverId);
-    _fbToast(`Đã chọn máy chủ: ${serverId}`, '#4fc3f7');
-    if(window.currentFirebaseUser) {
-        await openCharacterSelection(window.currentFirebaseUser);
-    }
+    window.currentServerId = serverId || 'S1';
+    window.switchScreen('gameModeScreen');
 };
 
-// ── Màn hình Chọn Nhân Vật (3 Slots) ─────────────────────────
+// ── Chuyển thẳng về Game Mode Screen (Bỏ chọn nhân vật) ──────
 window.openCharacterSelection = async function(user) {
-    console.log('[DEBUG] openCharacterSelection called, user:', user);
-    window.switchScreen('characterSelectScreen');
-    
-    const container = document.getElementById('characterSlotsContainer');
-    container.innerHTML = '<div style="color:#94a3b8; width:100%; text-align:center;">Đang tải dữ liệu Cloud...</div>';
-
-    const serverPrefix = window.currentServerId ? window.currentServerId + "_" : "S1_";
-    const slotIDs = [`${serverPrefix}${user.uid}_1`, `${serverPrefix}${user.uid}_2`, `${serverPrefix}${user.uid}_3`];
-    console.log('[DEBUG] slotIDs:', slotIDs);
-    
-    let slotsData;
-    try {
-        slotsData = await Promise.all(slotIDs.map(id => loadGameFromCloud(id)));
-        console.log('[DEBUG] slotsData loaded:', slotsData);
-    } catch(err) {
-        console.error('[DEBUG] Error loading slots:', err);
-        slotsData = [null, null, null];
-    }
-
-    container.innerHTML = '';
-    slotsData.forEach((data, index) => {
-        const docId = slotIDs[index];
-        const slotName = `Slot ${index + 1}`;
-        
-        const card = document.createElement('div');
-        card.className = 'class-card ' + (data ? (data.classId || 'cop') : '');
-        card.style.position = 'relative';
-        
-        if(data && data.classId) {
-            // Đã có nhân vật: Vẽ bằng Canvas vector sắc nét
-            card.innerHTML = `
-                <div style="position:absolute;top:8px;right:12px;font-size:0.7rem;color:#94a3b8;font-weight:bold;">${slotName}</div>
-                <canvas id="canvas_slot_${index}" width="100" height="100" style="width:100px; height:100px; display:block; margin: 0 auto 8px; image-rendering: -webkit-optimize-contrast;"></canvas>
-                <div class="class-name" style="margin-bottom:4px;">${data.name}</div>
-                <div class="class-desc" style="color:#fbbf24;font-weight:bold;margin-bottom:2px;min-height:unset;">Cấp độ: ${data.level || 1}</div>
-                <div class="class-desc" style="min-height:unset;color:#cbd5e1;">💰 ${data.gold || 0} vàng</div>
-            `;
-            card.onclick = () => window.selectExistingCharacter(docId, data);
-            
-            // Bắt sự kiện vẽ sau khi thẻ đã được đưa vào DOM
-            setTimeout(() => {
-                const canv = document.getElementById(`canvas_slot_${index}`);
-                if (canv && window.drawBeautifulRPGChibi) {
-                    const cctx = canv.getContext('2d');
-                    // Tăng độ phân giải cho canvas sắc nét
-                    window.drawBeautifulRPGChibi(cctx, 50, 48, data.classId, false, 1.3, 'right');
-                }
-            }, 50);
-        } else {
-            // Trống
-            card.style.background = 'rgba(255,255,255,0.02)';
-            card.style.border = '2px dashed rgba(255,255,255,0.1)';
-            card.style.display = 'flex';
-            card.style.alignItems = 'center';
-            card.style.justifyContent = 'center';
-            card.style.flexDirection = 'column';
-            card.style.minHeight = '198px';
-            card.innerHTML = `
-                <div style="position:absolute;top:8px;right:12px;font-size:0.7rem;color:#94a3b8;font-weight:bold;">${slotName}</div>
-                <div style="font-size:2.2rem;color:#475569;margin-bottom:8px;">➕</div>
-                <div style="color:#94a3b8;font-weight:bold;font-size:0.95rem;">Tạo Nhân Vật</div>
-            `;
-            card.onclick = () => window.createNewCharacter(docId);
-        }
-        container.appendChild(card);
-    });
+    console.log('[DEBUG] openCharacterSelection bypassed -> gameModeScreen');
+    window.switchScreen('gameModeScreen');
 };
 
 window.selectExistingCharacter = function(docId, data) {
