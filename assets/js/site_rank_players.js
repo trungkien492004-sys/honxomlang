@@ -39,7 +39,16 @@
       rankedSnapshot?.docs ? Promise.resolve(rankedSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }))) : getDocs(rankedQuery)]);
     if (!overlay.isConnected) return;
 
+    const LEGEND_BOTS = [
+      { uid: 'bot-yugi', name: 'Yugi Muto / Atem', bot: true, heroId: 0, rating: 1600, wins: 15, losses: 2, draws: 0, played: 17, online: true, title: 'Vua Trò Chơi · Thần Osiris' },
+      { uid: 'bot-kaiba', name: 'Seto Kaiba', bot: true, heroId: 1, rating: 1550, wins: 14, losses: 3, draws: 0, played: 17, online: true, title: 'Đỉnh Cao Mắt Xanh · Obelisk' },
+      { uid: 'bot-zane', name: 'Zane Truesdale', bot: true, heroId: 5, rating: 1450, wins: 12, losses: 4, draws: 0, played: 16, online: true, title: 'Rồng Máy Tận Diệt · Cyber' },
+      { uid: 'bot-jaden', name: 'Jaden Yuki', bot: true, heroId: 4, rating: 1350, wins: 10, losses: 5, draws: 0, played: 15, online: true, title: 'Anh Hùng Tối Thượng · HERO' },
+      { uid: 'bot-pegasus', name: 'Pegasus J. Crawford', bot: true, heroId: 3, rating: 1250, wins: 8, losses: 6, draws: 0, played: 14, online: true, title: 'Vương Quốc Hoạt Hình · Toon' },
+      { uid: 'bot-joey', name: 'Joey Wheeler', bot: true, heroId: 2, rating: 1150, wins: 7, losses: 7, draws: 0, played: 14, online: true, title: 'Rồng Đen Bất Diệt · May Mắn' }
+    ];
     const people = new Map();
+    for (const b of LEGEND_BOTS) people.set(b.uid, { ...b });
     for (const { id, data } of directory) people.set(data.uid || id, { ...data, uid: data.uid || id });
     for (const { id, data } of ranked) people.set(data.uid || id, { ...people.get(data.uid || id), ...data, uid: data.uid || id });
 
@@ -66,7 +75,18 @@
     const showError = message => { const node = overlay.querySelector('#rankFriendError'); if (node) node.textContent = message || ''; };
 
     function ordered() {
-      return [...people.values()].sort((a, b) => (Number.isFinite(b.rating) ? b.rating : -1) - (Number.isFinite(a.rating) ? a.rating : -1) || String(a.name).localeCompare(String(b.name), 'vi'));
+      return [...people.values()].sort((a, b) => {
+        const ratingA = Number.isFinite(Number(a.rating)) ? Number(a.rating) : 1000;
+        const ratingB = Number.isFinite(Number(b.rating)) ? Number(b.rating) : 1000;
+        if (ratingB !== ratingA) return ratingB - ratingA;
+        const winsA = Number(a.wins) || 0, winsB = Number(b.wins) || 0;
+        if (winsB !== winsA) return winsB - winsA;
+        const playedA = Number(a.played) || 0, playedB = Number(b.played) || 0;
+        if (playedB !== playedA) return playedB - playedA;
+        const activeA = (a.bot || online(a)) ? 1 : 0, activeB = (b.bot || online(b)) ? 1 : 0;
+        if (activeB !== activeA) return activeB - activeA;
+        return String(a.name || '').localeCompare(String(b.name || ''), 'vi');
+      });
     }
     function paintPresence() {
       overlay.querySelectorAll('[data-presence-uid]').forEach(node => {
@@ -82,9 +102,28 @@
     function paint() {
       const rows = ordered();
       tbody.innerHTML = rows.map((player, index) => {
-        const active = online(player);
-        const newbie = Date.now() < (Number(player.newbieUntil) || 0) ? '<span class="newbie-badge">NEWBIE</span>' : '';
-        return `<tr><td>${Number.isFinite(player.rating) ? index + 1 : '—'}</td><td><button type="button" class="rank-player-open" data-player-uid="${esc(player.uid)}"><span class="rank-presence ${active ? 'is-online' : 'is-offline'}" data-presence-uid="${esc(player.uid)}"><i aria-hidden="true"></i>${active ? 'Online' : 'Offline'}</span><span>${esc(player.name)}</span>${newbie}</button></td><td>${Number.isFinite(player.rating) ? player.rating : '—'}</td><td>${Number(player.wins) || 0}</td><td>${Number(player.losses) || 0}</td><td>${Number(player.draws) || 0}</td><td>${Number(player.played) || 0}</td></tr>`;
+        const active = player.bot || online(player);
+        const rating = Number.isFinite(Number(player.rating)) ? Number(player.rating) : 1000;
+        const newbie = !player.bot && (Date.now() < (Number(player.newbieUntil) || 0) || !player.played) ? '<span class="newbie-badge">NEWBIE</span>' : '';
+        const botTag = player.bot ? '<span class="rank-bot-badge">BOSS</span>' : '';
+        const rankIcon = index === 0 ? '🥇 1' : index === 1 ? '🥈 2' : index === 2 ? '🥉 3' : ('#' + (index + 1));
+        return `<tr>
+          <td class="rank-num">${rankIcon}</td>
+          <td>
+            <button type="button" class="rank-player-open" data-player-uid="${esc(player.uid)}">
+              <span class="rank-presence ${active ? 'is-online' : 'is-offline'}" data-presence-uid="${esc(player.uid)}">
+                <i aria-hidden="true"></i>${player.bot ? 'Sẵn sàng' : (active ? 'Online' : 'Offline')}
+              </span>
+              <span>${esc(player.name)}</span>
+              ${botTag}${newbie}
+            </button>
+          </td>
+          <td><b>${rating}</b> <small style="opacity:0.75">Elo</small></td>
+          <td style="color:#4ade80;font-weight:800;">${Number(player.wins) || 0}</td>
+          <td style="color:#f87171;">${Number(player.losses) || 0}</td>
+          <td style="opacity:0.75;">${Number(player.draws) || 0}</td>
+          <td><b>${Number(player.played) || 0}</b></td>
+        </tr>`;
       }).join('');
       overlay.querySelector('#rankEmpty').textContent = rows.length ? '' : 'Chưa có người chơi lưu bộ bài. Mở đấu bài để xuất hiện trong danh sách.';
       paintFriends();
@@ -93,14 +132,15 @@
     function paintSelected() {
       const selected = people.get(selectedUid);
       if (!selected || panel.hidden) return;
-      const active = online(selected), isFriend = friends.has(selectedUid);
-      panel.querySelector('#rankOpponentName').textContent = selected.name || 'Đấu sĩ';
-      panel.querySelector('#rankOpponentPresence').textContent = active ? '🟢 Đang online — có thể gửi lời mời.' : '⚪ Offline — máy sẽ dùng bộ bài đã lưu để đấu.';
+      const isBot = !!selected.bot;
+      const active = isBot || online(selected), isFriend = !isBot && friends.has(selectedUid);
+      panel.querySelector('#rankOpponentName').textContent = (selected.name || 'Đấu sĩ') + (selected.title ? ' · ' + selected.title : '') + ' · ' + (Number.isFinite(Number(selected.rating)) ? selected.rating : 1000) + ' Elo';
+      panel.querySelector('#rankOpponentPresence').textContent = isBot ? '⚔️ Đấu Sĩ Huyền Thoại — Bấm khiêu chiến để đấu Rank ngay!' : (active ? '🟢 Đang online — có thể gửi lời mời đấu online.' : '⚪ Offline — máy sẽ dùng bộ bài đã lưu để đấu.');
       const challengeButton = panel.querySelector('#rankChallenge');
-      challengeButton.disabled = challengeBusy || selected.uid === me;
-      challengeButton.textContent = isFriend ? 'Thách đấu bạn · không giới hạn' : 'Khiêu chiến';
+      challengeButton.disabled = challengeBusy || (!isBot && selected.uid === me);
+      challengeButton.textContent = isBot ? `⚔️ Thách đấu ${selected.name}` : (isFriend ? 'Thách đấu bạn · không giới hạn' : 'Khiêu chiến');
       const friendButton = panel.querySelector('#rankFriendAction');
-      friendButton.hidden = !me || selected.uid === me || isFriend;
+      friendButton.hidden = isBot || !me || selected.uid === me || isFriend;
       friendButton.disabled = friendBusy || outgoing.has(selectedUid) || incoming.has(selectedUid);
       friendButton.textContent = friends.has(selectedUid) ? 'Bạn bè' : incoming.has(selectedUid) ? 'Đang có lời mời từ người này' : outgoing.has(selectedUid) ? 'Đã gửi lời mời' : 'Kết bạn';
     }
@@ -195,8 +235,29 @@
     panel.querySelector('#rankChallenge').onclick = async () => {
       if (!selectedUid || challengeBusy) return;
       challengeBusy = true; panel.querySelector('#rankChallenge').disabled = true;
-      try { await challenge(selectedUid); window.siteRank.close(); }
-      catch (error) { panel.querySelector('#rankChallengeError').textContent = error.message; challengeBusy = false; paintSelected(); }
+      try {
+        const selected = people.get(selectedUid);
+        if (selected?.bot) {
+          window.siteRank.close();
+          const presets = {
+            'bot-yugi': 'Yugi · Ma Thuật Tối Thượng',
+            'bot-kaiba': 'Kaiba · Đỉnh Cao Mắt Xanh',
+            'bot-joey': 'Joey · Rồng Đen Bất Diệt',
+            'bot-pegasus': 'Pegasus · Vương Quốc Hoạt Hình',
+            'bot-jaden': 'Jaden · Anh Hùng Tối Thượng',
+            'bot-zane': 'Zane · Rồng Máy Tận Diệt'
+          };
+          const preset = presets[selectedUid];
+          if (typeof startGame === 'function') {
+            startGame({ customBotDeck: preset, ghost: null });
+          } else {
+            await challenge(selectedUid);
+          }
+        } else {
+          await challenge(selectedUid);
+          window.siteRank.close();
+        }
+      } catch (error) { panel.querySelector('#rankChallengeError').textContent = error.message; challengeBusy = false; paintSelected(); }
     };
 
     const subscriptions = [];

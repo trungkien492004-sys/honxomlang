@@ -1072,7 +1072,7 @@
       effect_code: 'dl_favorite_hero',
       effect_trigger: 'activated',
       description: 'Trang bị cho quái "Anh Hùng" Cấp 5 trở lên. Nếu bạn kiểm soát lá ở Vùng Môi Trường, quái được trang bị tăng ATK bằng DEF gốc của nó và đối thủ không thể chọn nó làm mục tiêu hiệu ứng. Đầu Battle Phase: kích hoạt 1 Phép Môi Trường từ tay hoặc Bộ bài (1 lần/lượt). Khi quái được trang bị tấn công và phá hủy quái đối thủ: gửi lá này xuống Mộ; quái đó được tấn công thêm 1 lần liên tiếp.',
-      activation_rules: 'Trang bị cho Anh Hùng Cấp ≥ 5; cộng DEF gốc thành ATK khi có Môi Trường; cho quái đánh thêm 1 lần sau khi hạ quái.',
+      activation_rules: 'Trang bị cho quái Anh Hùng Cấp ≥ 5; cộng DEF gốc thành ATK khi có Môi Trường; cho quái đánh thêm 1 lần sau khi hạ quái.',
       custom_image: 'assets/memecard/art/AN-skyscraper.svg',
       art: { emoji: '⭐', c1: '#f59e0b', c2: '#78350f' }
     },

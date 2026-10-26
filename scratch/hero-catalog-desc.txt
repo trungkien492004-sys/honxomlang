@@ -1,0 +1,192 @@
+
+### MGX-elemental_hero_absolute_zero
+DESC: Tăng 500 ATK cho mỗi quái NƯỚC khác đang ngửa trên cả hai sân.
+ACT: Hiệu ứng liên tục hoặc quái thường theo mô tả.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_the_shining
+DESC: Tăng 300 ATK cho mỗi Anh Hùng bị trục xuất ở cả hai bên. Khi được gửi từ sân xuống Mộ: chọn đúng 2 Anh Hùng bị trục xuất của bạn để đưa về tay; quái bộ bài phụ trở về bộ bài phụ.
+ACT: Hiệu ứng liên tục hoặc quái thường theo mô tả.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_gaia
+DESC: Khi được triệu hồi ngửa: chọn 1 quái ngửa đối thủ, giảm một nửa ATK hiện tại của nó và tăng ATK của Gaia bằng lượng đã giảm.
+ACT: Tự giải quyết khi triệu hồi ngửa; người sở hữu chọn và xác nhận mục tiêu nếu có.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_great_tornado
+DESC: Khi được triệu hồi ngửa: giảm một nửa ATK và DEF hiện tại của toàn bộ quái ngửa đối thủ.
+ACT: Tự giải quyết khi triệu hồi ngửa; người sở hữu chọn và xác nhận mục tiêu nếu có.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_terra_firma
+DESC: Nguyên liệu: Anh Hùng Nguyên Tố Đại Dương + Anh Hùng Nguyên Tố Mộc Nhân. Một lần mỗi lượt: hiến tế 1 Anh Hùng Nguyên Tố khác của bạn đang ngửa; tăng ATK và DEF bằng ATK và DEF hiện tại của quái đó đến hết lượt.
+ACT: MAIN 1/2, một lần/lượt; xem rồi xác nhận trước khi trả chi phí.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_escuridao
+DESC: Tăng 100 ATK cho mỗi Anh Hùng Nguyên Tố trong Mộ của bạn.
+ACT: Hiệu ứng liên tục hoặc quái thường theo mô tả.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_ocean
+DESC: Khi Biển Umi có hiệu lực: có thể tấn công trực tiếp đối thủ.
+ACT: Hiệu ứng liên tục hoặc quái thường theo mô tả.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_woodsman
+DESC: Đầu lượt của bạn, sau khi rút bài: có thể lấy 1 Dung Hợp từ bộ bài hoặc Mộ lên tay. Mỗi bản bài dùng 1 lần mỗi lượt.
+ACT: Đầu lượt, sau khi rút bài; chỉ khi đang ngửa.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_stratos
+DESC: Một lần mỗi lượt: giảm một nửa ATK hiện tại đến hết lượt; trong lượt này có thể tấn công trực tiếp đối thủ.
+ACT: MAIN 1/2, một lần/lượt; xem rồi xác nhận trước khi trả chi phí.
+HAND: -
+ONCE: undefined
+
+### MGX-elemental_hero_shadow_mist
+DESC: Khi được triệu hồi đặc biệt: có thể lấy 1 Phép Tốc Công thuộc nhóm Change từ bộ bài lên tay. Khi được gửi xuống Mộ: có thể lấy 1 quái Anh Hùng khác từ bộ bài lên tay. Mỗi lượt chỉ dùng 1 trong 2 hiệu ứng và chỉ 1 lần.
+ACT: Tự mở lựa chọn khi đủ điều kiện; có thể bỏ qua.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_bassols
+DESC: Quái thường.
+ACT: Triệu hồi thường hoặc úp thủ.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_gust
+DESC: Quái thường.
+ACT: Triệu hồi thường hoặc úp thủ.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_ray
+DESC: Quái thường.
+ACT: Triệu hồi thường hoặc úp thủ.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_fountain
+DESC: Cho đối thủ xem lá này trên tay: gọi đặc biệt 1 Anh Hùng từ tay ở thế thủ. Khi lá này được gửi xuống Mộ bởi hiệu ứng hoặc để kích hoạt hiệu ứng: có thể úp 1 Biến Đổi Mặt Nạ từ bộ bài hoặc Mộ. Mỗi hiệu ứng dùng 1 lần mỗi lượt cho toàn bộ các bản cùng tên.
+ACT: Mỗi hiệu ứng một lần mỗi lượt.
+HAND: true
+ONCE: undefined
+
+### MGX-masked_hero_vapor
+DESC: Không thể bị phá hủy bởi hiệu ứng.
+ACT: Biến Đổi từ quái cùng thuộc tính.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_acid
+DESC: Khi được triệu hồi: phá toàn bộ Phép/Bẫy đối thủ; quái ngửa đối thủ mất 300 ATK.
+ACT: Biến Đổi từ quái cùng thuộc tính.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_daian
+DESC: Khi hạ quái đối thủ trong chiến đấu: có thể gọi đặc biệt 1 quái từ 4 sao trở xuống từ bộ bài.
+ACT: Biến Đổi từ quái cùng thuộc tính.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_blast
+DESC: Khi được triệu hồi: có thể chọn 1 quái ngửa đối thủ và giảm một nửa ATK của nó.
+ACT: Biến Đổi từ quái cùng thuộc tính.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_koga
+DESC: Tăng 500 ATK cho mỗi quái trên sân đối thủ.
+ACT: Biến Đổi từ quái cùng thuộc tính.
+HAND: -
+ONCE: undefined
+
+### MGX-masked_hero_divine_wind
+DESC: Khi hạ quái đối thủ trong chiến đấu: có thể rút 1 lá.
+ACT: Biến Đổi từ quái cùng thuộc tính.
+HAND: -
+ONCE: undefined
+
+### MGX-mask_change
+DESC: Gửi 1 quái Mặt Nạ ngửa của bạn xuống Mộ; gọi 1 quái Mặt Nạ từ bộ bài phụ cùng thuộc tính, có cấp cao hơn và chênh tối đa 2 sao.
+ACT: MAIN 1/2; cần quái Mặt Nạ cùng thuộc tính với đích Extra.
+HAND: -
+ONCE: undefined
+
+### MGX-mask_change_ii
+DESC: Bỏ 1 lá trên tay và gửi 1 quái Mặt Nạ ngửa của bạn xuống Mộ; gọi 1 quái Mặt Nạ 8 sao từ bộ bài phụ cùng thuộc tính.
+ACT: MAIN 1/2; cần quái Mặt Nạ cùng thuộc tính với đích Extra.
+HAND: -
+ONCE: undefined
+
+### DL-neos_fusion
+DESC: Triệu hồi Đặc biệt 1 quái Dung Hợp từ Bộ bài phụ ghi đúng 2 nguyên liệu, trong đó có "Anh Hùng Nguyên Tố Tân Vũ", bằng cách gửi các nguyên liệu đó từ tay, Bộ bài hoặc sân, bỏ qua điều kiện triệu hồi. Sau khi lá này giải quyết, bạn không thể Triệu hồi Đặc biệt trong phần còn lại của lượt. Nếu quái Dung Hợp ghi "Anh Hùng Nguyên Tố Tân Vũ" làm nguyên liệu sẽ bị phá hủy hoặc bị đưa về Bộ bài phụ: bạn có thể trục xuất lá này từ Mộ thay thế.
+ACT: Dùng trong MAIN; gửi nguyên liệu từ tay/Bộ bài/sân để gọi Dung Hợp ghi Tân Vũ; khóa Triệu hồi Đặc biệt đến hết lượt.
+HAND: -
+ONCE: undefined
+
+### DL-elemental_hero_brave_neos
+DESC: "Anh Hùng Nguyên Tố Tân Vũ" + 1 Quái Hiệu Ứng Cấp 4 hoặc thấp hơn. Phải được Triệu hồi Dung Hợp. Tăng 100 ATK cho mỗi quái "Tân Không Gian" và "Anh Hùng" trong Mộ bạn. Khi lá này phá hủy quái đối thủ trong chiến đấu: lấy 1 Phép/Bẫy từ Bộ bài lên tay có nhắc đến "Anh Hùng Nguyên Tố Tân Vũ".
+ACT: Dung Hợp từ Bộ bài phụ; tăng ATK theo Mộ và tìm Phép/Bẫy Tân Vũ sau khi hạ quái.
+HAND: -
+ONCE: undefined
+
+### DL-elemental_hero_sunrise
+DESC: 2 quái "Anh Hùng" khác Hệ. Phải được Triệu hồi Dung Hợp. Quái bạn kiểm soát tăng 200 ATK cho mỗi Hệ khác nhau bạn đang kiểm soát. Mỗi hiệu ứng sau 1 lần/lượt: ● Nếu lá này được Triệu hồi Đặc biệt: lấy 1 "Dung Hợp Kỳ Tích" từ Bộ bài lên tay. ● Khi quái "Anh Hùng" khác bạn kiểm soát tuyên bố tấn công: chọn 1 lá trên sân; phá hủy nó.
+ACT: Dung Hợp từ Bộ bài phụ bằng 2 quái Anh Hùng khác Hệ (ví dụ Lôi Quang + Thạch Nhân). Hiệu ứng lấy Dung Hợp Kỳ Tích khi xuất hiện; hiệu ứng phá lá khi Anh Hùng khác tấn công.
+HAND: -
+ONCE: undefined
+
+### DL-elemental_hero_liquid_soldier
+DESC: Khi triệu hồi thường: hồi sinh 1 quái Anh Hùng Cấp 4 hoặc thấp hơn từ Mộ. Khi dùng làm nguyên liệu Dung Hợp gửi xuống Mộ/trục xuất: rút 2 lá, bỏ 1 lá.
+ACT: Tự động kích hoạt khi triệu hồi hoặc Dung Hợp.
+HAND: -
+ONCE: undefined
+
+### DL-elemental_hero_solid_soldier
+DESC: Khi triệu hồi thường: triệu hồi đặc biệt 1 quái Anh Hùng Cấp 4 hoặc thấp hơn từ tay. Khi bị gửi từ vùng quái xuống Mộ bởi hiệu ứng Phép: hồi sinh 1 quái Anh Hùng từ Mộ ở thế phòng thủ.
+ACT: Tự động mở lựa chọn khi triệu hồi thường.
+HAND: -
+ONCE: undefined
+
+### DL-elemental_hero_honest_neos
+DESC: (Hiệu ứng Nhanh): Bỏ lá này; chọn 1 quái "Anh Hùng" trên sân; lá đó tăng 2500 ATK đến hết lượt. (Hiệu ứng Nhanh): Bỏ 1 quái "Anh Hùng"; lá này tăng ATK bằng ATK của quái đã bỏ đến hết lượt. Mỗi hiệu ứng 1 lần/lượt.
+ACT: Dùng từ tay (bỏ chính nó) để cộng 2500 ATK cho 1 quái Anh Hùng trên sân; khi ở trên sân có thể bỏ 1 Anh Hùng khác trên tay để tự tăng ATK.
+HAND: true
+ONCE: undefined
+
+### DL-masked_hero_anki
+DESC: Phải được Triệu hồi Đặc biệt bằng "Mặt Nạ Biến Đổi". Lá này có thể tấn công trực tiếp, nhưng sát thương chiến đấu gây ra bị chia đôi. Khi lá này phá hủy quái đối thủ trong chiến đấu và gửi vào Mộ: lấy 1 Phép Tốc Công "Change" từ Bộ bài lên tay. Hiệu ứng này 1 lần/lượt.
+ACT: Gọi bằng Mask Change/Form Change từ Bộ bài phụ; đánh trực tiếp với sát thương chia đôi; tìm Phép "Change" sau khi hạ quái.
+HAND: -
+ONCE: undefined
+
+### DL-a_hero_lives
+DESC: Nếu không điều khiển quái nào: trả một nửa LP, triệu hồi đặc biệt 1 quái Anh Hùng Nguyên Tố Cấp 4 hoặc thấp hơn từ Bộ bài.
+ACT: Dùng trong MAIN khi sân trống.
+HAND: -
+ONCE: undefined
+
+### DL-form_change
+DESC: Chọn 1 quái Dung Hợp "Anh Hùng" bạn kiểm soát; đưa lá đó về Bộ bài phụ, sau đó Triệu hồi Đặc biệt từ Bộ bài phụ 1 quái "Anh Hùng Mặt Nạ" cùng Cấp với Cấp gốc của lá đó nhưng khác tên. (Triệu hồi này được tính là Triệu hồi Đặc biệt bằng "Mặt Nạ Biến Đổi".)
+ACT: Dùng trong MAIN: đổi 1 Anh Hùng Dung Hợp thành Anh Hùng Mặt Nạ cùng Cấp, khác tên.
+HAND: -
+ONCE: undefined
+
+### DL-favorite_hero
+DESC: Trang bị cho quái "Anh Hùng" Cấp 5 trở lên. Nếu bạn kiểm soát lá ở Vùng Môi Trường, quái được trang bị tăng ATK bằng DEF gốc của nó và đối thủ không thể chọn nó làm mục tiêu hiệu ứng. Đầu Battle Phase: kích hoạt 1 Phép Môi Trường từ tay hoặc Bộ bài (1 lần/lượt). Khi quái được trang bị tấn công và phá hủy quái đối thủ: gửi lá này xuống Mộ; quái đó được tấn công thêm 1 lần liên tiếp.
+ACT: Trang bị cho Anh Hùng Cấp ≥ 5; cộng DEF gốc thành ATK khi có Môi Trường; cho quái đánh thêm 1 lần sau khi hạ quái.
+HAND: -
+ONCE: undefined

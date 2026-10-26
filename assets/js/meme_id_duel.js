@@ -54,8 +54,16 @@
      const counts={played:(Number(mine.played)||0)+1,wins:(Number(mine.wins)||0)+(outcome==='win'?1:0),losses:(Number(mine.losses)||0)+(outcome==='loss'?1:0),draws:(Number(mine.draws)||0)+(outcome==='draw'?1:0)};
      const nextRating=Math.max(0,Math.round(rating+delta)),createdUntil=Number.isFinite(ownCreated)?ownCreated+7*86400000:0;
      const result={uid:currentUid,matchId,opponentUid,outcome,delta,ratingBefore:rating,ratingAfter:nextRating,createdAt:stamp()};
-     const profile={uid:currentUid,name:String(currentIdentity?.user?.displayName||mine.name||'Đấu sĩ').slice(0,48),rating:nextRating,...counts,lastMatchId:matchId,lastSeen:stamp(),...(!mineSnap.exists?{newbieUntil:createdUntil}:{})};
-     tx.set(resultRef,result);tx.set(mineRef,profile,{merge:true});receipt={...result,...counts};
+     const profileName=String(currentIdentity?.user?.displayName||mine.name||'Đấu sĩ').slice(0,48);
+     tx.set(resultRef,result);
+     if(!mineSnap.exists){
+       const newProfile={uid:currentUid,name:profileName,rating:nextRating,...counts,newbieUntil:createdUntil,lastMatchId:matchId,lastSeen:stamp()};
+       tx.set(mineRef,newProfile);
+     }else{
+       const updateProfile={name:profileName,rating:nextRating,...counts,lastMatchId:matchId,lastSeen:stamp()};
+       tx.update(mineRef,updateProfile);
+     }
+     receipt={...result,...counts};
     });
     if(receipt){match.rankChallengeResult=receipt;window.siteRank?.refresh?.();updateResultUI(receipt);}
     return receipt;

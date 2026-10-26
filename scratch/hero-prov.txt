@@ -1,0 +1,110 @@
+
+### MGX-elemental_hero_absolute_zero
+SRC: Boost its [[ATK]] by 500 points for each [[WATER]] [[Monster Card|monster]] on the [[field]], excluding itself.
+ADJ: 4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Absolute_Zero_(manga) rev 5484994
+
+### MGX-elemental_hero_the_shining
+SRC: [[ATK]] is boosted by 300 for each [[HERO|Hero]] [[Banish|excluded from play]]. When this card is [[Send|sent]] to the [[Graveyard]], [[Add a card|add]] to your [[hand]] 2 Heroes that have been excluded from play.
+ADJ: 4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Thu hồi đúng 2 HERO của chính bạn, chỉ khi lá này được gửi từ sân xuống Mộ; quái Extra về Extra Deck. Đây là cách làm rõ cho sân H5.
+URL: https://yugipedia.com/wiki/Elemental_Hero_The_Shining_(manga) rev 5931587
+
+### MGX-elemental_hero_gaia
+SRC: When [[summon]]ed, halve the [[ATK]] of one opponent's [[Monster Card|monster]] and add that amount to Gaia's ATK.
+ADJ: 4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Làm tròn phần giảm xuống; lưu lượng tăng/giảm, không tự hết ở End Phase.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Gaia_(manga) rev 5485004
+
+### MGX-elemental_hero_great_tornado
+SRC: When [[summon]]ed, halve the [[ATK]] and [[DEF]] of all [[Monster Card|monsters]] on your opponent's [[field]].
+ADJ: 4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Làm tròn phần giảm xuống; lưu lượng tăng/giảm, không tự hết ở End Phase.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Great_Tornado_(manga) rev 5485006
+
+### MGX-elemental_hero_terra_firma
+SRC: If you [[Tribute|sacrifice]] an [[Elemental HERO|Elemental Hero]] on your [[field]], Terra Firma will absorb its [[ATK]] and [[DEF]]. After the [[turn]] ends, ATK and DEF will return to normal.
+ADJ: 4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Giới hạn một lần/lượt, chỉ kích hoạt ở MAIN; Terra Firma chỉ hiến tế quái khác.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Terra_Firma_(manga) rev 5485014
+
+### MGX-elemental_hero_escuridao
+SRC: Gains 100 [[ATK]] for each [[Elemental HERO|Elemental Hero]] in your [[Graveyard]].
+ADJ: 4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Escurid%C3%A3o_(manga) rev 5485000
+
+### MGX-elemental_hero_ocean
+SRC: While "[[Umi (manga)|Umi]]" is [[activate|active]] on the [[field]], can [[attack]] the player [[Direct attack|directly]].
+ADJ: 4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Ocean_(manga) rev 5485010
+
+### MGX-elemental_hero_woodsman
+SRC: Không có hiệu ứng được công bố.
+ADJ: Standby được gộp vào đầu lượt, sau bước rút bài. Mỗi bản đang ngửa được dùng một lần.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Woodsman_(manga) rev 2864141
+
+### MGX-elemental_hero_stratos
+SRC: You can halve this card's [[ATK]] until the [[End Phase]] to allow this card to [[attack]] your opponent [[Direct attack|directly]] this [[turn]].
+ADJ: 4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Giới hạn một lần/lượt, chỉ kích hoạt ở MAIN; Terra Firma chỉ hiến tế quái khác.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Stratos_(manga) rev 5485013
+
+### MGX-elemental_hero_shadow_mist
+SRC: Không có hiệu ứng được công bố.
+ADJ: Chỉ dùng một trong hai hiệu ứng mỗi lượt cho toàn bộ các bản cùng tên.
+URL: https://yugipedia.com/wiki/Elemental_Hero_Shadow_Mist_(manga) rev 2888781
+
+### MGX-masked_hero_bassols
+SRC: Không có hiệu ứng được công bố.
+ADJ: Không có dữ liệu chủng tộc trong manga thì không tự gán Chiến Binh.
+URL: https://yugipedia.com/wiki/Masked_Hero_Bassols rev 5485535
+
+### MGX-masked_hero_gust
+SRC: Không có hiệu ứng được công bố.
+ADJ: Không có dữ liệu chủng tộc trong manga thì không tự gán Chiến Binh.
+URL: https://yugipedia.com/wiki/Masked_Hero_Gust rev 1571535
+
+### MGX-masked_hero_ray
+SRC: Không có hiệu ứng được công bố.
+ADJ: Không có dữ liệu chủng tộc trong manga thì không tự gán Chiến Binh.
+URL: https://yugipedia.com/wiki/Masked_Hero_Ray rev 2664305
+
+### MGX-masked_hero_fountain
+SRC: Không có hiệu ứng được công bố.
+ADJ: Dùng hiệu ứng từ tay ở MAIN. Lá vừa úp từ hiệu ứng có thể dùng ngay trong MAIN theo luật Phép của game. Giới hạn theo tên bài.
+URL: https://yugipedia.com/wiki/Masked_Hero_Fountain_(manga) rev 5765552
+
+### MGX-masked_hero_vapor
+SRC: This card can only be [[destroy]]ed [[Destroyed by battle|in battle]].
+ADJ: Gọi từ Extra bằng phép Biến Đổi, không dùng Dung Hợp. Hiệu ứng chọn quái chỉ xét quái ngửa.
+URL: https://yugipedia.com/wiki/Masked_Hero_Vapor_(manga) rev 5485542
+
+### MGX-masked_hero_acid
+SRC: When [[summon]]ed, [[destroy]] all [[Spell Card|Spells]] and [[Trap Card|Traps]] on your opponent's [[field]] and lower the [[ATK]] of your opponent's [[Monster Card|monsters]] by 300 points.
+ADJ: Gọi từ Extra bằng phép Biến Đổi, không dùng Dung Hợp. Hiệu ứng chọn quái chỉ xét quái ngửa.
+URL: https://yugipedia.com/wiki/Masked_Hero_Acid_(manga) rev 5485534
+
+### MGX-masked_hero_daian
+SRC: When this card [[destroy]]s an enemy [[Monster Card|monster]], [[Special Summon]] a monster of [[Level|LV]]4 or below from your [[Main Deck|deck]].
+ADJ: Gọi từ Extra bằng phép Biến Đổi, không dùng Dung Hợp. Hiệu ứng chọn quái chỉ xét quái ngửa. Chọn thế công hoặc thủ khi gọi từ Deck; không gọi quái có điều kiện triệu hồi riêng. Hiệu ứng sau chiến đấu yêu cầu lá này vẫn ngửa trên sân; người chơi có thể bỏ qua.
+URL: https://yugipedia.com/wiki/Masked_Hero_Daian_(manga) rev 5611983
+
+### MGX-masked_hero_blast
+SRC: When [[summon]]ed, you can halve the [[ATK]] of 1 [[Monster Card|monster]] on your opponent's [[field]].
+ADJ: Gọi từ Extra bằng phép Biến Đổi, không dùng Dung Hợp. Hiệu ứng chọn quái chỉ xét quái ngửa.
+URL: https://yugipedia.com/wiki/Masked_Hero_Blast_(manga) rev 5485536
+
+### MGX-masked_hero_koga
+SRC: Boost Koga's [[ATK]] by the number of [[Monster Card|monsters]] on your opponent's [[field]] x 500 points.
+ADJ: Gọi từ Extra bằng phép Biến Đổi, không dùng Dung Hợp. Hiệu ứng chọn quái chỉ xét quái ngửa.
+URL: https://yugipedia.com/wiki/Masked_Hero_Koga_(manga) rev 5765995
+
+### MGX-masked_hero_divine_wind
+SRC: When you have [[destroy]]ed an enemy [[Monster Card|monster]], you can [[Draw a card|draw]] one card from your [[Main Deck|deck]].
+ADJ: Gọi từ Extra bằng phép Biến Đổi, không dùng Dung Hợp. Hiệu ứng chọn quái chỉ xét quái ngửa. Hiệu ứng sau chiến đấu yêu cầu lá này vẫn ngửa trên sân; người chơi có thể bỏ qua.
+URL: https://yugipedia.com/wiki/Masked_Hero_Divine_Wind_(manga) rev 5765996
+
+### MGX-mask_change
+SRC: [[Send]] one [[Masked HERO|Masked Hero]] from the [[field]] to the [[Graveyard]]. From your [[Extra Deck]], [[Transformation Summon]] one Masked Hero of the same [[Attribute]] and up to two [[level]]s higher.
+ADJ: Kích hoạt ở MAIN, trên tay hoặc sau khi úp. Chọn và xác nhận hết trước khi trả chi phí; chi phí đã trả không hoàn lại nếu Phép bị vô hiệu. Mask Change II được tính là phép Biến Đổi.
+URL: https://yugipedia.com/wiki/Mask_Change_(manga) rev 5727711
+
+### MGX-mask_change_ii
+SRC: [[Discard]] one card from your [[hand]] and perform a [[Transformation Summon]]s, changing one [[Masked HERO|Masked Hero]] currently in play to a [[Level]] 8 Masked Hero of the same [[attribute]].
+ADJ: Kích hoạt ở MAIN, trên tay hoặc sau khi úp. Chọn và xác nhận hết trước khi trả chi phí; chi phí đã trả không hoàn lại nếu Phép bị vô hiệu. Mask Change II được tính là phép Biến Đổi.
+URL: https://yugipedia.com/wiki/Mask_Change_II_(manga) rev 5485524

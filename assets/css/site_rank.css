@@ -30,3 +30,6 @@ html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending bod
 .rank-promo-actions .primary-btn{background:linear-gradient(#f59e0b,#d97706);border:1px solid #fde68a;color:#fff;box-shadow:0 4px 15px rgba(217,119,6,0.4)}
 .rank-promo-actions .secondary-btn{background:#17485e;border:1px solid #7daec3;color:#edf9ff}
 @media(max-width:600px){.rank-promo-card{padding:18px 14px}.rank-promo-card h2{font-size:18px}.rank-promo-badge{font-size:11px;padding:4px 10px}.rank-promo-item{padding:10px;gap:10px}.rank-promo-actions button{width:100%}}
+
+.rank-num { font-weight: 900; font-size: 13.5px; text-align: center; }
+.rank-bot-badge { display: inline-block; vertical-align: middle; padding: 2px 5px; border-radius: 5px; background: #f59e0b; color: #451a03; border: 1px solid #fde68a; font: 900 10px/1.3 'Nunito', sans-serif; margin-left: 5px; white-space: nowrap; }

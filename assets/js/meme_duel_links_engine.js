@@ -1040,7 +1040,7 @@
     return done;
   });
 
-  // Favorite Hero - Equip to a Level 5+ HERO (stays in the Spell/Trap Zone)
+  // Favorite Hero - Equip to a Level 5+ Elemental HERO (stays in the Spell/Trap Zone)
   register('DL-favorite_hero', async (n, c, ctx) => {
     const s = S(n);
     const slotIndex = ctx.fromSet ? ctx.fromSet.index : s.spells.indexOf(null);

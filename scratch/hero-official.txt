@@ -1,0 +1,242 @@
+MISSING:
+AN-elemental_hero_bladeedge | Elemental HERO Bladeedge | 
+MGX-masked_hero_bassols | Masked HERO Bassols | 
+MGX-masked_hero_gust | Masked HERO Gust | 
+MGX-masked_hero_ray | Masked HERO Ray | 
+
+OFFICIAL:
+
+### AN-elemental_hero_avian | Elemental HERO Avian
+Normal Monster | L3 WIND | 1000/1000
+A winged Elemental HERO who wheels through the sky and manipulates the wind. His signature move, Featherbreak, gives villainy a blow from sky-high.
+
+### AN-elemental_hero_burstinatrix | Elemental HERO Burstinatrix
+Normal Monster | L3 FIRE | 1200/800
+A flame manipulator who was the first Elemental HERO woman. Her Burstfire burns away villainy.
+
+### AN-elemental_hero_clayman | Elemental HERO Clayman
+Normal Monster | L4 EARTH | 800/2000
+An Elemental HERO with a clay body built-to-last. He'll preserve his Elemental HERO colleagues at any cost.
+
+### AN-elemental_hero_sparkman | Elemental HERO Sparkman
+Normal Monster | L4 LIGHT | 1600/1400
+''An Elemental HERO and a warrior of light who proficiently wields many kinds of armaments. His Static Shockwave cuts off the path of villainy.''
+
+### AN-elemental_hero_neos | Elemental HERO Neos
+Normal Monster | L7 LIGHT | 2500/2000
+''A new Elemental HERO has arrived from Neo-Space! When he initiates a Contact Fusion with a Neo-Spacian his unknown powers are unleashed.''
+
+### AN-elemental_hero_bubbleman | Elemental HERO Bubbleman
+Effect Monster | L4 WATER | 800/1200
+If this is the only card in your hand, you can Special Summon it (from your hand). When this card is Summoned: You can draw 2 cards. You must control no other cards and have no cards in your hand to activate and to resolve this effect.
+
+### AN-elemental_hero_wildheart | Elemental HERO Wildheart
+Effect Monster | L4 EARTH | 1500/1600
+This card is unaffected by Trap effects.
+
+### AN-elemental_hero_necroshade | Elemental HERO Necroshade
+Effect Monster | L5 DARK | 1600/1800
+Once, while this card is in the Graveyard, 1 Level 5 or higher "Elemental HERO" monster you Normal Summon can be Summoned without Tributing.
+
+### AN-neo_spacian_air_hummingbird | Neo-Spacian Air Hummingbird
+Effect Monster | L3 WIND | 800/600
+Once per turn: You can gain 500 LP for each card in your opponent's hand.
+
+### AN-neo_spacian_aqua_dolphin | Neo-Spacian Aqua Dolphin
+Effect Monster | L3 WATER | 600/800
+Once per turn: You can discard 1 card; look at your opponent's hand and choose 1 monster. If you control a monster with ATK greater than or equal to the ATK of the chosen card, destroy the chosen card, and if you do, inflict 500 damage to your opponent. Otherwise, take 500 damage.
+
+### AN-neo_spacian_flare_scarab | Neo-Spacian Flare Scarab
+Effect Monster | L3 FIRE | 500/500
+Gains 400 ATK for each Spell/Trap your opponent controls.
+
+### AN-elemental_hero_flame_wingman | Elemental HERO Flame Wingman
+Fusion Monster | L6 WIND | 2100/1200
+"Elemental HERO Avian" + "Elemental HERO Burstinatrix"
+Must be Fusion Summoned and cannot be Special Summoned by other ways. When this card destroys a monster by battle and sends it to the Graveyard: Inflict damage to your opponent equal to the ATK of the destroyed monster in the Graveyard.
+
+### AN-elemental_hero_thunder_giant | Elemental HERO Thunder Giant
+Fusion Monster | L6 LIGHT | 2400/1500
+"Elemental HERO Sparkman" + "Elemental HERO Clayman"
+Must be Fusion Summoned and cannot be Special Summoned by other ways. Once per turn: You can discard 1 card to target 1 face-up monster on the field with original ATK less than the ATK of this card; destroy that target.
+
+### AN-elemental_hero_rampart_blaster | Elemental HERO Rampart Blaster
+Fusion Monster | L6 EARTH | 2000/2500
+"Elemental HERO Clayman" + "Elemental HERO Burstinatrix"
+Must be Fusion Summoned and cannot be Special Summoned by other ways. This card can attack while in face-up Defense Position, but only if your opponent controls no monsters, and if it does, this card's ATK is halved during damage calculation only.
+
+### AN-elemental_hero_steam_healer | Elemental HERO Steam Healer
+Fusion Monster | L5 WATER | 1800/1000
+"Elemental HERO Burstinatrix" + "Elemental HERO Bubbleman"
+Must be Fusion Summoned and cannot be Special Summoned by other ways. When this card destroys a monster by battle and sends it to the Graveyard: Gain Life Points equal to the ATK of that destroyed monster in the Graveyard.
+
+### AN-elemental_hero_mudballman | Elemental HERO Mudballman
+Fusion Monster | L6 EARTH | 1900/3000
+"Elemental HERO Bubbleman" + "Elemental HERO Clayman"
+Must be Fusion Summoned and cannot be Special Summoned by other ways.
+
+### AN-elemental_hero_shining_flare_wingman | Elemental HERO Shining Flare Wingman
+Fusion Monster | L8 LIGHT | 2500/2100
+"Elemental HERO Flame Wingman" + "Elemental HERO Sparkman"
+Must be Fusion Summoned and cannot be Special Summoned by other ways. This card gains 300 ATK for each "Elemental HERO" card in your Graveyard. When this card destroys a monster by battle and sends it to the Graveyard: Inflict damage to your opponent equal to the ATK of the destroyed monster in the Graveyard.
+
+### AN-elemental_hero_wildedge | Elemental HERO Wildedge
+Fusion Monster | L8 EARTH | 2600/2300
+"Elemental HERO Wildheart" + "Elemental HERO Bladedge"
+Must be Fusion Summoned and cannot be Special Summoned by other ways. This card can attack every monster your opponent controls (one attack on each monster per Battle Phase).
+
+### AN-elemental_hero_darkbright | Elemental HERO Darkbright
+Fusion Monster | L6 DARK | 2000/1000
+"Elemental HERO Sparkman" + "Elemental HERO Necroshade"
+Must be Fusion Summoned and cannot be Special Summoned by other ways. If this card attacks a Defense Position monster, inflict piercing Battle Damage to your opponent. If this card attacks, change it to Defense Position at the end of the Damage Step. If this card is destroyed: Target 1 monster your opponent controls; destroy that target.
+
+### AN-elemental_hero_air_neos | Elemental HERO Air Neos
+Fusion Monster | L7 WIND | 2500/2000
+"Elemental Hero Neos" + "Neo-Spacian Air Hummingbird"
+This card can only be Special Summoned from your Extra Deck by returning the above cards you control to the Deck. (You do not use "Polymerization".) While your Life Points are lower than your opponent's, this card gains ATK equal to the difference. This card returns to the Extra Deck during the End Phase.
+
+### AN-elemental_hero_aqua_neos | Elemental HERO Aqua Neos
+Fusion Monster | L7 WATER | 2500/2000
+"Elemental HERO Neos" + "Neo-Spacian Aqua Dolphin"
+Must first be Special Summoned (from your Extra Deck) by shuffling the above cards you control into the Deck. (You do not use "Polymerization".) Once per turn: You can discard 1 card; destroy 1 random card in your opponent's hand. During the End Phase: Shuffle this card into the Extra Deck.
+
+### AN-elemental_hero_flare_neos | Elemental HERO Flare Neos
+Fusion Monster | L7 FIRE | 2500/2000
+"Elemental HERO Neos" + "Neo-Spacian Flare Scarab"
+Must first be Special Summoned (from your Extra Deck) by shuffling the above cards you control into the Deck. (You do not use "Polymerization".) This card gains 400 ATK for each Spell/Trap Card on the field. During the End Phase: Shuffle this card into the Extra Deck.
+
+### AN-miracle_fusion | Miracle Fusion
+Spell Card | Lundefined undefined | undefined/undefined
+Fusion Summon 1 "Elemental HERO" Fusion Monster from your Extra Deck, by banishing Fusion Materials listed on it from your field or your GY.
+
+### AN-skyscraper | Skyscraper
+Spell Card | Lundefined undefined | undefined/undefined
+If an "Elemental HERO" monster attacks a monster that has a higher ATK, the attacking monster gains 1000 ATK during damage calculation only.
+
+### MGX-elemental_hero_absolute_zero | Elemental HERO Absolute Zero
+Fusion Monster | L8 WATER | 2500/2000
+1 "HERO" monster + 1 WATER monster
+Must be Fusion Summoned. Gains 500 ATK for each WATER monster on the field, except "Elemental HERO Absolute Zero". If this card leaves the field: Destroy all monsters your opponent controls.
+
+### MGX-elemental_hero_the_shining | Elemental HERO The Shining
+Fusion Monster | L8 LIGHT | 2600/2100
+1 "Elemental HERO" monster + 1 LIGHT monster
+Must be Fusion Summoned and cannot be Special Summoned by other ways. This card gains 300 ATK for each of your banished "Elemental HERO" monsters. When this card is sent from the field to the Graveyard: You can target up to 2 of your banished "Elemental HERO" monsters; add those targets to your hand.
+
+### MGX-elemental_hero_gaia | Elemental HERO Gaia
+Fusion Monster | L6 EARTH | 2200/2600
+1 "Elemental HERO" monster + 1 EARTH monster
+Must be Fusion Summoned and cannot be Special Summoned by other ways. When this card is Fusion Summoned: Target 1 face-up monster your opponent controls; until the End Phase, its ATK is halved and this card gains the same amount of ATK.
+
+### MGX-elemental_hero_great_tornado | Elemental HERO Great Tornado
+Fusion Monster | L8 WIND | 2800/2200
+1 "Elemental HERO" monster + 1 WIND monster
+Must be Fusion Summoned and cannot be Special Summoned by other ways. If this card is Fusion Summoned: Halve the ATK and DEF of all face-up monsters your opponent currently controls.
+
+### MGX-elemental_hero_terra_firma | Elemental HERO Terra Firma
+Fusion Monster | L8 EARTH | 2500/2000
+"Elemental HERO Ocean" + "Elemental HERO Woodsman"
+Must be Fusion Summoned and cannot be Special Summoned by other ways. You can Tribute 1 face-up "Elemental HERO" monster; this card gains ATK equal to the Tributed monster's ATK, until the End Phase.
+
+### MGX-elemental_hero_escuridao | Elemental HERO Escuridao
+Fusion Monster | L8 DARK | 2500/2000
+1 "Elemental HERO" monster + 1 DARK monster
+Must be Fusion Summoned and cannot be Special Summoned by other ways. This card gains 100 ATK for each "Elemental HERO" monster in your Graveyard.
+
+### MGX-elemental_hero_ocean | Elemental HERO Ocean
+Effect Monster | L4 WATER | 1500/1200
+Once per turn, during your Standby Phase: You can target 1 "HERO" monster you control or in your Graveyard; return that target to the hand.
+
+### MGX-elemental_hero_woodsman | Elemental HERO Woodsman
+Effect Monster | L4 EARTH | 1000/2000
+Once per turn, during your Standby Phase: You can add 1 "Polymerization" from your Deck or Graveyard to your hand.
+
+### MGX-elemental_hero_stratos | Elemental HERO Stratos
+Effect Monster | L4 WIND | 1800/300
+When this card is Normal or Special Summoned: You can activate 1 of these effects.
+● Destroy Spells/Traps on the field, up to the number of "HERO" monsters you control, except this card.
+● Add 1 "HERO" monster from your Deck to your hand.
+
+### MGX-elemental_hero_shadow_mist | Elemental HERO Shadow Mist
+Effect Monster | L4 DARK | 1000/1500
+If this card is Special Summoned: You can add 1 "Change" Quick-Play Spell Card from your Deck to your hand. If this card is sent to the GY: You can add 1 "HERO" monster from your Deck to your hand, except "Elemental HERO Shadow Mist". You can only use 1 "Elemental HERO Shadow Mist" effect per turn, and only once that turn.
+
+### MGX-masked_hero_fountain | Masked HERO Fountain
+Effect Monster | L4 WATER | 1000/1400
+You can reveal this card in your hand; Special Summon 1 "HERO" monster from your hand in Defense Position. If this card is sent to the GY by card effect, or to activate a card effect: You can Set 1 "Mask Change" from your Deck or GY. You can only use each effect of "Masked HERO Fountain" once per turn.
+
+### MGX-masked_hero_vapor | Masked HERO Vapor
+Fusion Monster | L6 WATER | 2400/2000
+Must be Special Summoned with "Mask Change". Cannot be destroyed by card effects.
+
+### MGX-masked_hero_acid | Masked HERO Acid
+Fusion Monster | L8 WATER | 2600/2100
+Must be Special Summoned with "Mask Change". When this card is Special Summoned: Destroy as many Spells and Traps your opponent controls as possible, and if you do, all monsters they control lose 300 ATK.
+
+### MGX-masked_hero_daian | Masked HERO Dian
+Fusion Monster | L8 EARTH | 2800/3000
+Must be Special Summoned with "Mask Change". When this card destroys an opponent's monster by battle and sends it to the GY: You can Special Summon 1 Level 4 or lower "HERO" monster from your Deck.
+
+### MGX-masked_hero_blast | Masked HERO Blast
+Fusion Monster | L6 WIND | 2200/1800
+Must be Special Summoned with "Mask Change". If this card is Special Summoned: You can target 1 face-up monster your opponent controls; its ATK becomes half its current ATK. Once per turn (Quick Effect): You can pay 500 LP, then target 1 Spell/Trap your opponent controls; return it to the hand.
+
+### MGX-masked_hero_koga | Masked HERO Koga
+Fusion Monster | L8 LIGHT | 2500/1800
+Must be Special Summoned with "Mask Change" and cannot be Special Summoned by other ways. This card gains 500 ATK for each monster your opponent controls. Once per turn, during either player's turn: You can banish 1 "HERO" monster from your Graveyard, then target 1 face-up monster on the field; that target loses ATK equal to the ATK of the monster banished to activate this effect, until the end of this turn.
+
+### MGX-masked_hero_divine_wind | Masked HERO Divine Wind
+Fusion Monster | L8 WIND | 2700/1900
+Must be Special Summoned with "Mask Change" and cannot be Special Summoned by other ways. Cannot be destroyed by battle. Your opponent can attack with only 1 monster during each Battle Phase. When this card destroys an opponent's monster by battle and sends it to the Graveyard: You can draw 1 card.
+
+### MGX-mask_change | Mask Change
+Spell Card | Lundefined undefined | undefined/undefined
+Target 1 "HERO" monster you control; send it to the GY, also, after that, if it left the field by this effect, Special Summon 1 "Masked HERO" monster from your Extra Deck with the same Attribute that the sent monster had when it was on the field (its original Attribute, if face-down).
+
+### MGX-mask_change_ii | Mask Change II
+Spell Card | Lundefined undefined | undefined/undefined
+Discard 1 card, then target 1 face-up monster you control that has a Level; send it to the Graveyard, also, after that, if it left the field by this effect, Special Summon from your Extra Deck, 1 "Masked HERO" monster with the same Attribute, but a higher Level than, the Attribute/Level the monster had when it was on the field (its original Attribute/Level, if face-down. This Special Summon is treated as a Special Summon with "Mask Change"). You can only activate 1 "Mask Change II" per turn.
+
+### DL-neos_fusion | Neos Fusion
+Spell Card | Lundefined undefined | undefined/undefined
+Special Summon 1 Fusion Monster from your Extra Deck that lists exactly 2 monsters as material, including "Elemental HERO Neos", by sending those monsters from your hand, Deck, or field, ignoring its Summoning conditions. For the rest of this turn after this card resolves, you cannot Special Summon monsters. If a Fusion Monster(s) you control that lists "Elemental HERO Neos" as material would be destroyed by battle or card effect, or shuffled into the Extra Deck by its own effect, you can banish this card from your GY instead.
+
+### DL-elemental_hero_brave_neos | Elemental HERO Brave Neos
+Fusion Monster | L7 LIGHT | 2500/2000
+"Elemental HERO Neos" + 1 Level 4 or lower Effect Monster
+Must be Fusion Summoned. Gains 100 ATK for each "Neo-Spacian" and "HERO" monster in your GY. When this card destroys an opponent's monster by battle: You can add 1 Spell/Trap from your Deck to your hand that specifically lists the card "Elemental HERO Neos" in its text.
+
+### DL-elemental_hero_sunrise | Elemental HERO Sunrise
+Fusion Monster | L7 LIGHT | 2500/1200
+2 "HERO" monsters with different Attributes
+Must be Fusion Summoned. Monsters you control gain 200 ATK for each different Attribute you control. You can only use each of the following effects of "Elemental HERO Sunrise" once per turn.
+● If this card is Special Summoned: You can add 1 "Miracle Fusion" from your Deck to your hand.
+● When an attack is declared involving another "HERO" monster you control: You can target 1 card on the field; destroy it.
+
+### DL-elemental_hero_liquid_soldier | Elemental HERO Liquid Soldier
+Effect Monster | L4 WATER | 1400/1300
+When this card is Normal Summoned: You can target 1 Level 4 or lower "HERO" monster in your GY, except "Elemental HERO Liquid Soldier"; Special Summon it. If this card is used as Fusion Material for a "HERO" monster, and sent to the GY or banished: You can draw 2 cards, then discard 1 card. You can only use 1 "Elemental HERO Liquid Soldier" effect per turn, and only once that turn.
+
+### DL-elemental_hero_solid_soldier | Elemental HERO Solid Soldier
+Effect Monster | L4 EARTH | 1300/1100
+When this card is Normal Summoned: You can Special Summon 1 Level 4 or lower "HERO" monster from your hand. If this card is sent from the Monster Zone to the GY by a Spell effect: You can target 1 "HERO" monster in your GY, except "Elemental HERO Solid Soldier"; Special Summon it in Defense Position. You can only use this effect of "Elemental HERO Solid Soldier" once per turn.
+
+### DL-elemental_hero_honest_neos | Elemental HERO Honest Neos
+Effect Monster | L7 LIGHT | 2500/2000
+(Quick Effect): You can discard this card, then target 1 "HERO" monster on the field; it gains 2500 ATK until the end of this turn. (Quick Effect): You can discard 1 "HERO" monster; this card gains ATK equal to the discarded monster's ATK until the end of this turn. You can only use each effect of "Elemental HERO Honest Neos" once per turn.
+
+### DL-masked_hero_anki | Masked HERO Anki
+Fusion Monster | L8 DARK | 2800/1200
+Must be Special Summoned by "Mask Change". This card can attack directly, but when it does so using this effect, the battle damage inflicted to your opponent is halved. When this card destroys an opponent's monster by battle and sends it to the GY: You can add 1 "Change" Quick-Play Spell Card from your Deck to your hand. You can only use this effect of "Masked HERO Anki" once per turn.
+
+### DL-a_hero_lives | A Hero Lives
+Spell Card | Lundefined undefined | undefined/undefined
+If you control no face-up monsters: Pay half your LP; Special Summon 1 Level 4 or lower "Elemental HERO" monster from your Deck.
+
+### DL-form_change | Form Change
+Spell Card | Lundefined undefined | undefined/undefined
+Target 1 "HERO" Fusion Monster you control; return it to the Extra Deck, then Special Summon from your Extra Deck, 1 "Masked HERO" monster with the same Level as that monster's original Level, but with a different name. (This Special Summon is treated as a Special Summon with "Mask Change".)
+
+### DL-favorite_hero | Favorite Hero
+Spell Card | Lundefined undefined | undefined/undefined
+Equip only to a Level 5 or higher "HERO" monster. If you control a card in your Field Zone, the equipped monster gains ATK equal to its original DEF, also your opponent cannot target it with card effects. At the start of the Battle Phase: You can activate 1 Field Spell directly from your hand or Deck. You can only use this effect of "Favorite Hero" once per turn. When the equipped monster attacks and destroys an opponent's monster by battle: You can send this card to the GY; the attacking monster can make a second attack in a row.

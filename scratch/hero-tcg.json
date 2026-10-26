@@ -1,0 +1,1325 @@
+[
+ {
+  "id": "AN-elemental_hero_avian",
+  "name": "Elemental HERO Avian",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Avian",
+   "type": "Normal Monster",
+   "level": 3,
+   "attribute": "WIND",
+   "atk": 1000,
+   "def": 1000,
+   "desc": "A winged Elemental HERO who wheels through the sky and manipulates the wind. His signature move, Featherbreak, gives villainy a blow from sky-high.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Thường",
+   "level": 3,
+   "attribute": "Phong",
+   "atk": 1000,
+   "def": 1000,
+   "desc": "Quái thường.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_burstinatrix",
+  "name": "Elemental HERO Burstinatrix",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Burstinatrix",
+   "type": "Normal Monster",
+   "level": 3,
+   "attribute": "FIRE",
+   "atk": 1200,
+   "def": 800,
+   "desc": "A flame manipulator who was the first Elemental HERO woman. Her Burstfire burns away villainy.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Thường",
+   "level": 3,
+   "attribute": "Hỏa",
+   "atk": 1200,
+   "def": 800,
+   "desc": "Quái thường.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_clayman",
+  "name": "Elemental HERO Clayman",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Clayman",
+   "type": "Normal Monster",
+   "level": 4,
+   "attribute": "EARTH",
+   "atk": 800,
+   "def": 2000,
+   "desc": "An Elemental HERO with a clay body built-to-last. He'll preserve his Elemental HERO colleagues at any cost.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Thường",
+   "level": 4,
+   "attribute": "Địa",
+   "atk": 800,
+   "def": 2000,
+   "desc": "Quái thường.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_sparkman",
+  "name": "Elemental HERO Sparkman",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Sparkman",
+   "type": "Normal Monster",
+   "level": 4,
+   "attribute": "LIGHT",
+   "atk": 1600,
+   "def": 1400,
+   "desc": "''An Elemental HERO and a warrior of light who proficiently wields many kinds of armaments. His Static Shockwave cuts off the path of villainy.''",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Thường",
+   "level": 4,
+   "attribute": "Quang",
+   "atk": 1600,
+   "def": 1400,
+   "desc": "Quái thường.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_neos",
+  "name": "Elemental HERO Neos",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Neos",
+   "type": "Normal Monster",
+   "level": 7,
+   "attribute": "LIGHT",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "''A new Elemental HERO has arrived from Neo-Space! When he initiates a Contact Fusion with a Neo-Spacian his unknown powers are unleashed.''",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Thường",
+   "level": 7,
+   "attribute": "Quang",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "Quái thường.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_bubbleman",
+  "name": "Elemental HERO Bubbleman",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Bubbleman",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "WATER",
+   "atk": 800,
+   "def": 1200,
+   "desc": "If this is the only card in your hand, you can Special Summon it (from your hand). When this card is Summoned: You can draw 2 cards. You must control no other cards and have no cards in your hand to activate and to resolve this effect.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu ứng",
+   "level": 4,
+   "attribute": "Thủy",
+   "atk": 800,
+   "def": 1200,
+   "desc": "Nếu lá này là lá duy nhất trên tay bạn: bạn có thể Triệu hồi Đặc biệt lá này từ tay. Khi lá này được Triệu hồi: bạn có thể rút 2 lá, nhưng bạn phải không kiểm soát lá nào khác và không có lá nào trên tay để kích hoạt và giải quyết hiệu ứng này.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_wildheart",
+  "name": "Elemental HERO Wildheart",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Wildheart",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "EARTH",
+   "atk": 1500,
+   "def": 1600,
+   "desc": "This card is unaffected by Trap effects.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu ứng",
+   "level": 4,
+   "attribute": "Địa",
+   "atk": 1500,
+   "def": 1600,
+   "desc": "Lá này không bị ảnh hưởng bởi hiệu ứng Bẫy.",
+   "act": "Hiệu ứng liên tục khi ở trên sân; miễn nhiễm mọi hiệu ứng Bẫy, kể cả Bẫy không chỉ định."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_bladeedge",
+  "name": "Elemental HERO Bladeedge",
+  "found": false,
+  "official": null,
+  "catalog": {
+   "type": "Monster Hiệu ứng",
+   "level": 7,
+   "attribute": "Địa",
+   "atk": 2600,
+   "def": 1800,
+   "desc": "Nếu lá này tấn công quái ở thế Thủ: gây sát thương xuyên thủ cho đối thủ.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_necroshade",
+  "name": "Elemental HERO Necroshade",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Necroshade",
+   "type": "Effect Monster",
+   "level": 5,
+   "attribute": "DARK",
+   "atk": 1600,
+   "def": 1800,
+   "desc": "Once, while this card is in the Graveyard, 1 Level 5 or higher \"Elemental HERO\" monster you Normal Summon can be Summoned without Tributing.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu ứng",
+   "level": 5,
+   "attribute": "Ám",
+   "atk": 1600,
+   "def": 1800,
+   "desc": "Một lần, khi lá này ở trong Mộ: 1 quái \"Anh Hùng Nguyên Tố\" cấp 5 trở lên bạn Triệu hồi Thường có thể được Triệu hồi mà không cần hiến tế.",
+   "act": "Dùng trong Mộ, không cần kích hoạt; lá vẫn nằm trong Mộ sau khi dùng, mỗi bản sao cho phép một lần."
+  }
+ },
+ {
+  "id": "AN-neo_spacian_air_hummingbird",
+  "name": "Neo-Spacian Air Hummingbird",
+  "found": true,
+  "official": {
+   "name": "Neo-Spacian Air Hummingbird",
+   "type": "Effect Monster",
+   "level": 3,
+   "attribute": "WIND",
+   "atk": 800,
+   "def": 600,
+   "desc": "Once per turn: You can gain 500 LP for each card in your opponent's hand.",
+   "fusion": null,
+   "archetype": "Neo-Spacian"
+  },
+  "catalog": {
+   "type": "Monster Hiệu ứng",
+   "level": 3,
+   "attribute": "Phong",
+   "atk": 800,
+   "def": 600,
+   "desc": "Một lần/lượt: bạn có thể hồi 500 LP cho mỗi lá trên tay đối thủ.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-neo_spacian_aqua_dolphin",
+  "name": "Neo-Spacian Aqua Dolphin",
+  "found": true,
+  "official": {
+   "name": "Neo-Spacian Aqua Dolphin",
+   "type": "Effect Monster",
+   "level": 3,
+   "attribute": "WATER",
+   "atk": 600,
+   "def": 800,
+   "desc": "Once per turn: You can discard 1 card; look at your opponent's hand and choose 1 monster. If you control a monster with ATK greater than or equal to the ATK of the chosen card, destroy the chosen card, and if you do, inflict 500 damage to your opponent. Otherwise, take 500 damage.",
+   "fusion": null,
+   "archetype": "Neo-Spacian"
+  },
+  "catalog": {
+   "type": "Monster Hiệu ứng",
+   "level": 3,
+   "attribute": "Thủy",
+   "atk": 600,
+   "def": 800,
+   "desc": "Một lần/lượt: bạn có thể bỏ 1 lá; xem tay đối thủ và chọn 1 quái. Nếu bạn kiểm soát quái có ATK lớn hơn hoặc bằng ATK của lá đã chọn: phá hủy lá đó, và nếu làm vậy, gây 500 sát thương cho đối thủ. Nếu không, bạn nhận 500 sát thương.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-neo_spacian_flare_scarab",
+  "name": "Neo-Spacian Flare Scarab",
+  "found": true,
+  "official": {
+   "name": "Neo-Spacian Flare Scarab",
+   "type": "Effect Monster",
+   "level": 3,
+   "attribute": "FIRE",
+   "atk": 500,
+   "def": 500,
+   "desc": "Gains 400 ATK for each Spell/Trap your opponent controls.",
+   "fusion": null,
+   "archetype": "Neo-Spacian"
+  },
+  "catalog": {
+   "type": "Monster Hiệu ứng",
+   "level": 3,
+   "attribute": "Hỏa",
+   "atk": 500,
+   "def": 500,
+   "desc": "Lá này tăng 400 ATK cho mỗi Phép/Bẫy đối thủ kiểm soát.",
+   "act": "Triệu hồi thường: 1 lần/lượt. 5–6 sao hiến tế 1; từ 7 sao hiến tế 2."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_flame_wingman",
+  "name": "Elemental HERO Flame Wingman",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Flame Wingman",
+   "type": "Fusion Monster",
+   "level": 6,
+   "attribute": "WIND",
+   "atk": 2100,
+   "def": 1200,
+   "desc": "\"Elemental HERO Avian\" + \"Elemental HERO Burstinatrix\"\nMust be Fusion Summoned and cannot be Special Summoned by other ways. When this card destroys a monster by battle and sends it to the Graveyard: Inflict damage to your opponent equal to the ATK of the destroyed monster in the Graveyard.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 6,
+   "attribute": "Phong",
+   "atk": 2100,
+   "def": 1200,
+   "desc": "Anh Hùng Nguyên Tố Phong Dực + Anh Hùng Nguyên Tố Hỏa Nữ. Phải được Triệu hồi Dung Hợp. Khi lá này phá hủy quái trong chiến đấu và gửi vào Mộ: gây sát thương cho đối thủ bằng ATK của quái bị phá hủy trong Mộ.",
+   "act": "Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_thunder_giant",
+  "name": "Elemental HERO Thunder Giant",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Thunder Giant",
+   "type": "Fusion Monster",
+   "level": 6,
+   "attribute": "LIGHT",
+   "atk": 2400,
+   "def": 1500,
+   "desc": "\"Elemental HERO Sparkman\" + \"Elemental HERO Clayman\"\nMust be Fusion Summoned and cannot be Special Summoned by other ways. Once per turn: You can discard 1 card to target 1 face-up monster on the field with original ATK less than the ATK of this card; destroy that target.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 6,
+   "attribute": "Quang",
+   "atk": 2400,
+   "def": 1500,
+   "desc": "Anh Hùng Nguyên Tố Lôi Quang + Anh Hùng Nguyên Tố Thạch Nhân. Phải được Triệu hồi Dung Hợp. Một lần/lượt: bạn có thể bỏ 1 lá, sau đó chọn 1 quái ngửa trên sân có ATK gốc nhỏ hơn ATK của lá này; phá hủy mục tiêu đó.",
+   "act": "Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_rampart_blaster",
+  "name": "Elemental HERO Rampart Blaster",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Rampart Blaster",
+   "type": "Fusion Monster",
+   "level": 6,
+   "attribute": "EARTH",
+   "atk": 2000,
+   "def": 2500,
+   "desc": "\"Elemental HERO Clayman\" + \"Elemental HERO Burstinatrix\"\r\nMust be Fusion Summoned and cannot be Special Summoned by other ways. This card can attack while in face-up Defense Position, but only if your opponent controls no monsters, and if it does, this card's ATK is halved during damage calculation only.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 6,
+   "attribute": "Địa",
+   "atk": 2000,
+   "def": 2500,
+   "desc": "Anh Hùng Nguyên Tố Thạch Nhân + Anh Hùng Nguyên Tố Hỏa Nữ. Phải được Triệu hồi Dung Hợp. Lá này có thể tấn công khi đang ở thế Thủ ngửa, nhưng chỉ khi đối thủ không kiểm soát quái nào; nếu làm vậy, ATK của lá này bị chia đôi chỉ trong lúc tính sát thương.",
+   "act": "Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_steam_healer",
+  "name": "Elemental HERO Steam Healer",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Steam Healer",
+   "type": "Fusion Monster",
+   "level": 5,
+   "attribute": "WATER",
+   "atk": 1800,
+   "def": 1000,
+   "desc": "\"Elemental HERO Burstinatrix\" + \"Elemental HERO Bubbleman\"\nMust be Fusion Summoned and cannot be Special Summoned by other ways. When this card destroys a monster by battle and sends it to the Graveyard: Gain Life Points equal to the ATK of that destroyed monster in the Graveyard.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 5,
+   "attribute": "Thủy",
+   "atk": 1800,
+   "def": 1000,
+   "desc": "Anh Hùng Nguyên Tố Hỏa Nữ + Anh Hùng Nguyên Tố Bọt Biển. Phải được Triệu hồi Dung Hợp. Khi lá này phá hủy quái trong chiến đấu và gửi vào Mộ: hồi LP bằng ATK của quái bị phá hủy trong Mộ.",
+   "act": "Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_mudballman",
+  "name": "Elemental HERO Mudballman",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Mudballman",
+   "type": "Fusion Monster",
+   "level": 6,
+   "attribute": "EARTH",
+   "atk": 1900,
+   "def": 3000,
+   "desc": "\"Elemental HERO Bubbleman\" + \"Elemental HERO Clayman\"\nMust be Fusion Summoned and cannot be Special Summoned by other ways.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 6,
+   "attribute": "Địa",
+   "atk": 1900,
+   "def": 3000,
+   "desc": "Anh Hùng Nguyên Tố Bọt Biển + Anh Hùng Nguyên Tố Thạch Nhân. Quái Dung Hợp không có hiệu ứng.",
+   "act": "Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_shining_flare_wingman",
+  "name": "Elemental HERO Shining Flare Wingman",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Shining Flare Wingman",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "LIGHT",
+   "atk": 2500,
+   "def": 2100,
+   "desc": "\"Elemental HERO Flame Wingman\" + \"Elemental HERO Sparkman\"\nMust be Fusion Summoned and cannot be Special Summoned by other ways. This card gains 300 ATK for each \"Elemental HERO\" card in your Graveyard. When this card destroys a monster by battle and sends it to the Graveyard: Inflict damage to your opponent equal to the ATK of the destroyed monster in the Graveyard.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 8,
+   "attribute": "Quang",
+   "atk": 2500,
+   "def": 2100,
+   "desc": "Anh Hùng Nguyên Tố Dực Hỏa + Anh Hùng Nguyên Tố Lôi Quang. Phải được Triệu hồi Dung Hợp. Lá này tăng 300 ATK cho mỗi lá \"Anh Hùng Nguyên Tố\" trong Mộ bạn. Khi lá này phá hủy quái trong chiến đấu và gửi vào Mộ: gây sát thương cho đối thủ bằng ATK của quái bị phá hủy trong Mộ.",
+   "act": "Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_wildedge",
+  "name": "Elemental HERO Wildedge",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Wildedge",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "EARTH",
+   "atk": 2600,
+   "def": 2300,
+   "desc": "\"Elemental HERO Wildheart\" + \"Elemental HERO Bladedge\"\nMust be Fusion Summoned and cannot be Special Summoned by other ways. This card can attack every monster your opponent controls (one attack on each monster per Battle Phase).",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 8,
+   "attribute": "Địa",
+   "atk": 2600,
+   "def": 2300,
+   "desc": "Anh Hùng Nguyên Tố Hoang Dã + Anh Hùng Nguyên Tố Lưỡi Kiếm. Phải được Triệu hồi Dung Hợp. Lá này có thể tấn công mỗi quái đối thủ kiểm soát (mỗi quái 1 lần trong mỗi Battle Phase).",
+   "act": "Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_darkbright",
+  "name": "Elemental HERO Darkbright",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Darkbright",
+   "type": "Fusion Monster",
+   "level": 6,
+   "attribute": "DARK",
+   "atk": 2000,
+   "def": 1000,
+   "desc": "\"Elemental HERO Sparkman\" + \"Elemental HERO Necroshade\"\nMust be Fusion Summoned and cannot be Special Summoned by other ways. If this card attacks a Defense Position monster, inflict piercing Battle Damage to your opponent. If this card attacks, change it to Defense Position at the end of the Damage Step. If this card is destroyed: Target 1 monster your opponent controls; destroy that target.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 6,
+   "attribute": "Ám",
+   "atk": 2000,
+   "def": 1000,
+   "desc": "Anh Hùng Nguyên Tố Lôi Quang + Anh Hùng Nguyên Tố Bóng Ma. Phải được Triệu hồi Dung Hợp. Nếu lá này tấn công quái ở thế Thủ: gây sát thương xuyên thủ. Nếu lá này tấn công: chuyển nó sang thế Thủ vào cuối Damage Step. Nếu lá này bị phá hủy: chọn 1 quái đối thủ; phá hủy mục tiêu đó.",
+   "act": "Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_air_neos",
+  "name": "Elemental HERO Air Neos",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Air Neos",
+   "type": "Fusion Monster",
+   "level": 7,
+   "attribute": "WIND",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "\"Elemental Hero Neos\" + \"Neo-Spacian Air Hummingbird\"\nThis card can only be Special Summoned from your Extra Deck by returning the above cards you control to the Deck. (You do not use \"Polymerization\".) While your Life Points are lower than your opponent's, this card gains ATK equal to the difference. This card returns to the Extra Deck during the End Phase.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 7,
+   "attribute": "Phong",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "Anh Hùng Nguyên Tố Tân Vũ + Chim Ruồi Tân Không Gian. Chỉ có thể Triệu hồi Đặc biệt từ bộ bài phụ bằng cách đưa các nguyên liệu trên về bộ bài (không dùng Dung Hợp). Khi LP của bạn thấp hơn đối thủ, lá này tăng ATK bằng chênh lệch. Lá này trở về bộ bài phụ vào End Phase.",
+   "act": "Dung Hợp Tiếp Xúc: đưa đúng nguyên liệu trên sân về bộ bài, không cần Phép. Cuối lượt về bộ bài phụ."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_aqua_neos",
+  "name": "Elemental HERO Aqua Neos",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Aqua Neos",
+   "type": "Fusion Monster",
+   "level": 7,
+   "attribute": "WATER",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "\"Elemental HERO Neos\" + \"Neo-Spacian Aqua Dolphin\"\nMust first be Special Summoned (from your Extra Deck) by shuffling the above cards you control into the Deck. (You do not use \"Polymerization\".) Once per turn: You can discard 1 card; destroy 1 random card in your opponent's hand. During the End Phase: Shuffle this card into the Extra Deck.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 7,
+   "attribute": "Thủy",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "Anh Hùng Nguyên Tố Tân Vũ + Cá Heo Tân Không Gian. Chỉ có thể Triệu hồi Đặc biệt từ bộ bài phụ bằng cách đưa các nguyên liệu trên về bộ bài (không dùng Dung Hợp). Một lần/lượt: bạn có thể bỏ 1 lá; phá hủy 1 lá ngẫu nhiên trên tay đối thủ. Trong End Phase: đưa lá này về bộ bài phụ.",
+   "act": "Dung Hợp Tiếp Xúc: đưa đúng nguyên liệu trên sân về bộ bài, không cần Phép. Cuối lượt về bộ bài phụ."
+  }
+ },
+ {
+  "id": "AN-elemental_hero_flare_neos",
+  "name": "Elemental HERO Flare Neos",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Flare Neos",
+   "type": "Fusion Monster",
+   "level": 7,
+   "attribute": "FIRE",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "\"Elemental HERO Neos\" + \"Neo-Spacian Flare Scarab\"\nMust first be Special Summoned (from your Extra Deck) by shuffling the above cards you control into the Deck. (You do not use \"Polymerization\".) This card gains 400 ATK for each Spell/Trap Card on the field. During the End Phase: Shuffle this card into the Extra Deck.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 7,
+   "attribute": "Hỏa",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "Anh Hùng Nguyên Tố Tân Vũ + Bọ Lửa Tân Không Gian. Chỉ có thể Triệu hồi Đặc biệt từ bộ bài phụ bằng cách đưa các nguyên liệu trên về bộ bài (không dùng Dung Hợp). Lá này tăng 400 ATK cho mỗi Phép/Bẫy trên sân. Trong End Phase: đưa lá này về bộ bài phụ.",
+   "act": "Dung Hợp Tiếp Xúc: đưa đúng nguyên liệu trên sân về bộ bài, không cần Phép. Cuối lượt về bộ bài phụ."
+  }
+ },
+ {
+  "id": "AN-miracle_fusion",
+  "name": "Miracle Fusion",
+  "found": true,
+  "official": {
+   "name": "Miracle Fusion",
+   "type": "Spell Card",
+   "desc": "Fusion Summon 1 \"Elemental HERO\" Fusion Monster from your Extra Deck, by banishing Fusion Materials listed on it from your field or your GY.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Spell ",
+   "attribute": "Phong",
+   "desc": "Triệu hồi Dung Hợp 1 quái Dung Hợp \"Anh Hùng Nguyên Tố\" từ bộ bài phụ bằng cách trục xuất các nguyên liệu ghi trên lá từ sân hoặc Mộ bạn.",
+   "act": "Dùng trong MAIN. Chọn mục tiêu trước khi trả chi phí."
+  }
+ },
+ {
+  "id": "AN-skyscraper",
+  "name": "Skyscraper",
+  "found": true,
+  "official": {
+   "name": "Skyscraper",
+   "type": "Spell Card",
+   "desc": "If an \"Elemental HERO\" monster attacks a monster that has a higher ATK, the attacking monster gains 1000 ATK during damage calculation only.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Spell ",
+   "attribute": "Quang",
+   "desc": "Nếu một quái \"Anh Hùng Nguyên Tố\" tấn công quái có ATK cao hơn, quái tấn công tăng 1000 ATK chỉ trong lúc tính sát thương.",
+   "act": "Hiệu ứng liên tục của Phép Môi Trường; chỉ áp dụng trong lúc tính sát thương."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_absolute_zero",
+  "name": "Elemental HERO Absolute Zero",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Absolute Zero",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "WATER",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "1 \"HERO\" monster + 1 WATER monster\r\nMust be Fusion Summoned. Gains 500 ATK for each WATER monster on the field, except \"Elemental HERO Absolute Zero\". If this card leaves the field: Destroy all monsters your opponent controls.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 8,
+   "attribute": "Thủy",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "Tăng 500 ATK cho mỗi quái NƯỚC khác đang ngửa trên cả hai sân.",
+   "act": "Hiệu ứng liên tục hoặc quái thường theo mô tả."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_the_shining",
+  "name": "Elemental HERO The Shining",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO The Shining",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "LIGHT",
+   "atk": 2600,
+   "def": 2100,
+   "desc": "1 \"Elemental HERO\" monster + 1 LIGHT monster\nMust be Fusion Summoned and cannot be Special Summoned by other ways. This card gains 300 ATK for each of your banished \"Elemental HERO\" monsters. When this card is sent from the field to the Graveyard: You can target up to 2 of your banished \"Elemental HERO\" monsters; add those targets to your hand.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 8,
+   "attribute": "Quang",
+   "atk": 2600,
+   "def": 2100,
+   "desc": "Tăng 300 ATK cho mỗi Anh Hùng bị trục xuất ở cả hai bên. Khi được gửi từ sân xuống Mộ: chọn đúng 2 Anh Hùng bị trục xuất của bạn để đưa về tay; quái bộ bài phụ trở về bộ bài phụ.",
+   "act": "Hiệu ứng liên tục hoặc quái thường theo mô tả."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_gaia",
+  "name": "Elemental HERO Gaia",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Gaia",
+   "type": "Fusion Monster",
+   "level": 6,
+   "attribute": "EARTH",
+   "atk": 2200,
+   "def": 2600,
+   "desc": "1 \"Elemental HERO\" monster + 1 EARTH monster\nMust be Fusion Summoned and cannot be Special Summoned by other ways. When this card is Fusion Summoned: Target 1 face-up monster your opponent controls; until the End Phase, its ATK is halved and this card gains the same amount of ATK.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 6,
+   "attribute": "Địa",
+   "atk": 2200,
+   "def": 2600,
+   "desc": "Khi được triệu hồi ngửa: chọn 1 quái ngửa đối thủ, giảm một nửa ATK hiện tại của nó và tăng ATK của Gaia bằng lượng đã giảm.",
+   "act": "Tự giải quyết khi triệu hồi ngửa; người sở hữu chọn và xác nhận mục tiêu nếu có."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_great_tornado",
+  "name": "Elemental HERO Great Tornado",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Great Tornado",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "WIND",
+   "atk": 2800,
+   "def": 2200,
+   "desc": "1 \"Elemental HERO\" monster + 1 WIND monster\nMust be Fusion Summoned and cannot be Special Summoned by other ways. If this card is Fusion Summoned: Halve the ATK and DEF of all face-up monsters your opponent currently controls.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 8,
+   "attribute": "Phong",
+   "atk": 2800,
+   "def": 2200,
+   "desc": "Khi được triệu hồi ngửa: giảm một nửa ATK và DEF hiện tại của toàn bộ quái ngửa đối thủ.",
+   "act": "Tự giải quyết khi triệu hồi ngửa; người sở hữu chọn và xác nhận mục tiêu nếu có."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_terra_firma",
+  "name": "Elemental HERO Terra Firma",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Terra Firma",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "EARTH",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "\"Elemental HERO Ocean\" + \"Elemental HERO Woodsman\"\nMust be Fusion Summoned and cannot be Special Summoned by other ways. You can Tribute 1 face-up \"Elemental HERO\" monster; this card gains ATK equal to the Tributed monster's ATK, until the End Phase.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 8,
+   "attribute": "Địa",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "Nguyên liệu: Anh Hùng Nguyên Tố Đại Dương + Anh Hùng Nguyên Tố Mộc Nhân. Một lần mỗi lượt: hiến tế 1 Anh Hùng Nguyên Tố khác của bạn đang ngửa; tăng ATK và DEF bằng ATK và DEF hiện tại của quái đó đến hết lượt.",
+   "act": "MAIN 1/2, một lần/lượt; xem rồi xác nhận trước khi trả chi phí."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_escuridao",
+  "name": "Elemental HERO Escuridão",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Escuridao",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "DARK",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "1 \"Elemental HERO\" monster + 1 DARK monster\nMust be Fusion Summoned and cannot be Special Summoned by other ways. This card gains 100 ATK for each \"Elemental HERO\" monster in your Graveyard.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 8,
+   "attribute": "Ám",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "Tăng 100 ATK cho mỗi Anh Hùng Nguyên Tố trong Mộ của bạn.",
+   "act": "Hiệu ứng liên tục hoặc quái thường theo mô tả."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_ocean",
+  "name": "Elemental HERO Ocean",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Ocean",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "WATER",
+   "atk": 1500,
+   "def": 1200,
+   "desc": "Once per turn, during your Standby Phase: You can target 1 \"HERO\" monster you control or in your Graveyard; return that target to the hand.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu Ứng",
+   "level": 4,
+   "attribute": "Thủy",
+   "atk": 1500,
+   "def": 1200,
+   "desc": "Khi Biển Umi có hiệu lực: có thể tấn công trực tiếp đối thủ.",
+   "act": "Hiệu ứng liên tục hoặc quái thường theo mô tả."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_woodsman",
+  "name": "Elemental HERO Woodsman",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Woodsman",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "EARTH",
+   "atk": 1000,
+   "def": 2000,
+   "desc": "Once per turn, during your Standby Phase: You can add 1 \"Polymerization\" from your Deck or Graveyard to your hand.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu Ứng",
+   "level": 4,
+   "attribute": "Địa",
+   "atk": 1000,
+   "def": 2000,
+   "desc": "Đầu lượt của bạn, sau khi rút bài: có thể lấy 1 Dung Hợp từ bộ bài hoặc Mộ lên tay. Mỗi bản bài dùng 1 lần mỗi lượt.",
+   "act": "Đầu lượt, sau khi rút bài; chỉ khi đang ngửa."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_stratos",
+  "name": "Elemental HERO Stratos",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Stratos",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "WIND",
+   "atk": 1800,
+   "def": 300,
+   "desc": "When this card is Normal or Special Summoned: You can activate 1 of these effects.\r\n● Destroy Spells/Traps on the field, up to the number of \"HERO\" monsters you control, except this card.\r\n● Add 1 \"HERO\" monster from your Deck to your hand.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu Ứng",
+   "level": 4,
+   "attribute": "Phong",
+   "atk": 1800,
+   "def": 300,
+   "desc": "Một lần mỗi lượt: giảm một nửa ATK hiện tại đến hết lượt; trong lượt này có thể tấn công trực tiếp đối thủ.",
+   "act": "MAIN 1/2, một lần/lượt; xem rồi xác nhận trước khi trả chi phí."
+  }
+ },
+ {
+  "id": "MGX-elemental_hero_shadow_mist",
+  "name": "Elemental HERO Shadow Mist",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Shadow Mist",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "DARK",
+   "atk": 1000,
+   "def": 1500,
+   "desc": "If this card is Special Summoned: You can add 1 \"Change\" Quick-Play Spell Card from your Deck to your hand. If this card is sent to the GY: You can add 1 \"HERO\" monster from your Deck to your hand, except \"Elemental HERO Shadow Mist\". You can only use 1 \"Elemental HERO Shadow Mist\" effect per turn, and only once that turn.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu Ứng",
+   "level": 4,
+   "attribute": "Ám",
+   "atk": 1000,
+   "def": 1500,
+   "desc": "Khi được triệu hồi đặc biệt: có thể lấy 1 Phép Tốc Công thuộc nhóm Change từ bộ bài lên tay. Khi được gửi xuống Mộ: có thể lấy 1 quái Anh Hùng khác từ bộ bài lên tay. Mỗi lượt chỉ dùng 1 trong 2 hiệu ứng và chỉ 1 lần.",
+   "act": "Tự mở lựa chọn khi đủ điều kiện; có thể bỏ qua."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_bassols",
+  "name": "Masked HERO Bassols",
+  "found": false,
+  "official": null,
+  "catalog": {
+   "type": "Monster Thường",
+   "level": 3,
+   "attribute": "Địa",
+   "atk": 1000,
+   "def": 700,
+   "desc": "Quái thường.",
+   "act": "Triệu hồi thường hoặc úp thủ."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_gust",
+  "name": "Masked HERO Gust",
+  "found": false,
+  "official": null,
+  "catalog": {
+   "type": "Monster Thường",
+   "level": 4,
+   "attribute": "Phong",
+   "atk": 1500,
+   "def": 1600,
+   "desc": "Quái thường.",
+   "act": "Triệu hồi thường hoặc úp thủ."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_ray",
+  "name": "Masked HERO Ray",
+  "found": false,
+  "official": null,
+  "catalog": {
+   "type": "Monster Thường",
+   "level": 4,
+   "attribute": "Quang",
+   "atk": 1800,
+   "def": 200,
+   "desc": "Quái thường.",
+   "act": "Triệu hồi thường hoặc úp thủ."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_fountain",
+  "name": "Masked HERO Fountain",
+  "found": true,
+  "official": {
+   "name": "Masked HERO Fountain",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "WATER",
+   "atk": 1000,
+   "def": 1400,
+   "desc": "You can reveal this card in your hand; Special Summon 1 \"HERO\" monster from your hand in Defense Position. If this card is sent to the GY by card effect, or to activate a card effect: You can Set 1 \"Mask Change\" from your Deck or GY. You can only use each effect of \"Masked HERO Fountain\" once per turn.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu Ứng",
+   "level": 4,
+   "attribute": "Thủy",
+   "atk": 1000,
+   "def": 1400,
+   "desc": "Cho đối thủ xem lá này trên tay: gọi đặc biệt 1 Anh Hùng từ tay ở thế thủ. Khi lá này được gửi xuống Mộ bởi hiệu ứng hoặc để kích hoạt hiệu ứng: có thể úp 1 Biến Đổi Mặt Nạ từ bộ bài hoặc Mộ. Mỗi hiệu ứng dùng 1 lần mỗi lượt cho toàn bộ các bản cùng tên.",
+   "act": "Mỗi hiệu ứng một lần mỗi lượt."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_vapor",
+  "name": "Masked HERO Vapor",
+  "found": true,
+  "official": {
+   "name": "Masked HERO Vapor",
+   "type": "Fusion Monster",
+   "level": 6,
+   "attribute": "WATER",
+   "atk": 2400,
+   "def": 2000,
+   "desc": "Must be Special Summoned with \"Mask Change\". Cannot be destroyed by card effects.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Monster Biến Đổi",
+   "level": 6,
+   "attribute": "Thủy",
+   "atk": 2400,
+   "def": 2000,
+   "desc": "Không thể bị phá hủy bởi hiệu ứng.",
+   "act": "Biến Đổi từ quái cùng thuộc tính."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_acid",
+  "name": "Masked HERO Acid",
+  "found": true,
+  "official": {
+   "name": "Masked HERO Acid",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "WATER",
+   "atk": 2600,
+   "def": 2100,
+   "desc": "Must be Special Summoned with \"Mask Change\". When this card is Special Summoned: Destroy as many Spells and Traps your opponent controls as possible, and if you do, all monsters they control lose 300 ATK.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Monster Biến Đổi",
+   "level": 8,
+   "attribute": "Thủy",
+   "atk": 2600,
+   "def": 2100,
+   "desc": "Khi được triệu hồi: phá toàn bộ Phép/Bẫy đối thủ; quái ngửa đối thủ mất 300 ATK.",
+   "act": "Biến Đổi từ quái cùng thuộc tính."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_daian",
+  "name": "Masked HERO Dian",
+  "found": true,
+  "official": {
+   "name": "Masked HERO Dian",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "EARTH",
+   "atk": 2800,
+   "def": 3000,
+   "desc": "Must be Special Summoned with \"Mask Change\". When this card destroys an opponent's monster by battle and sends it to the GY: You can Special Summon 1 Level 4 or lower \"HERO\" monster from your Deck.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Monster Biến Đổi",
+   "level": 8,
+   "attribute": "Địa",
+   "atk": 2800,
+   "def": 3000,
+   "desc": "Khi hạ quái đối thủ trong chiến đấu: có thể gọi đặc biệt 1 quái từ 4 sao trở xuống từ bộ bài.",
+   "act": "Biến Đổi từ quái cùng thuộc tính."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_blast",
+  "name": "Masked HERO Blast",
+  "found": true,
+  "official": {
+   "name": "Masked HERO Blast",
+   "type": "Fusion Monster",
+   "level": 6,
+   "attribute": "WIND",
+   "atk": 2200,
+   "def": 1800,
+   "desc": "Must be Special Summoned with \"Mask Change\". If this card is Special Summoned: You can target 1 face-up monster your opponent controls; its ATK becomes half its current ATK. Once per turn (Quick Effect): You can pay 500 LP, then target 1 Spell/Trap your opponent controls; return it to the hand.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Monster Biến Đổi",
+   "level": 6,
+   "attribute": "Phong",
+   "atk": 2200,
+   "def": 1800,
+   "desc": "Khi được triệu hồi: có thể chọn 1 quái ngửa đối thủ và giảm một nửa ATK của nó.",
+   "act": "Biến Đổi từ quái cùng thuộc tính."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_koga",
+  "name": "Masked HERO Koga",
+  "found": true,
+  "official": {
+   "name": "Masked HERO Koga",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "LIGHT",
+   "atk": 2500,
+   "def": 1800,
+   "desc": "Must be Special Summoned with \"Mask Change\" and cannot be Special Summoned by other ways. This card gains 500 ATK for each monster your opponent controls. Once per turn, during either player's turn: You can banish 1 \"HERO\" monster from your Graveyard, then target 1 face-up monster on the field; that target loses ATK equal to the ATK of the monster banished to activate this effect, until the end of this turn.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Monster Biến Đổi",
+   "level": 6,
+   "attribute": "Quang",
+   "atk": 2200,
+   "def": 1800,
+   "desc": "Tăng 500 ATK cho mỗi quái trên sân đối thủ.",
+   "act": "Biến Đổi từ quái cùng thuộc tính."
+  }
+ },
+ {
+  "id": "MGX-masked_hero_divine_wind",
+  "name": "Masked HERO Divine Wind",
+  "found": true,
+  "official": {
+   "name": "Masked HERO Divine Wind",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "WIND",
+   "atk": 2700,
+   "def": 1900,
+   "desc": "Must be Special Summoned with \"Mask Change\" and cannot be Special Summoned by other ways. Cannot be destroyed by battle. Your opponent can attack with only 1 monster during each Battle Phase. When this card destroys an opponent's monster by battle and sends it to the Graveyard: You can draw 1 card.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Monster Biến Đổi",
+   "level": 8,
+   "attribute": "Phong",
+   "atk": 2700,
+   "def": 1900,
+   "desc": "Khi hạ quái đối thủ trong chiến đấu: có thể rút 1 lá.",
+   "act": "Biến Đổi từ quái cùng thuộc tính."
+  }
+ },
+ {
+  "id": "MGX-mask_change",
+  "name": "Mask Change",
+  "found": true,
+  "official": {
+   "name": "Mask Change",
+   "type": "Spell Card",
+   "desc": "Target 1 \"HERO\" monster you control; send it to the GY, also, after that, if it left the field by this effect, Special Summon 1 \"Masked HERO\" monster from your Extra Deck with the same Attribute that the sent monster had when it was on the field (its original Attribute, if face-down).",
+   "fusion": null,
+   "archetype": "Change"
+  },
+  "catalog": {
+   "type": "Spell ",
+   "desc": "Gửi 1 quái Mặt Nạ ngửa của bạn xuống Mộ; gọi 1 quái Mặt Nạ từ bộ bài phụ cùng thuộc tính, có cấp cao hơn và chênh tối đa 2 sao.",
+   "act": "MAIN 1/2; cần quái Mặt Nạ cùng thuộc tính với đích Extra."
+  }
+ },
+ {
+  "id": "MGX-mask_change_ii",
+  "name": "Mask Change II",
+  "found": true,
+  "official": {
+   "name": "Mask Change II",
+   "type": "Spell Card",
+   "desc": "Discard 1 card, then target 1 face-up monster you control that has a Level; send it to the Graveyard, also, after that, if it left the field by this effect, Special Summon from your Extra Deck, 1 \"Masked HERO\" monster with the same Attribute, but a higher Level than, the Attribute/Level the monster had when it was on the field (its original Attribute/Level, if face-down. This Special Summon is treated as a Special Summon with \"Mask Change\"). You can only activate 1 \"Mask Change II\" per turn.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Spell ",
+   "desc": "Bỏ 1 lá trên tay và gửi 1 quái Mặt Nạ ngửa của bạn xuống Mộ; gọi 1 quái Mặt Nạ 8 sao từ bộ bài phụ cùng thuộc tính.",
+   "act": "MAIN 1/2; cần quái Mặt Nạ cùng thuộc tính với đích Extra."
+  }
+ },
+ {
+  "id": "DL-neos_fusion",
+  "name": "Neos Fusion",
+  "found": true,
+  "official": {
+   "name": "Neos Fusion",
+   "type": "Spell Card",
+   "desc": "Special Summon 1 Fusion Monster from your Extra Deck that lists exactly 2 monsters as material, including \"Elemental HERO Neos\", by sending those monsters from your hand, Deck, or field, ignoring its Summoning conditions. For the rest of this turn after this card resolves, you cannot Special Summon monsters. If a Fusion Monster(s) you control that lists \"Elemental HERO Neos\" as material would be destroyed by battle or card effect, or shuffled into the Extra Deck by its own effect, you can banish this card from your GY instead.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Spell ",
+   "desc": "Triệu hồi Đặc biệt 1 quái Dung Hợp từ Bộ bài phụ ghi đúng 2 nguyên liệu, trong đó có \"Anh Hùng Nguyên Tố Tân Vũ\", bằng cách gửi các nguyên liệu đó từ tay, Bộ bài hoặc sân, bỏ qua điều kiện triệu hồi. Sau khi lá này giải quyết, bạn không thể Triệu hồi Đặc biệt trong phần còn lại của lượt. Nếu quái Dung Hợp ghi \"Anh Hùng Nguyên Tố Tân Vũ\" làm nguyên liệu sẽ bị phá hủy hoặc bị đưa về Bộ bài phụ: bạn có thể trục xuất lá này từ Mộ thay thế.",
+   "act": "Dùng trong MAIN; gửi nguyên liệu từ tay/Bộ bài/sân để gọi Dung Hợp ghi Tân Vũ; khóa Triệu hồi Đặc biệt đến hết lượt."
+  }
+ },
+ {
+  "id": "DL-elemental_hero_brave_neos",
+  "name": "Elemental HERO Brave Neos",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Brave Neos",
+   "type": "Fusion Monster",
+   "level": 7,
+   "attribute": "LIGHT",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "\"Elemental HERO Neos\" + 1 Level 4 or lower Effect Monster\r\nMust be Fusion Summoned. Gains 100 ATK for each \"Neo-Spacian\" and \"HERO\" monster in your GY. When this card destroys an opponent's monster by battle: You can add 1 Spell/Trap from your Deck to your hand that specifically lists the card \"Elemental HERO Neos\" in its text.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 7,
+   "attribute": "Quang",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "\"Anh Hùng Nguyên Tố Tân Vũ\" + 1 Quái Hiệu Ứng Cấp 4 hoặc thấp hơn. Phải được Triệu hồi Dung Hợp. Tăng 100 ATK cho mỗi quái \"Tân Không Gian\" và \"Anh Hùng\" trong Mộ bạn. Khi lá này phá hủy quái đối thủ trong chiến đấu: lấy 1 Phép/Bẫy từ Bộ bài lên tay có nhắc đến \"Anh Hùng Nguyên Tố Tân Vũ\".",
+   "act": "Dung Hợp từ Bộ bài phụ; tăng ATK theo Mộ và tìm Phép/Bẫy Tân Vũ sau khi hạ quái."
+  }
+ },
+ {
+  "id": "DL-elemental_hero_sunrise",
+  "name": "Elemental HERO Sunrise",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Sunrise",
+   "type": "Fusion Monster",
+   "level": 7,
+   "attribute": "LIGHT",
+   "atk": 2500,
+   "def": 1200,
+   "desc": "2 \"HERO\" monsters with different Attributes\r\nMust be Fusion Summoned. Monsters you control gain 200 ATK for each different Attribute you control. You can only use each of the following effects of \"Elemental HERO Sunrise\" once per turn.\r\n● If this card is Special Summoned: You can add 1 \"Miracle Fusion\" from your Deck to your hand.\r\n● When an attack is declared involving another \"HERO\" monster you control: You can target 1 card on the field; destroy it.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Dung Hợp",
+   "level": 7,
+   "attribute": "Quang",
+   "atk": 2500,
+   "def": 1200,
+   "desc": "2 quái \"Anh Hùng\" khác Hệ. Phải được Triệu hồi Dung Hợp. Quái bạn kiểm soát tăng 200 ATK cho mỗi Hệ khác nhau bạn đang kiểm soát. Mỗi hiệu ứng sau 1 lần/lượt: ● Nếu lá này được Triệu hồi Đặc biệt: lấy 1 \"Dung Hợp Kỳ Tích\" từ Bộ bài lên tay. ● Khi quái \"Anh Hùng\" khác bạn kiểm soát tuyên bố tấn công: chọn 1 lá trên sân; phá hủy nó.",
+   "act": "Dung Hợp từ Bộ bài phụ bằng 2 quái Anh Hùng khác Hệ (ví dụ Lôi Quang + Thạch Nhân). Hiệu ứng lấy Dung Hợp Kỳ Tích khi xuất hiện; hiệu ứng phá lá khi Anh Hùng khác tấn công."
+  }
+ },
+ {
+  "id": "DL-elemental_hero_liquid_soldier",
+  "name": "Elemental HERO Liquid Soldier",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Liquid Soldier",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "WATER",
+   "atk": 1400,
+   "def": 1300,
+   "desc": "When this card is Normal Summoned: You can target 1 Level 4 or lower \"HERO\" monster in your GY, except \"Elemental HERO Liquid Soldier\"; Special Summon it. If this card is used as Fusion Material for a \"HERO\" monster, and sent to the GY or banished: You can draw 2 cards, then discard 1 card. You can only use 1 \"Elemental HERO Liquid Soldier\" effect per turn, and only once that turn.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu Ứng",
+   "level": 4,
+   "attribute": "Thủy",
+   "atk": 1400,
+   "def": 1300,
+   "desc": "Khi triệu hồi thường: hồi sinh 1 quái Anh Hùng Cấp 4 hoặc thấp hơn từ Mộ. Khi dùng làm nguyên liệu Dung Hợp gửi xuống Mộ/trục xuất: rút 2 lá, bỏ 1 lá.",
+   "act": "Tự động kích hoạt khi triệu hồi hoặc Dung Hợp."
+  }
+ },
+ {
+  "id": "DL-elemental_hero_solid_soldier",
+  "name": "Elemental HERO Solid Soldier",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Solid Soldier",
+   "type": "Effect Monster",
+   "level": 4,
+   "attribute": "EARTH",
+   "atk": 1300,
+   "def": 1100,
+   "desc": "When this card is Normal Summoned: You can Special Summon 1 Level 4 or lower \"HERO\" monster from your hand. If this card is sent from the Monster Zone to the GY by a Spell effect: You can target 1 \"HERO\" monster in your GY, except \"Elemental HERO Solid Soldier\"; Special Summon it in Defense Position. You can only use this effect of \"Elemental HERO Solid Soldier\" once per turn.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu Ứng",
+   "level": 4,
+   "attribute": "Địa",
+   "atk": 1300,
+   "def": 1100,
+   "desc": "Khi triệu hồi thường: triệu hồi đặc biệt 1 quái Anh Hùng Cấp 4 hoặc thấp hơn từ tay. Khi bị gửi từ vùng quái xuống Mộ bởi hiệu ứng Phép: hồi sinh 1 quái Anh Hùng từ Mộ ở thế phòng thủ.",
+   "act": "Tự động mở lựa chọn khi triệu hồi thường."
+  }
+ },
+ {
+  "id": "DL-elemental_hero_honest_neos",
+  "name": "Elemental HERO Honest Neos",
+  "found": true,
+  "official": {
+   "name": "Elemental HERO Honest Neos",
+   "type": "Effect Monster",
+   "level": 7,
+   "attribute": "LIGHT",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "(Quick Effect): You can discard this card, then target 1 \"HERO\" monster on the field; it gains 2500 ATK until the end of this turn. (Quick Effect): You can discard 1 \"HERO\" monster; this card gains ATK equal to the discarded monster's ATK until the end of this turn. You can only use each effect of \"Elemental HERO Honest Neos\" once per turn.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Monster Hiệu Ứng",
+   "level": 7,
+   "attribute": "Quang",
+   "atk": 2500,
+   "def": 2000,
+   "desc": "(Hiệu ứng Nhanh): Bỏ lá này; chọn 1 quái \"Anh Hùng\" trên sân; lá đó tăng 2500 ATK đến hết lượt. (Hiệu ứng Nhanh): Bỏ 1 quái \"Anh Hùng\"; lá này tăng ATK bằng ATK của quái đã bỏ đến hết lượt. Mỗi hiệu ứng 1 lần/lượt.",
+   "act": "Dùng từ tay (bỏ chính nó) để cộng 2500 ATK cho 1 quái Anh Hùng trên sân; khi ở trên sân có thể bỏ 1 Anh Hùng khác trên tay để tự tăng ATK."
+  }
+ },
+ {
+  "id": "DL-masked_hero_anki",
+  "name": "Masked HERO Anki",
+  "found": true,
+  "official": {
+   "name": "Masked HERO Anki",
+   "type": "Fusion Monster",
+   "level": 8,
+   "attribute": "DARK",
+   "atk": 2800,
+   "def": 1200,
+   "desc": "Must be Special Summoned by \"Mask Change\". This card can attack directly, but when it does so using this effect, the battle damage inflicted to your opponent is halved. When this card destroys an opponent's monster by battle and sends it to the GY: You can add 1 \"Change\" Quick-Play Spell Card from your Deck to your hand. You can only use this effect of \"Masked HERO Anki\" once per turn.",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Monster Biến Đổi",
+   "level": 8,
+   "attribute": "Ám",
+   "atk": 2800,
+   "def": 1200,
+   "desc": "Phải được Triệu hồi Đặc biệt bằng \"Mặt Nạ Biến Đổi\". Lá này có thể tấn công trực tiếp, nhưng sát thương chiến đấu gây ra bị chia đôi. Khi lá này phá hủy quái đối thủ trong chiến đấu và gửi vào Mộ: lấy 1 Phép Tốc Công \"Change\" từ Bộ bài lên tay. Hiệu ứng này 1 lần/lượt.",
+   "act": "Gọi bằng Mask Change/Form Change từ Bộ bài phụ; đánh trực tiếp với sát thương chia đôi; tìm Phép \"Change\" sau khi hạ quái."
+  }
+ },
+ {
+  "id": "DL-a_hero_lives",
+  "name": "A Hero Lives",
+  "found": true,
+  "official": {
+   "name": "A Hero Lives",
+   "type": "Spell Card",
+   "desc": "If you control no face-up monsters: Pay half your LP; Special Summon 1 Level 4 or lower \"Elemental HERO\" monster from your Deck.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Spell ",
+   "desc": "Nếu không điều khiển quái nào: trả một nửa LP, triệu hồi đặc biệt 1 quái Anh Hùng Nguyên Tố Cấp 4 hoặc thấp hơn từ Bộ bài.",
+   "act": "Dùng trong MAIN khi sân trống."
+  }
+ },
+ {
+  "id": "DL-form_change",
+  "name": "Form Change",
+  "found": true,
+  "official": {
+   "name": "Form Change",
+   "type": "Spell Card",
+   "desc": "Target 1 \"HERO\" Fusion Monster you control; return it to the Extra Deck, then Special Summon from your Extra Deck, 1 \"Masked HERO\" monster with the same Level as that monster's original Level, but with a different name. (This Special Summon is treated as a Special Summon with \"Mask Change\".)",
+   "fusion": null,
+   "archetype": "Masked HERO"
+  },
+  "catalog": {
+   "type": "Spell ",
+   "desc": "Chọn 1 quái Dung Hợp \"Anh Hùng\" bạn kiểm soát; đưa lá đó về Bộ bài phụ, sau đó Triệu hồi Đặc biệt từ Bộ bài phụ 1 quái \"Anh Hùng Mặt Nạ\" cùng Cấp với Cấp gốc của lá đó nhưng khác tên. (Triệu hồi này được tính là Triệu hồi Đặc biệt bằng \"Mặt Nạ Biến Đổi\".)",
+   "act": "Dùng trong MAIN: đổi 1 Anh Hùng Dung Hợp thành Anh Hùng Mặt Nạ cùng Cấp, khác tên."
+  }
+ },
+ {
+  "id": "DL-favorite_hero",
+  "name": "Favorite Hero",
+  "found": true,
+  "official": {
+   "name": "Favorite Hero",
+   "type": "Spell Card",
+   "desc": "Equip only to a Level 5 or higher \"HERO\" monster. If you control a card in your Field Zone, the equipped monster gains ATK equal to its original DEF, also your opponent cannot target it with card effects. At the start of the Battle Phase: You can activate 1 Field Spell directly from your hand or Deck. You can only use this effect of \"Favorite Hero\" once per turn. When the equipped monster attacks and destroys an opponent's monster by battle: You can send this card to the GY; the attacking monster can make a second attack in a row.",
+   "fusion": null,
+   "archetype": "Elemental HERO"
+  },
+  "catalog": {
+   "type": "Spell ",
+   "desc": "Trang bị cho quái \"Anh Hùng\" Cấp 5 trở lên. Nếu bạn kiểm soát lá ở Vùng Môi Trường, quái được trang bị tăng ATK bằng DEF gốc của nó và đối thủ không thể chọn nó làm mục tiêu hiệu ứng. Đầu Battle Phase: kích hoạt 1 Phép Môi Trường từ tay hoặc Bộ bài (1 lần/lượt). Khi quái được trang bị tấn công và phá hủy quái đối thủ: gửi lá này xuống Mộ; quái đó được tấn công thêm 1 lần liên tiếp.",
+   "act": "Trang bị cho Anh Hùng Cấp ≥ 5; cộng DEF gốc thành ATK khi có Môi Trường; cho quái đánh thêm 1 lần sau khi hạ quái."
+  }
+ }
+]

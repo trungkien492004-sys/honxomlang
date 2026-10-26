@@ -169,15 +169,18 @@ const server = http.createServer((request, response) => {
     await frame.evaluate(() => siteRank.show());
     await frame.waitForSelector('#rankRows tr');
     const boardData = await frame.evaluate(() => {
-      const row = document.querySelector('#rankRows tr');
+      const rows = Array.from(document.querySelectorAll('#rankRows tr'));
+      const playerRow = rows.find(r => r.textContent.includes('Đấu sĩ Test'));
       return {
         progressText: document.getElementById('rankProgress')?.textContent,
-        rowText: row?.textContent
+        playerRowText: playerRow?.textContent,
+        totalRows: rows.length
       };
     });
     assert.ok(boardData.progressText.includes('2 thắng'), 'BXH progress shows 2 wins: ' + boardData.progressText);
-    assert.ok(boardData.rowText.includes('Đấu sĩ Test'), 'BXH row includes player name: ' + boardData.rowText);
-    checks.push('Leaderboard modal displays updated Elo and 2 wins');
+    assert.ok(boardData.playerRowText && boardData.playerRowText.includes('Đấu sĩ Test'), 'BXH rows include player: ' + boardData.playerRowText);
+    assert.ok(boardData.playerRowText.includes('2'), 'BXH player row shows 2 wins: ' + boardData.playerRowText);
+    checks.push('Leaderboard modal displays updated Elo and 2 wins across ' + boardData.totalRows + ' rows');
 
     console.log('Bot duel BXH tests:', checks.length, 'checks passed.');
   } finally {
