@@ -4,7 +4,20 @@
   "description": "game xóm",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node scripts/build-public.js",
+    "test": "node scripts/test-anime.cjs && node scripts/test-card-polish.cjs && node scripts/test-online-anime-race.cjs && node scripts/test-race.cjs && node scripts/test-upgrade-phase1.cjs && node scripts/test-layout-tuning.cjs && node scripts/test-opening-coin.cjs && node scripts/test-trap-decisions.cjs && node scripts/test-mobile-hold.cjs && node scripts/test-card-flow.cjs && node scripts/test-set-spells-builder.cjs && node scripts/test-duel-links-meta.cjs && node scripts/test-bot-supreme-and-sage.cjs && node scripts/test-dl-fixes.cjs && node scripts/test-grave-effects.cjs && node scripts/test-deck-filter-polish.cjs",
+    "catalog:anime": "node scripts/build-anime-catalog.cjs",
+    "catalog:classic": "node scripts/build-classic-catalog.cjs",
+    "art:meme": "node scripts/generate-meme-art.js",
+    "test:phase2": "node scripts/build-public.js && node scripts/build-server-engine.cjs && node scripts/test-phase2-tactics.cjs && node scripts/test-phase2-engine.cjs && node scripts/test-phase2-ui.cjs && node scripts/test-phase2-server.cjs && node scripts/test-phase2-authoritative.cjs",
+    "test:lobby": "node scripts/test-lobby-clean.cjs",
+    "test:choices": "node scripts/test-choice-confirm.cjs && node scripts/test-online-anime-race.cjs && node scripts/test-trap-decisions.cjs",
+    "test:phase3": "node scripts/test-phase3-hero.cjs && node scripts/test-phase3-server.cjs",
+    "test:player": "node scripts/test-player-card-rules.cjs && node scripts/test-player-online.cjs",
+    "test:lp": "node scripts/build-public.js && node scripts/test-lp-costs.cjs",
+    "test:attack": "node scripts/test-inline-attack.cjs",
+    "test:multi": "node scripts/build-public.js && node scripts/build-server-engine.cjs && node scripts/test-multi-choice.cjs && node scripts/test-multi-server.cjs",
+    "test:trap-hole": "node scripts/build-public.js && node scripts/build-server-engine.cjs && node scripts/test-trap-hole-flip.cjs && node scripts/test-trap-hole-server.cjs"
   },
   "repository": {
     "type": "git",
