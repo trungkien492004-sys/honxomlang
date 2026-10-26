@@ -1,56 +1,103 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" class="auth-pending">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0d4462" />
-  <title>Đấu Trường Meme Xóm — Speed Duel</title>
+  <link rel="stylesheet" href="assets/css/site_rank.css?v=20261026-rank-presence1">
+  <title>Yu-Gi-Oh! DM / GX — Speed Duel</title>
   <link rel="stylesheet" href="assets/css/meme_styles.css" />
-  <link rel="stylesheet" href="assets/css/meme_duel.css" />
+  <link rel="stylesheet" href="assets/css/meme_duel.css?v=20261026-limit-small1" />
+  <link rel="stylesheet" href="assets/css/meme_fit.css?v=20261025-polish-v1" />
+  <link rel="stylesheet" href="assets/css/meme_polish.css?v=20261025-polish-v1" />
+  <link rel="stylesheet" href="assets/css/meme_arcana.css?v=20261025-polish-v1" />
+  <link rel="stylesheet" href="assets/css/meme_heroes.css?v=20261025-polish-v1" />
+  <link rel="stylesheet" href="assets/css/meme_catalog_200.css?v=20261025-polish-v1" />
+  <link rel="stylesheet" href="assets/css/meme_anime.css?v=20261025-polish-v1" />
+  <link rel="stylesheet" href="assets/css/meme_battle_guide.css?v=20261026-inline-attack1" />
+  <link rel="stylesheet" href="assets/css/meme_turn_clock.css?v=20261025-polish-v1" />
+  <link rel="stylesheet" href="assets/css/meme_card_polish.css?v=20261025-polish-v1" />
+  <link rel="stylesheet" href="assets/css/meme_upgrade_phase1.css?v=20261026-limit-small1" />
+  <link rel="stylesheet" href="assets/css/meme_layout_tuning.css?v=20261026-confirm-v1" />
+  <link rel="stylesheet" href="assets/css/meme_opening_coin.css?v=20261026-confirm-v1" />
+  <link rel="stylesheet" href="assets/css/meme_decisions.css?v=20261026-confirm-v1" />
+  <link rel="stylesheet" href="assets/css/meme_mobile_cards.css?v=20261026-hand-preview1" />
+  <link rel="stylesheet" href="assets/css/meme_card_flow.css?v=20261026-confirm-v1" />
+  <link rel="stylesheet" href="assets/css/meme_phase2.css?v=20261026-confirm-v1" />
+  <link rel="stylesheet" href="assets/css/meme_lobby_clean.css?v=20261026-confirm-v1" />
+  <link rel="stylesheet" href="assets/css/meme_choice_confirm.css?v=20261026-multi1" />
+  <link rel="stylesheet" href="assets/css/meme_id_duel.css?v=20261026-rank-challenge1">
 </head>
 <body>
   <div id="app">
     <section id="lobby" class="screen lobby">
       <header class="topbar">
-        <div class="brand"><span class="brand-mark">🐸</span><span>ĐẤU TRƯỜNG <b>MEME XÓM</b><small>SPEED DUEL · HỒN XÓM LÀNG</small></span></div>
+        <div class="brand"><span class="brand-mark">🃏</span><span>YU-GI-OH! <b>DM / GX</b><small>ANIME DUEL · 60 GIÂY / LƯỢT ONLINE</small></span></div>
         <div class="top-actions">
-          <span class="resource">🪙 <b>2.450</b></span>
-          <span class="resource">💎 <b>180</b></span>
           <button class="round-btn" id="helpBtn" title="Hướng dẫn">?</button>
-          <button class="round-btn" id="exitVillageBtn" title="Trở về Hồn Xóm Làng" onclick="exitToVillage()" style="background:linear-gradient(#059669,#065f46);border-color:#34d399;">🏘️</button>
+          <button class="round-btn" id="exitVillageBtn" title="Về chọn trò chơi" onclick="exitToVillage()" style="background:linear-gradient(#059669,#065f46);border-color:#34d399;">🏘️</button>
         </div>
       </header>
-      <nav class="event-nav" aria-label="Sự kiện"><button data-modal="Điểm danh">🎁<span>Điểm danh</span></button><button data-modal="Nạp lần đầu">⚡<span>Quà tân thủ</span></button><button data-modal="Vòng quay">🎡<span>Vòng quay</span></button><button data-modal="Sự kiện">🏆<span>Sự kiện</span></button></nav>
       <div class="lobby-center">
-        <div class="hero-heading"><span class="eyebrow">CHƯƠNG 1 · KHỞI TRANH XÓM LÀNG</span><h1>Đội hình huyền thoại</h1><p>Chọn một thủ lĩnh và bước vào đấu trường bài ma thuật meme.</p></div>
-        <div class="lineup" aria-label="Đội hình nhân vật">
-          <img src="assets/heroes.png" alt="Năm nhân vật chibi của đội hình" />
-          <div class="hero-labels"><button class="hero-tag selected" data-hero="0"><small>🔥 Lv. 30</small><b>Hỏa Kiếm</b></button><button class="hero-tag" data-hero="1"><small>🌿 Lv. 28</small><b>Mira</b></button><button class="hero-tag" data-hero="2"><small>💧 Lv. 29</small><b>Luna</b></button><button class="hero-tag" data-hero="3"><small>⚓ Lv. 35</small><b>Thuyền Trưởng</b></button><button class="hero-tag" data-hero="4"><small>🌑 Lv. 31</small><b>Huyết Ảnh</b></button></div>
-        </div>
+        <div class="hero-heading"><span class="eyebrow">AVATAR · KỸ NĂNG ĐẤU SĨ</span><h1>Chọn đấu sĩ của bạn</h1><p>Mỗi nhân vật một kỹ năng · Dùng được với mọi bộ bài</p></div>
+        <div class="lineup" aria-label="Chọn avatar đấu sĩ"><div class="hero-labels" id="heroRoster" role="radiogroup" aria-label="Nhân vật"></div></div>
+        <div id="selectedHeroSummary" class="lobby-skill-preview" aria-live="polite"></div>
       </div>
-      <aside class="side-nav"><button data-modal="Tiệm đồ"><span>🛒</span><b>Tiệm đồ</b></button><button data-modal="Luyện tướng"><span>🛡️</span><b>Luyện tướng</b></button><button data-modal="Bộ bài"><span>🃏</span><b>Bộ bài</b></button></aside>
-      <footer class="lobby-footer"><div class="quest"><span>📜</span><div><small>NHIỆM VỤ HÔM NAY</small><b>Thắng một trận đấu bài</b></div><span class="quest-progress">0 / 1</span></div><button class="primary-btn" id="playBtn">⚔️ VÀO TRẬN <span>➜</span></button><div class="bottom-icons"><button data-modal="Túi đồ">🎒<small>Túi đồ</small></button><button data-modal="Đội hình">👑<small>Đội hình</small></button><button data-modal="Khám phá">🧭<small>Khám phá</small></button></div></footer>
+      <footer class="lobby-footer"><button class="secondary-btn" id="lobbyDeckBtn" data-modal="Bộ bài">🃏 Bộ bài</button><button class="primary-btn" id="playBtn">⚔️ Vào trận</button></footer>
     </section>
 
-    <section id="duel" class="screen duel hidden" aria-label="Đấu trường bài meme">
-      <header class="duel-top"><button id="backBtn" class="back-btn">← Sảnh</button><div class="duel-title"><span>🐸 ĐẤU TRƯỜNG MEME XÓM</span><small>SPEED DUEL · 4000 LP · 3 Ô QUÁI</small></div><div style="display:flex;gap:6px;"><button id="rulesBtn" class="round-btn">?</button><button id="exitVillageDuelBtn" class="round-btn" onclick="exitToVillage()" title="Trở về Hồn Xóm Làng" style="background:linear-gradient(#059669,#065f46);border-color:#34d399;">🏘️</button></div></header>
-      <div class="duel-layout">
-        <aside class="card-inspector" id="cardInspector"><div class="inspector-empty">🃏<span>Chọn một lá bài để xem ảnh, hiệu ứng và thao tác.</span></div></aside>
+    <section id="duel" class="screen duel hidden" aria-label="Đấu trường Yu-Gi-Oh!">
+      <header class="duel-top"><button id="backBtn" class="back-btn">← Sảnh</button><div class="duel-title"><span>🃏 YU-GI-OH! DM / GX</span><small>ANIME · DM / GX · 4000 LP · SPEED DUEL</small></div><div style="display:flex;gap:6px;"><button id="memeSoundBtn" class="round-btn" title="Bật hoặc tắt âm thanh" aria-label="Bật hoặc tắt âm thanh">🔊</button><button id="rulesBtn" class="round-btn">?</button><button id="exitVillageDuelBtn" class="round-btn" onclick="exitToVillage()" title="Về chọn trò chơi" style="background:linear-gradient(#059669,#065f46);border-color:#34d399;">🏘️</button></div></header>
+      <div class="duel-layout inspector-collapsed">
+        <aside class="card-inspector"><button id="inspectorToggleBtn" class="inspector-toggle" type="button" title="Thu gọn hoặc mở thông tin bài" aria-label="Thu gọn hoặc mở thông tin bài">🃏</button><div id="cardInspector"><div class="inspector-empty">Chọn một lá bài để xem ảnh, hiệu ứng và thao tác.</div></div></aside>
         <main class="arena">
-          <div class="player-row enemy-row"><div class="avatar enemy-avatar">🤖</div><div class="player-info"><b>Đại ca Xóm Meme</b><div class="life-track"><span id="enemyLifeBar"></span></div><strong id="enemyLife">4000 LP</strong></div><div class="deck-count"><span>🂠 <b id="enemyDeck">0</b></span><span>⚰️ <b id="enemyGY">0</b></span></div></div>
+          <div class="player-row enemy-row"><button class="avatar enemy-avatar" id="enemyAvatar" type="button" aria-label="Xem nhân vật và kỹ năng đối thủ"></button><div class="player-info"><b id="enemyName">Seto Kaiba</b><div class="life-track"><span id="enemyLifeBar"></span></div><strong id="enemyLife">4000 LP</strong></div><div class="deck-count"><span>🂠 <b id="enemyDeck">0</b></span><button class="pile-btn" id="enemyGraveBtn" type="button" aria-label="Xem mộ enemy">⚰ Mộ <b id="enemyGY">0</b></button><button class="pile-btn extra-pile-btn" id="enemyExtraDeckBtn" type="button" aria-label="Xem Extra Deck enemy">✦ Extra <b id="enemyExtraCount">0</b></button><span class="shield-count" id="enemyShield">💎 0</span></div></div>
           <div class="opponent-hand" id="opponentHand"></div>
-          <div class="board-frame"><div class="board-side"><div class="special-zone" id="enemyFieldSpell">🌍<small>Môi trường</small></div><div class="special-zone" id="enemyExtra">✦<small>Extra</small></div></div><div class="board-center"><div class="zone-row spell-row" id="enemySpells"></div><div class="zone-row monster-row" id="enemyMonsters"></div><div class="field-divider"><span id="turnBanner">Lượt 1 · MAIN 1</span></div><div class="zone-row monster-row" id="playerMonsters"></div><div class="zone-row spell-row" id="playerSpells"></div></div><div class="board-side"><div class="special-zone" id="playerFieldSpell">🌍<small>Môi trường</small></div><div class="special-zone" id="playerExtra">✦<small>Extra</small></div></div></div>
-          <div class="player-row self-row"><div class="avatar">⚔️</div><div class="player-info"><b id="playerName">Hỏa Kiếm</b><div class="life-track"><span id="playerLifeBar"></span></div><strong id="playerLife">4000 LP</strong></div><div class="deck-count"><span>🂠 <b id="playerDeck">0</b></span><span>⚰️ <b id="playerGY">0</b></span></div></div>
+          <div class="board-frame"><div class="board-side enemy-board-side"><button id="enemySkillCard" type="button" class="duelist-corner enemy-corner"></button><div class="special-zone" id="enemyFieldSpell">🌍<small>Môi trường</small></div><div class="special-zone" id="enemyExtra">✦<small>Ô quái Extra</small></div></div><div class="board-center"><div class="zone-row spell-row" id="enemySpells"></div><div class="zone-row monster-row" id="enemyMonsters"></div><div class="field-divider"><span id="turnBanner">Lượt 1 · MAIN 1</span></div><div class="zone-row monster-row" id="playerMonsters"></div><div class="zone-row spell-row" id="playerSpells"></div></div><div class="board-side player-board-side"><div class="special-zone" id="playerFieldSpell">🌍<small>Môi trường</small></div><div class="special-zone" id="playerExtra">✦<small>Ô quái Extra</small></div><button id="playerSkillCard" type="button" class="duelist-corner player-corner"></button></div></div>
+          <div class="player-row self-row"><button class="avatar" id="playerAvatar" type="button" aria-label="Xem nhân vật và kỹ năng của bạn"></button><div class="player-info"><b id="playerName">Yugi Muto / Atem</b><div class="life-track"><span id="playerLifeBar"></span></div><strong id="playerLife">4000 LP</strong></div><div class="deck-count"><span>🂠 <b id="playerDeck">0</b></span><button class="pile-btn" id="playerGraveBtn" type="button" aria-label="Xem mộ player">⚰ Mộ <b id="playerGY">0</b></button><button class="pile-btn extra-pile-btn" id="playerExtraDeckBtn" type="button" aria-label="Xem Extra Deck player">✦ Extra <b id="playerExtraCount">0</b></button><span class="shield-count" id="playerShield">💎 0</span></div></div>
         </main>
         <aside class="duel-sidebar"><div class="phase-card"><small>LƯỢT HIỆN TẠI</small><strong id="phaseLabel">MAIN 1</strong><div class="phase-track" id="phaseTrack"></div></div><div class="battle-log" id="battleLog"></div><button id="nextPhaseBtn" class="primary-btn">Sang chiến đấu ➜</button><button id="cancelModeBtn" class="secondary-btn hidden">Huỷ chọn</button></aside>
       </div>
       <footer class="duel-bottom"><div class="hand-title"><span>BÀI TRÊN TAY <b id="handCount">0</b></span><span id="summonStatus">Chưa triệu hồi lượt này</span></div><div class="hand" id="hand"></div><div id="message" role="status">Chọn lá bài để xem thao tác.</div></footer>
+      <div id="memeFxLayer" class="meme-fx-layer" aria-hidden="true"></div><button id="memeSkipFx" class="meme-skip-fx hidden" type="button">Bỏ qua hiệu ứng</button>
     </section>
     <div class="modal hidden" id="modal" role="dialog" aria-modal="true"><div class="modal-card"><button class="modal-close" id="closeModal">×</button><div id="modalContent"></div></div></div>
   </div>
-  <script src="assets/js/memecard_data.js"></script>
+  <script src="assets/js/meme_catalog_anime.js?v=20261025-polish-v1"></script>
+  <script src="assets/js/meme_card_details.js?v=20261025-phase1-v1"></script>
   <script src="assets/js/meme-image-links.js"></script>
-  <script src="assets/js/meme_game.js"></script>
+  <script src="assets/js/meme_anime_heroes.js?v=20261025-polish-v1"></script>
+  <script src="assets/js/meme_phase3_catalog.js?v=20261026-player-copy1"></script>
+  <script src="assets/js/meme_phase3_masked_catalog.js?v=20261026-masked1"></script>
+  <script src="assets/js/meme_duel_links_catalog.js?v=20261026-dl-meta1"></script>
+  <script src="assets/js/meme_tcg_catalog.js?v=20261026-tcg-work1"></script>
+  <script src="assets/js/meme_fusion_recipes.js?v=20261026-phase3-hero1"></script>
+  <script src="assets/js/meme_lp_costs.js?v=20261026-tcg-work1"></script>
+  <script src="assets/js/meme_game.js?v=20261026-limit-small1"></script>
+  <script src="assets/js/meme_rules.js?v=20261025-polish-v1"></script>
+  <script src="assets/js/meme_online.js?v=20261026-equip-chain1"></script>
+  <script src="assets/js/meme_fx.js?v=20261025-phase1-v1"></script>
+  <script src="assets/js/meme_tcg_equips.js?v=20261026-equip-chain1"></script>
+  <script src="assets/js/meme_anime_rules.js?v=20261026-equip-chain1"></script>
+  <script src="assets/js/meme_battle_guide.js?v=20261026-inline-attack1"></script>
+  <script src="assets/js/meme_turn_clock.js?v=20261026-confirm-v1"></script>
+  <script src="assets/js/meme_revival_online.js?v=20261025-polish-v1"></script>
+  <script src="assets/js/meme_vietnamese.js?v=20261026-player-copy1"></script>
+  <script src="assets/js/meme_music_tracks.js?v=20261025-polish-v1"></script>
+  <script src="assets/js/meme_music.js?v=20261025-polish-v1"></script>
+  <script src="assets/js/meme_upgrade_phase1.js?v=20261026-limit-small1"></script>
+  <script src="assets/js/meme_opening_coin.js?v=20261026-confirm-v1"></script>
+  <script src="assets/js/meme_decisions.js?v=20261026-multi1"></script>
+  <script src="assets/js/meme_mobile_cards.js?v=20261026-hand-preview1"></script>
+  <script src="assets/js/meme_card_flow.js?v=20261026-confirm-v1"></script>
+  <script src="assets/js/meme_phase2_catalog.js?v=20261026-confirm-v1"></script>
+  <script src="assets/js/meme_phase2_tactics.js?v=20261026-flip-hole1"></script>
+  <script src="assets/js/meme_phase2.js?v=20261026-masked1"></script>
+  <script src="assets/js/meme_tcg_engine.js?v=20261026-equip-chain1"></script>
+  <script src="assets/js/meme_duel_links_engine.js?v=20261026-dl-meta1"></script>
+  <script src="assets/js/meme_player_copy.js?v=20261026-equip-chain1"></script>
+  <script src="assets/js/meme_server_config.js?v=20261026-confirm-v1"></script>
+  <script src="assets/js/meme_authoritative.js?v=20261026-flip-hole1"></script>
   <script>
     function exitToVillage() {
       try {
@@ -75,5 +122,11 @@
       if (btn2) btn2.addEventListener('click', exitToVillage);
     });
   </script>
+  <script src="assets/js/site_rank_config.js?v=20261026-access-rank1"></script>
+  <script src="assets/js/site_identity.js?v=20261026-rank-presence1"></script>
+  <script src="assets/js/site_access.js?v=20261026-auth-presence1"></script>
+  <script src="assets/js/site_rank.js?v=20261026-rank-challenge1"></script>
+  <script src="assets/js/meme_id_duel.js?v=20261026-rank-challenge1"></script>
+  <script src="assets/js/site_rank_players.js?v=20261026-rank-presence1"></script>
 </body>
 </html>

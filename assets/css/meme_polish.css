@@ -1,0 +1,91 @@
+.duel{background:radial-gradient(ellipse at 50% 45%,#276d77 0%,#12364d 47%,#061a2c 100%)}
+.duel-layout{max-width:1240px;grid-template-columns:clamp(166px,16vw,212px) minmax(0,1fr) clamp(150px,16vw,195px)}
+.duel-layout.inspector-collapsed{grid-template-columns:38px minmax(0,1fr) clamp(150px,16vw,195px)}
+.card-inspector{position:relative;padding-top:32px}
+.card-inspector #cardInspector{display:flex;flex:1;min-height:0;flex-direction:column;align-items:center;gap:5px;width:100%}
+.inspector-toggle{position:absolute;top:4px;right:4px;z-index:2;width:25px;height:25px;padding:0;border:1px solid #d6ba7e;border-radius:7px;background:#154054;color:#ffe6a6;font-size:15px}
+.inspector-collapsed .card-inspector{padding:3px;align-items:flex-start}
+.inspector-collapsed .card-inspector #cardInspector{display:none}
+.inspector-collapsed .inspector-toggle{position:static;width:28px;height:28px}
+.arena{max-width:790px;margin:auto}
+.board-frame{max-width:790px;margin:auto;grid-template-columns:clamp(38px,5vw,56px) minmax(0,1fr) clamp(38px,5vw,56px);border-color:#d5b66d;background:radial-gradient(circle at 50% 50%,#1e5962,#102f43 72%);box-shadow:inset 0 0 38px #061624,0 0 22px #2baab02b}
+.board-center{width:min(100%,430px);margin:auto;gap:clamp(3px,.5vh,7px)}
+.zone-row{gap:clamp(5px,1.1vw,16px);align-items:center;flex:1}
+.monster-row{flex:1.1}
+.spell-row{flex:1}
+.field-slot,.spell-row .field-slot{height:min(100%,clamp(54px,14vh,148px));width:auto;max-width:min(100%,108px);aspect-ratio:0.72;border-color:#7ab2ba8a;background:linear-gradient(135deg,#0c3448a8,#103048a8);box-shadow:inset 0 0 0 1px #e2cb7540,inset 0 0 15px #3be5de17;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease}
+.field-slot:hover{border-color:#e7d58d;box-shadow:0 0 14px #a3faff75,inset 0 0 12px #d8faff30}
+.field-slot.occupied.attack-position{box-shadow:0 0 12px #ff824866,0 3px 0 #06202e}
+.field-slot.occupied.defense{box-shadow:0 0 12px #5dbdff75,0 3px 0 #06202e}
+.field-slot.selected,.field-slot.valid-target{outline:2px solid #a3faff;box-shadow:0 0 16px #79e9ff,0 0 28px #3bd8e980;animation:memeTargetPulse 1.4s ease-in-out infinite}
+.field-slot.valid-target{border-color:#a3faff}
+.field-slot.fx-charging,.special-zone.fx-charging{filter:brightness(1.4);box-shadow:0 0 18px #ffb969,0 0 30px #ff813f99;transform:translateY(-4px)}
+.special-zone.valid-target{outline:2px solid #a3faff;box-shadow:0 0 17px #73e9ff;animation:memeTargetPulse 1.4s ease-in-out infinite}
+.field-slot.defense{transform:rotate(90deg) scale(.72)}
+.field-slot.defense.selected,.field-slot.defense.valid-target{transform:rotate(90deg) scale(.72)}
+.special-zone{border-color:#e8d3957d;background:#092c3fa8}
+.field-divider{border-color:#c5b67b76}
+.duel-bottom{flex-basis:clamp(125px,18vh,175px)}
+.hand{overflow:visible;gap:0;isolation:isolate}
+.hand .card{height:100%;max-height:130px;width:clamp(86px,7vw,120px);min-width:clamp(86px,7vw,120px);margin-inline:-3px;transform-origin:50% 90%;box-shadow:0 3px 5px #0007;transition:transform .22s ease,box-shadow .22s ease}
+.hand .card:hover,.hand .card.selected{z-index:5;transform:translateY(-10px) scale(1.25);box-shadow:0 12px 25px #000c,0 0 18px #ffeaa899}
+.hand .card-art{min-height:0}
+.card-inspector .inspect-art-wrap{max-width:120px}
+.card-inspector .inspect-description{font-size:11px}
+.player-row{min-width:205px;background:#08293fe8;box-shadow:0 3px 10px #0008}
+.player-info strong{font-size:12px}
+.life-track{height:8px;position:relative;overflow:visible}
+.life-track span{border-radius:8px}
+.life-track .lp-trail{position:absolute;top:0;left:0;z-index:-1;background:#ff4d42;transition:width .65s ease-out}
+.life-track.lp-hit{animation:memeHudShake .34s ease-out}
+.life-track.lp-heal{box-shadow:0 0 13px #63f7a7}
+.duel-sidebar .battle-log{background:#061d2ec9}
+.meme-fx-layer{position:fixed;inset:0;z-index:8;pointer-events:none;overflow:hidden}
+.meme-fx-ghost{position:fixed;z-index:2;border:2px solid #ffe2a1;border-radius:9px;overflow:hidden;background:#274453;box-shadow:0 0 16px #ffcf76aa;will-change:transform,opacity}
+.meme-fx-ghost .hand-art,.meme-fx-ghost .zone-art{width:100%;height:100%}
+.meme-fx-beam{position:fixed;height:5px;transform-origin:left center;border-radius:99px;background:linear-gradient(90deg,#ffc77a,#fff7c8,#6dfaff);box-shadow:0 0 10px #ffffc9,0 0 25px #ff8b57}
+.meme-fx-ring{position:fixed;width:70px;height:70px;border:3px solid #ffe8a4;border-radius:50%;box-shadow:0 0 18px #ffda77, inset 0 0 14px #a5faff;transform:translate(-50%,-50%);animation:memeRing .5s ease-out forwards}
+.meme-fx-float{position:fixed;z-index:3;transform:translate(-50%,-50%);padding:3px 8px;border-radius:8px;background:#071e2be8;color:#ff977c;font:900 clamp(16px,2.6vw,30px) 'Baloo 2';text-shadow:0 2px 5px #000;white-space:nowrap;animation:memeFloat .85s ease-out forwards}
+.meme-fx-float.heal{color:#76ffa9}
+.meme-fx-banner{position:fixed;left:50%;top:43%;transform:translate(-50%,-50%);z-index:3;padding:9px 22px;border:2px solid #ffe1a0;border-radius:12px;background:#09283ee8;color:#ffe1a0;font:900 clamp(18px,3vw,36px) 'Baloo 2';white-space:nowrap;animation:memeBanner .8s ease-out forwards}
+.meme-skip-fx{position:fixed;right:10px;bottom:10px;z-index:12;padding:5px 9px;border:1px solid #ffe2a0;border-radius:8px;background:#0d3149;color:#fff;font-size:11px}
+.field-slot.fx-land{animation:memeLand .36s ease-out}
+.field-slot.fx-destroy{animation:memeDestroy .5s ease-in forwards}
+.board-frame.fx-impact{animation:memeImpact .22s ease-out}
+.modal{z-index:20}
+.duel.match-finished:after{content:'';position:absolute;inset:0;z-index:9;background:#0612239c;pointer-events:none;animation:memeBanner .7s ease-out both}
+.duel.match-finished .modal-card{box-shadow:0 0 45px #f3cf7f70,0 20px 40px #000b}
+@keyframes memeTargetPulse{50%{filter:brightness(1.2);box-shadow:0 0 20px #89edff}}
+@keyframes memeHudShake{25%{transform:translateX(-2px)}55%{transform:translateX(2px)}80%{transform:translateX(-1px)}}
+@keyframes memeRing{from{opacity:1;scale:.35}to{opacity:0;scale:1.65}}
+@keyframes memeFloat{from{opacity:0;translate:0 10px}20%{opacity:1}to{opacity:0;translate:0 -38px}}
+@keyframes memeBanner{from{opacity:0;scale:.7}25%{opacity:1;scale:1.05}to{opacity:0;scale:1}}
+@keyframes memeLand{from{filter:brightness(2);scale:1.14}to{filter:brightness(1);scale:1}}
+@keyframes memeDestroy{to{opacity:0;filter:brightness(3);scale:.7}}
+@keyframes memeImpact{25%{transform:translateX(-2px)}65%{transform:translateX(2px)}}
+@media(max-width:900px){.duel-layout,.duel-layout.inspector-collapsed{grid-template-columns:clamp(150px,23vw,190px) minmax(0,1fr)}.arena{max-width:none}.board-center{width:min(100%,400px)}.hand .card{min-width:74px;width:74px}}
+@media(max-width:700px){
+  .duel-layout,.duel-layout.inspector-collapsed{grid-template-columns:minmax(0,1fr)}
+  .card-inspector{padding:3px 5px}
+  .card-inspector #cardInspector{display:grid;grid-column:1/-1;grid-row:1/-1;width:100%;height:100%;grid-template-columns:50px minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:2px 5px;align-items:start}
+  .inspector-toggle{display:none}
+  .inspector-collapsed .card-inspector #cardInspector{display:grid}
+  .board-frame{max-width:none}
+  .board-center{width:100%}
+  .field-slot,.spell-row .field-slot{height:min(100%,clamp(36px,9vh,74px));max-width:min(100%,54px)}
+  .zone-row{gap:2px}
+  .duel-bottom{flex-basis:clamp(89px,16vh,113px)}
+  .hand{overflow-x:auto;overflow-y:visible;gap:2px}
+  .hand .card{min-width:0;width:0;max-width:62px;margin-inline:0;transform-origin:50% 90%}
+  .hand .card:hover,.hand .card.selected{transform:translateY(-5px) scale(1.12)}
+  .player-row{min-width:0}
+}
+@media(max-height:500px) and (min-width:550px){
+  .duel-layout,.duel-layout.inspector-collapsed{grid-template-columns:clamp(125px,21vw,170px) minmax(0,1fr) clamp(100px,17vw,135px)}
+  .card-inspector #cardInspector{display:flex}
+  .inspector-toggle{display:none}
+  .field-slot,.spell-row .field-slot{height:min(100%,42px)}
+  .duel-bottom{flex-basis:76px}
+  .hand .card{min-width:50px;width:50px}
+}
+@media(prefers-reduced-motion:reduce){.duel *{animation-duration:.01ms!important;transition-duration:.01ms!important}.meme-fx-layer{display:none}}

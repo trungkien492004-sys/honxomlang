@@ -1,0 +1,10 @@
+{
+  "version": "20261024-classic-v1",
+  "cardCount": 72,
+  "sourceFiles": [
+    "meme_catalog_classic.js"
+  ],
+  "sha256": "2af27bfb1d2d12790ed80a41d6460a08ee26c1217b74b42bbc32a0c659ca59c7",
+  "filename": "xom-arcana-classic.xlsx",
+  "workbookSha256": "1a0414dbea3a4a00e7bc918ef5b6817077829d477c8f6ff7e69a4e8e63a11905"
+}

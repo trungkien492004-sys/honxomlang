@@ -1,0 +1,1450 @@
+{
+  "version": "20261026-player-copy1",
+  "cards": [
+    {
+      "id": "MGX-elemental_hero_absolute_zero",
+      "name": "Anh Hùng Nguyên Tố Không Độ Tuyệt Đối",
+      "name_vi": "Anh Hùng Nguyên Tố Không Độ Tuyệt Đối",
+      "name_en": "Elemental HERO Absolute Zero",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Thủy",
+      "source_attribute": "NƯỚC",
+      "stars": 8,
+      "atk": 2500,
+      "def": 2000,
+      "rarity": "UR",
+      "max_copies": 3,
+      "deck_zone": "Extra",
+      "monster_category": "Dung Hợp",
+      "traits": [],
+      "effect_code": "p3_zero",
+      "effect_trigger": "passive",
+      "effect_value": 0,
+      "description": "Tăng 500 ATK cho mỗi quái NƯỚC khác đang ngửa trên cả hai sân.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga GX",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Absolute_Zero_(manga)",
+      "source_revision": 5484994,
+      "source_effect": "Boost its [[ATK]] by 500 points for each [[WATER]] [[Monster Card|monster]] on the [[field]], excluding itself.",
+      "source_material": "* 1 \"[[HERO]]\" [[Monster Card|monster]]\n* 1 [[WATER]] monster",
+      "source_appearances": "033, 063",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_absolute_zero.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "Hiệu ứng liên tục hoặc quái thường theo mô tả.",
+      "fusion_recipe": [
+        {
+          "archetype": "HERO"
+        },
+        {
+          "attribute": "NƯỚC"
+        }
+      ],
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 0,
+      "play_combos": [
+        "AN-elemental_hero_avian",
+        "AN-elemental_hero_burstinatrix",
+        "AN-elemental_hero_clayman",
+        "MGX-elemental_hero_ocean",
+        "AN-polymerization",
+        "AN-miracle_fusion"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_the_shining",
+      "name": "Anh Hùng Nguyên Tố Ánh Sáng Rực Rỡ",
+      "name_vi": "Anh Hùng Nguyên Tố Ánh Sáng Rực Rỡ",
+      "name_en": "Elemental HERO The Shining",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "stars": 8,
+      "atk": 2600,
+      "def": 2100,
+      "rarity": "UR",
+      "max_copies": 3,
+      "deck_zone": "Extra",
+      "monster_category": "Dung Hợp",
+      "traits": [],
+      "effect_code": "p3_shining",
+      "effect_trigger": "passive",
+      "effect_value": 0,
+      "description": "Tăng 300 ATK cho mỗi Anh Hùng bị trục xuất ở cả hai bên. Khi được gửi từ sân xuống Mộ: chọn đúng 2 Anh Hùng bị trục xuất của bạn để đưa về tay; quái bộ bài phụ trở về bộ bài phụ.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga GX",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_The_Shining_(manga)",
+      "source_revision": 5931587,
+      "source_effect": "[[ATK]] is boosted by 300 for each [[HERO|Hero]] [[Banish|excluded from play]]. When this card is [[Send|sent]] to the [[Graveyard]], [[Add a card|add]] to your [[hand]] 2 Heroes that have been excluded from play.",
+      "source_material": "* 1 \"[[Elemental HERO]]\" [[Monster Card|monster]]\n* 1 [[LIGHT]] monster",
+      "source_appearances": "041, 042, 063",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Thu hồi đúng 2 HERO của chính bạn, chỉ khi lá này được gửi từ sân xuống Mộ; quái Extra về Extra Deck. Đây là cách làm rõ cho sân H5.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_the_shining.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "Hiệu ứng liên tục hoặc quái thường theo mô tả.",
+      "fusion_recipe": [
+        {
+          "archetype": "Elemental HERO"
+        },
+        {
+          "attribute": "QUANG"
+        }
+      ],
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 1,
+      "play_combos": [
+        "AN-elemental_hero_avian",
+        "AN-elemental_hero_burstinatrix",
+        "AN-elemental_hero_clayman",
+        "AN-polymerization",
+        "AN-miracle_fusion"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_gaia",
+      "name": "Anh Hùng Nguyên Tố Địa Thần Gaia",
+      "name_vi": "Anh Hùng Nguyên Tố Địa Thần Gaia",
+      "name_en": "Elemental HERO Gaia",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "stars": 6,
+      "atk": 2200,
+      "def": 2600,
+      "rarity": "UR",
+      "max_copies": 3,
+      "deck_zone": "Extra",
+      "monster_category": "Dung Hợp",
+      "traits": [],
+      "effect_code": "p3_gaia",
+      "effect_trigger": "on_summon",
+      "effect_value": 0,
+      "description": "Khi được triệu hồi ngửa: chọn 1 quái ngửa đối thủ, giảm một nửa ATK hiện tại của nó và tăng ATK của Gaia bằng lượng đã giảm.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga GX",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Gaia_(manga)",
+      "source_revision": 5485004,
+      "source_effect": "When [[summon]]ed, halve the [[ATK]] of one opponent's [[Monster Card|monster]] and add that amount to Gaia's ATK.",
+      "source_material": "* 1 \"[[Elemental HERO|Elemental Hero]]\" [[Monster Card|monster]]\n* 1 [[EARTH]] monster",
+      "source_appearances": "028, 032, 042, 061, 062, 064, SP1",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Làm tròn phần giảm xuống; lưu lượng tăng/giảm, không tự hết ở End Phase.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_gaia.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "Tự giải quyết khi triệu hồi ngửa; người sở hữu chọn và xác nhận mục tiêu nếu có.",
+      "fusion_recipe": [
+        {
+          "archetype": "Elemental HERO"
+        },
+        {
+          "attribute": "ĐỊA"
+        }
+      ],
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 2,
+      "play_combos": [
+        "AN-elemental_hero_avian",
+        "AN-elemental_hero_burstinatrix",
+        "AN-elemental_hero_clayman",
+        "MGX-elemental_hero_woodsman",
+        "AN-polymerization",
+        "AN-miracle_fusion"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_great_tornado",
+      "name": "Anh Hùng Nguyên Tố Đại Cuồng Phong",
+      "name_vi": "Anh Hùng Nguyên Tố Đại Cuồng Phong",
+      "name_en": "Elemental HERO Great Tornado",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "stars": 8,
+      "atk": 2800,
+      "def": 2200,
+      "rarity": "UR",
+      "max_copies": 3,
+      "deck_zone": "Extra",
+      "monster_category": "Dung Hợp",
+      "traits": [],
+      "effect_code": "p3_tornado",
+      "effect_trigger": "on_summon",
+      "effect_value": 0,
+      "description": "Khi được triệu hồi ngửa: giảm một nửa ATK và DEF hiện tại của toàn bộ quái ngửa đối thủ.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga GX",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Great_Tornado_(manga)",
+      "source_revision": 5485006,
+      "source_effect": "When [[summon]]ed, halve the [[ATK]] and [[DEF]] of all [[Monster Card|monsters]] on your opponent's [[field]].",
+      "source_material": "* 1 \"[[Elemental HERO]]\" [[Monster Card|monster]]\n* 1 [[WIND]] monster",
+      "source_appearances": "042, 063",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Làm tròn phần giảm xuống; lưu lượng tăng/giảm, không tự hết ở End Phase.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_great_tornado.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "Tự giải quyết khi triệu hồi ngửa; người sở hữu chọn và xác nhận mục tiêu nếu có.",
+      "fusion_recipe": [
+        {
+          "archetype": "Elemental HERO"
+        },
+        {
+          "attribute": "PHONG"
+        }
+      ],
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 3,
+      "play_combos": [
+        "AN-elemental_hero_avian",
+        "AN-elemental_hero_burstinatrix",
+        "AN-elemental_hero_clayman",
+        "MGX-elemental_hero_stratos",
+        "AN-polymerization",
+        "AN-miracle_fusion"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_terra_firma",
+      "name": "Anh Hùng Nguyên Tố Đại Địa",
+      "name_vi": "Anh Hùng Nguyên Tố Đại Địa",
+      "name_en": "Elemental HERO Terra Firma",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "stars": 8,
+      "atk": 2500,
+      "def": 2000,
+      "rarity": "UR",
+      "max_copies": 3,
+      "deck_zone": "Extra",
+      "monster_category": "Dung Hợp",
+      "traits": [],
+      "effect_code": "p3_terra",
+      "effect_trigger": "activated",
+      "effect_value": 0,
+      "description": "Nguyên liệu: Anh Hùng Nguyên Tố Đại Dương + Anh Hùng Nguyên Tố Mộc Nhân. Một lần mỗi lượt: hiến tế 1 Anh Hùng Nguyên Tố khác của bạn đang ngửa; tăng ATK và DEF bằng ATK và DEF hiện tại của quái đó đến hết lượt.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga GX",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Terra_Firma_(manga)",
+      "source_revision": 5485014,
+      "source_effect": "If you [[Tribute|sacrifice]] an [[Elemental HERO|Elemental Hero]] on your [[field]], Terra Firma will absorb its [[ATK]] and [[DEF]]. After the [[turn]] ends, ATK and DEF will return to normal.",
+      "source_material": "* Elemental Hero Ocean (manga)\n* Elemental Hero Woodsman (manga)",
+      "source_appearances": "001, 003, 005, 006, 007, 010, 012, 014, 021, 024, 027, 028, 033, 034, 040, 041, 042, 044, 055, 060, 061, 064, SP1",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Giới hạn một lần/lượt, chỉ kích hoạt ở MAIN; Terra Firma chỉ hiến tế quái khác.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_terra_firma.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "MAIN 1/2, một lần/lượt; xem rồi xác nhận trước khi trả chi phí.",
+      "fusion_materials": [
+        "MGX-elemental_hero_ocean",
+        "MGX-elemental_hero_woodsman"
+      ],
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 4,
+      "play_combos": [
+        "MGX-elemental_hero_ocean",
+        "MGX-elemental_hero_woodsman",
+        "AN-polymerization"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_escuridao",
+      "name": "Anh Hùng Nguyên Tố Bóng Tối",
+      "name_vi": "Anh Hùng Nguyên Tố Bóng Tối",
+      "name_en": "Elemental HERO Escuridão",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "stars": 8,
+      "atk": 2500,
+      "def": 2000,
+      "rarity": "UR",
+      "max_copies": 3,
+      "deck_zone": "Extra",
+      "monster_category": "Dung Hợp",
+      "traits": [],
+      "effect_code": "p3_escuridao",
+      "effect_trigger": "passive",
+      "effect_value": 0,
+      "description": "Tăng 100 ATK cho mỗi Anh Hùng Nguyên Tố trong Mộ của bạn.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga GX",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Escurid%C3%A3o_(manga)",
+      "source_revision": 5485000,
+      "source_effect": "Gains 100 [[ATK]] for each [[Elemental HERO|Elemental Hero]] in your [[Graveyard]].",
+      "source_material": "1 \"[[Elemental HERO]]\" [[Monster Card|monster]] + 1 [[DARK]] monster",
+      "source_appearances": "062",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_escuridao.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "Hiệu ứng liên tục hoặc quái thường theo mô tả.",
+      "fusion_recipe": [
+        {
+          "archetype": "Elemental HERO"
+        },
+        {
+          "attribute": "ÁM"
+        }
+      ],
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 5,
+      "play_combos": [
+        "AN-elemental_hero_avian",
+        "AN-elemental_hero_burstinatrix",
+        "AN-elemental_hero_clayman",
+        "MGX-elemental_hero_shadow_mist",
+        "AN-polymerization",
+        "AN-miracle_fusion"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_ocean",
+      "name": "Anh Hùng Nguyên Tố Đại Dương",
+      "name_vi": "Anh Hùng Nguyên Tố Đại Dương",
+      "name_en": "Elemental HERO Ocean",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Thủy",
+      "source_attribute": "NƯỚC",
+      "stars": 4,
+      "atk": 1500,
+      "def": 1200,
+      "rarity": "R",
+      "max_copies": 3,
+      "deck_zone": "Main",
+      "monster_category": "Hiệu Ứng",
+      "traits": [],
+      "effect_code": "p3_ocean",
+      "effect_trigger": "passive",
+      "effect_value": 0,
+      "description": "Khi Biển Umi có hiệu lực: có thể tấn công trực tiếp đối thủ.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga GX",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Ocean_(manga)",
+      "source_revision": 5485010,
+      "source_effect": "While \"[[Umi (manga)|Umi]]\" is [[activate|active]] on the [[field]], can [[attack]] the player [[Direct attack|directly]].",
+      "source_material": "",
+      "source_appearances": "001, 002, 003, 005, 006, 007, 012, 013, 014, 021, 027, 028, 033, 040, 042, 062, 063, 064, SP1",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_ocean.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "Hiệu ứng liên tục hoặc quái thường theo mô tả.",
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 6,
+      "play_combos": [
+        "MGX-umi",
+        "MGX-elemental_hero_terra_firma",
+        "MGX-elemental_hero_absolute_zero"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_woodsman",
+      "name": "Anh Hùng Nguyên Tố Mộc Nhân",
+      "name_vi": "Anh Hùng Nguyên Tố Mộc Nhân",
+      "name_en": "Elemental HERO Woodsman",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "stars": 4,
+      "atk": 1000,
+      "def": 2000,
+      "rarity": "R",
+      "max_copies": 3,
+      "deck_zone": "Main",
+      "monster_category": "Hiệu Ứng",
+      "traits": [],
+      "effect_code": "p3_woodsman",
+      "effect_trigger": "turn_start",
+      "effect_value": 0,
+      "description": "Đầu lượt của bạn, sau khi rút bài: có thể lấy 1 Dung Hợp từ bộ bài hoặc Mộ lên tay. Mỗi bản bài dùng 1 lần mỗi lượt.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "TCG · hiệu ứng bổ sung cho lá manga không có hiệu ứng",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Woodsman_(manga)",
+      "source_revision": 2864141,
+      "source_effect": "Không có hiệu ứng được công bố.",
+      "source_material": "",
+      "source_appearances": "001, 003, 005, 006, 007, 009, 012, 013, 014, 021, 027, 028, 032, 033, 040, 042, 061, 062, 064, SP1",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "Standby được gộp vào đầu lượt, sau bước rút bài. Mỗi bản đang ngửa được dùng một lần.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_woodsman.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "Đầu lượt, sau khi rút bài; chỉ khi đang ngửa.",
+      "effect_source_url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=6728&request_locale=en",
+      "effect_source_checked": "2026-10-26",
+      "effect_source_text": "Đầu lượt của bạn, sau khi rút bài: có thể lấy 1 Dung Hợp từ Deck hoặc Mộ lên tay. Mỗi bản bài dùng 1 lần mỗi lượt.",
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 7,
+      "play_combos": [
+        "AN-polymerization",
+        "MGX-elemental_hero_terra_firma"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_stratos",
+      "name": "Anh Hùng Nguyên Tố Thiên Không",
+      "name_vi": "Anh Hùng Nguyên Tố Thiên Không",
+      "name_en": "Elemental HERO Stratos",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "stars": 4,
+      "atk": 1800,
+      "def": 300,
+      "rarity": "R",
+      "max_copies": 3,
+      "deck_zone": "Main",
+      "monster_category": "Hiệu Ứng",
+      "traits": [],
+      "effect_code": "p3_stratos",
+      "effect_trigger": "activated",
+      "effect_value": 0,
+      "description": "Một lần mỗi lượt: giảm một nửa ATK hiện tại đến hết lượt; trong lượt này có thể tấn công trực tiếp đối thủ.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga GX",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Stratos_(manga)",
+      "source_revision": 5485013,
+      "source_effect": "You can halve this card's [[ATK]] until the [[End Phase]] to allow this card to [[attack]] your opponent [[Direct attack|directly]] this [[turn]].",
+      "source_material": "",
+      "source_appearances": "002, 003, 008, 014, 020, 021, 041, 042, 063",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "4000 LP, 3 ô quái. Hiệu ứng tác động quái trên sân chỉ xét quái ngửa. Độ hiếm và giới hạn 3 bản do game quy định. Giới hạn một lần/lượt, chỉ kích hoạt ở MAIN; Terra Firma chỉ hiến tế quái khác.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_stratos.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "MAIN 1/2, một lần/lượt; xem rồi xác nhận trước khi trả chi phí.",
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 8,
+      "play_combos": [
+        "MGX-elemental_hero_great_tornado",
+        "AN-polymerization"
+      ]
+    },
+    {
+      "id": "MGX-elemental_hero_shadow_mist",
+      "name": "Anh Hùng Nguyên Tố Sương Mù Bóng Đêm",
+      "name_vi": "Anh Hùng Nguyên Tố Sương Mù Bóng Đêm",
+      "name_en": "Elemental HERO Shadow Mist",
+      "card_type": "Monster",
+      "archetype": "HERO · Manga GX",
+      "tribe": "Chiến Binh",
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "stars": 4,
+      "atk": 1000,
+      "def": 1500,
+      "rarity": "R",
+      "max_copies": 3,
+      "deck_zone": "Main",
+      "monster_category": "Hiệu Ứng",
+      "traits": [],
+      "effect_code": "p3_shadow_mist",
+      "effect_trigger": "on_special_summon",
+      "effect_value": 0,
+      "description": "Khi được triệu hồi đặc biệt: có thể lấy 1 Phép Tốc Công thuộc nhóm Change từ bộ bài lên tay. Khi được gửi xuống Mộ: có thể lấy 1 quái Anh Hùng khác từ bộ bài lên tay. Mỗi lượt chỉ dùng 1 trong 2 hiệu ứng và chỉ 1 lần.",
+      "catalogue_version": "anime-v1",
+      "source_series": "GX manga",
+      "source_character": "Jaden / Koyo",
+      "source_version": "TCG · hiệu ứng bổ sung cho lá manga không có hiệu ứng",
+      "source_url": "https://yugipedia.com/wiki/Elemental_Hero_Shadow_Mist_(manga)",
+      "source_revision": 2888781,
+      "source_effect": "Không có hiệu ứng được công bố.",
+      "source_material": "",
+      "source_appearances": "062",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "Chỉ dùng một trong hai hiệu ứng mỗi lượt cho toàn bộ các bản cùng tên.",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-elemental_hero_shadow_mist.webp",
+      "art": {
+        "emoji": "✦",
+        "c1": "#9ee4ff",
+        "c2": "#16304b"
+      },
+      "activation_rules": "Tự mở lựa chọn khi đủ điều kiện; có thể bỏ qua.",
+      "effect_source_url": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=2&cid=11308&request_locale=en",
+      "effect_source_checked": "2026-10-26",
+      "effect_source_text": "Khi được triệu hồi đặc biệt: có thể lấy 1 Phép Tốc Công thuộc nhóm Change từ Deck lên tay. Khi được gửi xuống Mộ: có thể lấy 1 quái HERO khác từ Deck lên tay. Mỗi lượt chỉ dùng 1 trong 2 hiệu ứng và chỉ 1 lần.",
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 9,
+      "play_combos": [
+        "AN-monster_reborn",
+        "MGX-elemental_hero_ocean",
+        "MGX-elemental_hero_stratos"
+      ]
+    },
+    {
+      "id": "MGX-umi",
+      "name": "Biển Umi",
+      "name_vi": "Biển Umi",
+      "name_en": "Umi",
+      "archetype": "HERO · Manga GX",
+      "card_type": "Spell",
+      "spell_category": "Môi Trường",
+      "rarity": "R",
+      "max_copies": 3,
+      "deck_zone": "Main",
+      "effect_code": "p3_umi",
+      "effect_trigger": "activated",
+      "traits": [],
+      "description": "Khi Biển Umi có hiệu lực, Anh Hùng Nguyên Tố Đại Dương có thể tấn công trực tiếp.",
+      "source_series": "Manga nguyên tác",
+      "source_character": "Jaden / Koyo",
+      "source_version": "Manga nguyên tác · hỗ trợ combo GX",
+      "source_url": "https://yugipedia.com/wiki/Umi_(manga)",
+      "source_revision": 5718824,
+      "source_effect": "The duel stage becomes an [[ocean]].",
+      "source_status": "Đã đối chiếu trang manga; hình minh họa mới cho game.",
+      "h5_adjustments": "Dùng ô Môi trường riêng; không thêm chỉ số TCG. Chỉ triển khai trường biển và tương tác của Ocean; chưa mô phỏng ẩn dưới nước, đánh chặn hay dẫn điện trong truyện.",
+      "catalogue_version": "anime-v1",
+      "custom_image": "assets/memecard/pictures/phase3/MGX-umi.webp",
+      "art": {
+        "emoji": "≈",
+        "c1": "#70cfff",
+        "c2": "#123a61"
+      },
+      "activation_rules": "Kích hoạt hoặc úp ở MAIN 1/2.",
+      "art_atlas": "assets/memecard/phase3-hero-atlas.png",
+      "art_cols": 4,
+      "art_rows": 3,
+      "art_tile": 10,
+      "play_combos": [
+        "MGX-elemental_hero_ocean"
+      ]
+    }
+  ],
+  "attributeCorrections": {
+    "AN-alligator_sword": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Alligator's_Sword_(anime)",
+      "attribute_source_revision": 5645884,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-alligators_sword_dragon": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Alligator's_Sword_Dragon_(anime)",
+      "attribute_source_revision": 5636088,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-alpha_the_magnet_warrior": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Alpha_The_Magnet_Warrior_(anime)",
+      "attribute_source_revision": 5646252,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-axe_raider": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Axe_Raider_(anime)",
+      "attribute_source_revision": 5474265,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-baby_dragon": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Baby_Dragon_(anime)",
+      "attribute_source_revision": 5646743,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-battle_ox": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Battle_Ox_(anime)",
+      "attribute_source_revision": 5854117,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-berfomet": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Berfomet_(anime)",
+      "attribute_source_revision": 5807519,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-beta_the_magnet_warrior": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Beta_The_Magnet_Warrior_(anime)",
+      "attribute_source_revision": 5646745,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-bickuribox": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Bickuribox_(anime)",
+      "attribute_source_revision": 5640337,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-black_luster_soldier": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Black_Luster_Soldier_(anime)",
+      "attribute_source_revision": 5978413,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-black_skull_dragon": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Black_Skull_Dragon_(anime)",
+      "attribute_source_revision": 5136118,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-blue_eyes_shining_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Blue-Eyes_Shining_Dragon_(anime)",
+      "attribute_source_revision": 5911004,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-blue_eyes_toon_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Blue-Eyes_Toon_Dragon_(anime)",
+      "attribute_source_revision": 5929331,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-blue_eyes_ultimate_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Blue-Eyes_Ultimate_Dragon_(anime)",
+      "attribute_source_revision": 5562182,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-blue_eyes_white_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Blue-Eyes_White_Dragon_(anime)",
+      "attribute_source_revision": 5982476,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-buster_blader": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Buster_Blader_(anime)",
+      "attribute_source_revision": 5474794,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-celtic_guardian": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Celtic_Guardian_(anime)",
+      "attribute_source_revision": 5859057,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-chimera_the_flying_mythical_beast": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Chimera_the_Flying_Mythical_Beast_(anime)",
+      "attribute_source_revision": 5475061,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-chimeratech_overdragon": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Chimeratech_Overdragon_(anime)",
+      "attribute_source_revision": 5795906,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-crass_clown": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Crass_Clown_(anime)",
+      "attribute_source_revision": 5646244,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-curse_of_dragon": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Curse_of_Dragon_(anime)",
+      "attribute_source_revision": 5857813,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyber_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Cyber_Dragon_(anime)",
+      "attribute_source_revision": 5475471,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyber_end_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Cyber_End_Dragon_(anime)",
+      "attribute_source_revision": 5829832,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyber_phoenix": {
+      "element": "Hỏa",
+      "source_attribute": "HỎA",
+      "attribute_source": "https://yugipedia.com/wiki/Cyber_Phoenix_(anime)",
+      "attribute_source_revision": 5475489,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyber_tech_alligator": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Cyber-Tech_Alligator_(anime)",
+      "attribute_source_revision": 5646696,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyber_twin_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Cyber_Twin_Dragon_(anime)",
+      "attribute_source_revision": 5475502,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyber_valley": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Cyber_Valley_(anime)",
+      "attribute_source_revision": 5551053,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyberdark_dragon": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Cyberdark_Dragon_(anime)",
+      "attribute_source_revision": 5475507,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyberdark_edge": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Cyberdark_Edge_(anime)",
+      "attribute_source_revision": 5475509,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyberdark_horn": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Cyberdark_Horn_(anime)",
+      "attribute_source_revision": 5475511,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-cyberdark_keel": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Cyberdark_Keel_(anime)",
+      "attribute_source_revision": 5475514,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-dark_magician": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Dark_Magician_(anime)",
+      "attribute_source_revision": 5921679,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-dark_magician_girl": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Dark_Magician_Girl_(anime)",
+      "attribute_source_revision": 5910357,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-dark_paladin": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Dark_Paladin_(anime)",
+      "attribute_source_revision": 5475847,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-dark_rabbit": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Dark_Rabbit_(anime)",
+      "attribute_source_revision": 5646697,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-dragon_master_knight": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Dragon_Master_Knight_(anime)",
+      "attribute_source_revision": 5733170,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-dream_clown": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Dream_Clown",
+      "attribute_source_revision": 6017132,
+      "attribute_source_version": "Trang tổng hợp; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_air_neos": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Air_Neos_(anime)",
+      "attribute_source_revision": 5761209,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_aqua_neos": {
+      "element": "Thủy",
+      "source_attribute": "NƯỚC",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Aqua_Neos_(anime)",
+      "attribute_source_revision": 5761211,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_avian": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Avian_(anime)",
+      "attribute_source_revision": 5813579,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_bladeedge": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Bladedge_(anime)",
+      "attribute_source_revision": 5804703,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_bubbleman": {
+      "element": "Thủy",
+      "source_attribute": "NƯỚC",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Bubbleman_(anime)",
+      "attribute_source_revision": 5801372,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_burstinatrix": {
+      "element": "Hỏa",
+      "source_attribute": "HỎA",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Burstinatrix_(anime)",
+      "attribute_source_revision": 5801397,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_clayman": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Clayman_(anime)",
+      "attribute_source_revision": 5801417,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_darkbright": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Darkbright_(anime)",
+      "attribute_source_revision": 5476631,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_flame_wingman": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Flame_Wingman_(anime)",
+      "attribute_source_revision": 5801398,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_flare_neos": {
+      "element": "Hỏa",
+      "source_attribute": "HỎA",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Flare_Neos_(anime)",
+      "attribute_source_revision": 5761219,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_mudballman": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Mudballman_(anime)",
+      "attribute_source_revision": 5801307,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_necroshade": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Necroshade_(anime)",
+      "attribute_source_revision": 5529032,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_neos": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Neos_(anime)",
+      "attribute_source_revision": 5817879,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_rampart_blaster": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Rampart_Blaster_(anime)",
+      "attribute_source_revision": 5804702,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_shining_flare_wingman": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Shining_Flare_Wingman_(anime)",
+      "attribute_source_revision": 5616090,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_sparkman": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Sparkman_(anime)",
+      "attribute_source_revision": 5801416,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_steam_healer": {
+      "element": "Thủy",
+      "source_attribute": "NƯỚC",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Steam_Healer_(anime)",
+      "attribute_source_revision": 5728166,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_thunder_giant": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Thunder_Giant_(anime)",
+      "attribute_source_revision": 5801420,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_wildedge": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Wildedge_(anime)",
+      "attribute_source_revision": 5949686,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-elemental_hero_wildheart": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Elemental_Hero_Wildheart_(anime)",
+      "attribute_source_revision": 5542862,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-exodia_the_forbidden_one": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Exodia_the_Forbidden_One_(anime)",
+      "attribute_source_revision": 5476795,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-exploder_dragon": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Exploder_Dragon_(anime)",
+      "attribute_source_revision": 5476797,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-flame_manipulator": {
+      "element": "Hỏa",
+      "source_attribute": "HỎA",
+      "attribute_source": "https://yugipedia.com/wiki/Flame_Manipulator_(anime)",
+      "attribute_source_revision": 5476969,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-flame_swordsman": {
+      "element": "Hỏa",
+      "source_attribute": "HỎA",
+      "attribute_source": "https://yugipedia.com/wiki/Flame_Swordsman_(anime)",
+      "attribute_source_revision": 5834536,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-gaia_the_dragon_champion": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Gaia_the_Dragon_Champion_(anime)",
+      "attribute_source_revision": 4791324,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-gaia_the_fierce_knight": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Gaia_The_Fierce_Knight_(anime)",
+      "attribute_source_revision": 5477256,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-gamma_the_magnet_warrior": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Gamma_The_Magnet_Warrior_(anime)",
+      "attribute_source_revision": 5933404,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-gazelle_the_king_of_mythical_beasts": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Gazelle_the_King_of_Mythical_Beasts_(anime)",
+      "attribute_source_revision": 5910992,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-gearfried_the_iron_knight": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Gearfried_the_Iron_Knight_(anime)",
+      "attribute_source_revision": 5910365,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-giant_soldier_of_stone": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Giant_Soldier_of_Stone_(anime)",
+      "attribute_source_revision": 5945356,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-gilford_the_lightning": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Gilford_the_Lightning_(anime)",
+      "attribute_source_revision": 6001246,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-hitotsu_me_giant": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Hitotsu-Me_Giant_(anime)",
+      "attribute_source_revision": 5954956,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-illusionist_faceless_mage": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Illusionist_Faceless_Mage_(anime)",
+      "attribute_source_revision": 5478059,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-jinzo": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Jinzo_(anime)",
+      "attribute_source_revision": 5859051,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-kuriboh": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Kuriboh_(anime)",
+      "attribute_source_revision": 5634462,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-la_jinn_the_mystical_genie_of_the_lamp": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/La_Jinn_the_Mystical_Genie_of_the_Lamp_(anime)",
+      "attribute_source_revision": 5854105,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-left_arm_of_the_forbidden_one": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Left_Arm_of_the_Forbidden_One_(anime)",
+      "attribute_source_revision": 5478478,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-left_leg_of_the_forbidden_one": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Left_Leg_of_the_Forbidden_One_(anime)",
+      "attribute_source_revision": 5646710,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-lord_of_d": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Lord_of_D._(anime)",
+      "attribute_source_revision": 5478627,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-magician_of_black_chaos": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Magician_of_Black_Chaos_(anime)",
+      "attribute_source_revision": 5985282,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-manga_ryu_ran": {
+      "element": "Hỏa",
+      "source_attribute": "HỎA",
+      "attribute_source": "https://yugipedia.com/wiki/Manga_Ryu-Ran_(anime)",
+      "attribute_source_revision": 5478862,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-masaki_the_legendary_swordsman": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Masaki_the_Legendary_Swordsman_(anime)",
+      "attribute_source_revision": 5478919,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-mystical_elf": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Mystical_Elf_(anime)",
+      "attribute_source_revision": 5984799,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-neo_spacian_air_hummingbird": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Neo-Spacian_Air_Hummingbird_(anime)",
+      "attribute_source_revision": 5479452,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-neo_spacian_aqua_dolphin": {
+      "element": "Thủy",
+      "source_attribute": "NƯỚC",
+      "attribute_source": "https://yugipedia.com/wiki/Neo-Spacian_Aqua_Dolphin_(anime)",
+      "attribute_source_revision": 5479453,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-neo_spacian_flare_scarab": {
+      "element": "Hỏa",
+      "source_attribute": "HỎA",
+      "attribute_source": "https://yugipedia.com/wiki/Neo-Spacian_Flare_Scarab_(anime)",
+      "attribute_source_revision": 5634770,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-obelisk_the_tormentor": {
+      "element": "Thần",
+      "source_attribute": "THẦN",
+      "attribute_source": "https://yugipedia.com/wiki/Obelisk_the_Tormentor_(anime)",
+      "attribute_source_revision": 6020733,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-parrot_dragon": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Parrot_Dragon_(anime)",
+      "attribute_source_revision": 5646136,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-proto_cyber_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Proto-Cyber_Dragon_(anime)",
+      "attribute_source_revision": 5795859,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-red_eyes_black_dragon": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Red-Eyes_B._Dragon_(anime)",
+      "attribute_source_revision": 5646801,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-relinquished": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Relinquished_(anime)",
+      "attribute_source_revision": 5867296,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-right_arm_of_the_forbidden_one": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Right_Arm_of_the_Forbidden_One_(anime)",
+      "attribute_source_revision": 5480802,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-right_leg_of_the_forbidden_one": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Right_Leg_of_the_Forbidden_One_(anime)",
+      "attribute_source_revision": 5480803,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-rocket_warrior": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Rocket_Warrior_(anime)",
+      "attribute_source_revision": 5480862,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-ryu_kishin_powered": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Ryu-Kishin_Powered_(anime)",
+      "attribute_source_revision": 5480947,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-saggi_the_dark_clown": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Saggi_the_Dark_Clown_(anime)",
+      "attribute_source_revision": 5954958,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-silver_fang": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Silver_Fang_(anime)",
+      "attribute_source_revision": 5722190,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-slifer_the_sky_dragon": {
+      "element": "Thần",
+      "source_attribute": "THẦN",
+      "attribute_source": "https://yugipedia.com/wiki/Slifer_the_Sky_Dragon_(anime)",
+      "attribute_source_revision": 5988159,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-summoned_skull": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Summoned_Skull_(anime)",
+      "attribute_source_revision": 5481870,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-swordsman_of_landstar": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Swordsman_of_Landstar_(anime)",
+      "attribute_source_revision": 5482066,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-the_winged_dragon_of_ra": {
+      "element": "Thần",
+      "source_attribute": "THẦN",
+      "attribute_source": "https://yugipedia.com/wiki/The_Winged_Dragon_of_Ra_(anime)",
+      "attribute_source_revision": 6020793,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-thousand_dragon": {
+      "element": "Phong",
+      "source_attribute": "PHONG",
+      "attribute_source": "https://yugipedia.com/wiki/Thousand_Dragon_(anime)",
+      "attribute_source_revision": 5858964,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-thousand_eyes_idol": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Thousand-Eyes_Idol_(anime)",
+      "attribute_source_revision": 5482339,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-thousand_eyes_restrict": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Thousand-Eyes_Restrict_(anime)",
+      "attribute_source_revision": 5870086,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-thunder_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Thunder_Dragon_(anime)",
+      "attribute_source_revision": 5482352,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-tiger_axe": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Tiger_Axe_(anime)",
+      "attribute_source_revision": 5646798,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-time_wizard": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Time_Wizard_(anime)",
+      "attribute_source_revision": 5862849,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-toon_dark_magician_girl": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Toon_Dark_Magician_Girl_(anime)",
+      "attribute_source_revision": 5482423,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-toon_mermaid": {
+      "element": "Thủy",
+      "source_attribute": "NƯỚC",
+      "attribute_source": "https://yugipedia.com/wiki/Toon_Mermaid_(anime)",
+      "attribute_source_revision": 5482427,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-toon_summoned_skull": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Toon_Summoned_Skull_(anime)",
+      "attribute_source_revision": 5482429,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-twin_headed_thunder_dragon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Twin-Headed_Thunder_Dragon_(anime)",
+      "attribute_source_revision": 5093228,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-valkyrion_the_magna_warrior": {
+      "element": "Địa",
+      "source_attribute": "ĐỊA",
+      "attribute_source": "https://yugipedia.com/wiki/Valkyrion_the_Magna_Warrior_(anime)",
+      "attribute_source_revision": 5779585,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-vorse_raider": {
+      "element": "Ám",
+      "source_attribute": "ÁM",
+      "attribute_source": "https://yugipedia.com/wiki/Vorse_Raider_(anime)",
+      "attribute_source_revision": 5642395,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-winged_kuriboh": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Winged_Kuriboh_(anime)",
+      "attribute_source_revision": 5548150,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-x_head_cannon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/X-Head_Cannon_(anime)",
+      "attribute_source_revision": 5946493,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-xyz_dragon_cannon": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/XYZ-Dragon_Cannon_(anime)",
+      "attribute_source_revision": 5859067,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-y_dragon_head": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Y-Dragon_Head_(anime)",
+      "attribute_source_revision": 5946494,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    },
+    "AN-z_metal_tank": {
+      "element": "Quang",
+      "source_attribute": "QUANG",
+      "attribute_source": "https://yugipedia.com/wiki/Z-Metal_Tank_(anime)",
+      "attribute_source_revision": 5946495,
+      "attribute_source_version": "Anime DM/GX; chỉ đối chiếu thuộc tính"
+    }
+  },
+  "preset": {
+    "name": "Jaden · HERO manga",
+    "main": [
+      "MGX-elemental_hero_ocean",
+      "MGX-elemental_hero_ocean",
+      "MGX-elemental_hero_woodsman",
+      "MGX-elemental_hero_woodsman",
+      "MGX-elemental_hero_stratos",
+      "MGX-elemental_hero_stratos",
+      "MGX-elemental_hero_shadow_mist",
+      "MGX-elemental_hero_shadow_mist",
+      "AN-elemental_hero_avian",
+      "AN-elemental_hero_sparkman",
+      "AN-elemental_hero_clayman",
+      "AN-elemental_hero_burstinatrix",
+      "AN-elemental_hero_bubbleman",
+      "AN-elemental_hero_wildheart",
+      "AN-polymerization",
+      "AN-polymerization",
+      "AN-polymerization",
+      "AN-miracle_fusion",
+      "AN-miracle_fusion",
+      "AN-fusion_sage",
+      "AN-monster_reborn",
+      "AN-mirror_force",
+      "MGX-umi",
+      "MGX-umi"
+    ],
+    "extra": [
+      "MGX-elemental_hero_absolute_zero",
+      "MGX-elemental_hero_the_shining",
+      "MGX-elemental_hero_gaia",
+      "MGX-elemental_hero_great_tornado",
+      "MGX-elemental_hero_terra_firma",
+      "MGX-elemental_hero_escuridao"
+    ]
+  }
+}

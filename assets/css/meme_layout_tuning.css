@@ -1,0 +1,122 @@
+/* Balance the field, visible card backs and readable deck inspection. */
+.duel-bottom{flex-basis:clamp(156px,22dvh,190px)}
+.board-center{width:100%;max-width:490px}
+.monster-row{flex:1.2}.spell-row{flex:1}
+.zone-row{align-items:center;min-height:0}
+/* The clickable zone stays in its column; the card frame itself shows position. */
+.monster-row .field-slot{height:100%;width:auto;aspect-ratio:5/7;max-width:100%;max-height:100%;justify-self:center}
+.monster-row .field-slot.defense,.monster-row .field-slot.defense.selected{width:100%;height:auto;aspect-ratio:7/5;max-width:124px;max-height:100%;transform:none!important}
+.monster-row .field-slot.defense .zone-art{transform:rotate(90deg);width:100%;height:100%}
+.monster-row .field-slot.defense .card-back-art{transform:none;inset:4px;background:repeating-radial-gradient(ellipse at center,#bf944f 0 3px,#56312b 4px 7px,#211b2b 8px 10px)}
+.spell-row .field-slot{height:100%;width:auto;aspect-ratio:5/7;max-width:100%;max-height:100%;justify-self:center}
+.spell-row .field-slot.occupied{padding:3px!important}
+.spell-row .field-slot .card-back-art{inset:3px;transform:none;border-width:2px;border-radius:4px}
+.spell-row .field-slot .own-set-peek{width:35%;height:38%;right:3px;bottom:4px;border-width:1px;opacity:.95}
+.spell-row .field-slot .slot-label{display:none}
+.card-back-art i{font-size:22px}
+.opponent-hand{display:flex;position:relative;align-items:center;justify-content:center;flex:0 0 43px;height:43px;gap:5px;overflow:hidden;padding:1px 4px}
+.opponent-hand span{display:block;flex:0 0 28px;width:28px;height:39px;border:2px solid #d7b578;border-radius:4px;background:repeating-radial-gradient(ellipse at center,#ba8b4d 0 2px,#62352b 3px 5px,#241b27 6px 8px);box-shadow:0 2px 4px #0006}
+.phase1-duel .battle-log{flex:1 1 0;min-height:0;max-height:none;overflow:auto;padding:6px;background:#081d2bb3;border:1px solid #365c70;border-radius:7px;gap:6px;scrollbar-width:thin}
+.phase1-duel .log-line{font-size:11px;line-height:1.4;flex-shrink:0;border-bottom:1px solid #3e586980;padding-bottom:6px}
+.phase1-duel #duelHistoryBtn{margin-top:0;flex-shrink:0}
+/* Both header and actions remain visible while the effect text scrolls. */
+#modal .phase1-builder .deck-inspector{display:flex;flex-direction:column;gap:10px;padding:12px;min-width:0;overflow:hidden}
+#modal .phase1-builder .deck-inspect-head{display:grid;grid-template-columns:minmax(85px,40%) minmax(0,1fr);gap:9px;flex:0 0 auto;align-items:center;text-align:left}
+#modal .phase1-builder .deck-inspect-head .deck-inspect-art{grid-column:1;grid-row:1/3;width:100%;height:auto;aspect-ratio:1;min-height:0;margin:0;float:none}
+#modal .phase1-builder .deck-inspect-head h3{grid-column:2;margin:0;font-size:18px;line-height:1.2;overflow-wrap:anywhere}
+#modal .phase1-builder .card-facts{grid-column:2;font-size:11px;line-height:1.5}
+#modal .phase1-builder .deck-inspect-body{flex:1 1 0;min-height:0;max-width:none;overflow:auto;padding-right:5px;scrollbar-width:thin}
+#modal .phase1-builder .deck-inspect-body p{font-size:13px;line-height:1.65;margin-bottom:8px}
+#modal .phase1-builder .deck-inspect-body h4{font-size:12px;margin:12px 0 5px;color:#a4e1d9}
+#modal .phase1-builder .deck-inspect-actions{position:static;flex:0 0 auto;bottom:auto;margin:0;padding:6px 0 0;border-top:1px solid #426277}
+#modal .phase1-builder .deck-inspect-actions button{font-size:12px;min-height:34px}
+#toggleDraftPanel{flex-shrink:0;white-space:nowrap;font-size:11px;padding:6px 9px;margin-left:auto}
+#modal .phase1-builder .deck-workspace.draft-collapsed{grid-template-columns:minmax(0,1fr) minmax(350px,43%)}
+#modal .phase1-builder .draft-collapsed>.draft-panel{display:none!important}
+#modal .phase1-builder .draft-collapsed .deck-inspect-head{grid-template-columns:minmax(140px,35%) minmax(0,1fr)}
+#modal .phase1-builder .draft-collapsed .deck-inspect-head h3{font-size:23px}
+#modal .phase1-builder .draft-collapsed .deck-inspect-body p{font-size:14px}
+.deck-mobile-tabs [hidden]{display:none!important}
+@media(max-width:1100px) and (min-width:701px) and (min-height:501px){.phase1-duel .battle-log{padding:3px;gap:3px}.phase1-duel .log-line{font-size:9px;padding-bottom:3px;line-height:1.2}}
+@media(max-width:949px){
+ #modal .phase1-builder .deck-workspace>.deck-inspector{display:none}
+ #modal .phase1-builder .deck-workspace[data-pane=detail]>.deck-inspector{display:flex}
+ #modal .phase1-builder .deck-workspace.draft-collapsed{display:block}
+ #modal .phase1-builder .deck-inspect-head,#modal .phase1-builder .draft-collapsed .deck-inspect-head{grid-template-columns:minmax(100px,30%) minmax(0,1fr)}
+ #modal .phase1-builder .deck-inspect-head h3,#modal .phase1-builder .draft-collapsed .deck-inspect-head h3{font-size:20px}
+ #modal .phase1-builder .deck-inspect-body p{font-size:13px}
+ #toggleDraftPanel{font-size:10px;padding:5px 7px}
+}
+/* Give all four field rows equal space on every screen size. */
+.board-center>.monster-row,.board-center>.spell-row{flex:1 1 0}
+@media(max-width:700px){
+ .duel-bottom{flex-basis:168px}
+ .arena{position:relative}
+ .arena>.enemy-row{width:calc(100% - 104px);margin-left:auto;min-width:0}
+ .enemy-row .player-info{min-width:65px}.enemy-row .player-info b{font-size:8px}
+ .opponent-hand{display:flex;position:absolute;top:5px;left:1px;width:99px;height:34px;gap:2px;flex:none;padding:0;justify-content:flex-start}
+ .opponent-hand span{width:20px;height:30px;flex-basis:20px;border-width:1px;flex-shrink:1;min-width:9px}
+ .monster-row{flex:1.25}.spell-row{flex:1}
+ .monster-row .field-slot.defense{max-width:94px}
+ .spell-row .field-slot .card-back-art{inset:2px;border-width:1px}
+ .spell-row .field-slot .own-set-peek{width:36%;height:36%;right:2px;bottom:3px}
+ .phase1-duel .battle-log{padding:2px;gap:3px}
+ .phase1-duel .log-line{font-size:9px;line-height:1.25;padding-bottom:3px}
+ #battleGuide{margin-top:1px;padding-top:0;gap:1px}
+ #chooseReadyAttacker{white-space:nowrap;text-overflow:ellipsis;overflow:hidden;min-height:17px;font-size:8px;padding:2px}
+ .builder-title{flex-wrap:wrap;gap:4px;align-items:center}
+ .builder-title>div{flex:1 1 150px}.builder-title>a{margin-left:0}
+ #toggleDraftPanel{font-size:9px;margin-left:0;min-height:26px}
+ #modal .phase1-builder .deck-inspect-head,#modal .phase1-builder .draft-collapsed .deck-inspect-head{grid-template-columns:110px minmax(0,1fr)}
+ #modal .phase1-builder .deck-inspect-head h3,#modal .phase1-builder .draft-collapsed .deck-inspect-head h3{font-size:19px}
+ #modal .phase1-builder .card-facts{font-size:10px}
+}
+@media(max-height:630px) and (max-width:549px){.duel-bottom{flex-basis:141px}.opponent-hand{height:30px;top:2px}.opponent-hand span{height:27px;width:19px;flex-basis:19px}.arena>.enemy-row{width:calc(100% - 100px)}.monster-row{flex:1.3}.spell-row{flex:1}}
+@media(max-height:500px) and (min-width:550px){
+ .duel-bottom{flex-basis:146px}
+ .arena{position:relative;grid-template-rows:54px minmax(0,1fr)}
+ .arena>.enemy-row{width:100%;margin:0;align-self:start}.arena>.self-row{align-self:start}
+ .opponent-hand{display:flex;position:absolute;left:auto;right:3px;top:35px;height:18px;width:46%;justify-content:flex-end;gap:3px;padding:0}
+ .opponent-hand span{height:17px;width:12px;flex-basis:12px;border-width:1px}
+ .monster-row{flex:1.3}.spell-row{flex:1}
+ .phase1-duel .battle-log{padding:3px;gap:4px}.phase1-duel .log-line{font-size:8px;line-height:1.3;padding-bottom:4px}
+ #modal .phase1-builder .deck-inspect-head,#modal .phase1-builder .draft-collapsed .deck-inspect-head{grid-template-columns:74px minmax(0,1fr)}
+ #modal .phase1-builder .deck-inspect-head h3,#modal .phase1-builder .draft-collapsed .deck-inspect-head h3{font-size:15px}
+ #modal .phase1-builder .deck-inspector{gap:5px;padding:7px}
+ #modal .phase1-builder .deck-inspect-body p{font-size:12px;line-height:1.5}
+ #toggleDraftPanel{font-size:9px;padding:3px 6px}
+}
+/* Equal-sized cards: defense uses the attack card's long edge as its width. */
+.monster-row{container-type:size}
+.monster-row .field-slot.defense,.monster-row .field-slot.defense.selected{width:min(100%,100cqh);height:auto;aspect-ratio:7/5}
+/* Short landscape screens put the portrait hand at the edge, freeing field height. */
+@media(max-height:500px) and (min-width:550px){
+ .duel{display:grid;grid-template-columns:minmax(0,1fr) 92px;grid-template-rows:30px minmax(0,1fr)}
+ .duel-top{grid-column:1/-1;grid-row:1;height:30px;min-height:0}
+ .duel-layout,.duel-layout.inspector-collapsed{grid-column:1;grid-row:2;width:100%;height:100%;grid-template-columns:102px minmax(0,1fr) 88px;min-width:0}
+ .duel-layout.inspector-collapsed{grid-template-columns:28px minmax(0,1fr) 88px}
+ .duel-bottom{grid-column:2;grid-row:2;display:flex;flex-direction:column;min-width:0;padding:3px;border-top:0;border-left:1px solid #728999;flex:auto}
+ .hand-title{height:20px;flex-shrink:0;font-size:7px}.hand-title #summonStatus{display:none}
+ .hand{flex:1;height:auto;min-height:0;display:flex;flex-direction:column;gap:7px;padding:5px 3px;overflow-x:hidden;overflow-y:auto;align-items:center;justify-content:flex-start!important}
+ .hand>.card:first-child,.hand>.card:last-child{margin:0!important}
+ .hand .card{width:74px!important;min-width:74px!important;height:104px!important;min-height:104px!important;flex:0 0 104px!important;aspect-ratio:5/7!important;margin:0!important}
+ .hand .card-name{font-size:7px;min-height:19px;height:19px}.hand .card-rank{font-size:6px;min-height:8px}.hand .card-stats{font-size:6px;min-height:9px}
+ #message{height:21px;white-space:normal;font-size:7px;line-height:1.25;flex-shrink:0;overflow:hidden}
+ .arena>.enemy-row,.arena>.self-row{min-width:0}.arena .player-row .avatar{width:28px;height:28px}.arena .player-info b{font-size:6px}.arena .player-info strong{font-size:8px}.arena .deck-count{max-width:43px;font-size:5px}.arena .deck-count .pile-btn{font-size:4px;padding:0 1px}
+ .field-slot .slot-label{font-size:5px}.field-slot .face-state{font-size:5px}
+ .phase1-duel .log-line{font-size:8px}.duel-sidebar .primary-btn{font-size:9px}
+ .card-inspector .inspect-name{font-size:9px}.card-inspector .inspect-description{font-size:8px}
+}
+@media(max-height:700px) and (max-width:549px){
+ .duel-layout{grid-template-rows:minmax(0,1fr) 65px 42px}.duel-layout.inspector-collapsed{grid-template-rows:minmax(0,1fr) 23px 42px}
+ .card-inspector{max-height:65px;grid-template-rows:auto auto minmax(0,1fr);padding:2px 4px}.inspect-actions{min-height:21px}.inspect-actions button{font-size:8px}
+ .card-inspector #cardInspector{grid-template-columns:45px minmax(0,1fr);grid-template-rows:13px 12px 12px 21px;gap:0 5px}
+ .card-inspector .inspect-art-wrap{width:45px;height:38px;grid-column:1;grid-row:1/4}
+ .card-inspector .inspect-name{grid-column:2;grid-row:1;font-size:10px;line-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .card-inspector .inspect-meta{grid-column:2;grid-row:2;font-size:8px;line-height:12px}
+ .card-inspector .inspect-stats{grid-column:2;grid-row:3;font-size:8px;line-height:12px}
+ .card-inspector .inspect-description{display:none}
+ .card-inspector .inspect-actions{grid-column:1/-1;grid-row:4;margin:0}
+ .duel-bottom{flex-basis:132px}.hand .card-name{font-size:7px;height:20px;min-height:20px}
+ .monster-row{flex:1.55}.spell-row{flex:1}
+}

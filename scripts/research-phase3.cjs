@@ -1,0 +1,18 @@
+const fs=require('fs'),path=require('path'),out=path.resolve(__dirname,'../outputs/upgrade-phase3/research');fs.mkdirSync(out,{recursive:true});
+const titles=[
+ 'Elemental Hero Absolute Zero (manga)','Elemental Hero The Shining (manga)','Elemental Hero Gaia (manga)','Elemental Hero Great Tornado (manga)','Elemental Hero Terra Firma (manga)','Elemental Hero Escuridão (manga)','Elemental Hero Inferno (manga)',
+ ...['Ocean','Woodsman','Heat','Lady Heat','Stratos','Knospe','Poison Rose','Voltic','Shadow Mist'].map(n=>'Elemental Hero '+n+' (manga)'),
+ ...['Bassols','Gust','Inferno','Ray','Dusk Crow','Fountain','Goka','Vapor','Acid','Daian','Blast','Dark Law','Koga','Divine Wind'].map(n=>'Masked Hero '+n+' (manga)'),
+ 'Mask Change (manga)','Mask Change II (manga)','Rose Bud (manga)','Parallel World Fusion (manga)',
+ ...['Ancient Gear Golem','Ancient Gear Soldier','Ancient Gear Beast','Ancient Gear Engineer','Ancient Gear','Ancient Gear Castle','Ancient Gear Workshop','Ultimate Ancient Gear Golem','Ancient Gear Gadjiltron Dragon','Ancient Gear Explosive'].map(n=>n+' (anime)'),
+ ...['Ojama Green','Ojama Yellow','Ojama Black','Ojama King','Ojama Knight','Ojamagic','Ojama Delta Hurricane!!','Ojamuscle','Armed Dragon LV3','Armed Dragon LV5','Armed Dragon LV7'].map(n=>n+' (anime)'),
+ 'Koyo Hibiki','Jaden Yuki (manga)','Chazz Princeton','Vellian Crowler',
+ 'Masked HERO Bassols (manga)','Masked HERO Gust (manga)','Masked HERO Inferno (manga)','Masked HERO Ray (manga)','Masked Hero Bassols','Masked Hero Gust','Masked Hero Inferno','Masked Hero Ray','Ancient Gear (anime card)',
+ 'List of Yu-Gi-Oh! GX manga cards','List of Yu-Gi-Oh! GX anime cards','List of Yu-Gi-Oh! anime cards','List of Yu-Gi-Oh! manga cards'
+];
+const filename=t=>t.normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/[^\w-]+/g,'_')+'.json';
+async function api(params){const r=await fetch('https://yugipedia.com/api.php?'+new URLSearchParams({...params,format:'json'}),{headers:{'User-Agent':'DMGXResearch/1.0 (local game source audit)'}});if(!r.ok)throw Error('HTTP '+r.status);return r.json();}
+(async()=>{const results=[];for(const title of titles){const file=path.join(out,filename(title));let record;if(fs.existsSync(file))record=JSON.parse(fs.readFileSync(file));else{const data=await api({action:'parse',page:title,prop:'wikitext|revid'});record={requested:title,source:'https://yugipedia.com/wiki/'+encodeURIComponent(title.replaceAll(' ','_')),fetchedAt:new Date().toISOString(),...data};fs.writeFileSync(file,JSON.stringify(record,null,2));}const w=record.parse?.wikitext?.['*']||'';const fields=Object.fromEntries(w.split('\n').map(l=>l.match(/^\|\s*([a-z_]+)\s*=\s*(.*)$/)).filter(Boolean).map(m=>[m[1],m[2]]));results.push({title:record.parse?.title||title,pageid:record.parse?.pageid,revid:record.parse?.revid,file:path.basename(file),source:record.source,found:!!w,fields:Object.fromEntries(Object.entries(fields).filter(([k])=>['card_type','attribute','types','type','level','atk','def','fusion_material','fusion_materials','text','lore','jp_text','en_text','property','summoning','debut','appearances'].includes(k))),intro:w.split(/==|\{\{Card categories/)[0].slice(0,5000)});}
+ fs.writeFileSync(path.join(out,'summary.json'),JSON.stringify(results,null,2));console.log(JSON.stringify({researched:results.length,found:results.filter(r=>r.found).length,missing:results.filter(r=>!r.found).map(r=>r.title)}));
+ const categories=await api({action:'query',list:'allcategories',acprefix:'Yu-Gi-Oh! GX',aclimit:'50'});fs.writeFileSync(path.join(out,'categories.json'),JSON.stringify(categories,null,2));
+})().catch(e=>{console.error(e);process.exitCode=1;});

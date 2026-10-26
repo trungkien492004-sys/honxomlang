@@ -1,0 +1,12 @@
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [{"source":"**","headers":[{"key":"Cache-Control","value":"public, max-age=0, must-revalidate"}]}]
+  },
+  "functions": [{"source":"server/functions","codebase":"duel-authority","runtime":"nodejs22","predeploy":["node scripts/build-server-engine.cjs"]}],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

@@ -1,0 +1,1 @@
+{"indexes":[{"collectionGroup":"rank_queue","queryScope":"COLLECTION","fields":[{"fieldPath":"state","order":"ASCENDING"},{"fieldPath":"expiresAt","order":"ASCENDING"}]}],"fieldOverrides":[]}

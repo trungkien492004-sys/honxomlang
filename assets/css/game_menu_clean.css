@@ -1,0 +1,26 @@
+/* Compact game selection on phones; both games and sign-out remain reachable. */
+@media(max-width:700px){
+ #gameModeScreen{height:100dvh;min-height:0;box-sizing:border-box;padding:18px 14px max(14px,env(safe-area-inset-bottom));justify-content:center;gap:12px;overflow:hidden}
+ #gameModeScreen .title-container{margin:0;padding:0}
+ #gameModeScreen .title-container h1{font-size:26px!important;margin:0 0 5px}
+ #gameModeScreen .title-container p{font-size:13px!important;margin:0}
+ #gameModeScreen .class-container{display:grid!important;grid-template-columns:minmax(0,1fr);width:min(100%,440px);max-width:440px!important;gap:12px!important;margin:0!important}
+ #gameModeScreen .class-card{width:100%!important;min-width:0;min-height:0;padding:14px!important;display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:10px;row-gap:5px;align-items:center}
+ #gameModeScreen .class-emoji{grid-column:1;grid-row:1/3;font-size:33px!important;margin:0!important}
+ #gameModeScreen .class-name{grid-column:2;font-size:18px!important;margin:0!important;text-align:left}
+ #gameModeScreen .class-desc{grid-column:2;font-size:12px!important;min-height:0!important;text-align:left;line-height:1.4!important}
+ #gameModeScreen .class-card>.btn{grid-column:1/-1;margin-top:4px!important;padding:9px!important;font-size:14px!important;min-height:40px}
+ #gameModeScreen>div:last-child{margin-top:0!important}
+ #gameModeScreen>div:last-child .btn{min-height:40px;padding:8px 22px!important;font-size:13px!important}
+}
+@media(max-height:500px) and (min-width:550px){
+ #gameModeScreen{height:100dvh;min-height:0;padding:10px 16px;justify-content:center;gap:10px;overflow:hidden}
+ #gameModeScreen .title-container{margin:0;padding:0}#gameModeScreen .title-container h1{font-size:24px!important;margin:0}#gameModeScreen .title-container p{display:none}
+ #gameModeScreen .class-container{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));width:min(100%,800px);gap:12px!important;margin:0!important}
+ #gameModeScreen .class-card{width:100%!important;min-width:0;padding:12px!important}
+ #gameModeScreen .class-emoji{font-size:28px!important;margin-bottom:3px!important}
+ #gameModeScreen .class-name{font-size:17px!important;margin-bottom:5px!important}
+ #gameModeScreen .class-desc{font-size:11px!important;min-height:0!important;line-height:1.4!important}
+ #gameModeScreen .class-card>.btn{margin-top:8px!important;padding:8px!important;font-size:13px!important}
+ #gameModeScreen>div:last-child{margin-top:0!important}#gameModeScreen>div:last-child .btn{padding:6px 18px!important;font-size:12px!important}
+}

@@ -2,7 +2,7 @@
 'use strict';
 
 // Resolve getMyNetworkId() from global window (set by game.js)
-function getMyNetworkId() { return window.getMyNetworkId() || ''; }
+function getMyNetworkId() { return window.myNetworkId || ''; }
 
 function boardRefreshHud() {
     if (typeof window.refreshHudDisplay === 'function' && window.refreshHudDisplay !== boardRefreshHud) {
@@ -908,7 +908,7 @@ window.boardOpenHandPanel = function() {
 
     let box = document.createElement('div');
     box.style.cssText = 'background:#1c1a26; border:2px solid #ff9eb5; border-radius:14px; width:min(94vw,480px); max-height:80vh; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px;';
-    box.innerHTML = `<div style="font-weight:800; color:#ffb3c6;">🎴 Bài Trên Tay (${human.hand.length}) — dùng bất cứ lúc nào để lật kèo</div>`;
+    box.innerHTML = `<div style="font-weight:800; color:#ffb3c6;">🎴 Bài Trên Tay (${human.hand.length}) — dùng trong lượt của bạn, trước khi tung xúc xắc</div>`;
 
     if (human.hand.length === 0) {
         let empty = document.createElement('div');

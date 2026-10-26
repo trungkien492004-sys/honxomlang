@@ -1131,7 +1131,8 @@
         let chatMessages = [];
         let footballFixtures = [];
         let placedBets = [];
-        let networkPlayers = {}; // PvP players cache from BroadcastChannel
+        let networkPlayers = {}; // PvP players cache from Firestore
+        window.networkPlayers = networkPlayers;
         window.myNetworkId = window.myNetworkId || "P_" + Math.random().toString(36).substring(2, 9);
         var myNetworkId = window.myNetworkId;
 
@@ -1152,17 +1153,28 @@
         });
 
         // Setup Multiplayer Synchronization using Firebase Firestore (True Online)
+        let networkWriteErrorShown = false;
+        function reportNetworkWriteError(err) {
+            console.error('🔥 Firestore network write failed:', err);
+            if (!networkWriteErrorShown) {
+                networkWriteErrorShown = true;
+                showToast('⚠️ Không gửi được dữ liệu online. Kiểm tra Firebase Authentication và Firestore Rules.');
+            }
+        }
         let pvpChannel = window.pvpChannel = {
             postMessage(msg) {
                 if(!window.currentFirebaseUser || typeof db === 'undefined') return;
+                // Firebase rejects Array/Object instances originating in the card game's iframe.
+                // Recreate every nested value in this window before handing it to the SDK.
+                msg = { ...JSON.parse(JSON.stringify(msg)), uid: window.currentFirebaseUser.uid };
                 if(msg.type === 'PRESENCE') {
                     db.collection('active_players').doc(myNetworkId).set({
                         ...msg, timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    }, {merge: true}).catch(()=>{});
+                    }, {merge: true}).catch(reportNetworkWriteError);
                 } else {
                     db.collection('network_events').add({
                         ...msg, timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    }).catch(()=>{});
+                    }).catch(reportNetworkWriteError);
                 }
             }
         };
@@ -1171,14 +1183,18 @@
             postMessage(msg) {
                 if(!window.currentFirebaseUser || typeof db === 'undefined') return;
                 db.collection('chat_messages').add({
-                    ...msg, timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }).catch(()=>{});
+                    ...msg, uid: window.currentFirebaseUser.uid,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(reportNetworkWriteError);
             }
         };
 
-        // Firebase Listeners
-        setTimeout(() => {
-            if(typeof db !== 'undefined') {
+        // Subscribe only after Firebase Auth resolves; unauthenticated listeners
+        // are rejected by Firestore rules and do not recover after sign-in.
+        let networkListenersStarted = false;
+        window.startNetworkListeners = function() {
+            if (networkListenersStarted || !window.currentFirebaseUser || typeof db === 'undefined') return;
+            networkListenersStarted = true;
                 // 1. Presence Sync
                 db.collection('active_players').onSnapshot(snap => {
                     snap.docChanges().forEach(change => {
@@ -1194,7 +1210,7 @@
                             }
                         }
                     });
-                });
+                }, err => console.error('🔥 active_players listener:', err));
 
                 // 2. Transient Events (PVP, Invites, Board) - 5-min lookback to avoid clock drift
                 let startEventTime = new Date(Date.now() - 5 * 60 * 1000);
@@ -1240,9 +1256,9 @@
                           }
                       });
                       isInitialChat = false;
-                  });
-            }
-        }, 3000); // Wait 3s to let Firebase auth initialize
+                  }, err => console.error('🔥 chat_messages listener:', err));
+        };
+        window.startNetworkListeners();
 
         const SAMPLE_FOOTBALL_FIXTURES = [
             { league: 'Premier League', match: 'Manchester City vs Liverpool', time: '21:00', status: 'LIVE', odds: '1.85 / 3.20 / 2.10' },
@@ -1675,7 +1691,7 @@
         }
 
         function broadcastMyPresence() {
-            if(currentScreen !== 'gameScreen') return;
+            if(!window.currentFirebaseUser || currentScreen === 'loginScreen') return;
             pvpChannel.postMessage({
                 type: 'PRESENCE',
                 id: myNetworkId,
@@ -1955,6 +1971,11 @@
             }
             if (typeof window.mcRegisterNetworkMessage === 'function') {
                 window.mcRegisterNetworkMessage(msg);
+            }
+            const memeFrame = document.getElementById('memecardFrame');
+            if (memeFrame && memeFrame.contentWindow &&
+                typeof memeFrame.contentWindow.memeOnlineReceive === 'function') {
+                memeFrame.contentWindow.memeOnlineReceive(msg);
             }
             if (typeof window.boardRegisterNetworkMessage === 'function') {
                 window.boardRegisterNetworkMessage(msg);
@@ -2263,7 +2284,6 @@
                     delete networkPlayers[id];
                     if(typeof partySystem !== 'undefined') partySystem.removeMember(id);
                     changed = true;
-                    if(typeof db !== 'undefined') db.collection('active_players').doc(id).delete().catch(()=>{});
                 }
             }
             if(changed) { rebuildPvpLobbyUI(); rebuildPartyPanel(); }

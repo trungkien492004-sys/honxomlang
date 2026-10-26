@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="auth-pending">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🏘️ XÓM ANH HÙNG v3.0 - Phiên Bản Online</title>
+    <title>Yu-Gi-Oh! DM / GX — Anime Duel Online</title>
     <meta name="description" content="Game nhập vai sinh tồn thuần Việt - Đa người chơi online">
     <link rel="stylesheet" href="assets/css/style.css?v=7">
+    <style>html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending body>#mobileCardActions{visibility:hidden;pointer-events:none}html.auth-pending body{min-height:100vh;background:#062236}html.auth-pending body::before{content:"Đang khôi phục đăng nhập…";position:fixed;inset:0;z-index:249999;display:grid;place-items:center;background:linear-gradient(145deg,#062236,#10283d);color:#d0e6f3;font:700 16px system-ui,sans-serif}</style>
     <link rel="stylesheet" href="assets/css/mobile.css?v=7">
+    <link rel="stylesheet" href="assets/css/board_upgrade.css?v=20261025-polish-v1">
+    <link rel="stylesheet" href="assets/css/game_menu_clean.css?v=20261026-confirm-v1">
     <script>
         window.onerror = function(msg, url, line, col, error) {
             var detail = msg;
@@ -40,17 +43,10 @@
 
     <div id="loginScreen" class="screen active">
         <div class="title-container">
-            <h1>🏘️ XÓM ANH HÙNG v3.0</h1>
-            <p>Game Nhập Vai Sinh Tồn Thuần Việt - Đa Người Chơi Online</p>
+            <h1>Yu-Gi-Oh! DM / GX</h1>
+            <p>Anime Duel · Dựng bộ bài · Đấu online 60 giây mỗi lượt</p>
         </div>
         <div class="login-box" style="display:flex; flex-direction:column; gap:10px;">
-            <input type="text" id="usernameInp" class="login-input" placeholder="Tài khoản..." maxlength="20" style="padding:12px; border-radius:8px; border:2px solid #334155; background:#1e293b; color:white; font-size:1.1rem; text-align:center; outline:none;">
-            <input type="password" id="passwordInp" class="login-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)..." maxlength="20" style="padding:12px; border-radius:8px; border:2px solid #334155; background:#1e293b; color:white; font-size:1.1rem; text-align:center; outline:none;">
-            <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="window.submitClassicLogin('login')" id="classicLoginBtn" style="flex:1;">ĐĂNG NHẬP</button>
-                <button class="btn" onclick="window.submitClassicLogin('register')" id="classicRegisterBtn" style="flex:1; background:#0ea5e9;">ĐĂNG KÝ</button>
-            </div>
-            <div style="text-align:center; color:#94a3b8; font-size:0.9rem;">HOẶC</div>
             <button class="btn btn-google" onclick="window.loginWithGoogle()">
                 <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.3 30.2 0 24 0 14.7 0 6.7 5.4 2.7 13.3l7.9 6.1C12.5 13.3 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.2-.4-4.7H24v9h12.4c-.5 2.8-2.2 5.2-4.6 6.8l7.2 5.6C46.1 24.5 0 24 0 24s1 8.8 2.7 12.8l7.9-6.1z"/><path fill="#FBBC05" d="M10.6 28.7c-.6-1.7-.9-3.4-.9-5.2s.3-3.6.9-5.2l-7.9-6.1C1 15.2 0 19.5 0 24s1 8.8 2.7 12.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.2-5.6c-2 1.4-4.6 2.2-8 2.2-6.2 0-11.5-3.8-13.4-9.4l-7.9 6.1C6.7 42.6 14.7 48 24 48z"/></svg>
                 Đăng nhập bằng Google
@@ -63,19 +59,19 @@
     <div id="gameModeScreen" class="screen">
         <div class="title-container">
             <h1 style="font-size: 3rem; text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);">CHỌN TRÒ CHƠI</h1>
-            <p style="font-size: 1.1rem; color: #94a3b8;">Chọn trải nghiệm giải trí bạn muốn tham gia</p>
+            <p style="font-size: 1.1rem; color: #94a3b8;">Đấu bài hoặc cờ đua</p>
         </div>
         <div class="class-container" style="max-width:800px; display:flex; justify-content:center; gap:32px; flex-wrap:wrap; margin-top:20px;">
             <div class="class-card" onclick="window.selectGameMode('meme')" style="width:330px; cursor:pointer; padding:28px 20px; border:2px solid #22c55e; background:rgba(15, 23, 42, 0.85); border-radius:16px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 8px 24px rgba(34,197,94,0.2);">
-                <div class="class-emoji" style="font-size:4.5rem; margin-bottom:12px;">🐸</div>
-                <div class="class-name" style="font-size:1.6rem; color:#4ade80; font-weight:800; margin-bottom:10px;">Đấu Trường Meme Xóm</div>
-                <div class="class-desc" style="font-size:0.95rem; color:#cbd5e1; line-height:1.5; min-height:80px;">Game thẻ bài TCG phong cách Speed Duel với bộ bài meme thuần Việt hài hước — tùy biến deck, rút bài và đấu trí!</div>
+                <div class="class-emoji" style="font-size:4.5rem; margin-bottom:12px;">🃏</div>
+                <div class="class-name" style="font-size:1.6rem; color:#4ade80; font-weight:800; margin-bottom:10px;">Yu-Gi-Oh! DM / GX</div>
+                <div class="class-desc" style="font-size:0.95rem; color:#cbd5e1; line-height:1.5; min-height:80px;">156 lá DM/GX, 18 bộ mẫu. Đấu máy hoặc online cùng bạn bè.</div>
                 <button class="btn" style="margin-top:20px; width:100%; background:linear-gradient(135deg, #22c55e, #16a34a); font-weight:bold; font-size:1.1rem; padding:12px;">VÀO ĐẤU BÀI ⚔️</button>
             </div>
             <div class="class-card" onclick="window.selectGameMode('board')" style="width:330px; cursor:pointer; padding:28px 20px; border:2px solid #38bdf8; background:rgba(15, 23, 42, 0.85); border-radius:16px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 8px 24px rgba(56,189,248,0.2);">
                 <div class="class-emoji" style="font-size:4.5rem; margin-bottom:12px;">🏁</div>
                 <div class="class-name" style="font-size:1.6rem; color:#38bdf8; font-weight:800; margin-bottom:10px;">Cờ Đua Sinh Tồn</div>
-                <div class="class-desc" style="font-size:0.95rem; color:#cbd5e1; line-height:1.5; min-height:80px;">Minigame cờ đua 40 ô sống động, lắc xí ngầu, bẫy quái, rút thẻ bài bất ngờ và sống sót về đích!</div>
+                <div class="class-desc" style="font-size:0.95rem; color:#cbd5e1; line-height:1.5; min-height:80px;">Đường đua 100 ô, xúc xắc và thẻ bài. Vượt bẫy để về đích.</div>
                 <button class="btn" style="margin-top:20px; width:100%; background:linear-gradient(135deg, #0284c7, #0369a1); font-weight:bold; font-size:1.1rem; padding:12px;">VÀO CỜ ĐUA 🎲</button>
             </div>
         </div>
@@ -302,7 +298,7 @@
                                 </label>
                             </div>
                         </div>
-                        <p style="font-size:0.82rem; color:#bbb;">Phát hiện Anh Hùng online qua BroadcastChannel — mở nhiều tab cùng máy để thử.</p>
+                        <p style="font-size:0.82rem; color:#bbb;">Phát hiện Anh Hùng online qua Firebase — đăng nhập bằng tài khoản khác trên thiết bị khác để thử.</p>
                         <div style="font-weight:bold; color:var(--red); border-bottom:1px solid #444; padding-bottom:5px; margin-top:5px;">Đối thủ xung quanh:</div>
                         <div id="pvpPlayerList" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto;"></div>
                     </div>
@@ -345,7 +341,7 @@
                             <input type="text" id="chatMessageInput" placeholder="Gõ tin nhắn..." maxlength="120" onkeydown="if(event.key==='Enter') sendGlobalChat()">
                             <button class="btn-sm" style="background:#2563eb;" onclick="sendGlobalChat()">Gửi</button>
                         </div>
-                        <div style="font-size:0.85rem; color:#aaa;">Chat này sẽ đồng bộ giữa các tab trình duyệt cùng máy qua BroadcastChannel.</div>
+                        <div style="font-size:0.85rem; color:#aaa;">Chat này đồng bộ qua Internet giữa những người chơi đã đăng nhập.</div>
                     </div>
                 </div>
 
@@ -1346,7 +1342,7 @@
         </div>
 
         <!-- ===== 🐸 MEME CARD GAME MODAL ===== -->
-        <div id="memecardGameModal" style="display:none; position:fixed; inset:0; background:#071b2d; z-index:100000; width:100vw; height:100vh; overflow:hidden;">
+        <div id="memecardGameModal" style="display:none; position:fixed; inset:0; background:#071b2d; z-index:100000; width:100%; height:100dvh; overflow:hidden;">
             <iframe id="memecardFrame" src="about:blank" style="width:100%; height:100%; border:none; display:block;"></iframe>
         </div>
         <!-- ===== END MEME CARD GAME MODAL ===== -->
@@ -1368,7 +1364,7 @@
                     <button class="menu-popup-btn" onclick="window.menuAction('chat')">💬 Chat Tổng</button>
                     <button class="menu-popup-btn" onclick="window.menuAction('board')">🏁 Cờ Đua</button>
                     <button class="menu-popup-btn" onclick="window.menuAction('yugioh')" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); border-color:#d4af37;">🃏 Bài Ma Thuật</button>
-                    <button class="menu-popup-btn" onclick="window.menuAction('memecard')" style="background:linear-gradient(135deg, #15803d, #14532d); border-color:#4ade80;">🐸 Meme Xóm</button>
+                    <button class="menu-popup-btn" onclick="window.menuAction('memecard')" style="background:linear-gradient(135deg, #15803d, #14532d); border-color:#4ade80;">🐸 Yu-Gi-Oh!</button>
                     <button class="menu-popup-btn" onclick="window.menuAction('bet')">🏟️ Cược Bóng</button>
                 </div>
                 
@@ -1407,9 +1403,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js" crossorigin="anonymous"></script>
-    <script src="assets/js/firebase.js?v=13"></script>
+    <script src="assets/js/firebase.js?v=20261026-auth-presence1"></script>
     
-    <script src="assets/js/board_new.js?v=13"></script>
+    <script src="assets/js/board_new.js?v=20261025-polish-v1"></script>
+    <script src="assets/js/board_upgrade.js?v=20261025-polish-v1"></script>
     <script src="assets/js/vfx.js?v=10"></script>
     <script src="assets/js/sprites_data.js?v=10"></script>
     <script src="assets/js/sprites_renderer.js?v=10"></script>
@@ -1417,13 +1414,20 @@
     <script src="assets/js/yugioh_cards_data.js?v=10"></script>
     <script src="assets/js/yugioh.js?v=10"></script>
     <script src="assets/js/memecard_data.js?v=3"></script>
-    <script src="assets/js/memecard.js?v=3"></script>
-    <script src="assets/js/game.js?v=13"></script>
+    <script src="assets/js/meme_expansion.js?v=20261025-polish-v1"></script>
+    <script src="assets/js/memecard.js?v=20261026-confirm-v1"></script>
+    <script src="assets/js/game.js?v=16"></script>
+    <link rel="stylesheet" href="assets/css/site_rank.css?v=20261026-rank-presence1">
+    <script src="assets/js/site_rank_config.js?v=20261026-access-rank1"></script>
+    <script src="assets/js/site_identity.js?v=20261026-rank-presence1"></script>
+    <script src="assets/js/site_access.js?v=20261026-auth-presence1"></script>
+    <script src="assets/js/site_rank.js?v=20261026-rank-challenge1"></script>
     <script>
         function toggleMobileMenu() {
             document.getElementById('hudNavContainer').classList.toggle('open');
         }
     </script>
+  <script src="assets/js/site_rank_players.js?v=20261026-rank-presence1"></script>
 </body>
 </html>
 

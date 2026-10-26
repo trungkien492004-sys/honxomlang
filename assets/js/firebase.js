@@ -16,6 +16,7 @@ firebase.initializeApp(firebaseConfig);
 const auth           = firebase.auth();
 const db             = firebase.firestore();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
+window.authPersistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(error => console.warn('Không lưu được phiên đăng nhập:', error.code));
 
 window.currentFirebaseUser = null;
 window._cloudSaveEnabled   = false;
@@ -572,7 +573,6 @@ window.switchScreen = function(sId) {
 };
 
 window.initUserSession = async function(user) {
-    console.log('[DEBUG] initUserSession for user:', user);
     window.currentFirebaseUser = user;
     window._cloudSaveEnabled = true;
     window.currentServerId = 'S1';
@@ -602,140 +602,30 @@ window.initUserSession = async function(user) {
 
     window._pendingCharFlow = 'existing';
     window.switchScreen('gameModeScreen');
+    if (typeof window.startNetworkListeners === 'function') window.startNetworkListeners();
+    window.dispatchEvent(new CustomEvent('site-session-ready', {detail:{uid:user.uid}}));
 };
 
-window.loginAsLocalUser = async function(username) {
-    console.log('[DEBUG] loginAsLocalUser called:', username);
-    let localUser = {
-        uid: 'local_' + username.toLowerCase(),
-        displayName: username,
-        email: username.toLowerCase() + '@local.com'
-    };
-    
-    localStorage.setItem('xom_logged_local_user', JSON.stringify(localUser));
-    await window.initUserSession(localUser);
-};
+// Remove credentials and forged sessions left by the old local login flow.
+localStorage.removeItem('xom_local_accounts');
+localStorage.removeItem('xom_logged_local_user');
 
 // 🌟 Auth State
+window._legacyAuthReady = false;
 auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        await window.initUserSession(user);
-    } else {
-        // Kiểm tra xem có session đăng nhập local trước đó không
-        let localUserStr = localStorage.getItem('xom_logged_local_user');
-        if (localUserStr) {
-            try {
-                let localUser = JSON.parse(localUserStr);
-                await window.initUserSession(localUser);
-                return;
-            } catch(e){}
+    try {
+        if (user) {
+            await window.initUserSession(user);
+        } else {
+            window.currentFirebaseUser = null;
+            window._cloudSaveEnabled = false;
+            window.switchScreen('loginScreen');
         }
-        
-        window.currentFirebaseUser = null;
-        window._cloudSaveEnabled = false;
-        window.switchScreen('loginScreen');
+    } finally {
+        window._legacyAuthReady = true;
+        window.dispatchEvent(new Event('legacy-auth-ready'));
     }
 });
-
-window.submitClassicLogin = async function(mode) {
-    let un = document.getElementById('usernameInp').value.trim();
-    let pw = document.getElementById('passwordInp').value.trim();
-    let errBox = document.getElementById('loginErrorMsg');
-    
-    if(un.length < 3 || pw.length < 6) {
-        errBox.textContent = "Tài khoản >= 3 ký tự, mật khẩu >= 6 ký tự!";
-        errBox.style.display = 'block';
-        return;
-    }
-    
-    errBox.style.display = 'none';
-    let btnId = mode === 'login' ? 'classicLoginBtn' : 'classicRegisterBtn';
-    let originalText = document.getElementById(btnId).textContent;
-    document.getElementById(btnId).textContent = "Đang kết nối...";
-    
-    let userKey = un.toLowerCase();
-
-    // Đồng bộ Local & Cloud
-    let accountsStr = localStorage.getItem('xom_local_accounts');
-    let localAccounts = {};
-    if (accountsStr) {
-        try { localAccounts = JSON.parse(accountsStr); } catch(e){}
-    }
-
-    try {
-        if (mode === 'register') {
-            // Kiểm tra trên Cloud Firestore
-            let cloudDoc = await db.collection('local_accounts').doc(userKey).get().catch(() => null);
-            let existsInCloud = cloudDoc && cloudDoc.exists;
-            let existsLocally = !!localAccounts[userKey];
-
-            if (existsInCloud || existsLocally) {
-                errBox.textContent = "Tài khoản đã tồn tại, vui lòng Đăng nhập!";
-                errBox.style.display = 'block';
-                document.getElementById(btnId).textContent = originalText;
-                return;
-            }
-
-            // Đăng ký mới
-            let accountData = {
-                username: un,
-                password: pw,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            // Lưu lên Cloud
-            let cloudSuccess = false;
-            try {
-                await db.collection('local_accounts').doc(userKey).set(accountData);
-                cloudSuccess = true;
-            } catch (err) {
-                console.warn('[Firebase] Đăng ký cloud lỗi (có thể do rules), chuyển lưu local:', err);
-            }
-
-            // Lưu local dự phòng
-            localAccounts[userKey] = pw;
-            localStorage.setItem('xom_local_accounts', JSON.stringify(localAccounts));
-
-            _fbToast(cloudSuccess ? `🎉 Đăng ký thành công (Đã đồng bộ Cloud)!` : `🎉 Đăng ký thành công (Lưu thiết bị)!`, '#22c55e');
-            window.loginAsLocalUser(un);
-
-        } else {
-            // Đăng nhập
-            let cloudDoc = await db.collection('local_accounts').doc(userKey).get().catch(() => null);
-            let passwordInCloud = cloudDoc && cloudDoc.exists ? cloudDoc.data().password : null;
-            let passwordInLocal = localAccounts[userKey];
-
-            if (!passwordInCloud && !passwordInLocal) {
-                errBox.textContent = "Tài khoản không tồn tại, vui lòng Đăng ký!";
-                errBox.style.display = 'block';
-                document.getElementById(btnId).textContent = originalText;
-                return;
-            }
-
-            let correctPassword = passwordInCloud || passwordInLocal;
-            if (correctPassword !== pw) {
-                errBox.textContent = "Sai mật khẩu!";
-                errBox.style.display = 'block';
-                document.getElementById(btnId).textContent = originalText;
-                return;
-            }
-
-            // Đăng nhập thành công, đồng bộ lại local nếu chưa có
-            if (passwordInCloud && !passwordInLocal) {
-                localAccounts[userKey] = passwordInCloud;
-                localStorage.setItem('xom_local_accounts', JSON.stringify(localAccounts));
-            }
-
-            _fbToast(`✅ Đăng nhập thành công!`, '#22c55e');
-            window.loginAsLocalUser(un);
-        }
-    } catch (e) {
-        console.error(e);
-        errBox.textContent = "Lỗi kết nối: " + e.message;
-        errBox.style.display = 'block';
-    }
-    document.getElementById(btnId).textContent = originalText;
-};
 
 // 🌟 loginWithGoogle — dùng POPUP 🌟🌟🌟🌟🌟🌟
 window.loginWithGoogle = async function() {
@@ -743,10 +633,12 @@ window.loginWithGoogle = async function() {
     window._isGoogleLoggingIn = true;
     _fbToast('⏳ Đang mở cửa sổ đăng nhập...', '#4fc3f7');
     try {
+        await window.authPersistenceReady;
         const result = await auth.signInWithPopup(googleProvider);
         const user = result.user;
         _fbToast(`✅ Đăng nhập thành công! Xin chào ${user.displayName} 🎉`, '#22c55e');
-        await window.initUserSession(user);
+        // The auth-state observer initializes the session once. Calling it here
+        // as well made the old login/game screens race each other during sign-in.
     } catch (err) {
         console.error('[Firebase] Popup error:', err);
         if (err.code === 'auth/popup-blocked') {
@@ -847,7 +739,6 @@ window.createNewCharacter = function(docId) {
 
 // ── signOutUser ───────────────────────────────────────────────
 window.signOutUser = async function() {
-    localStorage.removeItem('xom_logged_local_user');
     try { await auth.signOut(); } catch(e){}
     window.currentFirebaseUser = null;
     window._cloudSaveEnabled   = false;
@@ -897,7 +788,7 @@ window.saveGameToCloud = async function(playerData) {
         return true;
     } catch (err) {
         console.error('[Firebase] Cloud Save error, but backed up in LocalStorage:', err);
-        return true; // Trả về true để game tiếp tục hoạt động dựa trên LocalStorage
+        return false;
     }
 };
 

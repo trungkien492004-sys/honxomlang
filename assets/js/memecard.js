@@ -1,4 +1,4 @@
-// ===== 🐸 MEMECARD.JS — Engine "ĐẤU TRƯỜNG MEME XÓM" (Speed Duel) =====
+// ===== 🐸 MEMECARD.JS — Engine "YU-GI-OH! DM / GX" (Speed Duel) =====
 // LP=4000 | Deck 20-30 lá | 3 ô quái + 3 ô phép/bẫy + 1 ô môi trường
 // + 1 ô Extra Zone (Dung Hợp/Nghi Lễ) + 1 ô mộ mỗi bên
 
@@ -385,13 +385,16 @@ window.openMemeCardGame = function openMemeCardGame() {
   const frame = document.getElementById('memecardFrame');
   if (!modal) { console.error('[memecard] #memecardGameModal not found'); return; }
   modal.style.display = 'block';
-  if (frame && (!frame.src || frame.src === 'about:blank' || !frame.src.includes('memecard.html'))) {
-    frame.src = 'memecard.html';
+  frame?.contentWindow?.memeMusic?.resumeFromHost?.();
+  if (frame && (!frame.src || frame.src === 'about:blank' || !frame.src.includes('v=20261026-confirm-v1'))) {
+    frame.src = 'memecard.html?v=20261026-confirm-v1';
   }
 };
 
 window.closeMemeCardGame = function closeMemeCardGame() {
   const modal = document.getElementById('memecardGameModal');
+  document.getElementById('memecardFrame')?.contentWindow?.memeOnlineLeave?.();
+  document.getElementById('memecardFrame')?.contentWindow?.memeMusic?.pauseFromHost?.();
   if (modal) modal.style.display = 'none';
   if (typeof window.switchScreen === 'function') {
     window.switchScreen('gameModeScreen');
@@ -726,7 +729,7 @@ function mcStartDuel() {
   }
 
   mcShowScreen('mcDuelScreen');
-  mcLog('🎮 Đấu Trường Meme Xóm — bắt đầu! LP: Bạn ' + MC_LP_START + ' | Đối thủ ' + MC_LP_START);
+  mcLog('🎮 Yu-Gi-Oh! DM / GX — bắt đầu! LP: Bạn ' + MC_LP_START + ' | Đối thủ ' + MC_LP_START);
   setTimeout(function() { mcRunPhase(); }, 300);
 }
 
@@ -1905,7 +1908,7 @@ function mcEndGame(winner) {
     resEl.innerHTML = '<div class="mc-result-box">'
       + '<div class="mc-result-emoji">' + (playerWon ? '🏆' : '💀') + '</div>'
       + '<div class="mc-result-title">' + (playerWon ? 'CHIẾN THẮNG!' : 'THẤT BẠI!') + '</div>'
-      + '<div class="mc-result-sub">' + (playerWon ? 'Bạn đã chinh phục Đấu Trường Meme Xóm!<br>+80 gold' : 'Đối thủ đã hạ gục bạn. Cố lên lần sau!') + '</div>'
+      + '<div class="mc-result-sub">' + (playerWon ? 'Bạn đã chinh phục Yu-Gi-Oh! DM / GX!<br>+80 gold' : 'Đối thủ đã hạ gục bạn. Cố lên lần sau!') + '</div>'
       + '<button class="mc-btn mc-btn-start" onclick="mcPlayAgain()">🔄 Chơi Lại</button>'
       + '<button class="mc-btn mc-btn-secondary" onclick="mcCloseGame()">🚪 Thoát</button>'
       + '</div>';
@@ -2010,7 +2013,7 @@ window.mcShowFieldCardDetails = function(cardId, who = 'player', idx = -1, isExt
   });
 };
 
-console.log('🐸 [memecard.js] Engine Đấu Trường Meme Xóm đã nạp thành công!');
+console.log('🐸 [memecard.js] Engine Yu-Gi-Oh! DM / GX đã nạp thành công!');
 
 // ────────────────── CSS ANIMATION INJECTION ──────────────────
 (function() {

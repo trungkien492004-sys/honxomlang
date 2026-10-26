@@ -1,0 +1,6 @@
+#trapModeBtn{font-size:11px;padding:6px 4px;flex:0 0 auto;min-height:28px}
+#trapModeBtn[aria-pressed=true]{border-color:#e2b8f2;color:#f4d2ff;background:#482c60}
+.trap-use-note{display:block;flex-basis:100%;font-size:10px;line-height:1.4;color:#e7d5a8}
+#animeChoices .arcana-option small{white-space:normal;line-height:1.4}
+@media(max-width:700px) and (min-height:501px){#trapModeBtn{font-size:8px;min-height:20px;padding:2px}.phase1-duel #duelHistoryBtn{font-size:8px;min-width:39px}.trap-use-note{font-size:8px;line-height:1.2}.card-inspector .inspect-actions{overflow:auto}}
+@media(max-height:500px){#trapModeBtn{font-size:8px;min-height:22px;padding:2px}.trap-use-note{font-size:8px}}

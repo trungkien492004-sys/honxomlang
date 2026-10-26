@@ -1,0 +1,207 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownsNewDocument() {
+      return signedIn() && request.resource.data.uid == request.auth.uid;
+    }
+
+    function ownsDocument() {
+      return signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /players/{playerId} {
+      allow get: if ownsDocument();
+      allow create: if ownsNewDocument() &&
+        playerId == 'S1_' + request.auth.uid + '_1';
+      allow update: if ownsDocument() && ownsNewDocument();
+    }
+
+    match /active_players/{sessionId} {
+      allow read: if signedIn();
+      allow create: if ownsNewDocument() &&
+        request.resource.data.id == sessionId;
+      allow update: if ownsDocument() && ownsNewDocument() &&
+        request.resource.data.id == sessionId;
+      allow delete: if ownsDocument();
+    }
+
+    match /network_events/{eventId} {
+      allow read: if signedIn();
+      allow create: if ownsNewDocument() &&
+        request.resource.data.id is string &&
+        request.resource.data.type is string &&
+        request.resource.data.timestamp == request.time;
+    }
+
+    match /chat_messages/{messageId} {
+      allow read: if signedIn();
+      allow create: if ownsNewDocument() &&
+        request.resource.data.id is string &&
+        request.resource.data.type == 'CHAT_MESSAGE' &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() <= 500 &&
+        request.resource.data.timestamp == request.time;
+    }
+    // No email or tokens are stored in the public participation registry.
+    match /site_members/{userId} {
+      allow read: if true;
+      allow create: if signedIn() && request.auth.uid == userId &&
+        request.auth.token.firebase.sign_in_provider == 'google.com' &&
+        request.resource.data.keys().hasOnly(['uid','joinedAt','lastSeen']) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.joinedAt == request.time &&
+        request.resource.data.lastSeen == request.time;
+      allow update: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen']) &&
+        request.resource.data.lastSeen == request.time;
+      allow delete: if false;
+    }
+    match /rank_profiles/{userId} {
+      allow read: if true;
+      // Without a paid ranking server, players can update only their own challenge totals.
+      // Limit each write to one completed game and a bounded Elo step.
+      allow create: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.keys().hasOnly(['uid','name','rating','played','wins','losses','draws','newbieUntil','lastMatchId','lastSeen']) &&
+        request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
+        request.resource.data.rating is int && request.resource.data.rating >= 0 && request.resource.data.rating <= 1064 &&
+        request.resource.data.played == 1 && request.resource.data.wins is int && request.resource.data.losses is int &&
+        request.resource.data.draws is int && request.resource.data.wins + request.resource.data.losses + request.resource.data.draws == 1 &&
+        request.resource.data.newbieUntil is number && request.resource.data.lastMatchId is string &&
+        request.resource.data.lastSeen == request.time;
+      allow update: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','rating','played','wins','losses','draws','lastMatchId','lastSeen']) &&
+        request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
+        request.resource.data.rating is int && request.resource.data.rating >= 0 &&
+        request.resource.data.rating >= resource.data.rating - 64 && request.resource.data.rating <= resource.data.rating + 64 &&
+        request.resource.data.played == resource.data.played + 1 &&
+        request.resource.data.wins is int && request.resource.data.wins >= resource.data.wins &&
+        request.resource.data.losses is int && request.resource.data.losses >= resource.data.losses &&
+        request.resource.data.draws is int && request.resource.data.draws >= resource.data.draws &&
+        request.resource.data.wins + request.resource.data.losses + request.resource.data.draws == request.resource.data.played &&
+        request.resource.data.lastMatchId is string && request.resource.data.lastMatchId != resource.data.lastMatchId &&
+        request.resource.data.lastSeen == request.time;
+      allow delete: if false;
+    }
+    match /rank_challenge_results/{resultId} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() &&
+        request.resource.data.keys().hasOnly(['uid','matchId','opponentUid','outcome','delta','ratingBefore','ratingAfter','createdAt']) &&
+        request.resource.data.uid == request.auth.uid && request.resource.data.matchId is string && request.resource.data.matchId.size() <= 80 &&
+        resultId == request.resource.data.matchId + '_' + request.auth.uid &&
+        request.resource.data.opponentUid is string && request.resource.data.opponentUid != request.auth.uid &&
+        request.resource.data.outcome in ['win','loss','draw'] && request.resource.data.delta is int &&
+        request.resource.data.delta >= -64 && request.resource.data.delta <= 64 &&
+        request.resource.data.ratingBefore is int && request.resource.data.ratingBefore >= 0 &&
+        request.resource.data.ratingAfter == request.resource.data.ratingBefore + request.resource.data.delta &&
+        ((request.resource.data.outcome == 'win' && request.resource.data.delta >= 0) ||
+         (request.resource.data.outcome == 'loss' && request.resource.data.delta <= 0) ||
+         (request.resource.data.outcome == 'draw' && request.resource.data.delta == 0)) &&
+        request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+    match /rank_stats/{id} { allow read: if true; allow write: if false; }
+    match /rank_matches/{id} { allow read: if true; allow write: if false; }
+    match /rank_queue/{id} { allow read, write: if false; }
+    // Friend requests expose only the sender and recipient; friendship membership is immutable.
+    match /rank_friend_requests/{requestId} {
+      function isParty() {
+        return signedIn() && (request.auth.uid == resource.data.from || request.auth.uid == resource.data.to);
+      }
+      allow get, list: if isParty();
+      allow create: if signedIn() &&
+        request.resource.data.keys().hasOnly(['from','to','status','createdAt','updatedAt']) &&
+        request.resource.data.from == request.auth.uid && request.resource.data.to is string &&
+        request.resource.data.to != request.auth.uid && requestId == request.auth.uid + '_' + request.resource.data.to &&
+        request.resource.data.status == 'pending' && request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time;
+      allow update: if isParty() && resource.data.status == 'pending' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) &&
+        request.resource.data.updatedAt == request.time &&
+        ((request.auth.uid == resource.data.to && request.resource.data.status in ['accepted','declined']) ||
+         (request.auth.uid == resource.data.from && request.resource.data.status == 'cancelled'));
+      allow delete: if false;
+    }
+    match /rank_friendships/{pairId} {
+      function acceptedRequest(fromUid, toUid) {
+        let path = /databases/$(database)/documents/rank_friend_requests/$(fromUid + '_' + toUid);
+        return existsAfter(path) && getAfter(path).data.from == fromUid &&
+          getAfter(path).data.to == toUid && getAfter(path).data.status == 'accepted';
+      }
+      allow get, list: if signedIn() && request.auth.uid in resource.data.uids;
+      allow create: if signedIn() &&
+        request.resource.data.keys().hasOnly(['uids','createdAt']) &&
+        request.resource.data.uids is list && request.resource.data.uids.size() == 2 &&
+        request.resource.data.uids[0] is string && request.resource.data.uids[1] is string &&
+        request.resource.data.uids[0] != request.resource.data.uids[1] &&
+        request.auth.uid in request.resource.data.uids && request.resource.data.createdAt == request.time &&
+        pairId == request.resource.data.uids[0] + '__' + request.resource.data.uids[1] &&
+        ((request.resource.data.uids[1] == request.auth.uid && acceptedRequest(request.resource.data.uids[0], request.resource.data.uids[1])) ||
+         (request.resource.data.uids[0] == request.auth.uid && acceptedRequest(request.resource.data.uids[1], request.resource.data.uids[0])));
+      allow update: if false;
+      allow delete: if signedIn() && request.auth.uid in resource.data.uids;
+    }
+    match /rank_daily/{id} { allow read, write: if false; }
+    // Players publish only their own saved duel deck; no Elo is client-writable.
+    match /duel_players/{userId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.keys().hasOnly(['uid','name','main','extra','heroId','networkId','online','busy','protocol','lastSeen']) &&
+        request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
+        request.resource.data.main is list && request.resource.data.main.size() >= 20 && request.resource.data.main.size() <= 30 &&
+        request.resource.data.extra is list && request.resource.data.extra.size() <= 10 &&
+        request.resource.data.heroId is int && request.resource.data.heroId >= 0 && request.resource.data.heroId < 6 &&
+        request.resource.data.networkId is string && request.resource.data.networkId.size() <= 128 &&
+        request.resource.data.protocol is string && request.resource.data.protocol.size() <= 80 &&
+        request.resource.data.online is bool && request.resource.data.busy is bool && request.resource.data.lastSeen == request.time;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+    match /duel_invites/{inviteId} {
+      function party() { return signedIn() && request.auth.uid in [resource.data.from,resource.data.to]; }
+      function invitation() {
+        return request.resource.data.keys().hasOnly(['from','to','nonce','roomId','status','createdAt','expiresAt']) &&
+          request.resource.data.from is string && request.resource.data.to is string && request.resource.data.from != request.resource.data.to &&
+          inviteId == request.resource.data.from + '_' + request.resource.data.to &&
+          request.resource.data.nonce is string && request.resource.data.nonce.size() <= 64 &&
+          request.resource.data.roomId is string && request.resource.data.roomId.size() <= 32 &&
+          request.resource.data.status == 'pending' && request.resource.data.createdAt == request.time &&
+          request.resource.data.expiresAt > request.time && request.resource.data.expiresAt <= request.time + duration.value(65,'s');
+      }
+      allow read: if party();
+      allow create: if signedIn() && request.auth.uid == request.resource.data.from && invitation();
+      allow update: if (signedIn() && request.auth.uid == resource.data.from && request.resource.data.from == resource.data.from && invitation()) ||
+        (party() && resource.data.status == 'pending' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+          ((request.auth.uid == resource.data.from && request.resource.data.status == 'cancelled') ||
+           (request.auth.uid == resource.data.to && request.time < resource.data.expiresAt && request.resource.data.status in ['accepted','declined'])));
+      allow delete: if false;
+    }
+    // Public names and IDs only; saved decks remain available to signed-in players.
+    match /duel_directory/{userId} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.keys().hasOnly(['uid','name','newbieUntil','updatedAt','online','lastSeen']) &&
+        request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
+        (!request.resource.data.keys().hasAny(['newbieUntil']) || (request.resource.data.newbieUntil is number && request.resource.data.newbieUntil >= 0)) &&
+        request.resource.data.updatedAt == request.time &&
+        (!request.resource.data.keys().hasAny(['online']) || request.resource.data.online is bool) &&
+        (!request.resource.data.keys().hasAny(['lastSeen']) || request.resource.data.lastSeen == request.time);
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+    // Canonical state is server-only; each member reads one redacted view.
+    match /duel_private/{roomCode} {
+      allow read, write: if false;
+    }
+    match /duel_rooms/{roomCode} {
+      allow get: if signedIn() && request.auth.uid in resource.data.members;
+      allow list, write: if false;
+      match /views/{userId} {
+        allow get: if signedIn() && request.auth.uid == userId;
+        allow list, write: if false;
+      }
+    }
+  }
+}

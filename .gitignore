@@ -5,6 +5,8 @@ npm-debug.log*
 # Build output
 dist/
 build/
+outputs/
+.firebase/
 
 # Environment variables (BẢO MẬT — ĐỪNG commit lên GitHub)
 .env

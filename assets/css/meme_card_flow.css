@@ -1,0 +1,11 @@
+.board-frame>.board-side{display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:4px;min-height:0}
+.board-side>.duelist-corner,.board-side>.special-zone{height:100%;min-height:0;max-height:100%;width:100%;margin:0;overflow:hidden}
+.board-piles{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));gap:4px;min-height:0;height:100%;width:100%;align-self:stretch}
+.board-pile{display:flex;align-items:center;justify-content:center;gap:3px;padding:2px;border:1px solid #7596a9;border-radius:5px;min-height:0;overflow:hidden;background:#102b3c;color:#e2f3ff;font:800 9px/1.1 'Nunito',sans-serif;cursor:pointer}
+.board-pile>span:last-child{display:flex;flex-direction:column;gap:1px}.board-pile b{color:#ffdd97;font-size:11px}
+.board-pile-picture{display:block;width:14px;height:19px;flex-shrink:0;position:relative}.board-pile-art,.board-pile-art img{display:block;width:100%;height:100%;object-fit:cover}.board-pile-art .art-fallback{display:none}
+.flow-card-back{display:block;position:absolute;inset:0;border:2px solid #c7a05e;border-radius:4px;background:repeating-radial-gradient(ellipse at center,#af854c 0 2px,#613b2c 3px 6px,#211c29 7px 9px)}
+.card-flow-flight{position:fixed;width:50px;height:70px;z-index:9000;pointer-events:none;border:2px solid #d1b16f;border-radius:5px;background:#102b3c;box-shadow:0 3px 12px #0008;overflow:visible}
+.card-flow-art,.card-flow-art img{display:block;width:100%;height:100%;object-fit:cover;overflow:hidden;border-radius:3px}.card-flow-art .art-fallback{display:none}.card-flow-flight small{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;color:#fff3c9;background:#102b3eed;padding:2px 6px;border-radius:4px;font:800 11px 'Nunito',sans-serif}
+#animeChoices .arcana-option small{display:block;color:#b8e0eb;font-weight:800;margin-top:5px;padding:3px 5px;background:#183d51;border-radius:4px;font-size:12px}
+@media(max-width:900px),(max-height:500px) and (max-width:1100px){.board-frame{grid-template-columns:42px minmax(0,1fr) 42px}.board-pile{font-size:7px;gap:2px}.board-pile b{font-size:9px}.board-pile-picture{width:12px;height:17px}.board-piles,.board-frame>.board-side{gap:3px}}
