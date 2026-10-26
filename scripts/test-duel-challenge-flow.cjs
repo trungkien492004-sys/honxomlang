@@ -114,18 +114,16 @@ const server = http.createServer((request, response) => {
     await bob.frame.waitForFunction(() => memeRoom?.playing);
     checks.push('online challenge creates a valid invitation and starts the duel after acceptance');
 
-    const recorded = await alice.frame.evaluate(async () => {
-      duel.finished = true;
-      duel.winner = 'player';
-      return memeIdDuel.recordResult(duel);
-    });
+    const matchId = await alice.frame.evaluate(() => duel.rankChallengeId || memeRoom.challengeId);
+    await alice.frame.evaluate(() => finish('player'));
+    for (let i = 0; i < 30 && !documents.has('rank_profiles/AliceID'); i++) await new Promise(resolve => setTimeout(resolve, 50));
+    const storedResult = documents.get('rank_challenge_results/' + matchId + '_AliceID');
     await alice.frame.evaluate(() => memeIdDuel.recordResult(duel));
     const savedProfile = documents.get('rank_profiles/AliceID');
-    assert.equal(recorded.outcome, 'win');
+    assert.equal(storedResult.outcome, 'win');
     assert.ok(savedProfile.rating > 1000);
     assert.equal(savedProfile.wins, 1);
     assert.equal(savedProfile.played, 1);
-    assert.equal(documents.get('rank_challenge_results/' + recorded.matchId + '_AliceID').outcome, 'win');
     checks.push('challenge victory updates Elo, wins and played once, even when result delivery repeats');
 
 

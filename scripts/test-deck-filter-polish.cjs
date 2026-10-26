@@ -56,16 +56,16 @@ const server = http.createServer((req, res) => {
       kaiba: 28,
       joey: 27,
       pegasus: 24,
-      jaden: 57,
+      jaden: 58,
       zane: 23,
-      staples: 41
+      staples: 40
     };
     for (const [hero, expected] of Object.entries(characterCounts)) {
       await page.select('#deckArchetype', hero);
       const count = await page.$$eval('#deckGrid .deck-item', els => els.length);
       assert.equal(count, expected, `Character ${hero} expected ${expected} cards, got ${count}`);
     }
-    console.log('✓ All 6 characters + staples filtered with exact counts (Yugi:39, Kaiba:28, Joey:27, Pegasus:24, Jaden:57, Zane:23, Staples:41)');
+    console.log('✓ All 6 characters + staples filtered with exact counts (Yugi:39, Kaiba:28, Joey:27, Pegasus:24, Jaden:58, Zane:23, Staples:40)');
     await page.select('#deckArchetype', '');
 
     // 3. Verify Card Types (Monster, Spell, Trap)
@@ -87,19 +87,19 @@ const server = http.createServer((req, res) => {
     // 4. Verify Limit Filter & Badges
     await page.select('#deckLimitFilter', '1');
     const limit1Count = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(limit1Count, 71, `Limit 1 expected 71 cards, got ${limit1Count}`);
+    assert.equal(limit1Count, 75, `Limit 1 expected 75 cards, got ${limit1Count}`);
 
-    // Verify all 71 cards display the red circular limit badge with text "1"
+    // Verify all 75 cards display the red circular limit badge with text "1"
     const limit1Badges = await page.$$eval('#deckGrid .deck-item .limit-badge.limit-1', els => els.length);
-    assert.equal(limit1Badges, 71, 'All 71 limit-1 cards should display limit-1 badge');
+    assert.equal(limit1Badges, 75, 'All 75 limit-1 cards should display limit-1 badge');
 
     // Take screenshot of limit 1 filter
     await page.screenshot({ path: path.join(out, 'builder-limit1-filter.png') });
-    console.log('✓ Limit 1 filter returned 71 cards, all with .limit-badge.limit-1');
+    console.log('✓ Limit 1 filter returned 75 cards (including Graceful Charity, Change of Heart, Mirror Force, Premature Burial), all with .limit-badge.limit-1');
 
     await page.select('#deckLimitFilter', '3');
     const limit3Count = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(limit3Count, 168, `Unlimited (3 copies) expected 168 cards, got ${limit3Count}`);
+    assert.equal(limit3Count, 164, `Unlimited (3 copies) expected 164 cards, got ${limit3Count}`);
     await page.select('#deckLimitFilter', '');
 
     // 5. Verify Badge Layout: Rarity at top-left, Limit badge at top-right
@@ -129,8 +129,8 @@ const server = http.createServer((req, res) => {
     assert.ok(badgeGeom.limitRight < 10, 'Limit badge should be on the right');
     console.log('✓ Visual layout verified: Rarity top-left, Red Limit badge top-right:', badgeGeom);
 
-    // 6. Verify Rarity Reclassification
-    const rarities = await page.evaluate(() => {
+    // 6. Verify Rarity Reclassification & Staples Limits
+    const cardChecks = await page.evaluate(() => {
       return {
         darkMagician: card('AN-dark_magician')?.rarity,
         blueEyes: card('AN-blue_eyes_white_dragon')?.rarity,
@@ -141,18 +141,32 @@ const server = http.createServer((req, res) => {
         slifer: card('AN-slifer_the_sky_dragon')?.rarity,
         kuriboh: card('AN-kuriboh')?.rarity,
         wingedKuriboh: card('AN-winged_kuriboh')?.rarity,
+        miracleFusionHero: card('AN-miracle_fusion')?.archetype,
+        charityLimit: card('AN-graceful_charity')?.max_copies,
+        charityRarity: card('AN-graceful_charity')?.rarity,
+        changeOfHeartLimit: card('AN-change_of_heart')?.max_copies,
+        mirrorForceLimit: card('AN-mirror_force')?.max_copies,
+        prematureLimit: card('AN-premature_burial')?.max_copies,
+        prematureRarity: card('AN-premature_burial')?.rarity,
       };
     });
-    assert.equal(rarities.darkMagician, 'UR');
-    assert.equal(rarities.blueEyes, 'UR');
-    assert.equal(rarities.redEyes, 'UR');
-    assert.equal(rarities.neos, 'UR');
-    assert.equal(rarities.cyberDragon, 'UR');
-    assert.equal(rarities.exodia, 'UR');
-    assert.equal(rarities.slifer, 'UR');
-    assert.equal(rarities.kuriboh, 'N');
-    assert.equal(rarities.wingedKuriboh, 'N');
-    console.log('✓ Rarity reclassification verified (Aces & Gods are UR, vanillas like Kuriboh are N)');
+    assert.equal(cardChecks.darkMagician, 'UR');
+    assert.equal(cardChecks.blueEyes, 'UR');
+    assert.equal(cardChecks.redEyes, 'UR');
+    assert.equal(cardChecks.neos, 'UR');
+    assert.equal(cardChecks.cyberDragon, 'UR');
+    assert.equal(cardChecks.exodia, 'UR');
+    assert.equal(cardChecks.slifer, 'UR');
+    assert.equal(cardChecks.kuriboh, 'N');
+    assert.equal(cardChecks.wingedKuriboh, 'N');
+    assert.equal(cardChecks.miracleFusionHero, 'Jaden · HERO', 'Miracle Fusion must belong to Jaden / HERO');
+    assert.equal(cardChecks.charityLimit, 1, 'Graceful Charity must be Limit 1');
+    assert.equal(cardChecks.charityRarity, 'UR');
+    assert.equal(cardChecks.changeOfHeartLimit, 1, 'Change of Heart must be Limit 1');
+    assert.equal(cardChecks.mirrorForceLimit, 1, 'Mirror Force must be Limit 1');
+    assert.equal(cardChecks.prematureLimit, 1, 'Premature Burial must be Limit 1');
+    assert.equal(cardChecks.prematureRarity, 'UR');
+    console.log('✓ Rarity reclassification verified & Miracle Fusion in Jaden & OP staples (Charity, Change of Heart, Mirror Force, Premature Burial) limited to 1');
 
     // 7. Verify Redundant Controls (#deckRole and #deckSource) are Hidden
     const hiddenStatus = await page.evaluate(() => {

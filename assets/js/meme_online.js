@@ -2,7 +2,7 @@
 // The parent page owns Firebase Auth and the Firestore event channel.
 let memeRoom = null;
 let memeApplyingRemoteState = false;
-const MEME_RULES_VERSION = 'tcg-equip-chain-v19';
+const MEME_RULES_VERSION = 'tcg-equip-chain-v20-rematch';
 let memeReactionPending=null,memeRemoteReaction=null;
 function memeMergeReaction(incoming){
   // Keep live side/slot references used by an action awaiting the remote choice.
@@ -72,7 +72,7 @@ function memeMirror(state) {
 }
 function memeShowResult() {
   const match=duel,won = duel?.winner === 'player';
-  Promise.race([window.memeFx?.whenLpSettles()||Promise.resolve(),new Promise(resolve=>setTimeout(resolve,1200))]).then(()=>{if(duel!==match)return;showModal(`<span class="result-icon">${won ? '🏆' : '💀'}</span><h2>${won ? 'Chiến thắng!' : 'Thất bại!'}</h2><p>${esc(duel?.finishReason || 'Trận đấu đã kết thúc.')}</p><button class="primary-btn" id="memeReturnBtn">Về sảnh</button>`);$('memeReturnBtn').onclick = () => $('backBtn').click();});
+  Promise.race([window.memeFx?.whenLpSettles()||Promise.resolve(),new Promise(resolve=>setTimeout(resolve,1200))]).then(()=>{if(duel!==match)return;$('duel').classList.add('match-finished');window.memeShowMatchResult?.(won,match?.finishReason||'Trận đấu đã kết thúc.',match);});
 }
 function memeShowWaiting() {
   if (!memeRoom) return;
@@ -121,7 +121,7 @@ function memeShowRoomEntry(role) {
 }
 function memeHostRoom(code) {
   window.memeOnlineLeave();
-  memeRoom = { code, role: 'host', playing: false, peerId: null, peerName: '', peerDeck: null, version: 0, lastRemoteVersion: 0 };
+  memeRoom = { code, role: 'host', playing: false, peerId: null, peerUid: null, peerName: '', peerDeck: null, version: 0, lastRemoteVersion: 0 };
   const ping = () => { if (memeRoom?.role === 'host' && !memeRoom.playing) memeSend('MEME_ROOM_PING', { hostName: memeMyName() }); };
   ping();
   memeRoom.pingTimer = setInterval(ping, 3000);
@@ -146,24 +146,66 @@ function memeJoinRoom(code) {
 }
 function memeStartHostMatch() {
   if (!memeRoom || memeRoom.role !== 'host' || !memeRoom.peerId || !memeRoom.peerDeck) return;
+  const challengeBaseId=memeRoom.challengeBaseId||memeRoom.challengeId||('online-'+crypto.randomUUID().replaceAll('-','').slice(0,16));
+  memeRoom.challengeBaseId=challengeBaseId;
+  const matchId=crypto.randomUUID();
   clearInterval(memeRoom.pingTimer);
   clearTimeout(aiTimer);
   window.memeFx?.reset();
+  $('duel').classList.remove('match-finished');
   document.querySelector('.duel-layout').classList.add('inspector-collapsed');
   memeApplyingRemoteState = true;
   duel = { player: blankSide(deckList,extraDeckList,chosenHero), enemy: blankSide(memeRoom.peerDeck,memeRoom.peerExtraDeck||[],memeRoom.peerHeroId), turn: 'player', phase: 'MAIN1', round: 1, normalSummoned: false, mode: null, pending: null, selected: null, logs: [], finished: false };
+  duel.onlineMatchId=matchId;
+  duel.rankChallengeId=challengeBaseId.slice(0,32)+'_'+matchId.replaceAll('-','').slice(0,24);
+  duel.rankChallengeOpponentUid=memeRoom.rankOpponentUid||('guest-'+(memeRoom.peerId||'player'));
+  memeRoom.challengeId=duel.rankChallengeId;
   for (let i = 0; i < 4; i++) { draw('player'); draw('enemy'); }
   $('lobby').classList.add('hidden'); $('duel').classList.remove('hidden');
   $('playerName').textContent = HERO_NAMES[chosenHero];
   duel.openingCoin=window.memeOpening?.create();duel.turn=duel.openingCoin?.first||'player';
   memeRoom.playing = true;
+  memeRoom.currentMatchId=matchId;
+  memeRoom.rematchRequested=false;memeRoom.rematchRequestId=null;memeRoom.incomingRematchId=null;
   log(`🪙 Tung xu: ${duel.openingCoin?.face==='tails'?'sấp':'ngửa'} · ${duel.turn==='player'?memeMyName():memeRoom.peerName} đi lượt 1. Người còn lại đi lượt 2.`);
   render();
   window.memeTurnClock?.start();
-  memeSend('MEME_ROOM_START', { targetId: memeRoom.peerId, hostName: memeMyName(), state: memeSnapshot() });
+  memeSend('MEME_ROOM_START', { targetId: memeRoom.peerId, hostName: memeMyName(), hostUid: (window.siteIdentity?.user?.uid || null), matchId, challengeBaseId, rankChallengeId:duel.rankChallengeId||null, state: memeSnapshot() });
   memeApplyingRemoteState = false;
   closeModal();
 }
+
+function memeShowRematchWaiting(){
+  showModal('<h2>⚔️ Đấu lại</h2><p id="memeRematchWaitText">Đã gửi lời mời. Đang chờ đối thủ đồng ý…</p><button class="secondary-btn" id="memeCancelRematch">Hủy chờ</button><button class="secondary-btn" id="memeLeaveAfterResult">Về sảnh</button>');
+  $('memeCancelRematch').onclick=()=>{const requestId=memeRoom?.rematchRequestId||memeRoom?.incomingRematchId;if(requestId)memeSend('MEME_ROOM_REMATCH_CANCEL',{targetId:memeRoom.peerId,requestId});if(memeRoom){clearTimeout(memeRoom.rematchTimer);memeRoom.rematchRequested=false;memeRoom.rematchRequestId=null;memeRoom.incomingRematchId=null;}memeShowResult();};
+  $('memeLeaveAfterResult').onclick=()=>$('backBtn').click();
+}
+function memeWatchRematch(requestId){
+  clearTimeout(memeRoom?.rematchTimer);
+  if(!memeRoom)return;
+  memeRoom.rematchTimer=setTimeout(()=>{if((memeRoom?.rematchRequestId!==requestId&&memeRoom?.incomingRematchId!==requestId)||!duel?.finished)return;const text=$('memeRematchWaitText');if(text)text.textContent='Đối thủ chưa phản hồi. Hãy nhờ họ tải lại game rồi thử lại.';},15000);
+}
+function memeShowRematchInvite(requestId){
+  showModal('<h2>⚔️ Đối thủ muốn đấu lại</h2><p>Hai bộ bài và nhân vật hiện tại sẽ được giữ nguyên.</p><button class="primary-btn" id="memeAcceptRematch">Đồng ý đấu lại</button><button class="secondary-btn" id="memeDeclineRematch">Để sau</button><button class="secondary-btn" id="memeLeaveAfterResult">Về sảnh</button>');
+  $('memeAcceptRematch').onclick=()=>{
+    if(!memeRoom||!duel?.finished)return;
+    memeRoom.incomingRematchId=requestId;
+    memeRoom.rematchRequestId=requestId;
+    memeSend('MEME_ROOM_REMATCH_ACCEPT',{targetId:memeRoom.peerId,requestId});
+    memeRoom.rematchRequested=true;
+    if(memeRoom.role==='host')memeStartHostMatch();else{memeShowRematchWaiting();memeWatchRematch(requestId);}
+  };
+  $('memeDeclineRematch').onclick=()=>{if(memeRoom)memeSend('MEME_ROOM_REMATCH_CANCEL',{targetId:memeRoom.peerId,requestId});memeRoom.incomingRematchId=null;memeShowResult();};
+  $('memeLeaveAfterResult').onclick=()=>$('backBtn').click();
+}
+window.memeOnlineRequestRematch=()=>{
+  if(!memeRoom?.playing||!duel?.finished)return false;
+  if(memeRoom.protocol==='authoritative-v1'){notify('Đấu lại chưa được hỗ trợ trong phòng máy chủ này. Hãy về sảnh để tạo phòng mới.');return true;}
+  if(!memeRoom.peerId){notify('Không còn kết nối với đối thủ.');return true;}
+  if(memeRoom.rematchRequested){memeShowRematchWaiting();return true;}
+  const requestId=crypto.randomUUID();memeRoom.rematchRequested=true;memeRoom.rematchRequestId=requestId;
+  memeSend('MEME_ROOM_REMATCH_REQUEST',{targetId:memeRoom.peerId,requestId});memeShowRematchWaiting();memeWatchRematch(requestId);return true;
+};
 
 window.memeOnlineOnRender = function() {
   if(window.memeOpening?.pending())return;
@@ -175,6 +217,21 @@ window.memeOnlineOnRender = function() {
 window.memeOnlineReceive = function(msg) {
   if (!memeRoom || !msg || msg.roomId !== memeRoom.code || msg.id === memeMyId()) return;
   if(memeRoom.playing&&msg.id===memeRoom.peerId&&msg.targetId===memeMyId()){
+    if(msg.type==='MEME_ROOM_REMATCH_REQUEST'&&typeof msg.requestId==='string'&&duel?.finished){
+      memeRoom.incomingRematchId=msg.requestId;
+      if(memeRoom.rematchRequested){if(memeRoom.role==='host')memeStartHostMatch();else memeShowRematchWaiting();}
+      else memeShowRematchInvite(msg.requestId);
+      return;
+    }
+    if(msg.type==='MEME_ROOM_REMATCH_ACCEPT'&&memeRoom.role==='host'&&duel?.finished&&(msg.requestId===memeRoom.rematchRequestId||msg.requestId===memeRoom.incomingRematchId)){
+      memeStartHostMatch();return;
+    }
+    if(msg.type==='MEME_ROOM_REMATCH_CANCEL'&&msg.requestId===memeRoom.rematchRequestId){
+      clearTimeout(memeRoom.rematchTimer);memeRoom.rematchRequested=false;memeRoom.rematchRequestId=null;if(duel?.finished)memeShowResult();return;
+    }
+    if(msg.type==='MEME_ROOM_REMATCH_CANCEL'&&msg.requestId===memeRoom.incomingRematchId){
+      memeRoom.incomingRematchId=null;if(duel?.finished&&!memeRoom.rematchRequested)memeShowResult();return;
+    }
     if(msg.type==='MEME_ROOM_REACTION_REQUEST'&&msg.state&&typeof msg.requestId==='string'&&!memeRemoteReaction&&duel?.turn==='enemy'){
       memeRemoteReaction=msg.requestId;memeRoom.lastRemoteVersion=Math.max(memeRoom.lastRemoteVersion,msg.version||0);
       memeApplyingRemoteState=true;duel=memeMirror(msg.state);render();memeApplyingRemoteState=false;
@@ -194,7 +251,7 @@ window.memeOnlineReceive = function(msg) {
     memeRoom.peerName = msg.hostName || 'Chủ phòng';
     clearInterval(memeRoom.joinTimer);
     clearTimeout(memeRoom.waitTimer);
-    memeSend('MEME_ROOM_JOIN', { targetId: msg.id, guestName: memeMyName(), deck: [...deckList], extraDeck:[...extraDeckList],heroId:chosenHero });
+    memeSend('MEME_ROOM_JOIN', { targetId: msg.id, guestName: memeMyName(), guestUid: (window.siteIdentity?.user?.uid || null), deck: [...deckList], extraDeck:[...extraDeckList],heroId:chosenHero });
     memeShowWaiting();
     return;
   }
@@ -211,17 +268,27 @@ window.memeOnlineReceive = function(msg) {
     memeShowWaiting();
     return;
   }
-  if (msg.type === 'MEME_ROOM_START' && memeRoom.role === 'guest' && !memeRoom.playing &&
+  const newMatchStart=(!memeRoom.playing&&!duel?.finished)||(duel?.finished&&typeof msg.matchId==='string'&&msg.matchId!==memeRoom.currentMatchId);
+  if (msg.type === 'MEME_ROOM_START' && memeRoom.role === 'guest' && newMatchStart &&
       msg.targetId === memeMyId() && (!memeRoom.peerId || msg.id === memeRoom.peerId) && msg.state) {
     memeApplyingRemoteState = true;
     clearInterval(memeRoom.joinTimer);
     clearTimeout(memeRoom.waitTimer);
     memeRoom.peerId = msg.id;
+    memeRoom.peerUid = msg.hostUid || null;
+    memeRoom.rankOpponentUid = msg.hostUid || null;
     memeRoom.peerName = msg.hostName || memeRoom.peerName || 'Chủ phòng';
     memeRoom.playing = true;
+    memeRoom.currentMatchId=msg.matchId||memeRoom.currentMatchId||null;
+    memeRoom.challengeBaseId=msg.challengeBaseId||memeRoom.challengeBaseId||null;
+    memeRoom.challengeId=msg.rankChallengeId||memeRoom.challengeId||null;
+  clearTimeout(memeRoom.rematchTimer);memeRoom.rematchRequested=false;memeRoom.rematchRequestId=null;memeRoom.incomingRematchId=null;
     window.memeFx?.reset();
     document.querySelector('.duel-layout').classList.add('inspector-collapsed');
     duel = memeMirror(msg.state);
+    duel.onlineMatchId = msg.matchId || null;
+    duel.rankChallengeId = memeRoom.challengeId;
+    duel.rankChallengeOpponentUid = msg.hostUid || ('host-' + (msg.id || 'player'));
     $('lobby').classList.add('hidden'); $('duel').classList.remove('hidden');
     $('playerName').textContent = HERO_NAMES[chosenHero];
     render(); closeModal();

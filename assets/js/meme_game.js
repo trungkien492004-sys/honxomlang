@@ -205,20 +205,37 @@ function startGame(options={}){
   duel={player:blankSide(deckList,extraDeckList,chosenHero),enemy:blankSide(ghost?ghost.main:botDeck,ghost?ghost.extra:botExtras,ghost?ghost.heroId:botHeroId),turn:'player',phase:'MAIN1',round:1,normalSummoned:false,mode:null,pending:null,selected:null,logs:[],finished:false};
   if(ghost)duel.ghostOpponent={uid:ghost.uid,name:ghost.name,main:[...ghost.main],extra:[...ghost.extra],heroId:ghost.heroId};
   for(let i=0;i<4;i++){draw('player');draw('enemy');}
-  $('lobby').classList.add('hidden');$('duel').classList.remove('hidden');$('playerName').textContent=HERO_NAMES[chosenHero];$('enemyName').textContent=HEROES[botHeroId]?.name || 'Seto Kaiba';
+  $('lobby').classList.add('hidden');$('duel').classList.remove('hidden');$('duel').classList.remove('match-finished');$('playerName').textContent=HERO_NAMES[chosenHero];$('enemyName').textContent=HEROES[botHeroId]?.name || 'Seto Kaiba';
   duel.openingCoin=window.memeOpening?.create();duel.turn=duel.openingCoin?.first||'player';
   log(`🪙 Tung xu: ${duel.openingCoin?.face==='tails'?'sấp':'ngửa'} · ${duel.turn==='player'?'Bạn':'Máy'} đi lượt 1. Người còn lại đi lượt 2.`);render();window.scrollTo(0,0);
 }
 function finish(winner,reason=''){
   if(!duel||duel.finished)return;duel.finished=true;duel.winner=winner;duel.finishReason=reason;clearTimeout(aiTimer);
-  render();const won=winner==='player',online=window.memeOnlineIsPlaying?.(),match=duel;
+  render();const won=winner==='player',match=duel;
   Promise.race([window.memeFx?.whenLpSettles() || Promise.resolve(),new Promise(resolve=>setTimeout(resolve,1200))]).then(()=>{
     if(duel!==match)return;
     $('duel').classList.add('match-finished');
-    showModal(`<span class="result-icon">${won?'🏆':'💀'}</span><h2>${won?'Chiến thắng!':'Thất bại!'}</h2><p>${esc(reason|| (won?'Bạn đã làm chủ đấu trường meme!':'Thử một chiến thuật khác nhé.'))}</p><button class="primary-btn" id="againBtn">${online?'Về sảnh':'Đấu lại'}</button>`);
-    $('againBtn').addEventListener('click',online?()=>{window.memeOnlineLeave?.();$('backBtn').click();}:match.ghostOpponent?()=>startGame({ghost:match.ghostOpponent}):startGame);
+    showMatchResult(won,reason|| (won?'Bạn đã làm chủ đấu trường meme!':'Thử một chiến thuật khác nhé.'),match);
   });
 }
+function showMatchResult(won,reason,match=duel){
+  const online=!!window.memeOnlineIsPlaying?.();
+  const receipt=match?.rankChallengeResult;
+  const rankText=receipt?`<p class="rank-challenge-result">BXH đã cập nhật: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · <b>${receipt.delta>0?'+':''}${receipt.delta} Elo</b> (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua</p>`:'';
+  showModal(`<span class="result-icon">${won?'🏆':'💀'}</span><h2>${won?'Chiến thắng!':'Thất bại!'}</h2><p>${esc(reason||'Trận đấu đã kết thúc.')}</p>${rankText}<div class="result-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"><button class="primary-btn" id="againBtn">⚔️ Đấu lại</button><button class="secondary-btn" id="resultLobbyBtn">🏠 Về sảnh</button></div>`);
+  $('againBtn').onclick=()=>{
+    if(online){
+      if(window.memeOnlineRequestRematch?.())return;
+      notify('Phòng này chưa hỗ trợ đấu lại. Hãy về sảnh để tạo phòng mới.');
+      return;
+    }
+    if(match?.ghostOpponent){
+      startGame({ghost:match.ghostOpponent});
+    }else startGame();
+  };
+  $('resultLobbyBtn').onclick=()=>$('backBtn').click();
+}
+window.memeShowMatchResult=showMatchResult;
 function checkWin(){if(duel.enemy.lp<=0)finish('player');else if(duel.player.lp<=0)finish('enemy');return duel.finished;}
 function effectiveAtk(name,slot){
   if(window.memeRules)return window.memeRules.stat(name,slot,'atk');

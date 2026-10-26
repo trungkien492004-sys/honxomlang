@@ -1,0 +1,182 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const http = require('node:http');
+const path = require('node:path');
+const puppeteer = require('puppeteer');
+
+const publicDir = path.resolve('dist');
+const documents = new Map();
+const server = http.createServer((request, response) => {
+  if (request.url === '/fixture') {
+    response.setHeader('Content-Type', 'text/html');
+    return response.end('<meta name="viewport" content="width=device-width,initial-scale=1"><div id="host"></div>');
+  }
+  const file = path.resolve(publicDir, '.' + new URL(request.url, 'http://local').pathname);
+  if (!file.startsWith(publicDir + path.sep)) return response.writeHead(403).end();
+  fs.readFile(file, (error, bytes) => {
+    if (error) return response.writeHead(404).end();
+    response.setHeader('Content-Type', file.endsWith('.html') ? 'text/html' : file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : 'application/octet-stream');
+    response.end(bytes);
+  });
+});
+
+(async () => {
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const browser = await puppeteer.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--no-sandbox'] });
+  const checks = [];
+  try {
+    const page = await browser.newPage();
+    await page.evaluateOnNewDocument(() => {
+      const native = fetch;
+      window.fetch = (url, ...args) => String(url).includes('runAggregationQuery') ? Promise.resolve({ ok: true, json: async () => [{ result: { aggregateFields: { total: { integerValue: '1' } } } }] }) : native(url, ...args);
+    });
+    await page.exposeFunction('readDb', async key => documents.get(key) || null);
+    await page.exposeFunction('writeDb', async (key, data, merge) => {
+      documents.set(key, merge ? { ...documents.get(key), ...data } : data);
+    });
+    await page.exposeFunction('listDb', async key =>
+      [...documents].filter(([k]) => k.startsWith(key + '/')).map(([k, data]) => ({ id: k.slice(key.length + 1), data }))
+    );
+
+    await page.goto(`http://127.0.0.1:${server.address().port}/fixture`, { waitUntil: 'domcontentloaded' });
+    await page.evaluate(({ uid, name, origin }) => {
+      const subscriptions = [];
+      class ServerTimestamp { toMillis() { return Date.now(); } }
+      const resolve = data => Object.fromEntries(Object.entries(data).map(([key, value]) => [key, value instanceof ServerTimestamp ? Date.now() : value]));
+      const snap = data => ({ exists: !!data, data: () => data });
+      const doc = key => ({
+        path: key,
+        get: async () => snap(await readDb(key)),
+        set: (data, options) => writeDb(key, resolve(data), !!options?.merge),
+        update: data => writeDb(key, resolve(data), true),
+        onSnapshot(callback) { const entry = { key, callback }; subscriptions.push(entry); readDb(key).then(data => callback(snap(data))); return () => subscriptions.splice(subscriptions.indexOf(entry), 1); }
+      });
+      const db = {
+        doc,
+        runTransaction: async action => action({ get: ref => ref.get(), update: (ref, data) => ref.update(data), set: (ref, data, options) => ref.set(data, options) }),
+        collection: key => ({
+          orderBy() { return this; },
+          limit() { return this; },
+          async get() {
+            const rows = await listDb(key);
+            return { empty: !rows.length, docs: rows.map(d => ({ id: d.id, data: () => d.data })) };
+          },
+          where: (field, op, value) => ({ onSnapshot(callback) { const entry = { key, field, value, callback }; subscriptions.push(entry); return () => subscriptions.splice(subscriptions.indexOf(entry), 1); } })
+        })
+      };
+      const user = { uid, displayName: name, metadata: { creationTime: new Date(Date.now() - 30 * 86400000).toISOString() }, getIdToken: async () => 'test-token' };
+      window._testAllowed = true;
+      window._legacyAuthReady = true;
+      window.siteIdentity = { user, ready: true, db, whenReady: Promise.resolve(), subscribe(callback) { callback({ user, ready: true }); return () => {}; } };
+      window.currentFirebaseUser = user;
+      window.myNetworkId = uid;
+      window.player = { name };
+      const firestore = () => db;
+      firestore.FieldValue = { serverTimestamp: () => new ServerTimestamp() };
+      window.firebase = { firestore };
+      const frame = document.createElement('iframe');
+      frame.src = origin + '/memecard.html';
+      frame.style = 'position:fixed;inset:0;width:100%;height:100%;border:0';
+      document.getElementById('host').appendChild(frame);
+    }, { uid: 'TestPlayerUid', name: 'Đấu sĩ Test', origin: `http://127.0.0.1:${server.address().port}` });
+
+    await page.waitForFunction(() => document.querySelector('iframe')?.contentWindow.memeIdDuel, { timeout: 30000 });
+    const frame = page.frames().find(f => f.parentFrame());
+
+    await frame.evaluate(() => {
+      window._testAllowed = true;
+      memeMusic.setEnabled(false);
+      memeFx.setMode('minimal');
+      memeOpening.create = () => ({ face: 'heads', first: 'player', readyAt: Date.now() - 1 });
+      memeAnime.setAuto(false);
+    });
+
+    // 1. Publish deck profile
+    await frame.evaluate(() => memeIdDuel.publish(true));
+    assert.ok(documents.has('duel_directory/TestPlayerUid'));
+    checks.push('Player profile published to duel_directory');
+
+    // 2. Start game vs bot from "Vào trận"
+    const startResult = await frame.evaluate(() => {
+      try {
+        startGame();
+        return { ok: true, duel: !!duel };
+      } catch (e) {
+        return { ok: false, error: e.message, stack: e.stack };
+      }
+    });
+    console.log('startResult:', startResult);
+    const duelInfo = await frame.evaluate(() => ({
+      hasDuel: !!duel,
+      rankChallengeId: duel.rankChallengeId,
+      rankChallengeOpponentUid: duel.rankChallengeOpponentUid
+    }));
+    assert.ok(duelInfo.hasDuel, 'Duel started');
+    assert.ok(duelInfo.rankChallengeId && duelInfo.rankChallengeId.startsWith('bot-'), 'Bot challenge ID set: ' + duelInfo.rankChallengeId);
+    assert.ok(duelInfo.rankChallengeOpponentUid && duelInfo.rankChallengeOpponentUid.startsWith('bot-'), 'Bot opponent UID set: ' + duelInfo.rankChallengeOpponentUid);
+    checks.push('Bot match automatically assigned rankChallengeId and opponent UID');
+
+    // 3. Finish duel with player win
+    await frame.evaluate(() => finish('player', 'Thắng tuyệt đối!'));
+    for (let i = 0; i < 30 && !documents.has('rank_profiles/TestPlayerUid'); i++) await new Promise(r => setTimeout(r, 100));
+
+    const savedProfile = documents.get('rank_profiles/TestPlayerUid');
+    assert.ok(savedProfile, 'rank_profiles/TestPlayerUid was written');
+    assert.equal(savedProfile.wins, 1, 'Wins should be 1');
+    assert.equal(savedProfile.losses, 0, 'Losses should be 0');
+    assert.equal(savedProfile.played, 1, 'Played should be 1');
+    assert.ok(savedProfile.rating > 1000, 'Rating should have increased: ' + savedProfile.rating);
+    checks.push('Bot match victory updated Elo and wins in rank_profiles');
+
+    // Check modal UI contains rank update note
+    const modalText = await frame.evaluate(() => document.querySelector('.rank-challenge-result')?.textContent || '');
+    assert.ok(modalText.includes('BXH đã cập nhật'), 'Victory modal displays rank update note: ' + modalText);
+    checks.push('Victory modal displays updated Elo and record');
+
+    // 4. Test rematch ('againBtn')
+    await frame.evaluate(() => document.getElementById('againBtn').click());
+    const rematchInfo = await frame.evaluate(oldMatchId => ({
+      rankChallengeId: duel.rankChallengeId,
+      oldMatchId
+    }), duelInfo.rankChallengeId);
+    assert.ok(rematchInfo.rankChallengeId.startsWith('bot-'));
+    assert.notEqual(rematchInfo.rankChallengeId, rematchInfo.oldMatchId, 'Rematch generated a fresh challenge ID');
+    checks.push('Rematch generated a distinct challenge ID');
+
+    // 5. Finish rematch with second win
+    await frame.evaluate(() => finish('player', 'Thắng lần hai!'));
+    for (let i = 0; i < 30; i++) {
+      const p = documents.get('rank_profiles/TestPlayerUid');
+      if (p?.wins === 2) break;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    const profile2 = documents.get('rank_profiles/TestPlayerUid');
+    assert.equal(profile2.wins, 2, 'Wins should now be 2');
+    assert.equal(profile2.played, 2, 'Played should now be 2');
+    assert.ok(profile2.rating > savedProfile.rating, 'Rating should have increased again');
+    checks.push('Second bot victory correctly accumulated wins and Elo');
+
+    // 6. Verify Leaderboard modal renders updated profile
+    await frame.evaluate(() => siteRank.show());
+    await frame.waitForSelector('#rankRows tr');
+    const boardData = await frame.evaluate(() => {
+      const row = document.querySelector('#rankRows tr');
+      return {
+        progressText: document.getElementById('rankProgress')?.textContent,
+        rowText: row?.textContent
+      };
+    });
+    assert.ok(boardData.progressText.includes('2 thắng'), 'BXH progress shows 2 wins: ' + boardData.progressText);
+    assert.ok(boardData.rowText.includes('Đấu sĩ Test'), 'BXH row includes player name: ' + boardData.rowText);
+    checks.push('Leaderboard modal displays updated Elo and 2 wins');
+
+    console.log('Bot duel BXH tests:', checks.length, 'checks passed.');
+  } finally {
+    await browser.close();
+    server.close();
+  }
+})().catch(error => {
+  console.error(error);
+  server.close();
+  process.exitCode = 1;
+});

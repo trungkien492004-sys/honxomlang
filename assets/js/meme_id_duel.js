@@ -18,34 +18,42 @@
  function label(){$('duelPlayerId')?.remove();}
  function stopPending(){pending?.unsub?.();if(pending?.timer)clearTimeout(pending.timer);pending=null;}
  async function cancelInvite(){const old=pending;stopPending();if(old)await store.doc('duel_invites/'+old.id).update(native({status:'cancelled'})).catch(()=>{});window.memeOnlineLeave();closeModal();}
-  async function recordResult(match){
-   const matchId=match?.rankChallengeId||memeRoom?.challengeId,opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
-   if(!match?.finished||!matchId||!opponentUid||opponentUid===uid||!uid||!store)return null;
-   const resultId=matchId+'_'+uid,resultRef=store.doc('rank_challenge_results/'+resultId),mineRef=store.doc('rank_profiles/'+uid),opponentRef=store.doc('rank_profiles/'+opponentUid),directoryRef=store.doc('duel_directory/'+opponentUid);let receipt=null;
-   await store.runTransaction(async tx=>{
-    const [prior,mineSnap,opponentSnap,directorySnap]=await Promise.all([tx.get(resultRef),tx.get(mineRef),tx.get(opponentRef),tx.get(directoryRef)]);
-    if(prior.exists){receipt=prior.data();return;}
-    const mine=mineSnap.exists?mineSnap.data():{},opponent=opponentSnap.exists?opponentSnap.data():{},directory=directorySnap.exists?directorySnap.data():{};
-    const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=Math.max(0,Math.round(Number(opponent.rating)||1000));
-    const outcome=match.winner==='draw'?'draw':match.winner==='player'?'win':'loss';
-    const ownCreated=Date.parse(identity.user?.metadata?.creationTime),ownNewbie=Number.isFinite(ownCreated)&&Date.now()<ownCreated+7*86400000;
-    const opponentNewbie=Date.now()<Number(directory.newbieUntil||opponent.newbieUntil||0);
-    let delta=0;
-    if(outcome!=='draw'){
-     const winnerRating=outcome==='win'?rating:opponentRating,loserRating=outcome==='win'?opponentRating:rating;
-     const base=Math.max(1,Math.round(32*(1-1/(1+10**((loserRating-winnerRating)/400)))));
-     delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):(ownNewbie?0:-Math.min(base,rating));
-    }
-    const counts={played:(Number(mine.played)||0)+1,wins:(Number(mine.wins)||0)+(outcome==='win'?1:0),losses:(Number(mine.losses)||0)+(outcome==='loss'?1:0),draws:(Number(mine.draws)||0)+(outcome==='draw'?1:0)};
-    const nextRating=rating+delta,createdUntil=Number.isFinite(ownCreated)?ownCreated+7*86400000:0;
-    const result={uid,matchId,opponentUid,outcome,delta,ratingBefore:rating,ratingAfter:nextRating,createdAt:stamp()};
-    const profile={uid,name:String(identity.user?.displayName||mine.name||'Đấu sĩ').slice(0,48),rating:nextRating,...counts,lastMatchId:matchId,lastSeen:stamp(),...(!mineSnap.exists?{newbieUntil:createdUntil}:{})};
-    tx.set(resultRef,result);tx.set(mineRef,profile,{merge:true});receipt={...result,...counts};
-   });
-   if(receipt){match.rankChallengeResult=receipt;window.siteRank?.refresh?.();const host=$('modalContent');if(host){host.querySelector('.rank-challenge-result')?.remove();const note=document.createElement('p');note.className='rank-challenge-result';note.textContent=`BXH đã cập nhật: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · ${receipt.delta>0?'+':''}${receipt.delta} Elo · ${receipt.wins} thắng / ${receipt.losses} thua`;host.appendChild(note);}}
-   return receipt;
-  }
-  function trackResult(match){if(!match?.rankChallengeId&&!memeRoom?.challengeId)return;recordResult(match).catch(e=>{console.error('Không cập nhật được kết quả khiêu chiến:',e);notify('Không lưu được kết quả BXH. Hãy giữ màn hình mở và thử tải lại trang.');});}
+  function updateResultUI(receipt){
+    const host=$('modalContent');if(!host||!receipt)return;
+    host.querySelector('.rank-challenge-result')?.remove();
+    const note=document.createElement('p');note.className='rank-challenge-result';
+    note.textContent=`BXH đã cập nhật: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · ${receipt.delta>0?'+':''}${receipt.delta} Elo (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua`;
+    const actions=host.querySelector('.result-actions');if(actions)host.insertBefore(note,actions);else host.appendChild(note);
+   }
+   async function recordResult(match){
+    const rawMatchId=match?.rankChallengeId||memeRoom?.challengeId,opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
+    if(!match?.finished||!rawMatchId||!opponentUid||opponentUid===uid||!uid||!store)return null;
+    const matchId=String(rawMatchId).slice(0,75);
+    const resultId=matchId+'_'+uid,resultRef=store.doc('rank_challenge_results/'+resultId),mineRef=store.doc('rank_profiles/'+uid),opponentRef=store.doc('rank_profiles/'+opponentUid),directoryRef=store.doc('duel_directory/'+opponentUid);let receipt=null;
+    await store.runTransaction(async tx=>{
+     const [prior,mineSnap,opponentSnap,directorySnap]=await Promise.all([tx.get(resultRef),tx.get(mineRef),tx.get(opponentRef),tx.get(directoryRef)]);
+     if(prior.exists){receipt=prior.data();return;}
+     const mine=mineSnap.exists?mineSnap.data():{},opponent=opponentSnap.exists?opponentSnap.data():{},directory=directorySnap.exists?directorySnap.data():{};
+     const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=Math.max(0,Math.round(Number(opponent.rating)||1000));
+     const outcome=match.winner==='draw'?'draw':match.winner==='player'?'win':'loss';
+     const ownCreated=Date.parse(identity.user?.metadata?.creationTime),ownNewbie=Number.isFinite(ownCreated)&&Date.now()<ownCreated+7*86400000;
+     const opponentNewbie=Date.now()<Number(directory.newbieUntil||opponent.newbieUntil||0);
+     let delta=0;
+     if(outcome!=='draw'){
+      const winnerRating=outcome==='win'?rating:opponentRating,loserRating=outcome==='win'?opponentRating:rating;
+      const base=Math.max(1,Math.round(32*(1-1/(1+10**((loserRating-winnerRating)/400)))));
+      delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):(ownNewbie?0:-Math.min(base,rating));
+     }
+     const counts={played:(Number(mine.played)||0)+1,wins:(Number(mine.wins)||0)+(outcome==='win'?1:0),losses:(Number(mine.losses)||0)+(outcome==='loss'?1:0),draws:(Number(mine.draws)||0)+(outcome==='draw'?1:0)};
+     const nextRating=Math.max(0,Math.round(rating+delta)),createdUntil=Number.isFinite(ownCreated)?ownCreated+7*86400000:0;
+     const result={uid,matchId,opponentUid,outcome,delta,ratingBefore:rating,ratingAfter:nextRating,createdAt:stamp()};
+     const profile={uid,name:String(identity.user?.displayName||mine.name||'Đấu sĩ').slice(0,48),rating:nextRating,...counts,lastMatchId:matchId,lastSeen:stamp(),...(!mineSnap.exists?{newbieUntil:createdUntil}:{})};
+     tx.set(resultRef,result);tx.set(mineRef,profile,{merge:true});receipt={...result,...counts};
+    });
+    if(receipt){match.rankChallengeResult=receipt;window.siteRank?.refresh?.();updateResultUI(receipt);}
+    return receipt;
+   }
+   function trackResult(match){if(!match?.rankChallengeId&&!memeRoom?.challengeId)return;recordResult(match).catch(e=>{console.error('Không cập nhật được kết quả khiêu chiến:',e);notify('Không lưu được kết quả BXH. Hãy giữ màn hình mở và thử tải lại trang.');});}
   const finishDuel=finish;finish=(...args)=>{const match=duel,result=finishDuel(...args);trackResult(match);return result;};
   const showDuelResult=window.memeShowResult;window.memeShowResult=(...args)=>{const result=showDuelResult?.(...args);trackResult(duel);return result;};
  async function invite(p){
@@ -65,9 +73,24 @@
  }
  async function lookup(value){if(!uid)throw Error('Hãy đăng nhập Google.');const id=String(value||'').trim();if(!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw Error('Không tìm thấy người chơi.');if(id===uid)throw Error('Bạn không thể khiêu chiến chính mình.');await publish();const snap=await store.doc('duel_players/'+id).get();if(!snap.exists)throw Error('Người này chưa lưu bộ bài. Hãy nhờ họ mở đấu bài một lần.');const p=snap.data();if(!valid(p))throw Error('Bộ bài của người này chưa hợp lệ với phiên bản hiện tại.');return p;}
  function ghost(p){if(!valid(p))throw Error('Bộ bài không hợp lệ.');startGame({ghost:p});}
- async function challenge(id){
-   if(!identity.user){await identity.login();await identity.whenReady;}if(busy())throw Error('Hãy kết thúc hoặc rời trận hiện tại trước khi khiêu chiến.');const p=await lookup(id);if(online(p))return invite(p);ghost(p);if(duel){duel.rankChallengeId='offline-'+crypto.randomUUID().replaceAll('-','');duel.rankChallengeOpponentUid=p.uid;}
- }
+  async function challenge(id){
+    if(!identity.user){await identity.login();await identity.whenReady;}if(busy())throw Error('Hãy kết thúc hoặc rời trận hiện tại trước khi khiêu chiến.');const p=await lookup(id);if(online(p))return invite(p);ghost(p);
+  }
+  const baseStartGame=startGame;startGame=(options={})=>{
+    const res=baseStartGame(options);
+    if(duel){
+      if(options?.ghost){
+        duel.rankChallengeId='offline-'+crypto.randomUUID().replaceAll('-','');
+        duel.rankChallengeOpponentUid=options.ghost.uid;
+      }else if(!duel.rankChallengeId){
+        const botGroup=(typeof HEROES!=='undefined'&&HEROES[duel.enemy?.heroId]?.group||'kaiba').toLowerCase();
+        duel.rankChallengeId='bot-'+crypto.randomUUID().replaceAll('-','');
+        duel.rankChallengeOpponentUid='bot-'+botGroup;
+        duel.botOpponent={uid:duel.rankChallengeOpponentUid,name:typeof HEROES!=='undefined'&&HEROES[duel.enemy?.heroId]?.name||'Seto Kaiba'};
+      }
+    }
+    return res;
+  };
  const rank=$('rankPlayBtn');if(rank)rank.remove();$('playBtn').textContent='⚔️ Vào trận';
  const save=commitDeckDraft;commitDeckDraft=(...args)=>{const r=save(...args);publish().catch(error);return r;};
  const hero=chooseHero;chooseHero=(...args)=>{const r=hero(...args);publish().catch(error);return r;};

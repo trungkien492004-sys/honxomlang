@@ -155,5 +155,15 @@
       if (host && !host.querySelector('.rank-result')) { const box = document.createElement('div'); box.className = 'rank-result'; box.innerHTML = duel.rankResult.players.map(player => `${esc(player.name)}: <b>${player.delta >= 0 ? '+' : ''}${player.delta} Elo</b> · ${player.after} Elo`).join('<br>'); host.appendChild(box); }
     };
   }
-  window.siteRank = { show, find, close, paint, refresh: () => identity.user ? loadProfile(identity.user) : Promise.resolve(), get profile() { return profile; } };
+  window.siteRank = { show, find, close, paint, refresh: async () => {
+    if (identity.user) await loadProfile(identity.user);
+    const overlay = document.getElementById('rankOverlay');
+    if (overlay && identity.db) {
+      try {
+        const store = await db(), profileQuery = store.collection('rank_profiles').orderBy('rating', 'desc').limit(100);
+        const players = await profileQuery.get();
+        if (overlay.isConnected && window.siteRankPlayers?.render) await window.siteRankPlayers.render(store, overlay, players, profileQuery);
+      } catch (_) {}
+    }
+  }, get profile() { return profile; } };
 })();
