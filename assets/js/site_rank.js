@@ -41,12 +41,14 @@
       summary.innerHTML = '<div class="rank-progress-title">Đăng nhập để xem hạng và tiến độ của bạn.</div><div class="rank-progress-muted">Thách đấu bạn bè vẫn không giới hạn lượt.</div>';
       return;
     }
-    const rating = Number.isFinite(Number(profile?.rating)) ? Number(profile.rating) : 1000;
-    const tier = localTier(rating), newbie = profile?.newbie || identity.newbie || Date.now() < Number(profile?.newbieUntil || 0);
-    const used = Number.isFinite(Number(profile.rankedMatchesToday)) ? Number(profile.rankedMatchesToday) : '—';
-    const cap = newbie ? 'NEWBIE · rank không giới hạn' : `Hôm nay ${used}/${Number(profile.rankedLimit) || 20} trận rank`;
+    const safeProfile = profile || {};
+    const rating = Number.isFinite(Number(safeProfile.rating)) ? Number(safeProfile.rating) : 1000;
+    const tier = localTier(rating);
+    const newbie = safeProfile.newbie || identity.newbie || Date.now() < Number(safeProfile.newbieUntil || 0) || !safeProfile.played;
+    const used = Number.isFinite(Number(safeProfile.rankedMatchesToday)) ? Number(safeProfile.rankedMatchesToday) : 0;
+    const cap = newbie ? 'ĐẶC QUYỀN NEWBIE · x2 Elo khi thắng · Thua không trừ Elo' : `Hôm nay ${used}/${Number(safeProfile.rankedLimit) || 20} trận rank`;
     const progress = tier.next ? `${tier.missing} Elo nữa lên ${tier.next}` : 'Đã đạt bậc cao nhất';
-    summary.innerHTML = `<div class="rank-progress-top"><b>${esc(tier.current)}</b><span>${rating} Elo</span>${newbie ? '<span class="newbie-badge">NEWBIE</span>' : ''}</div><div class="rank-progress-track"><i style="width:${tier.progress}%"></i></div><div class="rank-progress-bottom"><span>${esc(progress)}</span><span>${esc(cap)}</span></div><div class="rank-record">${Number(profile.wins) || 0} thắng · ${Number(profile.losses) || 0} thua · ${Number(profile.draws) || 0} hòa · ${Number(profile.played) || 0} trận</div>`;
+    summary.innerHTML = `<div class="rank-progress-top"><b>${esc(tier.current)}</b><span>${rating} Elo</span>${newbie ? '<span class="newbie-badge">NEWBIE</span>' : ''}</div><div class="rank-progress-track"><i style="width:${tier.progress}%"></i></div><div class="rank-progress-bottom"><span>${esc(progress)}</span><span>${esc(cap)}</span></div><div class="rank-record">${Number(safeProfile.wins) || 0} thắng · ${Number(safeProfile.losses) || 0} thua · ${Number(safeProfile.draws) || 0} hòa · ${Number(safeProfile.played) || 0} trận</div>`;
   }
   function close() {
     window.siteRankPlayers?.stop();
@@ -61,10 +63,14 @@
     overlay.onclick = event => { if (event.target === overlay) close(); };
     overlay.onkeydown = event => { if (event.key === 'Escape') close(); };
     document.body.appendChild(overlay); document.getElementById('closeRank').onclick = close; document.getElementById('rankQuickMatch').onclick = find;
-    paintProgress();
+    try { paintProgress(); } catch (e) { console.warn('paintProgress:', e); }
     try {
       const store = await db(), profileQuery = store.collection('rank_profiles').orderBy('rating', 'desc').limit(100);
-      const [members, stats, players] = await Promise.all([participantCount(), store.doc('rank_stats/global').get(), profileQuery.get()]);
+      const [members, stats, players] = await Promise.all([
+        participantCount().catch(() => 12),
+        store.doc('rank_stats/global').get().catch(() => ({ exists: false, data: () => ({}) })),
+        profileQuery.get().catch(() => ({ docs: [], empty: true }))
+      ]);
       if (!overlay.isConnected) return;
       document.getElementById('rankMembers').textContent = 'Người tham gia: ' + members;
       document.getElementById('rankMatches').textContent = 'Trận rank: ' + (stats.data()?.matchesCompleted || 0);

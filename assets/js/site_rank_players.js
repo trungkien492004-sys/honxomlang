@@ -35,8 +35,10 @@
   async function render(store, overlay, rankedSnapshot, rankedQuery) {
     stopLive?.();
     const directoryQuery = store.collection('duel_directory').orderBy('name').limit(100);
-    const [directory, ranked] = await Promise.all([getDocs(directoryQuery),
-      rankedSnapshot?.docs ? Promise.resolve(rankedSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }))) : getDocs(rankedQuery)]);
+    const [directory, ranked] = await Promise.all([
+      getDocs(directoryQuery).catch(() => []),
+      rankedSnapshot?.docs ? Promise.resolve(rankedSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }))) : getDocs(rankedQuery).catch(() => [])
+    ]);
     if (!overlay.isConnected) return;
 
     const LEGEND_BOTS = [

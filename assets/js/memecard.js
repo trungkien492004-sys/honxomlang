@@ -386,8 +386,8 @@ window.openMemeCardGame = function openMemeCardGame() {
   if (!modal) { console.error('[memecard] #memecardGameModal not found'); return; }
   modal.style.display = 'block';
   frame?.contentWindow?.memeMusic?.resumeFromHost?.();
-  if (frame && (!frame.src || frame.src === 'about:blank' || !frame.src.includes('v=20261027-bxh-live2'))) {
-    frame.src = 'memecard.html?v=20261027-bxh-live2';
+  if (frame && (!frame.src || frame.src === 'about:blank' || !frame.src.includes('v=20261027-bxh-live3'))) {
+    frame.src = 'memecard.html?v=20261027-bxh-live3';
   }
 };
 
