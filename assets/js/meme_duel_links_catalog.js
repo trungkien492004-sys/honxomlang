@@ -23,8 +23,9 @@
       special_only: true,
       effect_code: 'dl_alternative_dragon',
       effect_trigger: 'activated',
-      description: 'Hiện 1 Rồng Trắng Mắt Xanh trên tay để triệu hồi đặc biệt. 1 lần/lượt: chọn và phá hủy 1 quái của đối thủ (không thể tấn công trong lượt dùng hiệu ứng).',
-      activation_rules: 'Triệu hồi đặc biệt từ tay ở MAIN; kích hoạt hiệu ứng phá quái ở MAIN.',
+      traits: ['blue_eyes_name'],
+      description: 'Không thể Triệu hồi Thường/Úp. Phải được Triệu hồi Đặc biệt (từ tay) bằng cách cho xem 1 "Rồng Trắng Mắt Xanh" trên tay. Chỉ được Triệu hồi Đặc biệt lá này theo cách này 1 lần/lượt. Tên lá này trở thành "Rồng Trắng Mắt Xanh" khi ở trên sân hoặc trong Mộ. 1 lần/lượt: chọn 1 quái đối thủ; phá hủy nó. Lá này không thể tấn công trong lượt hiệu ứng này được kích hoạt.',
+      activation_rules: 'Triệu hồi Đặc biệt từ tay ở MAIN, mỗi lượt 1 lần. Kích hoạt phá quái ở MAIN, 1 lần/lượt và lá mất quyền tấn công lượt đó. Trên sân và trong Mộ lá mang tên "Rồng Trắng Mắt Xanh" nên dùng được làm nguyên liệu Dung Hợp và mục tiêu của Tiếng Gầm Bạc.',
       custom_image: 'assets/memecard/art/AN-blue_eyes_white_dragon.svg',
       art: { emoji: '🐉', c1: '#b7e3ff', c2: '#1e3a8a' }
     },

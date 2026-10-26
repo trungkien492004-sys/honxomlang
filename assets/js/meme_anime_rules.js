@@ -233,7 +233,7 @@
   const s=S(n);if(mode==='miracle')return [...E(n).map(e=>({...e,id:e.slot.id,zone:'field'})),...choices(s.grave,'grave').map(e=>({...e,zone:'grave'}))];
   return [...choices(s.hand,'hand').map(e=>({...e,zone:'hand'})),...E(n).map(e=>({...e,id:e.slot.id,zone:'field'}))];
  }
- function materialName(e){return e.zone==='field'&&face(e.slot)&&has(e.slot,'proto_cyber')?aid('Cyber Dragon'):e.id;}
+ function materialName(e){if(e.zone==='field'&&face(e.slot)&&has(e.slot,'proto_cyber'))return aid('Cyber Dragon');return e.zone!=='hand'&&card(e.id)?.traits?.includes('blue_eyes_name')?aid('Blue-Eyes White Dragon'):e.id;}
  function fusionOptions(n,id,mode='fusion'){
   const c=card(id),s=S(n);if(!c||!c.fusion_materials&&!c.fusion_recipe||c.summon_type==='transformation')return[];if(mode==='miracle'&&!hero(c)||mode==='power'&&!machine(c))return[];
   let pool=materialPool(n,mode);if(c.contact)pool=pool.filter(e=>e.zone==='field'&&face(e.slot));

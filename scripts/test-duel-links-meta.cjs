@@ -144,6 +144,34 @@ const server = http.createServer((req, res) => {
         eq(duel.player.monsters[0].id, 'AN-blue_eyes_white_dragon', 'BEWD revived');
       });
 
+      // Test 5b: Alternative's field name is Blue-Eyes White Dragon
+      await test('Kaiba: Alternative is named Blue-Eyes on field for Twin Burst contact fusion', async () => {
+        ok(card('DL-blue_eyes_alternative_white_dragon').description.includes('trở thành "Rồng Trắng Mắt Xanh"'), 'text states the name change');
+        duel.player.monsters[0] = monsterSlot('DL-blue_eyes_alternative_white_dragon', 'atk');
+        duel.player.monsters[1] = monsterSlot('AN-blue_eyes_white_dragon', 'atk');
+        duel.player.extraDeck = ['DL-blue_eyes_twin_burst_dragon'];
+        ok(await memeAnime.perform(() => memeAnime.fuse('player', null, 'DL-blue_eyes_twin_burst_dragon')), 'contact fuse with Alternative as Blue-Eyes');
+        ok(duel.player.monsters.some(s => s?.id === 'DL-blue_eyes_twin_burst_dragon'), 'Twin Burst summoned');
+        ok(duel.player.grave.includes('DL-blue_eyes_alternative_white_dragon'), 'Alternative used as material');
+      });
+
+      // Test 5c: Alternative's name in the GY is Blue-Eyes White Dragon
+      await test('Kaiba: Silver Cry revives Alternative through its GY name', async () => {
+        duel.player.hand = ['DL-silvers_cry'];
+        duel.player.grave = ['DL-blue_eyes_alternative_white_dragon'];
+        ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Silver Cry on Alternative');
+        eq(duel.player.monsters[0]?.id, 'DL-blue_eyes_alternative_white_dragon', 'Alternative revived from grave');
+      });
+
+      // Test 5d: Alternative can only be Special Summoned by its own procedure once per turn
+      await test('Kaiba: Alternative special summon is once per turn', async () => {
+        duel.player.hand = ['DL-blue_eyes_alternative_white_dragon', 'AN-blue_eyes_white_dragon'];
+        eq(memeAnime.specialMode('player', card('DL-blue_eyes_alternative_white_dragon')), 'free', 'first summon available');
+        ok(await memeAnime.perform(() => memeAnime.specialSummon('player', 0)), 'first special summon');
+        duel.player.hand.push('DL-blue_eyes_alternative_white_dragon');
+        eq(memeAnime.specialMode('player', card('DL-blue_eyes_alternative_white_dragon')), null, 'second special summon blocked');
+      });
+
       // Test 6: Yugi - Dark Magical Circle searches Dark Magician
       await test('Yugi: Dark Magical Circle activation search', async () => {
         duel.player.hand = ['DL-dark_magical_circle'];

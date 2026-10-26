@@ -111,7 +111,7 @@
     if (free(n) < 0) return false;
     const targets = choices(s.grave, 'grave').filter(e => {
       const x = C(e.id);
-      return x?.tribe === 'Rồng' && (x.monster_category === 'Thường' || x.id === 'DL-dragon_spirit_of_white' || x.id === 'AN-blue_eyes_white_dragon');
+      return x?.tribe === 'Rồng' && (x.monster_category === 'Thường' || x.id === 'DL-dragon_spirit_of_white' || x.id === 'AN-blue_eyes_white_dragon' || x.traits?.includes('blue_eyes_name'));
     });
     if (!targets.length) return false;
     const t = await pick(n, 'Tiếng Gầm Bạc: chọn Rồng hồi sinh', targets);
@@ -1109,7 +1109,7 @@
     if (!c) return null;
     const s = S(n);
     if (c.id === 'DL-blue_eyes_alternative_white_dragon') {
-      if (s.hand.includes('AN-blue_eyes_white_dragon') && free(n) >= 0) return 'free';
+      if (s.hand.includes('AN-blue_eyes_white_dragon') && free(n) >= 0 && s.altSpecialRound !== duel.round) return 'free';
     }
     if (c.id === 'DL-apprentice_illusion_magician') {
       if (s.hand.length >= 2 && free(n) >= 0) return 'free';
@@ -1139,6 +1139,7 @@
       }
       const success = await fx(n, c, 'summon', [], () => {
         if (cost) takeDiscard(n, cost);
+        if (c.id === 'DL-blue_eyes_alternative_white_dragon') s.altSpecialRound = duel.round;
         s.hand.splice(s.hand.indexOf(c.id), 1);
         const slot = monsterSlot(c.id);
         uid(slot);
