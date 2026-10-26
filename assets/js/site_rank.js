@@ -41,11 +41,8 @@
       summary.innerHTML = '<div class="rank-progress-title">Đăng nhập để xem hạng và tiến độ của bạn.</div><div class="rank-progress-muted">Thách đấu bạn bè vẫn không giới hạn lượt.</div>';
       return;
     }
-    if (!profile || !Number.isFinite(Number(profile.rating))) {
-      summary.innerHTML = `<div class="rank-progress-title">${cfg.enabled ? 'Đang tải hạng của bạn…' : 'Hồ sơ xếp hạng chưa được khởi tạo'}</div><div class="rank-progress-muted">${cfg.enabled ? 'Chờ đồng bộ hồ sơ rank.' : 'Khiêu chiến trên BXH để tạo hồ sơ Elo và ghi nhận thắng thua.'}</div>`;
-      return;
-    }
-    const rating = Number(profile.rating), tier = localTier(rating), newbie = profile.newbie || Date.now() < Number(profile.newbieUntil || 0);
+    const rating = Number.isFinite(Number(profile?.rating)) ? Number(profile.rating) : 1000;
+    const tier = localTier(rating), newbie = profile?.newbie || identity.newbie || Date.now() < Number(profile?.newbieUntil || 0);
     const used = Number.isFinite(Number(profile.rankedMatchesToday)) ? Number(profile.rankedMatchesToday) : '—';
     const cap = newbie ? 'NEWBIE · rank không giới hạn' : `Hôm nay ${used}/${Number(profile.rankedLimit) || 20} trận rank`;
     const progress = tier.next ? `${tier.missing} Elo nữa lên ${tier.next}` : 'Đã đạt bậc cao nhất';
@@ -83,7 +80,14 @@
   }
   function paint() {
     const node = document.getElementById('rankIdentity');
-    if (node) { const user = identity.user; node.innerHTML = user ? esc(user.displayName || 'Đấu sĩ') + (identity.newbie ? '<span class="newbie-badge">NEWBIE</span>' : '') + (profile ? ' · ' + profile.rating + ' Elo' : '') : ''; }
+    if (node) {
+      const user = identity.user;
+      const rating = Number.isFinite(Number(profile?.rating)) ? profile.rating : 1000;
+      node.style.cursor = 'pointer';
+      node.onclick = () => show();
+      node.title = 'Bấm để xem Bảng Xếp Hạng Rank';
+      node.innerHTML = user ? esc(user.displayName || 'Đấu sĩ') + (identity.newbie ? '<span class="newbie-badge">NEWBIE</span>' : '') + ' · <b>' + rating + ' Elo</b>' : '';
+    }
     paintProgress();
     if (typeof duel !== 'undefined' && duel?.rank) {
       const players = duel.rank.members, own = players.find(player => player.uid === identity.user?.uid), enemy = players.find(player => player.uid !== identity.user?.uid);
@@ -155,7 +159,77 @@
       if (host && !host.querySelector('.rank-result')) { const box = document.createElement('div'); box.className = 'rank-result'; box.innerHTML = duel.rankResult.players.map(player => `${esc(player.name)}: <b>${player.delta >= 0 ? '+' : ''}${player.delta} Elo</b> · ${player.after} Elo`).join('<br>'); host.appendChild(box); }
     };
   }
-  window.siteRank = { show, find, close, paint, refresh: async () => {
+  function showRankPromo() {
+    document.getElementById('rankPromoOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'rankPromoOverlay';
+    overlay.className = 'rank-promo-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'rankPromoTitle');
+    overlay.innerHTML = `
+      <div class="rank-promo-card">
+        <button type="button" class="rank-promo-close" id="closeRankPromo" aria-label="Đóng">✕</button>
+        <div class="rank-promo-badge">🔥 KHỞI TRANH MÙA GIẢI XẾP HẠNG (RANK) 🔥</div>
+        <h2 id="rankPromoTitle">Đấu Trí Đỉnh Cao · Tranh Đoạt Ngôi Vua Xóm Anh Hùng</h2>
+        <p class="rank-promo-subtitle">Hệ thống Rank & Elo đã chính thức mở toàn diện cho tất cả Đấu Sĩ!</p>
+        <div class="rank-promo-features">
+          <div class="rank-promo-item">
+            <span class="rank-promo-icon">🤖⚔️</span>
+            <div>
+              <b>Đấu Với Máy & Online Đều Tính Rank</b>
+              <p>Mỗi trận thắng trước Kaiba, Yugi, Joey, Pegasus, Jaden, Zane... hay đối thủ online đều được ghi nhận trực tiếp vào <b>Elo & BXH</b>!</p>
+            </div>
+          </div>
+          <div class="rank-promo-item">
+            <span class="rank-promo-icon">🔰⚡</span>
+            <div>
+              <b>Đặc Quyền Tân Binh (Newbie 7 Ngày Đầu)</b>
+              <p>Thắng nhận <b>x2 Elo (+32 Elo/trận)</b> · Thua <b>KHÔNG bị trừ Elo</b> · Không giới hạn số trận mỗi ngày. Tha hồ cọ xát và thử nghiệm bộ bài!</p>
+            </div>
+          </div>
+          <div class="rank-promo-item">
+            <span class="rank-promo-icon">🏆📈</span>
+            <div>
+              <b>Hệ Thống Phân Hạng Elo Chuẩn</b>
+              <p>Tân Binh ➔ Đồng (1000) ➔ Bạc (1200) ➔ Vàng (1400) ➔ Bạch Kim (1600) ➔ Kim Cương (1800) ➔ Cao Thủ (2000+).</p>
+            </div>
+          </div>
+        </div>
+        <div class="rank-promo-actions">
+          <button type="button" class="primary-btn" id="promoPlayBtn">⚔️ Vào trận ngay</button>
+          <button type="button" class="secondary-btn" id="promoBoardBtn">🏆 Xem Bảng Xếp Hạng</button>
+          <button type="button" class="secondary-btn" id="promoDismissBtn">Đã hiểu</button>
+        </div>
+      </div>
+    `;
+    const dismiss = () => {
+      try { sessionStorage.setItem('rank-promo-dismissed', '1'); } catch {}
+      overlay.remove();
+    };
+    overlay.onclick = event => { if (event.target === overlay) dismiss(); };
+    overlay.onkeydown = event => { if (event.key === 'Escape') dismiss(); };
+    document.body.appendChild(overlay);
+    document.getElementById('closeRankPromo').onclick = dismiss;
+    document.getElementById('promoDismissBtn').onclick = dismiss;
+    document.getElementById('promoBoardBtn').onclick = () => { dismiss(); show(); };
+    document.getElementById('promoPlayBtn').onclick = () => {
+      dismiss();
+      const playBtn = document.getElementById('playBtn');
+      if (playBtn) playBtn.click();
+    };
+  }
+
+  function tryAutoPromo() {
+    try {
+      if (sessionStorage.getItem('rank-promo-dismissed')) return;
+      if (document.getElementById('duel') && !document.getElementById('duel').classList.contains('hidden')) return;
+      showRankPromo();
+    } catch {}
+  }
+  setTimeout(tryAutoPromo, 900);
+
+  window.siteRank = { show, find, close, paint, showPromo: showRankPromo, refresh: async () => {
     if (identity.user) await loadProfile(identity.user);
     const overlay = document.getElementById('rankOverlay');
     if (overlay && identity.db) {

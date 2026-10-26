@@ -748,77 +748,88 @@
   // ─────────────────────────────────────────────────────────────
   // 5. JADEN HANDLERS
   // ─────────────────────────────────────────────────────────────
-  // Neos Fusion - Send materials from Hand, Field or DECK with choice!
+  // Neos Fusion - Special Summon any 2-material Fusion that lists Elemental HERO Neos
+  const matReq = (req, id) => {
+    const x = C(id);
+    if (!x) return false;
+    if (typeof req === 'string') return id === req;
+    if (x.card_type !== 'Monster') return false;
+    if (req.name && x.name_en !== req.name) return false;
+    if (req.hero && !isHero(x)) return false;
+    if (req.levelMax && (x.stars || 0) > req.levelMax) return false;
+    if (req.effectMonster && x.monster_category === 'Thường') return false;
+    return true;
+  };
+  const neosFusionTargets = s => choices(s.extraDeck, 'extra').filter(e => {
+    const x = C(e.id);
+    const mats = x?.card_type === 'Monster' && x.deck_zone === 'Extra' ? x.fusion_materials : null;
+    if (!Array.isArray(mats) || mats.length !== 2) return false;
+    return mats.some(m => typeof m === 'string' ? m === 'AN-elemental_hero_neos' : m.name === 'Elemental HERO Neos');
+  });
   register('DL-neos_fusion', async (n, c, ctx) => {
     const s = S(n);
-    const fusions = choices(s.extraDeck, 'extra').filter(e => e.id === 'DL-elemental_hero_brave_neos' || e.id === 'AN-elemental_hero_flame_wingman');
-    if (!fusions.length || free(n) < 0) return false;
-    const target = await pick(n, 'Dung Hợp Tân Vũ: chọn quái Extra', fusions);
+    const fusions = neosFusionTargets(s);
+    if (!fusions.length) return false;
+    const target = await pick(n, 'Dung Hợp Tân Vũ: chọn quái Dung Hợp ghi Tân Vũ', fusions);
     if (!target) return false;
+    const tc = C(target.id), mats = tc.fusion_materials.slice();
+    const neosIndex = mats.findIndex(m => typeof m === 'string' ? m === 'AN-elemental_hero_neos' : m.name === 'Elemental HERO Neos');
+    const secondReq = mats[neosIndex === 0 ? 1 : 0];
 
-    // Neos pool
-    const neosPool = [
-      ...choices(s.deck, 'deck').filter(e => e.id === 'AN-elemental_hero_neos'),
-      ...choices(s.hand, 'hand').filter(e => e.id === 'AN-elemental_hero_neos' && e.index !== ctx.handIndex),
-      ...E(n).filter(e => face(e.slot) && e.slot.id === 'AN-elemental_hero_neos').map(e => ({ ...e, zone: 'field' }))
+    const pool = req => [
+      ...choices(s.deck, 'deck').filter(e => matReq(req, e.id)),
+      ...choices(s.hand, 'hand').filter(e => matReq(req, e.id) && e.index !== ctx.handIndex),
+      ...E(n).filter(e => face(e.slot) && matReq(req, e.slot.id))
+        .map(e => ({ ...e, id: e.slot.id, zone: 'field' }))
     ];
+    const neosPool = pool('AN-elemental_hero_neos');
     if (!neosPool.length) {
       log('Không có Anh Hùng Nguyên Tố Tân Vũ trên Tay, Sân hoặc Bộ bài.');
       return false;
     }
     const neosCard = await pick(n, 'Dung Hợp Tân Vũ: chọn Tân Vũ Neos làm nguyên liệu', neosPool);
     if (!neosCard) return false;
-
-    // Level 4 or lower effect monster pool
-    const lv4Pool = [
-      ...choices(s.deck, 'deck').filter(e => {
-        const x = C(e.id);
-        return x?.card_type === 'Monster' && (x.stars || 0) <= 4 && (x.monster_category === 'Hiệu Ứng' || !x.normal) && !isSameEntry(e, neosCard);
-      }),
-      ...choices(s.hand, 'hand').filter(e => {
-        const x = C(e.id);
-        return x?.card_type === 'Monster' && (x.stars || 0) <= 4 && (x.monster_category === 'Hiệu Ứng' || !x.normal) && e.index !== ctx.handIndex && !isSameEntry(e, neosCard);
-      }),
-      ...E(n).filter(e => {
-        const x = C(e.slot.id);
-        return face(e.slot) && (x?.stars || 0) <= 4 && (x?.monster_category === 'Hiệu Ứng' || !x?.normal) && !isSameEntry(e, neosCard);
-      }).map(e => ({ ...e, zone: 'field' }))
-    ];
-    if (!lv4Pool.length) {
-      log('Không có quái Hiệu Ứng Cấp 4 hoặc thấp hơn trên Tay, Sân hoặc Bộ bài.');
+    const secondPool = pool(secondReq).filter(e => neosCard.zone === 'field'
+      ? !(e.zone === 'field' && e.slot === neosCard.slot)
+      : !(e.zone === neosCard.zone && e.index === neosCard.index));
+    if (!secondPool.length) {
+      log('Không có nguyên liệu thứ hai hợp lệ cho quái Dung Hợp Tân Vũ này.');
       return false;
     }
-    const lv4Card = await pick(n, 'Dung Hợp Tân Vũ: chọn quái Hiệu Ứng Cấp 4 làm nguyên liệu', lv4Pool);
-    if (!lv4Card) return false;
+    const secondCard = await pick(n, 'Dung Hợp Tân Vũ: chọn nguyên liệu còn lại', secondPool);
+    if (!secondCard) return false;
+    const chosen = [neosCard, secondCard];
+    if (free(n) < 0 && !chosen.some(m => m.zone === 'field')) return false;
 
     return fx(n, c, 'fusion', [], () => {
       if (!commitSpellSource(n, c, ctx)) return;
-      for (const m of [neosCard, lv4Card]) {
+      for (const m of chosen) {
         if (m.zone === 'field') {
           remove(n, m, 'material');
         } else {
-          const pool = m.zone === 'deck' ? s.deck : s.hand;
-          const idx = pool.indexOf(m.id);
-          if (idx >= 0) s.grave.push(pool.splice(idx, 1)[0]);
+          const src = m.zone === 'deck' ? s.deck : s.hand;
+          const idx = src.indexOf(m.id);
+          if (idx >= 0) s.grave.push(src.splice(idx, 1)[0]);
         }
       }
       s.deck = shuffle(s.deck);
-      s.extraDeck.splice(target.index, 1);
+      s.extraDeck.splice(s.extraDeck.indexOf(target.id), 1);
       const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true };
       uid(slot);
       s.monsters[free(n)] = slot;
+      s.noSpecialRound = duel.round;
       enqueue(() => postSummon(n, slot));
-      log(`🌀 Dung Hợp Tân Vũ gọi ${C(target.id).name} từ Bộ bài phụ!`);
+      log(`🌀 Dung Hợp Tân Vũ gọi ${tc.name} từ Bộ bài phụ!`);
     });
   });
 
-  // A Hero Lives - Pay half LP, Special Summon level 4 HERO from Deck
+  // A Hero Lives - Pay half LP, Special Summon level 4 Elemental HERO from Deck
   register('DL-a_hero_lives', async (n, c, ctx) => {
     const s = S(n);
-    if (E(n).length > 0 || free(n) < 0) return false;
+    if (E(n).some(e => face(e.slot)) || free(n) < 0) return false;
     const heros = choices(s.deck, 'deck').filter(e => {
       const x = C(e.id);
-      return isHero(x) && x.stars <= 4 && x.card_type === 'Monster';
+      return /^Elemental HERO /.test(x?.name_en || '') && x.stars <= 4 && x.card_type === 'Monster' && !x.special_only;
     });
     if (!heros.length) return false;
     const target = await pick(n, 'Anh Hùng Tái Xuất: chọn HERO Cấp ≤ 4 từ Deck', heros);
@@ -927,6 +938,133 @@
       log(`✦ HERO Thủy Binh kích hoạt: Rút 2 lá và bỏ 1 lá.`);
     });
   };
+
+  // Elemental HERO Sunrise - On Special Summon: add 1 "Miracle Fusion"
+  register('DL-elemental_hero_sunrise', async (n, c, ctx = {}) => {
+    const s = S(n), slot = ctx.source;
+    if (!slot || slot.sunriseSearchRound === duel.round) return false;
+    const pool = choices(s.deck, 'deck').filter(e => e.id === 'AN-miracle_fusion');
+    if (!pool.length) return false;
+    const t = await pick(n, 'Thái Dương: lấy 1 "Dung Hợp Kỳ Tích" từ Bộ bài', pool, { optional: true });
+    if (!t) return false;
+    return fx(n, c, 'search', [], () => {
+      if (!E(n).some(e => e.slot === slot) || slot.sunriseSearchRound === duel.round) return;
+      slot.sunriseSearchRound = duel.round;
+      const i = s.deck.indexOf('AN-miracle_fusion');
+      if (i < 0) return;
+      window.memeCardMotion?.record('search', n, 'AN-miracle_fusion');
+      s.hand.push(s.deck.splice(i, 1)[0]);
+      s.deck = shuffle(s.deck);
+      log('✦ Thái Dương lấy Dung Hợp Kỳ Tích lên tay.');
+    });
+  });
+
+  // Elemental HERO Honest Neos - Quick Effect discard modes
+  register('DL-elemental_hero_honest_neos', async (n, c, ctx = {}) => {
+    const s = S(n), foe = other(n);
+    const bump = (slot, amount) => {
+      if (slot.mangaTempRound !== duel.round) slot.mangaTempAtk = 0;
+      slot.mangaTempAtk = (slot.mangaTempAtk || 0) + amount;
+      slot.mangaTempRound = duel.round;
+    };
+    if (ctx.fromHand) {
+      if (s.honestDiscardRound === duel.round || !s.hand.includes(c.id)) return false;
+      const targets = [
+        ...targetList(n, (slot, x) => face(slot) && isHero(x)),
+        ...targetList(foe, (slot, x) => face(slot) && isHero(x))
+      ];
+      if (!targets.length) return false;
+      const t = await pick(n, 'Chân Thực Tân Vũ: chọn 1 quái HERO trên sân nhận +2500 ATK', targets);
+      if (!t) return false;
+      return fx(n, c, 'boost', [t], () => {
+        const i = s.hand.indexOf(c.id);
+        if (i < 0) return;
+        s.honestDiscardRound = duel.round;
+        takeDiscard(n, { id: c.id, index: i });
+        bump(t.slot, 2500);
+        log(`✦ Chân Thực Tân Vũ: ${C(t.id).name} tăng 2500 ATK đến hết lượt.`);
+      });
+    }
+    const source = ctx.source;
+    if (!source || !E(n).some(e => e.slot === source) || !face(source)) return false;
+    if (s.honestFieldRound === duel.round) return false;
+    const pool = choices(s.hand, 'hand').filter(e => C(e.id)?.card_type === 'Monster' && isHero(C(e.id)));
+    if (!pool.length) return false;
+    const cost = await pick(n, 'Chân Thực Tân Vũ: bỏ 1 quái HERO từ tay để tự tăng ATK', pool);
+    if (!cost) return false;
+    return fx(n, c, 'boost', [], () => {
+      if (!E(n).some(e => e.slot === source)) return;
+      const atk = C(cost.id)?.atk || 0;
+      s.honestFieldRound = duel.round;
+      takeDiscard(n, cost);
+      bump(source, atk);
+      log(`✦ Chân Thực Tân Vũ tăng ${atk} ATK đến hết lượt.`);
+    });
+  });
+
+  // Form Change - swap a HERO Fusion for a same-Level Masked HERO
+  register('DL-form_change', async (n, c, ctx) => {
+    const s = S(n);
+    const sources = targetList(n, (slot, x) => face(slot) && x?.monster_category === 'Dung Hợp' && isHero(x));
+    const options = [];
+    for (const src of sources) {
+      const original = C(src.id);
+      for (const t of choices(s.extraDeck, 'extra')) {
+        const x = C(t.id);
+        if (x?.summon_type !== 'transformation' || !/^Masked HERO /.test(x.name_en || '')) continue;
+        if (x.stars !== original.stars || x.name_en === original.name_en) continue;
+        options.push({ source: src, target: t });
+      }
+    }
+    if (!options.length) return false;
+    const source = await pick(n, 'Biến Đổi Hình Thái: chọn HERO Dung Hợp', [...new Set(options.map(o => o.source))]);
+    if (!source) return false;
+    const target = await pick(n, 'Biến Đổi Hình Thái: chọn Anh Hùng Mặt Nạ cùng Cấp', options.filter(o => o.source === source).map(o => o.target));
+    if (!target) return false;
+    const targetCard = C(target.id);
+    let summoned = null;
+    const done = await fx(n, c, 'fusion', [source], () => {
+      if (!commitSpellSource(n, c, ctx)) return;
+      const entry = E(n).find(e => e.slot === source.slot);
+      if (!entry || !s.extraDeck.includes(target.id)) return;
+      if (entry.extra) s.extra = null;
+      else s.monsters[entry.index] = null;
+      s.extraDeck.push(source.id);
+      s.extraDeck.splice(s.extraDeck.indexOf(target.id), 1);
+      summoned = { ...monsterSlot(target.id), transformationSummoned: true, properlySummoned: true };
+      uid(summoned);
+      s.monsters[entry.extra ? free(n) : entry.index] = summoned;
+      log(`🔄 Biến Đổi Hình Thái: ${C(source.id).name} → ${targetCard.name}.`);
+    }, { title: 'BIẾN ĐỔI HÌNH THÁI', text: targetCard.name, materials: [source.id] });
+    if (done && summoned) await postSummon(n, summoned);
+    return done;
+  });
+
+  // Favorite Hero - Equip to a Level 5+ HERO (stays in the Spell/Trap Zone)
+  register('DL-favorite_hero', async (n, c, ctx) => {
+    const s = S(n);
+    const slotIndex = ctx.fromSet ? ctx.fromSet.index : s.spells.indexOf(null);
+    if (slotIndex < 0) return false;
+    const pool = targetList(n, (slot, x) => face(slot) && isHero(x) && (x.stars || 0) >= 5);
+    if (!pool.length) return false;
+    const t = await pick(n, 'Anh Hùng Tâm Đắc: chọn quái HERO Cấp 5 trở lên', pool);
+    if (!t) return false;
+    return fx(n, c, 'equip', [t], () => {
+      if (!commitSpellSource(n, c, ctx)) return;
+      const gi = s.grave.lastIndexOf(c.id);
+      if (gi < 0) return;
+      s.grave.splice(gi, 1);
+      t.slot.favoriteHero = true;
+      s.spells[slotIndex] = {
+        id: c.id,
+        faceDown: false,
+        equippedTo: uid(t.slot),
+        setRound: duel.round,
+        equipValue: 0
+      };
+      log(`⭐ Anh Hùng Tâm Đắc trang bị cho ${C(t.id).name}.`);
+    });
+  });
 
   // ─────────────────────────────────────────────────────────────
   // 6. ZANE HANDLERS
@@ -1108,6 +1246,7 @@
   window.memeAnime.specialMode = function(n, c) {
     if (!c) return null;
     const s = S(n);
+    if (s.noSpecialRound === duel.round) return null;
     if (c.id === 'DL-blue_eyes_alternative_white_dragon') {
       if (s.hand.includes('AN-blue_eyes_white_dragon') && free(n) >= 0 && s.altSpecialRound !== duel.round) return 'free';
     }

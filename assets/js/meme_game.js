@@ -203,7 +203,16 @@ function startGame(options={}){
   const botHeroId = botHero ? botHero.id : (HEROES.length ? Math.floor(Math.random() * HEROES.length) : 0);
   const botExtras = (preset && window.MEME_EXTRA_PRESETS?.[preset]) ? [...window.MEME_EXTRA_PRESETS[preset]] : defaultExtraDeck();
   duel={player:blankSide(deckList,extraDeckList,chosenHero),enemy:blankSide(ghost?ghost.main:botDeck,ghost?ghost.extra:botExtras,ghost?ghost.heroId:botHeroId),turn:'player',phase:'MAIN1',round:1,normalSummoned:false,mode:null,pending:null,selected:null,logs:[],finished:false};
-  if(ghost)duel.ghostOpponent={uid:ghost.uid,name:ghost.name,main:[...ghost.main],extra:[...ghost.extra],heroId:ghost.heroId};
+  if(ghost){
+    duel.ghostOpponent={uid:ghost.uid,name:ghost.name,main:[...ghost.main],extra:[...ghost.extra],heroId:ghost.heroId};
+    duel.rankChallengeId='offline-'+crypto.randomUUID().replaceAll('-','').slice(0,24);
+    duel.rankChallengeOpponentUid=ghost.uid;
+  }else{
+    const botGroup=(typeof HEROES!=='undefined'&&HEROES[botHeroId]?.group||'kaiba').toLowerCase();
+    duel.rankChallengeId='bot-'+crypto.randomUUID().replaceAll('-','').slice(0,24);
+    duel.rankChallengeOpponentUid='bot-'+botGroup;
+    duel.botOpponent={uid:duel.rankChallengeOpponentUid,name:typeof HEROES!=='undefined'&&HEROES[botHeroId]?.name||'Seto Kaiba'};
+  }
   for(let i=0;i<4;i++){draw('player');draw('enemy');}
   $('lobby').classList.add('hidden');$('duel').classList.remove('hidden');$('duel').classList.remove('match-finished');$('playerName').textContent=HERO_NAMES[chosenHero];$('enemyName').textContent=HEROES[botHeroId]?.name || 'Seto Kaiba';
   duel.openingCoin=window.memeOpening?.create();duel.turn=duel.openingCoin?.first||'player';
@@ -212,6 +221,7 @@ function startGame(options={}){
 function finish(winner,reason=''){
   if(!duel||duel.finished)return;duel.finished=true;duel.winner=winner;duel.finishReason=reason;clearTimeout(aiTimer);
   render();const won=winner==='player',match=duel;
+  window.memeIdDuel?.recordResult?.(match)?.catch?.(e=>console.warn('Rank record error:',e));
   Promise.race([window.memeFx?.whenLpSettles() || Promise.resolve(),new Promise(resolve=>setTimeout(resolve,1200))]).then(()=>{
     if(duel!==match)return;
     $('duel').classList.add('match-finished');

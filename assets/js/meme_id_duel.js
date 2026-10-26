@@ -2,7 +2,7 @@
 (() => {
  if(!document.getElementById('lobby')||!window.siteIdentity)return;
  const identity=window.siteIdentity;let store=null,uid=null,unsub=null,timer=null,saving=null,lastSaved='',pending=null,incoming=null,generation=0,lastDirectory='';
- const stamp=()=>{try{return parent.firebase.firestore.FieldValue.serverTimestamp();}catch{return firebase.firestore.FieldValue.serverTimestamp();}};
+ const stamp=()=>{try{const s=store||identity?.db||window.parent?.siteIdentity?.db;if(s&&typeof firebase!=='undefined'&&firebase.firestore?.FieldValue?.serverTimestamp)return firebase.firestore.FieldValue.serverTimestamp();if(typeof parent!=='undefined'&&parent.firebase?.firestore?.FieldValue?.serverTimestamp)return parent.firebase.firestore.FieldValue.serverTimestamp();if(typeof firebase!=='undefined'&&firebase.firestore?.FieldValue?.serverTimestamp)return firebase.firestore.FieldValue.serverTimestamp();}catch{}return null;};
  const native=v=>{try{return parent.JSON.parse(JSON.stringify(v));}catch{return JSON.parse(JSON.stringify(v));}};
  const stamped=v=>Object.assign(native(v),{lastSeen:stamp()});
  const ms=t=>typeof t?.toMillis==='function'?t.toMillis():typeof t==='string'?Date.parse(t)||0:Number(t)||0;
@@ -26,18 +26,25 @@
     const actions=host.querySelector('.result-actions');if(actions)host.insertBefore(note,actions);else host.appendChild(note);
    }
    async function recordResult(match){
+    const currentUid=uid||identity?.user?.uid||window.parent?.siteIdentity?.user?.uid;
+    const currentStore=store||identity?.db||window.parent?.siteIdentity?.db;
+    const currentIdentity=(identity?.user?identity:(window.parent?.siteIdentity||identity));
     const rawMatchId=match?.rankChallengeId||memeRoom?.challengeId,opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
-    if(!match?.finished||!rawMatchId||!opponentUid||opponentUid===uid||!uid||!store)return null;
+    if(!match?.finished||!rawMatchId||!opponentUid||opponentUid===currentUid||!currentUid||!currentStore)return null;
+    const isBot=String(opponentUid).startsWith('bot-');
     const matchId=String(rawMatchId).slice(0,75);
-    const resultId=matchId+'_'+uid,resultRef=store.doc('rank_challenge_results/'+resultId),mineRef=store.doc('rank_profiles/'+uid),opponentRef=store.doc('rank_profiles/'+opponentUid),directoryRef=store.doc('duel_directory/'+opponentUid);let receipt=null;
-    await store.runTransaction(async tx=>{
-     const [prior,mineSnap,opponentSnap,directorySnap]=await Promise.all([tx.get(resultRef),tx.get(mineRef),tx.get(opponentRef),tx.get(directoryRef)]);
+    const resultId=matchId+'_'+currentUid,resultRef=currentStore.doc('rank_challenge_results/'+resultId),mineRef=currentStore.doc('rank_profiles/'+currentUid);
+    const opponentRef=isBot?null:currentStore.doc('rank_profiles/'+opponentUid),directoryRef=isBot?null:currentStore.doc('duel_directory/'+opponentUid);let receipt=null;
+    await currentStore.runTransaction(async tx=>{
+     const reads=[tx.get(resultRef),tx.get(mineRef)];
+     if(opponentRef&&directoryRef)reads.push(tx.get(opponentRef),tx.get(directoryRef));
+     const [prior,mineSnap,opponentSnap,directorySnap]=await Promise.all(reads);
      if(prior.exists){receipt=prior.data();return;}
-     const mine=mineSnap.exists?mineSnap.data():{},opponent=opponentSnap.exists?opponentSnap.data():{},directory=directorySnap.exists?directorySnap.data():{};
-     const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=Math.max(0,Math.round(Number(opponent.rating)||1000));
+     const mine=mineSnap.exists?mineSnap.data():{},opponent=opponentSnap?.exists?opponentSnap.data():{},directory=directorySnap?.exists?directorySnap.data():{};
+     const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=isBot?1000:Math.max(0,Math.round(Number(opponent.rating)||1000));
      const outcome=match.winner==='draw'?'draw':match.winner==='player'?'win':'loss';
-     const ownCreated=Date.parse(identity.user?.metadata?.creationTime),ownNewbie=Number.isFinite(ownCreated)&&Date.now()<ownCreated+7*86400000;
-     const opponentNewbie=Date.now()<Number(directory.newbieUntil||opponent.newbieUntil||0);
+     const ownCreated=Date.parse(currentIdentity?.user?.metadata?.creationTime),ownNewbie=Number.isFinite(ownCreated)&&Date.now()<ownCreated+7*86400000;
+     const opponentNewbie=isBot?false:(Date.now()<Number(directory.newbieUntil||opponent.newbieUntil||0));
      let delta=0;
      if(outcome!=='draw'){
       const winnerRating=outcome==='win'?rating:opponentRating,loserRating=outcome==='win'?opponentRating:rating;
@@ -46,8 +53,8 @@
      }
      const counts={played:(Number(mine.played)||0)+1,wins:(Number(mine.wins)||0)+(outcome==='win'?1:0),losses:(Number(mine.losses)||0)+(outcome==='loss'?1:0),draws:(Number(mine.draws)||0)+(outcome==='draw'?1:0)};
      const nextRating=Math.max(0,Math.round(rating+delta)),createdUntil=Number.isFinite(ownCreated)?ownCreated+7*86400000:0;
-     const result={uid,matchId,opponentUid,outcome,delta,ratingBefore:rating,ratingAfter:nextRating,createdAt:stamp()};
-     const profile={uid,name:String(identity.user?.displayName||mine.name||'Đấu sĩ').slice(0,48),rating:nextRating,...counts,lastMatchId:matchId,lastSeen:stamp(),...(!mineSnap.exists?{newbieUntil:createdUntil}:{})};
+     const result={uid:currentUid,matchId,opponentUid,outcome,delta,ratingBefore:rating,ratingAfter:nextRating,createdAt:stamp()};
+     const profile={uid:currentUid,name:String(currentIdentity?.user?.displayName||mine.name||'Đấu sĩ').slice(0,48),rating:nextRating,...counts,lastMatchId:matchId,lastSeen:stamp(),...(!mineSnap.exists?{newbieUntil:createdUntil}:{})};
      tx.set(resultRef,result);tx.set(mineRef,profile,{merge:true});receipt={...result,...counts};
     });
     if(receipt){match.rankChallengeResult=receipt;window.siteRank?.refresh?.();updateResultUI(receipt);}

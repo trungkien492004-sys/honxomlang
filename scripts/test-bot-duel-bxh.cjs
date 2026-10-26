@@ -96,6 +96,15 @@ const server = http.createServer((request, response) => {
     assert.ok(documents.has('duel_directory/TestPlayerUid'));
     checks.push('Player profile published to duel_directory');
 
+    // 1.1 Verify Rank Season Promotional announcement modal
+    await frame.waitForSelector('#rankPromoOverlay', { timeout: 5000 });
+    const promoTitle = await frame.evaluate(() => document.getElementById('rankPromoTitle')?.textContent || '');
+    assert.ok(promoTitle.includes('Đấu Trí Đỉnh Cao'), 'Rank promo modal title: ' + promoTitle);
+    await frame.evaluate(() => document.getElementById('promoDismissBtn')?.click());
+    const promoHidden = await frame.evaluate(() => !document.getElementById('rankPromoOverlay'));
+    assert.ok(promoHidden, 'Rank promo modal dismissed on button click');
+    checks.push('Rank Season announcement modal rendered and dismissed cleanly');
+
     // 2. Start game vs bot from "Vào trận"
     const startResult = await frame.evaluate(() => {
       try {

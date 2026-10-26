@@ -228,14 +228,157 @@ const server = http.createServer((req, res) => {
       });
 
       // Test 12: Jaden - Neos Fusion from Deck
-      await test('Jaden: Neos Fusion sends materials from Deck to summon Brave Neos', async () => {
+      await test('Jaden: Neos Fusion sends Neos + Level 4 effect monster to summon Brave Neos and locks Special Summons', async () => {
         duel.player.hand = ['DL-neos_fusion'];
-        duel.player.deck = ['AN-elemental_hero_neos', 'AN-elemental_hero_sparkman'];
+        duel.player.deck = ['AN-elemental_hero_neos', 'DL-elemental_hero_solid_soldier'];
         duel.player.extraDeck = ['DL-elemental_hero_brave_neos'];
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Neos Fusion');
         eq(duel.player.monsters[0].id, 'DL-elemental_hero_brave_neos', 'Brave Neos summoned');
         eq(duel.player.grave.includes('AN-elemental_hero_neos'), true, 'Neos sent to grave');
-        eq(duel.player.grave.includes('AN-elemental_hero_sparkman'), true, 'Sparkman sent to grave');
+        eq(duel.player.grave.includes('DL-elemental_hero_solid_soldier'), true, 'Solid Soldier sent to grave');
+        eq(duel.player.noSpecialRound, duel.round, 'Special Summon locked for the rest of the turn');
+        duel.player.hand = ['AN-elemental_hero_bubbleman'];
+        eq(memeAnime.specialMode('player', card('AN-elemental_hero_bubbleman')), null, 'locked Special Summon blocks Bubbleman');
+      });
+
+      // Test 12b: Neos Fusion ignores Air Neos contact-only procedure
+      await test('Jaden: Neos Fusion can summon contact-fusion Air Neos', async () => {
+        duel.player.hand = ['DL-neos_fusion'];
+        duel.player.deck = ['AN-elemental_hero_neos', 'AN-neo_spacian_air_hummingbird'];
+        duel.player.extraDeck = ['AN-elemental_hero_air_neos'];
+        ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Neos Fusion for Air Neos');
+        eq(duel.player.monsters[0].id, 'AN-elemental_hero_air_neos', 'Air Neos summoned');
+        eq(duel.player.grave.includes('AN-neo_spacian_air_hummingbird'), true, 'Air Hummingbird sent to grave');
+      });
+
+      // Test 12c: Brave Neos material legality
+      await test('Jaden: Brave Neos rejects Normal monsters and accepts a Level 4 effect monster', async () => {
+        duel.player.monsters[0] = monsterSlot('AN-elemental_hero_neos', 'atk');
+        duel.player.monsters[1] = monsterSlot('AN-elemental_hero_sparkman', 'atk');
+        duel.player.hand = ['AN-polymerization'];
+        duel.player.extraDeck = ['DL-elemental_hero_brave_neos'];
+        eq(memeAnime.fusionOptions('player', 'DL-elemental_hero_brave_neos').length, 0, 'Neos + Sparkman rejected');
+        eq(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), false, 'fusion rejected');
+        duel.player.monsters[1] = monsterSlot('DL-elemental_hero_solid_soldier', 'atk');
+        ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'fusion accepted with Solid Soldier');
+        eq(duel.player.monsters.some(s => s?.id === 'DL-elemental_hero_brave_neos'), true, 'Brave Neos summoned');
+      });
+
+      // Test 12d: Brave Neos grave ATK boost
+      await test('Jaden: Brave Neos gains 100 ATK per HERO/Neo-Spacian in the grave', async () => {
+        duel.player.monsters[0] = monsterSlot('DL-elemental_hero_brave_neos', 'atk');
+        duel.player.grave = ['AN-elemental_hero_neos', 'AN-neo_spacian_air_hummingbird', 'AN-polymerization'];
+        eq(memeAnime.tcgCore.stat('player', duel.player.monsters[0]), 2700, '2500 + 100 x 2');
+      });
+
+      // Test 12e: Brave Neos battle search
+      await test('Jaden: Brave Neos searches a Neos Spell after destroying a monster in battle', async () => {
+        duel.player.monsters[0] = monsterSlot('DL-elemental_hero_brave_neos', 'atk');
+        duel.enemy.monsters[0] = monsterSlot('AN-hitotsu_me_giant', 'atk');
+        duel.player.deck = ['DL-neos_fusion', 'AN-polymerization'];
+        ok(await memeAnime.perform(() => memeAnime.battle('player', 0, false, 0)), 'battle resolves');
+        eq(duel.enemy.monsters[0], null, 'defender destroyed');
+        eq(duel.player.hand.includes('DL-neos_fusion'), true, 'Neos Fusion searched');
+      });
+
+      // Test 12f: Sunrise fuses any two HERO monsters with different Attributes
+      await test('Jaden: Sunrise fuses two different-Attribute HERO monsters and searches Miracle Fusion', async () => {
+        duel.player.monsters[0] = monsterSlot('AN-elemental_hero_sparkman', 'atk');
+        duel.player.monsters[1] = monsterSlot('AN-elemental_hero_clayman', 'atk');
+        duel.player.hand = ['AN-polymerization'];
+        duel.player.extraDeck = ['DL-elemental_hero_sunrise'];
+        duel.player.deck = ['AN-miracle_fusion'];
+        ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Polymerization for Sunrise');
+        const sunrise = duel.player.monsters.find(s => s?.id === 'DL-elemental_hero_sunrise');
+        ok(sunrise, 'Sunrise summoned from Sparkman + Clayman');
+        eq(duel.player.grave.includes('AN-elemental_hero_sparkman'), true, 'Sparkman used as material');
+        eq(duel.player.grave.includes('AN-elemental_hero_clayman'), true, 'Clayman used as material');
+        eq(duel.player.hand.includes('AN-miracle_fusion'), true, 'Miracle Fusion searched on Special Summon');
+        eq(card('AN-elemental_hero_sparkman').element, 'Quang', 'Sparkman is LIGHT');
+        eq(card('AN-elemental_hero_clayman').element, 'Địa', 'Clayman is EARTH');
+        eq(memeAnime.tcgCore.stat('player', sunrise), 2700, '2500 + 200 for one Attribute');
+      });
+
+      // Test 12g: Sunrise same-Attribute pair rejected
+      await test('Jaden: Sunrise refuses two HERO monsters of the same Attribute', async () => {
+        duel.player.monsters[0] = monsterSlot('AN-elemental_hero_sparkman', 'atk');
+        duel.player.monsters[1] = monsterSlot('AN-elemental_hero_neos', 'atk');
+        duel.player.hand = ['AN-polymerization'];
+        duel.player.extraDeck = ['DL-elemental_hero_sunrise'];
+        eq(memeAnime.fusionOptions('player', 'DL-elemental_hero_sunrise').length, 0, 'same Attribute pair rejected');
+        eq(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), false, 'fusion rejected');
+        eq(duel.player.extraDeck.includes('DL-elemental_hero_sunrise'), true, 'Sunrise stays in the Extra Deck');
+      });
+
+      // Test 12h: Sunrise attack trigger destroys the defender, attack whiffs
+      await test('Jaden: Sunrise destroys the defender before damage and the attack whiffs', async () => {
+        duel.player.monsters[0] = monsterSlot('DL-elemental_hero_sunrise', 'atk');
+        duel.player.monsters[1] = monsterSlot('AN-elemental_hero_sparkman', 'atk');
+        duel.enemy.monsters[0] = monsterSlot('AN-hitotsu_me_giant', 'atk');
+        ok(await memeAnime.perform(() => memeAnime.battle('player', 1, false, 0)), 'battle resolves');
+        eq(duel.enemy.monsters[0], null, 'Sunrise trigger destroyed the defender');
+        eq(duel.enemy.lp, 4000, 'no battle damage once the target left the field');
+      });
+
+      // Test 12i: Honest Neos discard from hand
+      await test('Jaden: Honest Neos discards itself from hand to give a HERO +2500 ATK', async () => {
+        duel.player.monsters[0] = monsterSlot('AN-elemental_hero_sparkman', 'atk');
+        const spark = duel.player.monsters[0];
+        duel.player.hand = ['DL-elemental_hero_honest_neos'];
+        eq(memeAnime.tcgCore.stat('player', spark), 1600, 'Sparkman base ATK');
+        ok(await memeAnime.perform(() => memeAnime.resolveEffect('player', card('DL-elemental_hero_honest_neos'), { source: null, fromHand: true })), 'activate Honest Neos from hand');
+        eq(duel.player.hand.includes('DL-elemental_hero_honest_neos'), false, 'Honest Neos discarded');
+        eq(duel.player.grave.includes('DL-elemental_hero_honest_neos'), true, 'Honest Neos in grave');
+        eq(memeAnime.tcgCore.stat('player', spark), 4100, '1600 + 2500');
+        duel.player.hand = ['DL-elemental_hero_honest_neos'];
+        eq(await memeAnime.perform(() => memeAnime.resolveEffect('player', card('DL-elemental_hero_honest_neos'), { source: null, fromHand: true })), false, 'hand effect once per turn');
+      });
+
+      // Test 12j: Honest Neos on-field discard mode
+      await test('Jaden: Honest Neos on the field discards a HERO to gain its ATK', async () => {
+        duel.player.monsters[0] = monsterSlot('DL-elemental_hero_honest_neos', 'atk');
+        const honest = duel.player.monsters[0];
+        duel.player.hand = ['AN-elemental_hero_sparkman'];
+        ok(await memeAnime.perform(() => memeAnime.resolveEffect('player', card('DL-elemental_hero_honest_neos'), { source: honest })), 'activate Honest Neos on field');
+        eq(duel.player.grave.includes('AN-elemental_hero_sparkman'), true, 'Sparkman discarded as cost');
+        eq(memeAnime.tcgCore.stat('player', honest), 4100, '2500 + 1600');
+      });
+
+      // Test 12k: Form Change
+      await test('Jaden: Form Change swaps a Level 8 HERO Fusion for Masked HERO Anki', async () => {
+        duel.player.monsters[0] = monsterSlot('AN-elemental_hero_shining_flare_wingman', 'atk');
+        duel.player.hand = ['DL-form_change'];
+        duel.player.extraDeck = ['DL-masked_hero_anki'];
+        ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Form Change');
+        eq(duel.player.monsters[0].id, 'DL-masked_hero_anki', 'Anki summoned');
+        eq(duel.player.monsters[0].transformationSummoned, true, 'counts as a Mask Change Special Summon');
+        eq(duel.player.extraDeck.includes('AN-elemental_hero_shining_flare_wingman'), true, 'original returned to the Extra Deck');
+        eq(duel.player.grave.includes('DL-form_change'), true, 'Form Change in grave');
+      });
+
+      // Test 12l: Favorite Hero equip + protection
+      await test('Jaden: Favorite Hero equips a Level 5+ HERO and grants DEF as ATK with a Field Spell', async () => {
+        duel.player.monsters[0] = monsterSlot('DL-elemental_hero_brave_neos', 'atk');
+        const brave = duel.player.monsters[0];
+        duel.player.hand = ['DL-favorite_hero'];
+        duel.player.field = { id: 'AN-skyscraper' };
+        ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Favorite Hero');
+        const equip = duel.player.spells.find(s => s?.id === 'DL-favorite_hero');
+        ok(equip, 'Favorite Hero stays in the Spell/Trap Zone');
+        eq(equip.equippedTo, brave.uid, 'equipped to Brave Neos');
+        eq(brave.favoriteHero, true, 'favorite flag set');
+        eq(duel.player.grave.includes('DL-favorite_hero'), false, 'spell not sent to grave');
+        eq(memeAnime.tcgCore.stat('player', brave), 4500, '2500 + 2000 DEF');
+        eq(memeAnime.tcgCore.spellTargetAllowed('enemy', card('AN-dark_hole'), { slot: brave, id: brave.id, name: 'player' }), false, 'opponent cannot target it');
+      });
+
+      // Test 12m: Favorite Hero invalid target
+      await test('Jaden: Favorite Hero cannot equip a Level 4 HERO', async () => {
+        duel.player.monsters[0] = monsterSlot('AN-elemental_hero_sparkman', 'atk');
+        duel.player.hand = ['DL-favorite_hero'];
+        eq(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), false, 'activation rejected');
+        eq(duel.player.hand.includes('DL-favorite_hero'), true, 'card remains in hand');
+        eq(duel.player.spells.some(Boolean), false, 'no Spell/Trap placed');
       });
 
       // Test 13: Jaden - A Hero Lives
