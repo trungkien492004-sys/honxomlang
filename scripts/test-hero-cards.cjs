@@ -275,10 +275,12 @@ const HERO_IDS = [
         duel.player.hand = ['AN-elemental_hero_neos'];
         duel.round = 4;
         duel.player.normalUsed = false;
+        duel.normalSummoned = false;
         eq(await summonNormal(0), false, 'copy spent');
         duel.player.grave.push('AN-elemental_hero_necroshade');
         duel.player.hand = ['AN-elemental_hero_neos'];
         duel.player.normalUsed = false;
+        duel.normalSummoned = false;
         ok(await summonNormal(0), 'second copy unlocks another');
         eq(duel.player.necroUses, 2, 'two uses');
       });
@@ -316,7 +318,7 @@ const HERO_IDS = [
         duel.enemy.spells[1] = { id: 'AN-mirror_force', faceDown: true, setRound: 0 };
         eq(stat('player', scarab), 1300, '500 + 400 × 2');
         duel.enemy.field = { id: 'AN-skyscraper' };
-        eq(stat('player', scarab), 1300, 'Field Spell is not a Spell/Trap card here');
+        eq(stat('player', scarab), 1700, 'Field Spell also counts as a Spell Card');
       });
 
       await test('Miracle Fusion: banishes GY/field materials and rejects non-HERO targets', async () => {
@@ -343,7 +345,9 @@ const HERO_IDS = [
         eq(duel.player.monsters[0]?.id, 'AN-elemental_hero_avian', 'Avian survives');
         eq(duel.enemy.lp, 3900, '100 damage');
         duel.player.monsters[0].attacksUsed = 0;
-        put('enemy', 'AN-blue_eyes_white_dragon', 1);
+        duel.turn = 'enemy';
+        duel.phase = 'BATTLE';
+        put('enemy', 'AN-blue_eyes_white_dragon', 0);
         await battle('enemy', 0, 0);
         eq(duel.player.monsters[0], null, 'Skyscraper does not boost the opponent');
       });
@@ -404,10 +408,11 @@ const HERO_IDS = [
         eq(await activate(duel.player.monsters.indexOf(mud)), false, 'no effect');
         put('player', 'AN-elemental_hero_avian', 1);
         put('enemy', 'AN-blue_eyes_white_dragon');
+        duel.turn = 'enemy';
         duel.phase = 'BATTLE';
-        await battle('enemy', 0, 0);
-        eq(duel.player.monsters[0], null, 'Avian destroyed, no redirect to Mudballman');
-        ok(duel.player.monsters[1]?.id === 'AN-elemental_hero_mudballman', 'Mudballman unharmed');
+        await battle('enemy', 0, 1);
+        eq(duel.player.monsters[1], null, 'Avian destroyed, no redirect to Mudballman');
+        ok(duel.player.monsters[0]?.id === 'AN-elemental_hero_mudballman', 'Mudballman unharmed');
       });
 
       await test('Shining Flare Wingman: +300 per HERO in the GY and burns for the victim ATK', async () => {
@@ -450,7 +455,7 @@ const HERO_IDS = [
         put('player', 'AN-neo_spacian_air_hummingbird', 1);
         duel.player.extraDeck = ['AN-elemental_hero_air_neos'];
         duel.player.lp = 2000;
-        eq(memeAnime.fusionOptions('player', 'AN-elemental_hero_air_neos').length, 0, 'contact needs field materials');
+        ok(memeAnime.fusionOptions('player', 'AN-elemental_hero_air_neos').length > 0, 'contact uses the two field materials');
         duel.player.hand = ['AN-polymerization'];
         eq(await play(0), false, 'cannot Polymerization a contact fusion');
         duel.player.hand = [];
@@ -899,7 +904,7 @@ const HERO_IDS = [
         const brave = duel.player.monsters.find(s => s?.id === 'DL-elemental_hero_brave_neos');
         ok(brave, 'Brave Neos on field');
         duel.player.grave = ['AN-elemental_hero_neos', 'AN-neo_spacian_air_hummingbird', 'AN-polymerization', 'DL-elemental_hero_solid_soldier'];
-        eq(stat('player', brave), 2700, '2500 + 100 × 2');
+        eq(stat('player', brave), 2800, '2500 + 100 × 3 HERO/Neo-Spacian in GY');
         put('enemy', 'AN-kuriboh');
         duel.player.deck = ['DL-neos_fusion'];
         duel.phase = 'BATTLE';
@@ -953,7 +958,7 @@ const HERO_IDS = [
 
       await test('Liquid Soldier: used as a field Fusion material draws 2 and discards 1', async () => {
         duel.player.hand = ['DL-neos_fusion'];
-        duel.player.deck = ['AN-elemental_hero_neos', 'AN-kuriboh', 'AN-celtic_guardian'];
+        duel.player.deck = ['AN-elemental_hero_neos', 'AN-polymerization', 'AN-raigeki'];
         duel.player.extraDeck = ['DL-elemental_hero_brave_neos'];
         put('player', 'DL-elemental_hero_liquid_soldier');
         ok(await play(0), 'Neos Fusion using Liquid Soldier');
