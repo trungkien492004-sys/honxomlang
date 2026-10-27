@@ -1562,6 +1562,12 @@
             addAction(actions, '✦ Trang bị (+600 ATK)', () => window.memeAnime.perform(() => equipBlackMetal('player', sel)));
           }
         }
+        if (c.id === 'DL-elemental_hero_honest_neos') {
+          const heroList = targetList('player', (slot, x) => face(slot) && isHero(x));
+          if (heroList.length && ![...actions.querySelectorAll('button')].some(b => b.textContent.includes('+2500 ATK'))) {
+            addAction(actions, '✦ Bỏ từ tay: +2500 ATK cho 1 HERO', () => window.memeAnime.perform(() => handlers.get('DL-elemental_hero_honest_neos')('player', c, { fromHand: true })));
+          }
+        }
       }
 
       // Monster on field inspection
@@ -1571,6 +1577,12 @@
           const reList = targetList('player', (st, x) => face(st) && isRedEyes(x) && st !== slot);
           if (reList.length && ![...actions.querySelectorAll('button')].some(b => b.textContent.includes('Trang bị (+600 ATK)'))) {
             addAction(actions, '✦ Trang bị (+600 ATK)', () => window.memeAnime.perform(() => equipBlackMetal('player', sel)));
+          }
+        }
+        if (slot && face(slot) && slot.id === 'DL-elemental_hero_honest_neos') {
+          const pool = choices(s.hand, 'hand').filter(e => C(e.id)?.card_type === 'Monster' && isHero(C(e.id)));
+          if (pool.length && ![...actions.querySelectorAll('button')].some(b => b.textContent.includes('Tự tăng ATK'))) {
+            addAction(actions, '✦ Bỏ HERO từ tay: Tự tăng ATK', () => window.memeAnime.perform(() => handlers.get('DL-elemental_hero_honest_neos')('player', c, { source: slot })));
           }
         }
       }
