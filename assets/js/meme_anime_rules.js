@@ -399,7 +399,7 @@
   return false;
  }
  function transformationOptions(n,spellId,forcedId=null){const spell=card(spellId),s=S(n);if(!['mask_change','mask_change_ii'].includes(spell?.effect_code))return[];const options=[];for(const source of E(n).map(e=>({...e,id:e.slot.id,name:n,zone:'field'}))){const c=card(source.id);if(!face(source.slot)||!/^Masked HERO /.test(c?.name_en||''))continue;for(const target of choices(s.extraDeck,'extra')){const x=card(target.id);if(x?.summon_type!=='transformation'||x.element!==c.element||forcedId&&x.id!==forcedId)continue;const legal=spell.effect_code==='mask_change_ii'?x.stars===8:x.stars>c.stars&&x.stars<=c.stars+2;if(legal)options.push({source,target});}}return options;}
- async function transform(n,spellId,fromSet=null,forcedId=null){const match=duel,s=S(n),spell=card(spellId);if(duel.turn!==n||!['MAIN1','MAIN2'].includes(duel.phase)||!spell)return false;const ii=spell.effect_code==='mask_change_ii';if(ii&&s.hand.length-(fromSet?0:1)<1)return false;const options=transformationOptions(n,spellId,forcedId),sources=[...new Set(options.map(o=>o.source))];const source=await pick(n,'Biến Đổi: chọn quái Mặt Nạ của bạn',sources);if(!source)return false;const target=await pick(n,'Biến Đổi: chọn quái từ Extra',options.filter(o=>o.source===source).map(o=>o.target));if(!target)return false;
+ async function transform(n,spellId,fromSet=null,forcedId=null){const match=duel,s=S(n),spell=card(spellId);if(duel.turn!==n||!['MAIN1','MAIN2'].includes(duel.phase)||!spell||s.noSpecialRound===duel.round)return false;const ii=spell.effect_code==='mask_change_ii';if(ii&&s.hand.length-(fromSet?0:1)<1)return false;const options=transformationOptions(n,spellId,forcedId),sources=[...new Set(options.map(o=>o.source))];const source=await pick(n,'Biến Đổi: chọn quái Mặt Nạ của bạn',sources);if(!source)return false;const target=await pick(n,'Biến Đổi: chọn quái từ Extra',options.filter(o=>o.source===source).map(o=>o.target));if(!target)return false;
   const spellIndex=fromSet?-1:s.hand.indexOf(spellId),cost=ii?await pick(n,'Biến Đổi II: bỏ 1 lá làm chi phí',choices(s.hand,'hand').filter(e=>e.index!==spellIndex),{cheap:true}):null;if(ii&&!cost||duel!==match||duel.finished)return false;let paid=false;
   await fx(n,spell,'cost',[source],()=>{if(!E(n).some(e=>e.slot===source.slot)||!s.extraDeck.includes(target.id)||!spendSpellSource(n,spellId,fromSet))return;if(cost)takeDiscard(n,cost);paid=remove(n,source,'effect_cost');},{materials:[source.id,...(cost?[cost.id]:[])],text:'Gửi quái Mặt Nạ xuống Mộ để biến đổi.'});if(!paid)return false;
   if(await negateSpell(n,spell))return true;if(duel!==match||duel.finished||!extraOpen(n)||!s.extraDeck.includes(target.id))return true;let summoned;const c=card(target.id);
@@ -501,17 +501,305 @@
  }
  const oldDamage=damage;damage=(n,amount)=>duel?.battleContext?.kuribohBlock===n?0:oldDamage(n,amount);
  // Every interactive entry point goes through the same serialized transaction.
- summon=(index,position='atk')=>{if(!mainPhase()||duel.mode)return;const s=S('player'),c=card(s.hand[index]);if(c?.traits.includes('toon')&&!spellList('player').some(e=>card(e.id).effect_code==='toon_world'))return log('Cần Toon World đang ngửa trên sân.');if(!c||c.card_type!=='Monster'||c.special_only)return log('Dùng điều kiện triệu hồi đặc biệt ghi trên lá.');if(duel.normalSummoned)return log('Đã dùng lượt triệu hồi thường.');const necro=hero(c)&&c.stars>=5&&(s.necroUses||0)<necroCopies('player'),need=necro?0:c.tribute_count??(c.stars>=7?2:c.stars>=5?1:0);if(E('player').filter(e=>!e.slot.noTribute).length<need)return log(`Cần ${need} quái để hiến tế.`);if(need){duel.mode='tribute';duel.pending={index,position,needed:need,chosen:[]};log(`Chọn ${need} quái để hiến tế.`);render();return;}return perform(()=>normalSummon('player',index,position,[]));};
+ function extraSummonProblem(n, id) {
+   if (!duel) return 'Trận đấu chưa bắt đầu.';
+   if (duel.finished) return 'Trận đấu đã kết thúc.';
+   if (duel.turn !== n) return 'Đang là lượt của đối thủ!';
+   if (!['MAIN1','MAIN2'].includes(duel.phase)) return 'Chỉ có thể Triệu hồi ở phase MAIN 1 hoặc MAIN 2!';
+   if (duel.mode) return 'Hãy hoàn tất hoặc bấm Hủy thao tác chọn bài trước!';
+   const s = S(n), c = card(id);
+   if (!c) return 'Không tìm thấy lá bài.';
+   if (s.noSpecialRound === duel.round) {
+     return 'Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!';
+   }
+   if (free(n) < 0 && !extraOpen(n)) {
+     return 'Khu vực quái thú và Extra Zone trên sân đã kín (Tối đa 3 ô + 1 Extra)!';
+   }
+   if (c.summon_type === 'transformation') {
+     const spell = availableFusionSpell(n, id);
+     if (!spell) return 'Cần quái Mặt Nạ phù hợp trên sân và Phép Biến Đổi (Mask Change) trên tay!';
+     return '';
+   }
+   if (c.contact) {
+     const opts = fusionOptions(n, id);
+     if (!opts.length) {
+       const matNames = c.fusion_materials ? c.fusion_materials.map(m => card(m)?.name || m).join(' + ') : 'nguyên liệu phù hợp';
+       return 'Cần đúng nguyên liệu ngửa trên sân để Hợp Thể (' + matNames + ')!';
+     }
+     return '';
+   }
+   const spell = availableFusionSpell(n, id);
+   if (!spell) {
+     const matNames = c.fusion_materials ? c.fusion_materials.map(m => card(m)?.name || m).join(' + ') : 'nguyên liệu phù hợp';
+     return 'Cần Phép Dung Hợp phù hợp trên tay (Dung Hợp / Miracle Fusion / Power Bond) và đủ ' + matNames + '!';
+   }
+   return '';
+ }
+ window.extraSummonProblem = extraSummonProblem;
+
+ function cardSpecialProblem(n, c) {
+   if (!c) return 'Không tìm thấy lá bài.';
+   const s = S(n);
+   if (s.noSpecialRound === duel.round) {
+     return 'Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!';
+   }
+   if (free(n) < 0) {
+     return 'Khu vực quái thú trên sân đã đầy (Tối đa 3 ô trên sân)!';
+   }
+   if (c.traits?.includes('cyber_special')) {
+     if (E(n).length > 0) return 'Cyber Dragon chỉ được gọi đặc biệt khi bạn KHÔNG điều khiển quái thú nào trên sân!';
+     if (!E(other(n)).length) return 'Cyber Dragon chỉ được gọi đặc biệt khi đối thủ CÓ quái thú trên sân!';
+   }
+   if (c.traits?.includes('bubbleman')) {
+     if (s.hand.length !== 1) return 'Bubbleman chỉ được gọi đặc biệt khi đây là LÁ BÀI DUY NHẤT trên tay bạn!';
+     if (s.bubbleSpecialRound === duel.round) return 'Hiệu ứng gọi đặc biệt của Bubbleman chỉ dùng 1 lần mỗi lượt!';
+   }
+   if (c.traits?.includes('valkyrion')) {
+     const needed = ['Alpha The Magnet Warrior', 'Beta The Magnet Warrior', 'Gamma The Magnet Warrior'];
+     const missing = needed.filter(name => !materialPool(n).some(e => e.id === aid(name)));
+     if (missing.length > 0) return 'Cần đủ 3 Chiến Binh Từ Tính (Alpha, Beta, Gamma) trên tay/sân. Còn thiếu: ' + missing.join(', ') + '!';
+   }
+   if (c.traits?.includes('shining_dragon')) {
+     if (!E(n).some(e => e.slot.id === aid('Blue-Eyes Ultimate Dragon'))) {
+       return 'Cần hiến tế Rồng Trắng Mắt Xanh 3 Đầu (Blue-Eyes Ultimate Dragon) trên sân!';
+     }
+   }
+   if (c.id === 'DL-blue_eyes_alternative_white_dragon' || c.traits?.includes('alternative_special')) {
+     if (!s.hand.some(id => aid('Blue-Eyes White Dragon') === id)) {
+       return 'Cần tiết lộ 1 lá Rồng Trắng Mắt Xanh trên tay!';
+     }
+   }
+   return 'Chưa thỏa mãn điều kiện Triệu hồi Đặc biệt ghi trên lá bài.';
+ }
+ window.cardSpecialProblem = cardSpecialProblem;
+
+ function spellProblem(n, c, fromSet = false) {
+   if (!c) return 'Không tìm thấy lá bài.';
+   if (duel.turn !== n) return 'Đang là lượt của đối thủ!';
+   if (!['MAIN1','MAIN2'].includes(duel.phase)) return 'Chỉ kích hoạt Phép trong phase MAIN 1 hoặc MAIN 2!';
+   if (duel.mode) return 'Hãy hoàn tất hoặc bấm Hủy thao tác đang chọn trước!';
+   const s = S(n);
+   const isSpecialSummonSpell = ['fusion_summon','miracle_fusion','power_bond','ritual','mask_change','mask_change_ii','premature','anime_reborn','DL-neos_fusion','DL-relinquished_fusion','DL-cyberload_fusion','DL-red_eyes_fusion','DL-a_hero_lives','DL-silvers_cry','DL-form_change'].includes(c.effect_code || c.id);
+   if (isSpecialSummonSpell && s.noSpecialRound === duel.round) {
+     return 'Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!';
+   }
+   if (['Liên Tục','Trang Bị'].includes(c.spell_category) && !s.spells.includes(null) && !fromSet) {
+     return 'Khu vực Phép/Bẫy đã đầy (Tối đa 3 ô trên sân)!';
+   }
+   if (c.spell_category === 'Trang Bị' && !s.monsters.some(Boolean) && !s.extra) {
+     return 'Cần có quái thú ngửa trên sân để trang bị!';
+   }
+   const modes = {fusion_summon:'fusion', miracle_fusion:'miracle', power_bond:'power'};
+   if (modes[c.effect_code]) {
+     if (free(n) < 0 && !extraOpen(n)) return 'Khu vực quái thú trên sân đã đầy!';
+     if (!fusionCandidates(n, modes[c.effect_code]).length) {
+       if (c.effect_code === 'miracle_fusion') return 'Chưa đủ nguyên liệu Anh Hùng trên Sân hoặc Mộ để Dung Hợp!';
+       if (c.effect_code === 'power_bond') return 'Chưa đủ nguyên liệu Quái Máy trên Tay hoặc Sân để kích hoạt Power Bond!';
+       return 'Chưa đủ nguyên liệu trên Tay hoặc Sân cho bất kỳ quái Dung Hợp nào trong Extra Deck!';
+     }
+   }
+   if (['mask_change','mask_change_ii'].includes(c.effect_code)) {
+     if (c.effect_code === 'mask_change_ii' && s.hand.length < (fromSet ? 1 : 2)) return 'Cần 1 lá bài khác trên tay để bỏ làm chi phí!';
+     if (!transformationOptions(n, c.id).length) return 'Không có quái HERO phù hợp trên sân hoặc quái Mặt Nạ tương ứng trong Extra Deck!';
+   }
+   if (c.effect_code === 'ritual') {
+     if (!choices(s.hand, 'hand').some(e => card(e.id)?.ritual_spell === c.id)) return 'Cần có quái Nghi Lễ tương ứng trên tay!';
+     if (!materialPool(n).filter(e => card(e.id)?.card_type === 'Monster').length) return 'Không đủ quái thú trên tay hoặc sân để tế cho Nghi Lễ!';
+   }
+   if (c.id === 'DL-neos_fusion') {
+     if (free(n) < 0 && !extraOpen(n)) return 'Khu vực quái thú trên sân đã đầy!';
+     const neosFusions = s.extraDeck.filter(id => {
+       const mats = card(id)?.fusion_materials;
+       return mats && mats.some(m => typeof m === 'string' ? (m.includes('neos') || m.includes('Neos')) : (m.name?.includes('Neos')));
+     });
+     if (!neosFusions.length) return 'Không có quái Dung Hợp Tân Vũ (Neos) phù hợp trong Extra Deck!';
+     const hasNeos = s.deck.includes(aid('Elemental HERO Neos')) || s.hand.includes(aid('Elemental HERO Neos')) || E(n).some(e => e.slot.id === aid('Elemental HERO Neos'));
+     if (!hasNeos) return 'Cần Elemental HERO Neos trong Deck, Tay hoặc Sân!';
+   }
+   if (c.id === 'DL-a_hero_lives') {
+     if (E(n).some(e => face(e.slot))) return 'A Hero Lives chỉ dùng khi bạn KHÔNG điều khiển quái thú nào trên sân!';
+     if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
+     if (s.lp <= 1) return 'Không đủ LP để kích hoạt!';
+   }
+   if (c.effect_code === 'premature') {
+     if (s.lp <= 800) return 'Cần ít nhất 800 LP để kích hoạt Chôn Sống!';
+     if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
+     if (!s.grave.some(id => card(id)?.card_type === 'Monster' && !card(id)?.uncollectible)) return 'Không có quái thú hợp lệ trong Mộ để hồi sinh!';
+   }
+   if (c.effect_code === 'anime_reborn') {
+     if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
+     if (![...s.grave, ...S(other(n)).grave].some(id => card(id)?.card_type === 'Monster' && !card(id)?.uncollectible)) return 'Không có quái thú hợp lệ trong Mộ để hồi sinh!';
+   }
+   if (c.id === 'DL-silvers_cry') {
+     if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
+     if (!s.grave.some(id => card(id)?.card_type === 'Monster' && card(id)?.tribe === 'Rồng' && card(id)?.monster_category === 'Thường')) return 'Không có quái Rồng Thường (Normal Dragon) trong Mộ để hồi sinh!';
+   }
+   if (['destroy_spell_target', 'duster', 'dust_tornado'].includes(c.effect_code)) {
+     if (!spellList(other(n)).length) return 'Đối thủ không có lá Phép hoặc Bẫy nào trên sân để phá hủy!';
+   }
+   if (['dark_hole', 'destroy_all_opponent_monsters'].includes(c.effect_code)) {
+     if (!E(other(n)).length) return 'Đối thủ không có quái thú nào trên sân!';
+   }
+   if (c.effect_code === 'control') {
+     if (!E(other(n)).length) return 'Đối thủ không có quái thú nào trên sân để điều khiển!';
+   }
+   if (c.effect_code === 'dark_magic_attack') {
+     if (!E(n).some(e => face(e.slot) && (card(e.slot.id)?.name_en === 'Dark Magician' || card(e.slot.id)?.id === aid('Dark Magician')))) {
+       return 'Cần Phù Thủy Áo Đen (Dark Magician) đang ngửa trên sân!';
+     }
+   }
+   if (c.id === 'DL-cards_of_consonance') {
+     if (!s.hand.some(id => id !== c.id && card(id)?.tribe === 'Rồng' && card(id)?.is_tuner && (card(id)?.atk || 0) <= 1000)) {
+       return 'Cần 1 quái Rồng Tuner có ATK ≤ 1000 trên tay để bỏ làm chi phí!';
+     }
+   }
+   if (c.id === 'DL-the_melody_of_awakening_dragon') {
+     if (s.hand.length < (fromSet ? 1 : 2)) return 'Cần 1 lá bài khác trên tay để bỏ làm chi phí!';
+   }
+   return '';
+ }
+ window.spellProblem = spellProblem;
+
+ function monsterEffectProblem(n, slot, c) {
+   if (!duel) return 'Trận đấu chưa bắt đầu.';
+   if (duel.turn !== n) return 'Đang là lượt của đối thủ!';
+   if (!['MAIN1','MAIN2'].includes(duel.phase)) return 'Chỉ kích hoạt hiệu ứng trong phase MAIN 1 hoặc MAIN 2!';
+   if (duel.mode) return 'Hãy hoàn tất hoặc bấm Hủy thao tác đang chọn trước!';
+   if (!slot) return 'Không tìm thấy quái thú.';
+   if (slot.position === 'def_down') return 'Quái thú đang úp mặt, cần lật lên mới kích hoạt hiệu ứng!';
+   if (slot.effectsNegated || (slot.negatedUntil ?? -1) >= duel.round) return 'Quái thú đang bị vô hiệu hóa hiệu ứng!';
+   if (slot.effectUsedRound === duel.round && (!c.tcg || c.tcg_once !== false)) {
+     return 'Hiệu ứng của quái thú này đã kích hoạt trong lượt này rồi! (Mỗi lượt chỉ dùng 1 lần)';
+   }
+   const s = S(n);
+   const doesSpecialSummon = ['search_gazelle','p3_ocean','DL-elemental_hero_solid_soldier','DL-elemental_hero_liquid_soldier','DL-sage_with_eyes_of_blue','DL-cyber_dragon_core'].includes(c.effect_code || c.id);
+   if (doesSpecialSummon && s.noSpecialRound === duel.round) {
+     return 'Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!';
+   }
+   if (c.effect_code === 'time_wizard' && duel.round === 1) return 'Time Wizard không thể dùng trong lượt đầu!';
+   if (c.effect_code === 'absorb' && !E(other(n)).length) return 'Đối thủ không có quái thú trên sân để hút!';
+   if (c.effect_code === 'discard_destroy' && !s.hand.length) return 'Cần 1 lá bài trên tay để bỏ làm chi phí!';
+   if (c.effect_code === 'thunder_giant' && (!s.hand.length || !E(other(n)).some(e => face(e.slot) && (card(e.slot.id)?.atk || 0) < c.atk))) {
+     return 'Cần 1 lá trên tay và đối thủ có quái ngửa với ATK thấp hơn Thunder Giant (2400)!';
+   }
+   if (c.effect_code === 'aqua_neos' && (!s.hand.length || !S(other(n)).hand.length)) {
+     return 'Cần 1 lá trên tay và đối thủ có ít nhất 1 lá trên tay để phá hủy!';
+   }
+   if (window.memeRules?.canExecute && !window.memeRules.canExecute(n, c)) {
+     return 'Chưa đủ điều kiện kích hoạt hiệu ứng này (thiếu mục tiêu hoặc chi phí)!';
+   }
+   return '';
+ }
+ window.monsterEffectProblem = monsterEffectProblem;
+
+ summon=(index,position='atk')=>{
+   if(!mainPhase()){
+     const msg = duel?.phase === 'BATTLE' ? 'Không thể Triệu hồi trong Phase Chiến Đấu! Hãy quay về Main 2 hoặc sang lượt sau.' : 'Chỉ có thể Triệu hồi ở phase MAIN 1 hoặc MAIN 2.';
+     window.showActionNotice(msg);
+     return log(msg);
+   }
+   if(duel.mode){
+     window.showActionNotice('Hãy hoàn tất hoặc bấm Hủy thao tác chọn bài trước!');
+     return log('Đang trong thao tác chọn bài.');
+   }
+   const s=S('player'),c=card(s.hand[index]);
+   if(!c||c.card_type!=='Monster')return;
+   if(c.special_only){
+     const prob = cardSpecialProblem('player', c);
+     window.showActionNotice(prob, 'Không thể Triệu hồi Thường');
+     return log(prob);
+   }
+   if(c?.traits.includes('toon')&&!spellList('player').some(e=>card(e.id).effect_code==='toon_world')){
+     const msg = 'Cần Toon World đang ngửa trên sân để Triệu hồi Toon!';
+     window.showActionNotice(msg);
+     return log(msg);
+   }
+   if(duel.normalSummoned){
+     const msg = 'Bạn đã triệu hồi thường trong lượt này rồi! (Mỗi lượt chỉ được 1 lần)';
+     window.showActionNotice(msg);
+     return log(msg);
+   }
+   const necro=hero(c)&&c.stars>=5&&(s.necroUses||0)<necroCopies('player'),need=necro?0:c.tribute_count??(c.stars>=7?2:c.stars>=5?1:0);
+   const available = E('player').filter(e=>!e.slot.noTribute).length;
+   if(available<need){
+     const msg = `Cần ${need} quái để hiến tế cho ${c.name} (${c.stars}★)! Hiện chỉ có ${available}.`;
+     window.showActionNotice(msg);
+     return log(msg);
+   }
+   if(free('player')<0 && need === 0){
+     const msg = 'Khu vực quái thú trên sân đã đầy (Tối đa 3 ô trên sân)!';
+     window.showActionNotice(msg);
+     return log(msg);
+   }
+   if(need){duel.mode='tribute';duel.pending={index,position,needed:need,chosen:[]};log(`Chọn ${need} quái để hiến tế cho ${c.name}.`);render();return;}
+   return perform(()=>normalSummon('player',index,position,[]));
+ };
  placeSummon=(index,position,tributes)=>perform(()=>normalSummon('player',index,position,tributes));
  const singleSummon=summon;summon=(index,position='atk')=>{const c=duel&&card(S('player').hand[index]);if(!c||!mainPhase()||duel.mode||c.special_only||duel.normalSummoned)return singleSummon(index,position);const necro=hero(c)&&c.stars>=5&&(S('player').necroUses||0)<necroCopies('player'),need=necro?0:c.tribute_count??(c.stars>=7?2:c.stars>=5?1:0);if(need<=1)return singleSummon(index,position);return perform(async()=>{const picked=await pickMany('player','Chọn '+need+' quái để hiến tế',targetList('player',slot=>!slot.noTribute).filter(e=>!e.extra),{min:need,max:need,cheap:true});return picked?normalSummon('player',index,position,picked.map(e=>e.index)):false;});};
  const originalTribute=chooseTribute;chooseTribute=async index=>{const match=duel,p=duel?.pending,slot=S('player').monsters[index];if(!p||!slot||cancelChoice)return;if(slot.noTribute)return log('Cừu Token không dùng hiến tế.');if(p.chosen.includes(index))return originalTribute(index);const selected=await pick('player','Xác nhận quái hiến tế',[{id:slot.id,slot,index,name:'player',type:'monster'}],{previewIndex:0,text:'Quái này sẽ được dùng làm chi phí triệu hồi.'});if(selected&&duel===match&&duel.pending===p&&S('player').monsters[index]===slot)return originalTribute(index);};
- playSpell=index=>{if(!mainPhase()||duel.mode)return;return perform(()=>playSpellFor('player',index));};
- summonExtra=index=>{if(!mainPhase()||duel.mode)return;const id=S('player').extraDeck[index],c=card(id),spell=availableFusionSpell('player',id);if(!c)return;if(c.summon_type==='transformation'){if(!spell)return log('Cần quái Mặt Nạ và phép Biến Đổi phù hợp.');closeModal();return perform(()=>transform('player',spell,null,id));}if(!c.contact&&!spell)return log('Cần Phép Dung Hợp tương ứng trên tay.');closeModal();return perform(()=>fuse('player',c.contact?null:spell,id,spell&&card(spell).effect_code==='miracle_fusion'?'miracle':spell&&card(spell).effect_code==='power_bond'?'power':'fusion'));};
+ playSpell=index=>{
+   if(!mainPhase()||duel.mode)return;
+   const s=S('player'),c=card(s.hand[index]);
+   const prob=spellProblem('player',c);
+   if(prob){
+     window.showActionNotice(prob, 'Chưa thể kích hoạt');
+     return log(prob);
+   }
+   return perform(()=>playSpellFor('player',index));
+ };
+ summonExtra=index=>{
+   if(!mainPhase()||duel.mode)return;
+   const id=S('player').extraDeck[index],c=card(id);
+   if(!c)return;
+   const prob=extraSummonProblem('player',id);
+   if(prob){
+     window.showActionNotice(prob, 'Chưa thể Triệu hồi');
+     return log(prob);
+   }
+   const spell=availableFusionSpell('player',id);
+   if(c.summon_type==='transformation'){
+     closeModal();
+     return perform(()=>transform('player',spell,null,id));
+   }
+   closeModal();
+   return perform(()=>fuse('player',c.contact?null:spell,id,spell&&card(spell).effect_code==='miracle_fusion'?'miracle':spell&&card(spell).effect_code==='power_bond'?'power':'fusion'));
+ };
  function availableFusionSpell(n,id){if(card(id)?.summon_type==='transformation')return S(n).hand.find(spell=>transformationOptions(n,spell,id).length&&(card(spell).effect_code!=='mask_change_ii'||S(n).hand.length>=2));return S(n).hand.find(x=>{const code=card(x)?.effect_code,mode=code==='miracle_fusion'?'miracle':code==='power_bond'?'power':code==='fusion_summon'?'fusion':null;return mode&&fusionOptions(n,id,mode).length;});}
  synchroOptions=(name,id)=>card(id)?.summon_type==='transformation'?S(name).hand.flatMap(spell=>card(spell)?.effect_code==='mask_change_ii'&&S(name).hand.length<2?[]:transformationOptions(name,spell,id)):card(id)?.contact?fusionOptions(name,id):availableFusionSpell(name,id)?fusionOptions(name,id,card(availableFusionSpell(name,id)).effect_code==='miracle_fusion'?'miracle':card(availableFusionSpell(name,id)).effect_code==='power_bond'?'power':'fusion'):[];
- activateMonsterEffect=(index,extra=false)=>{if(!mainPhase()||duel.mode)return;return perform(()=>activateMonster('player',index,extra));};
- function trapProblem(index){const slot=S('player').spells[index],c=card(slot?.id);if(!slot?.faceDown||c?.card_type!=='Trap')return 'Chọn một Bẫy đang úp.';if(slot.setRound>=duel.round)return 'Bẫy vừa úp: phải chờ sang lượt sau.';if(trapLocked())return 'Jinzo đang vô hiệu Bẫy.';if(!['dust_tornado','haunted','waboku'].includes(c.effect_code))return 'Bẫy phản đòn: tự kích hoạt khi đúng điều kiện.';if(c.effect_code==='dust_tornado'&&!spellList('enemy').length)return 'Đối thủ chưa có Phép/Bẫy trên sân.';if(c.effect_code==='haunted'&&(free('player')<0||!S('player').grave.some(id=>card(id)?.card_type==='Monster'&&!card(id).uncollectible)))return 'Cần ô quái trống và quái trong Mộ.';return '';}
- activateTrap=index=>{if(!canAct()||duel.mode)return;const problem=trapProblem(index);if(problem){log(problem);render();return;}return perform(async()=>{const slot=S('player').spells[index],c=card(slot.id),entry={slot,index,id:slot.id,c,name:'player',type:'spell'};const target=c.effect_code==='dust_tornado'?await dustTarget('player'):c.effect_code==='haunted'?await hauntedTarget('player'):null;if(c.effect_code!=='waboku'&&!target)return false;return trapUse('player',entry,target?.slot?[target]:[],()=>{if(c.effect_code==='dust_tornado')clearSpell(target.name,target.index);else if(c.effect_code==='waboku')S('player').battleShieldRound=duel.round;else{const revived=revive('player','player',target.id,c.revival_position||'def');if(revived)deathQueue.push(()=>postSummon('player',revived));}});});};
+ activateMonsterEffect=(index,extra=false)=>{
+   if(!mainPhase()||duel.mode)return;
+   const slot=extra?S('player').extra:S('player').monsters[index],c=card(slot?.id);
+   const prob=monsterEffectProblem('player',slot,c);
+   if(prob){
+     window.showActionNotice(prob, 'Chưa thể kích hoạt');
+     return log(prob);
+   }
+   return perform(()=>activateMonster('player',index,extra));
+ };
+ function trapProblem(index){
+   const slot=S('player').spells[index],c=card(slot?.id);
+   if(!slot?.faceDown||c?.card_type!=='Trap')return 'Chọn một Bẫy đang úp.';
+   if(slot.setRound>=duel.round)return 'Bẫy vừa úp trong lượt này: phải chờ sang lượt sau mới kích hoạt được!';
+   if(trapLocked())return 'Jinzo đang vô hiệu Bẫy trên sân!';
+   if(['haunted','DL-magician_navigation','DL-eternal_soul','DL-red_eyes_spirit','DL-return_of_the_red_eyes'].includes(c.effect_code||c.id) && S('player').noSpecialRound===duel.round){
+     return 'Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!';
+   }
+   if(!['dust_tornado','haunted','waboku'].includes(c.effect_code))return 'Bẫy phản đòn: tự động kích hoạt khi đối thủ tấn công hoặc đủ điều kiện.';
+   if(c.effect_code==='dust_tornado'&&!spellList('enemy').length)return 'Đối thủ chưa có Phép/Bẫy trên sân để phá hủy.';
+   if(c.effect_code==='haunted'&&(free('player')<0||!S('player').grave.some(id=>card(id)?.card_type==='Monster'&&!card(id).uncollectible)))return 'Cần ô quái trống trên sân và quái hợp lệ trong Mộ.';
+   return '';
+ }
+ activateTrap=index=>{
+   if(!canAct()||duel.mode)return;
+   const problem=trapProblem(index);
+   if(problem){
+     window.showActionNotice(problem, 'Chưa thể lật Bẫy');
+     log(problem);
+     render();
+     return;
+   }
+   return perform(async()=>{const slot=S('player').spells[index],c=card(slot.id),entry={slot,index,id:slot.id,c,name:'player',type:'spell'};const target=c.effect_code==='dust_tornado'?await dustTarget('player'):c.effect_code==='haunted'?await hauntedTarget('player'):null;if(c.effect_code!=='waboku'&&!target)return false;return trapUse('player',entry,target?.slot?[target]:[],()=>{if(c.effect_code==='dust_tornado')clearSpell(target.name,target.index);else if(c.effect_code==='waboku')S('player').battleShieldRound=duel.round;else{const revived=revive('player','player',target.id,c.revival_position||'def');if(revived)deathQueue.push(()=>postSummon('player',revived));}});});
+ };
  effect=(name,c,ctx={})=>{if(busy){deathQueue.push(()=>resolveEffect(name,c,ctx));return;}return perform(()=>resolveEffect(name,c,ctx));};
  declareAttack=(index,extra=false)=>{if(!canAct()||duel.phase!=='BATTLE'||duel.mode)return;const slot=extra?S('player').extra:S('player').monsters[index];if(!canAttack(slot))return;duel.pending={index,isExtra:extra};duel.mode='attack';if(!E('enemy').length)return resolveAttack(null);render();};
  resolveAttack=async(targetIndex,targetExtra=false)=>{const p=duel?.pending;if(!p||!canAct()&&duel.turn==='player'||busy||cancelChoice)return;const target=targetExtra?S('enemy').extra:targetIndex!=null?S('enemy').monsters[targetIndex]:null;if((targetExtra||targetIndex!=null)&&!target)return false;return perform(()=>battle(duel.turn,p.index,p.isExtra,targetIndex,targetExtra));};
@@ -543,8 +831,16 @@
  renderHeroRoster();document.querySelector('.hero-heading .eyebrow').textContent='DM / GX · NHÂN VẬT ANIME';document.querySelector('.hero-heading h1').textContent='Chọn huyền thoại của bạn';document.querySelector('.hero-heading p').textContent=HEROES.length+' đấu sĩ · Kỹ năng riêng · '+Object.keys(MEME_DECK_PRESETS).length+' bộ bài';
  const inspector=renderInspector;renderInspector=()=>{inspector();const sel=duel?.selected;if(!sel||sel.name!=='player'||duel.mode||!mainPhase())return;const s=S('player'),id=sel.type==='hand'?s.hand[sel.index]:sel.type==='monster'?s.monsters[sel.index]?.id:sel.type==='extra'?s.extra?.id:s.spells[sel.index]?.id,c=card(id),actions=$('inspectActions');if(!c||!actions)return;
   if(sel.type==='hand'&&c.card_type==='Monster'){
-   if(c.special_only){actions.innerHTML='';if(c.ritual_spell)addAction(actions,'🕯 Dùng Nghi Lễ trên tay',()=>{const i=s.hand.indexOf(c.ritual_spell);if(i>=0)playSpell(i);else log('Cần '+card(c.ritual_spell).name+' trên tay.');});}
-   if(specialMode('player',c))addAction(actions,'✦ Triệu hồi đặc biệt',()=>perform(()=>specialSummon('player',sel.index)));
+   if(c.special_only){
+     actions.innerHTML='';
+     if(c.ritual_spell)addAction(actions,'🕯 Dùng Nghi Lễ trên tay',()=>{const i=s.hand.indexOf(c.ritual_spell);if(i>=0)playSpell(i);else {const msg='Cần '+card(c.ritual_spell).name+' trên tay.';window.showActionNotice(msg);log(msg);}});
+   }
+   if(specialMode('player',c)){
+     addAction(actions,'✦ Triệu hồi đặc biệt',()=>perform(()=>specialSummon('player',sel.index)));
+   } else if(c.special_only || c.traits?.some(t => ['cyber_special','bubbleman','valkyrion','shining_dragon'].includes(t)) || c.id === 'DL-blue_eyes_alternative_white_dragon'){
+     const prob = cardSpecialProblem('player', c);
+     addAction(actions,'✦ Triệu hồi đặc biệt',()=>window.showActionNotice(prob, 'Chưa thể Triệu hồi ĐB'), true);
+   }
    if(c.hand_action)addAction(actions,'✦ Hiệu ứng từ tay',()=>perform(()=>resolveEffect('player',c,{source:null,fromHand:true})));
   }
   if(['monster','extra'].includes(sel.type)){

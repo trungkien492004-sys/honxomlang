@@ -116,7 +116,14 @@
   // Silver's Cry - Revive Normal Dragon
   register('DL-silvers_cry', async (n, c, ctx) => {
     const s = S(n);
-    if (free(n) < 0) return false;
+    if (s.noSpecialRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      return false;
+    }
+    if (free(n) < 0) {
+      if (n === 'player') window.showActionNotice?.('Khu vực quái thú trên sân đã đầy!', 'Hết ô trống');
+      return false;
+    }
     const targets = choices(s.grave, 'grave').filter(e => {
       const x = C(e.id);
       return x?.tribe === 'Rồng' && (x.monster_category === 'Thường' || x.id === 'DL-dragon_spirit_of_white' || x.id === 'AN-blue_eyes_white_dragon' || x.traits?.includes('blue_eyes_name'));
@@ -270,7 +277,14 @@
   // Magician Navigation
   register('DL-magician_navigation', async (n, c, ctx) => {
     const s = S(n);
-    if (free(n) < 0) return false;
+    if (s.noSpecialRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      return false;
+    }
+    if (free(n) < 0) {
+      if (n === 'player') window.showActionNotice?.('Khu vực quái thú trên sân đã đầy!', 'Hết ô trống');
+      return false;
+    }
     const dmInHand = choices(s.hand, 'hand').filter(e => e.id === 'AN-dark_magician');
     if (!dmInHand.length) return false;
     const dmPick = await pick(n, 'Điều Hướng: chọn Phù Thủy Áo Đen từ tay để gọi', dmInHand);
@@ -428,6 +442,10 @@
   // Red-Eyes Fusion - Fusion Summon from Hand, Field or DECK with material choice!
   register('DL-red_eyes_fusion', async (n, c, ctx) => {
     const s = S(n);
+    if (s.noSpecialRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      return false;
+    }
     const fusions = choices(s.extraDeck, 'extra').filter(e => ['DL-red_eyes_slash_dragon', 'AN-black_skull_dragon'].includes(e.id));
     if (!fusions.length || !extraOpen(n)) return false;
     const fusionTarget = await pick(n, 'Dung Hợp Mắt Đỏ: chọn quái Extra', fusions);
@@ -773,6 +791,10 @@
   // Relinquished Fusion - materials from hand, field or GY (GY materials are banished)
   register('DL-relinquished_fusion', async (n, c, ctx) => {
     const s = S(n);
+    if (s.noSpecialRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      return false;
+    }
     const fusions = choices(s.extraDeck, 'extra').filter(e => ['DL-millennium_eyes_restrict', 'AN-thousand_eyes_restrict'].includes(e.id));
     if (!fusions.length || !extraOpen(n)) return false;
     const target = await pick(n, 'Dung Hợp Quỷ Hy Sinh: chọn quái Extra', fusions);
@@ -852,8 +874,15 @@
   });
   register('DL-neos_fusion', async (n, c, ctx) => {
     const s = S(n);
+    if (s.noSpecialRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      return false;
+    }
     const fusions = neosFusionTargets(s);
-    if (!fusions.length) return false;
+    if (!fusions.length) {
+      if (n === 'player') window.showActionNotice?.('Không có quái Dung Hợp Tân Vũ (Neos) phù hợp trong Extra Deck!', 'Thiếu mục tiêu');
+      return false;
+    }
     const target = await pick(n, 'Dung Hợp Tân Vũ: chọn quái Dung Hợp ghi Tân Vũ', fusions);
     if (!target) return false;
     const tc = C(target.id), mats = tc.fusion_materials.slice();
@@ -910,7 +939,18 @@
   // A Hero Lives - Pay half LP, Special Summon level 4 Elemental HERO from Deck
   register('DL-a_hero_lives', async (n, c, ctx) => {
     const s = S(n);
-    if (E(n).some(e => face(e.slot)) || free(n) < 0) return false;
+    if (s.noSpecialRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      return false;
+    }
+    if (E(n).some(e => face(e.slot))) {
+      if (n === 'player') window.showActionNotice?.('A Hero Lives chỉ dùng khi bạn KHÔNG điều khiển quái thú nào trên sân!', 'Điều kiện không thỏa');
+      return false;
+    }
+    if (free(n) < 0) {
+      if (n === 'player') window.showActionNotice?.('Khu vực quái thú trên sân đã đầy!', 'Hết ô trống');
+      return false;
+    }
     const heros = choices(s.deck, 'deck').filter(e => {
       const x = C(e.id);
       return /^Elemental HERO /.test(x?.name_en || '') && x.stars <= 4 && x.card_type === 'Monster' && !x.special_only;
@@ -1089,6 +1129,10 @@
   // Form Change - swap a HERO Fusion for a same-Level Masked HERO
   register('DL-form_change', async (n, c, ctx) => {
     const s = S(n);
+    if (s.noSpecialRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      return false;
+    }
     const sources = targetList(n, (slot, x) => face(slot) && x?.monster_category === 'Dung Hợp' && isHero(x));
     const options = [];
     for (const src of sources) {
@@ -1194,6 +1238,10 @@
   // Cyberload Fusion - Shuffle materials from Field/Banished into Deck
   register('DL-cyberload_fusion', async (n, c, ctx) => {
     const s = S(n);
+    if (s.noSpecialRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      return false;
+    }
     const listsCyberDragon = x => {
       const mats = Array.isArray(x?.fusion_materials) ? x.fusion_materials : [];
       return mats.includes('AN-cyber_dragon') || x?.flex_machine;

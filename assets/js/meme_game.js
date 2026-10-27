@@ -193,7 +193,7 @@ window.showEffectNotice = function({ cardId, title, text, owner = 'player', icon
   banner.onclick = dismiss;
   const closeBtn = banner.querySelector('.effect-banner-close');
   if (closeBtn) closeBtn.onclick = (e) => { e.stopPropagation(); dismiss(); };
-  const readDuration = 4000;
+  const readDuration = 2500;
   timer = setTimeout(dismiss, readDuration);
 };
 window.attackProblem = function(slot) {
@@ -783,7 +783,7 @@ function renderInspector(){
   host.innerHTML=`${artHTML(id,'inspect-art-wrap')}<h3 class="inspect-name">${esc(c.name)}</h3><div class="inspect-meta">${kind}</div>${c.card_type==='Monster'?`<div class="inspect-stats">⚔️ ATK ${effectiveAtk(sel.name,slot||{id})} · 🛡️ DEF ${effectiveDef(sel.name,slot||{id})}</div>`:''}<p class="inspect-description">${esc(c.description)}</p>${info?`<a class="inspect-source" href="${esc(info.source)}" target="_blank" rel="noopener">Ảnh: ${esc(info.creator)} · ${esc(info.license.toUpperCase())}</a>`:''}<div class="inspect-actions" id="inspectActions"></div>`;
   const wrap=host.querySelector('.inspect-art-wrap');if(c.art_tile==null){wrap.style.background=`linear-gradient(145deg,${c.art?.c1||'#42616e'},${c.art?.c2||'#1a2938'})`;wrap.innerHTML=`<span>${esc(c.art?.emoji||'🃏')}</span>${art(id)?`<img src="${esc(art(id))}" alt="${esc(c.name)}" referrerpolicy="no-referrer" onerror="this.remove()">`:''}`;}
   wrap.setAttribute('role','button');wrap.setAttribute('tabindex','0');wrap.setAttribute('aria-label',`Xem đầy đủ lá ${c.name}`);
-  const showCardDetails=()=>showModal(`<h2>${esc(c.name)}</h2><div class="detail-card-art">${artHTML(id,'inspect-art-wrap')}</div><p>${kind}</p>${c.card_type==='Monster'?`<p>⚔️ ATK ${effectiveAtk(sel.name,slot||{id})} · 🛡️ DEF ${effectiveDef(sel.name,slot||{id})}</p>`:''}<p>${esc(c.description)}</p>${info?`<a class="inspect-source" href="${esc(info.source)}" target="_blank" rel="noopener">Ảnh: ${esc(info.creator)} · ${esc(info.license.toUpperCase())}</a>`:''}`);
+  const showCardDetails=()=>showModal(`<h2>${esc(c.name)}</h2><div class="detail-card-art">${artHTML(id,'inspect-art-wrap')}</div><p class="card-meta-line">${kind}${c.card_type==='Monster'?` · ⚔️ ATK ${effectiveAtk(sel.name,slot||{id})} · 🛡️ DEF ${effectiveDef(sel.name,slot||{id})}`:''}</p><p class="card-desc-line">${esc(c.description)}</p>${info?`<a class="inspect-source" href="${esc(info.source)}" target="_blank" rel="noopener">Ảnh: ${esc(info.creator)} · ${esc(info.license.toUpperCase())}</a>`:''}`);
   wrap.addEventListener('click',showCardDetails);wrap.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showCardDetails();}});
   const actions=$('inspectActions');if(!canAct()||sel.name!=='player'||duel.mode)return;
   if(sel.type==='hand'&&mainPhase()){
@@ -797,7 +797,11 @@ function renderInspector(){
     else addAction(actions,'🔴 Úp Bẫy',()=>setTrap(sel.index));
   }
   if((sel.type==='monster'||sel.type==='extra')&&slot){
-    if(mainPhase()&&slot.position!=='def_down'&&(c.effect_trigger==='activated'||c.is_boss)&&(slot.effectUsedRound!==duel.round||c.tcg&&c.tcg_once===false)&&window.memeRules?.canExecute('player',c))addAction(actions,'✦ Kích hoạt hiệu ứng',()=>activateMonsterEffect(sel.index,sel.type==='extra'));
+    if(mainPhase()&&(c.effect_trigger==='activated'||c.is_boss)){
+      const effectProblem = typeof window.monsterEffectProblem === 'function' ? window.monsterEffectProblem('player', slot, c) : (slot.position==='def_down'?'Quái thú đang úp mặt!':slot.effectUsedRound===duel.round&&(!c.tcg||c.tcg_once!==false)?'Hiệu ứng đã dùng trong lượt này!':!window.memeRules?.canExecute('player',c)?'Chưa đủ điều kiện kích hoạt!':null);
+      if(!effectProblem) addAction(actions,'✦ Kích hoạt hiệu ứng',()=>activateMonsterEffect(sel.index,sel.type==='extra'));
+      else addAction(actions,'✦ Kích hoạt hiệu ứng',()=>window.showActionNotice(effectProblem,'Chưa thể kích hoạt'),true);
+    }
     if(mainPhase()&&slot.summonedRound<duel.round){addAction(actions,slot.position==='atk'?'🛡️ Đổi thế thủ':'⚔️ Đổi thế công',()=>{slot.position=slot.position==='atk'?'def':'atk';log(`🔄 ${c.name} đổi tư thế.`);render();},true);}
   }
   if(slot&&mainPhase()&&window.arcana200?.enabled(slot)&&c.family==='spell'&&(slot.spellCounters||0)>=2)addAction(actions,'✦ Dùng 2 dấu Chú: rút 1',()=>window.arcana200.spendCounters(sel));
@@ -868,8 +872,13 @@ function renderPile(){
   if(!list.length){$('pileCards').innerHTML='<p class="pile-empty">Chưa có lá bài.</p>';return;}
   list.forEach((id,index)=>{const c=card(id);if(!c)return;const item=document.createElement('article');item.className='pile-card';item.dataset.cardId=id;
     item.innerHTML=`<button class="pile-preview">${artHTML(id,'pile-art')}<span><b>${esc(c.name)}</b><small>${extra?'EXTRA · ':''}${c.is_tuner?'TUNER · ':''}${c.card_type==='Monster'?`★${c.stars} · ${c.atk}/${c.def}`:esc(c.spell_category||c.trap_category)}</small></span></button>`;
-    item.querySelector('button').onclick=()=>{showModal(`<h2>${esc(c.name)}</h2><div class="library-detail-art">${artHTML(id,'inspect-art-wrap')}</div><p>${esc(c.monster_category||c.spell_category||c.trap_category)}${c.card_type==='Monster'?` · ★${c.stars} · ATK ${c.atk} / DEF ${c.def}`:''}</p><p>${esc(c.description)}</p><button id="backToPile" class="secondary-btn">← ${extra?'Extra Deck':'Mộ'}</button>`);$('backToPile').onclick=renderPile;};
-    if(extra){const ready=mainPhase()&&!duel.mode&&synchroOptions('player',id).length>0;const button=addAction(item,ready?(c.summon_type==='transformation'?'◈ Biến Đổi':c.contact?'🌀 Hợp thể từ sân':'🌀 Dung Hợp'):'Cần đúng nguyên liệu / Phép phù hợp',()=>summonExtra(index),!ready);button.disabled=!ready;}
+    item.querySelector('button').onclick=()=>{showModal(`<h2>${esc(c.name)}</h2><div class="library-detail-art">${artHTML(id,'inspect-art-wrap')}</div><p class="card-meta-line">${esc(c.monster_category||c.spell_category||c.trap_category)}${c.card_type==='Monster'?` · ★${c.stars} · ATK ${c.atk} / DEF ${c.def}`:''}</p><p class="card-desc-line">${esc(c.description)}</p><button id="backToPile" class="secondary-btn">← ${extra?'Extra Deck':'Mộ'}</button>`);$('backToPile').onclick=renderPile;};
+    if(extra){
+      const prob = typeof window.extraSummonProblem === 'function' ? window.extraSummonProblem('player', id) : (!synchroOptions('player',id).length ? 'Cần đúng nguyên liệu / Phép phù hợp' : null);
+      const ready = !prob && mainPhase() && !duel.mode;
+      const label = ready ? (c.summon_type==='transformation'?'◈ Biến Đổi':c.contact?'🌀 Hợp thể từ sân':'🌀 Dung Hợp') : (prob && prob.includes('cấm') ? '⛔ Bị cấm Triệu hồi' : '🌀 Chưa đủ điều kiện ⓘ');
+      addAction(item, label, ()=>summonExtra(index), !ready);
+    }
     $('pileCards').appendChild(item);
   });
 }

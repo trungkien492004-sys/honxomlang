@@ -52,7 +52,7 @@
 .field-slot.fx-land{animation:memeLand .36s ease-out}
 .field-slot.fx-destroy{animation:memeDestroy .5s ease-in forwards}
 .board-frame.fx-impact{animation:memeImpact .22s ease-out}
-.modal{z-index:20}
+.modal{z-index:1000}
 .duel.match-finished:after{content:'';position:absolute;inset:0;z-index:9;background:#0612239c;pointer-events:none;animation:memeBanner .7s ease-out both}
 .duel.match-finished .modal-card{box-shadow:0 0 45px #f3cf7f70,0 20px 40px #000b}
 @keyframes memeTargetPulse{50%{filter:brightness(1.2);box-shadow:0 0 20px #89edff}}

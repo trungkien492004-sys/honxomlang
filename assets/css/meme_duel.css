@@ -6,4 +6,12 @@
 .limit-badge.limit-1{background:radial-gradient(circle at 35% 35%,#ef4444,#991b1b)}
 .limit-badge.limit-2{background:radial-gradient(circle at 35% 35%,#f59e0b,#b45309)}
 .limit-badge.limit-0{background:radial-gradient(circle at 35% 35%,#6b7280,#1f2937)}
+.modal{position:fixed;z-index:10000;inset:0;background:#041d32bd;display:flex;align-items:center;justify-content:center;padding:clamp(8px,2vh,18px);box-sizing:border-box}
+.modal-card{position:relative;width:min(430px,100%);max-height:calc(100dvh - 24px);max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:20px 18px;border:3px solid #f9dca1;border-radius:22px;background:linear-gradient(150deg,#275c78,#0d304f);box-shadow:0 12px 0 #062237,0 20px 40px #0009;text-align:center;display:flex;flex-direction:column}
+.modal-card h2{font-family:'Baloo 2';font-size:clamp(18px,4.5vw,26px);line-height:1.2;margin:0 0 8px;color:#ffdc8d;flex-shrink:0}
+.modal-card p{line-height:1.45;font-weight:700;font-size:13px;margin:4px 0 8px;color:#f1f5f9;word-break:break-word}
+.modal-card .card-meta-line{font-size:12px;font-weight:800;color:#93efff;margin:2px 0 6px}
+.modal-card .card-desc-line{text-align:left;background:rgba(4,23,40,0.6);border:1px solid rgba(249,220,161,0.25);border-radius:10px;padding:9px 12px;font-size:12.5px;line-height:1.5;color:#e8f0f8;max-height:175px;overflow-y:auto;margin:4px 0 8px;word-break:break-word}
+.modal-card .secondary-btn,.modal-card .primary-btn{flex-shrink:0;margin-top:8px;align-self:center}
+
 

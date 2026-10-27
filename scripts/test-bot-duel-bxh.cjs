@@ -59,7 +59,8 @@ const server = http.createServer((request, response) => {
           limit() { return this; },
           async get() {
             const rows = await listDb(key);
-            return { empty: !rows.length, docs: rows.map(d => ({ id: d.id, data: () => d.data })) };
+            const docs = rows.map(d => ({ id: d.id, data: () => d.data }));
+            return { empty: !docs.length, docs, forEach: callback => docs.forEach(callback) };
           },
           where: (field, op, value) => ({ onSnapshot(callback) { const entry = { key, field, value, callback }; subscriptions.push(entry); return () => subscriptions.splice(subscriptions.indexOf(entry), 1); } })
         })
@@ -195,6 +196,28 @@ const server = http.createServer((request, response) => {
     const mmClosed = await frame.evaluate(() => !document.getElementById('rankMatchOverlay'));
     assert.ok(mmClosed, 'Matchmaking cancelled cleanly on user request');
     checks.push('Quick Matchmaking 15s modal verified and cancelled cleanly');
+
+    // 8. Quick match must actually dispatch an online invite (and cancel it).
+    const api = await frame.evaluate(() => ({ invite: typeof memeIdDuel.invite, cancelInvite: typeof memeIdDuel.cancelInvite, challenge: typeof memeIdDuel.challenge }));
+    assert.deepEqual(api, { invite: 'function', cancelInvite: 'function', challenge: 'function' }, 'Rank API must expose invite/cancelInvite/challenge');
+    const mine = documents.get('duel_players/TestPlayerUid');
+    documents.set('duel_directory/OtherUid', { uid: 'OtherUid', name: 'Đối thủ Online', newbieUntil: 0, online: true, lastSeen: Date.now(), updatedAt: Date.now() });
+    documents.set('duel_players/OtherUid', { ...mine, uid: 'OtherUid', name: 'Đối thủ Online', networkId: 'OtherNetId', online: true, busy: false, lastSeen: Date.now() });
+    await frame.evaluate(() => {
+      window.__invited = []; window.__cancelled = 0;
+      memeIdDuel.invite = player => { window.__invited.push({ uid: player.uid, name: player.name }); return Promise.resolve('invited'); };
+      memeIdDuel.cancelInvite = async () => { window.__cancelled += 1; };
+    });
+    await frame.evaluate(() => siteRank.find());
+    await frame.waitForSelector('#rankMatchOverlay', { timeout: 5000 });
+    for (let i = 0; i < 40 && !(await frame.evaluate(() => window.__invited.length)); i++) await new Promise(r => setTimeout(r, 100));
+    const invited = await frame.evaluate(() => window.__invited);
+    assert.equal(invited.length, 1, 'Quick match invites exactly one online candidate');
+    assert.equal(invited[0].uid, 'OtherUid', 'Invite targets the online directory candidate: ' + JSON.stringify(invited));
+    await frame.evaluate(() => document.getElementById('rankMatchCancelBtn')?.click());
+    assert.equal(await frame.evaluate(() => window.__cancelled), 1, 'Cancelling matchmaking cancels the pending invite');
+    assert.equal(await frame.evaluate(() => !document.getElementById('rankMatchOverlay')), true, 'Matchmaking overlay removed after cancel');
+    checks.push('Quick match sends an online invite and cancels it cleanly');
 
     console.log('Bot duel BXH tests:', checks.length, 'checks passed.');
   } finally {
