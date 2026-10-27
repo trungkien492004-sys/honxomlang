@@ -310,14 +310,16 @@ const server = http.createServer((req, res) => {
         eq(duel.player.extraDeck.includes('DL-elemental_hero_sunrise'), true, 'Sunrise stays in the Extra Deck');
       });
 
-      // Test 12h: Sunrise attack trigger destroys the defender, attack whiffs
-      await test('Jaden: Sunrise destroys the defender before damage and the attack whiffs', async () => {
+      // Test 12h: Sunrise attack trigger destroys the defender, then a replay is offered
+      await test('Jaden: Sunrise destroys the defender before damage, forcing a replay', async () => {
         duel.player.monsters[0] = monsterSlot('DL-elemental_hero_sunrise', 'atk');
         duel.player.monsters[1] = monsterSlot('AN-elemental_hero_sparkman', 'atk');
         duel.enemy.monsters[0] = monsterSlot('AN-hitotsu_me_giant', 'atk');
-        ok(await memeAnime.perform(() => memeAnime.battle('player', 1, false, 0)), 'battle resolves');
+        eq(await memeAnime.perform(() => memeAnime.battle('player', 1, false, 0)), false, 'attack aborts into a replay');
         eq(duel.enemy.monsters[0], null, 'Sunrise trigger destroyed the defender');
         eq(duel.enemy.lp, 4000, 'no battle damage once the target left the field');
+        eq(duel.player.monsters[1].attacksUsed || 0, 0, 'attacker keeps its attack so it can pick a new target');
+        eq(duel.pending, null, 'replay clears the pending attack');
       });
 
       // Test 12i: Honest Neos discard from hand

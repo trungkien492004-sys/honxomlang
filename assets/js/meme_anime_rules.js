@@ -586,7 +586,7 @@
    if (['Liên Tục','Trang Bị'].includes(c.spell_category) && !s.spells.includes(null) && !fromSet) {
      return 'Khu vực Phép/Bẫy đã đầy (Tối đa 3 ô trên sân)!';
    }
-   if (c.spell_category === 'Trang Bị' && !s.monsters.some(Boolean) && !s.extra) {
+   if (c.spell_category === 'Trang Bị' && c.effect_code !== 'premature' && !s.monsters.some(Boolean) && !s.extra) {
      return 'Cần có quái thú ngửa trên sân để trang bị!';
    }
    const modes = {fusion_summon:'fusion', miracle_fusion:'miracle', power_bond:'power'};
@@ -707,7 +707,8 @@
    if(c.special_only){
      const prob = cardSpecialProblem('player', c);
      window.showActionNotice(prob, 'Không thể Triệu hồi Thường');
-     return log(prob);
+     log(prob);
+     return false;
    }
    if(c?.traits.includes('toon')&&!spellList('player').some(e=>card(e.id).effect_code==='toon_world')){
      const msg = 'Cần Toon World đang ngửa trên sân để Triệu hồi Toon!';
@@ -743,7 +744,8 @@
    const prob=spellProblem('player',c);
    if(prob){
      window.showActionNotice(prob, 'Chưa thể kích hoạt');
-     return log(prob);
+     log(prob);
+     return false;
    }
    return perform(()=>playSpellFor('player',index));
  };
@@ -754,7 +756,8 @@
    const prob=extraSummonProblem('player',id);
    if(prob){
      window.showActionNotice(prob, 'Chưa thể Triệu hồi');
-     return log(prob);
+     log(prob);
+     return false;
    }
    const spell=availableFusionSpell('player',id);
    if(c.summon_type==='transformation'){
@@ -772,7 +775,8 @@
    const prob=monsterEffectProblem('player',slot,c);
    if(prob){
      window.showActionNotice(prob, 'Chưa thể kích hoạt');
-     return log(prob);
+     log(prob);
+     return false;
    }
    return perform(()=>activateMonster('player',index,extra));
  };
