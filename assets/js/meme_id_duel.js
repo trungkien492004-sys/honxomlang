@@ -9,7 +9,7 @@
       if(store?.constructor?.FieldValue?.serverTimestamp)return store.constructor.FieldValue.serverTimestamp();
       if(identity?.db?.constructor?.FieldValue?.serverTimestamp)return identity.db.constructor.FieldValue.serverTimestamp();
     }catch{}
-    return null;
+    return new Date();
   };
  const native=v=>{try{return parent.JSON.parse(JSON.stringify(v));}catch{return JSON.parse(JSON.stringify(v));}};
  const stamped=v=>Object.assign(native(v),{lastSeen:stamp()});
@@ -32,7 +32,20 @@
     const note=document.createElement('p');note.className='rank-challenge-result';
     if(receipt.unauthenticated){
       note.style.color='#f59e0b';note.style.fontWeight='bold';
-      note.textContent='⚠️ Bạn chưa đăng nhập Google — Điểm Rank không được tích lũy vào Bảng Xếp Hạng. Hãy đăng nhập từ sảnh chính!';
+      note.innerHTML='⚠️ Bạn chưa đăng nhập Google — Điểm Elo chưa được lưu lên BXH.<br><button type="button" class="primary-btn" id="postMatchLoginBtn" style="background:linear-gradient(135deg,#f59e0b,#d97706);margin-top:8px;font-size:0.95rem;cursor:pointer;">🔑 Đăng nhập Google để lưu Elo trận này</button>';
+      setTimeout(()=>{
+        const btn=document.getElementById('postMatchLoginBtn');
+        if(btn)btn.onclick=async()=>{
+          btn.disabled=true;btn.textContent='Đang mở đăng nhập...';
+          try{
+            await (window.siteIdentity?.login?.()||window.parent?.siteIdentity?.login?.());
+            btn.textContent='Đang lưu Elo...';
+            if(duel)delete duel._recordResultPromise;
+            const res=await recordResult(duel);
+            if(res&&!res.unauthenticated)updateResultUI(res);
+          }catch(err){btn.disabled=false;btn.textContent='Thử đăng nhập lại';}
+        };
+      },50);
     }else if(receipt.error){
       note.style.color='#ef4444';
       note.textContent=`⚠️ Chưa đồng bộ BXH: ${receipt.error}`;

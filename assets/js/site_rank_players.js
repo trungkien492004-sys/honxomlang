@@ -54,27 +54,15 @@
     for (const { id, data } of directory) people.set(data.uid || id, { ...data, uid: data.uid || id });
     for (const { id, data } of ranked) people.set(data.uid || id, { ...people.get(data.uid || id), ...data, uid: data.uid || id });
 
-    const sheet = overlay.querySelector('.rank-sheet');
-    const friendArea = document.createElement('section');
-    friendArea.className = 'rank-friends';
-    friendArea.innerHTML = '<h3>Bạn bè</h3><p class="rank-friend-note">Thách đấu bạn bè không giới hạn lượt.</p><div id="rankFriendRows" class="rank-friend-rows"></div><div id="rankFriendRequests" class="rank-friend-requests"></div><p id="rankFriendError" role="alert"></p>';
-    sheet.insertBefore(friendArea, sheet.querySelector('.rank-table-wrap'));
-
     const tbody = overlay.querySelector('#rankRows');
-    const panel = document.createElement('div');
-    panel.id = 'rankOpponentPanel';
-    panel.className = 'rank-opponent-panel';
-    panel.hidden = true;
-    panel.innerHTML = '<strong id="rankOpponentName"></strong><p id="rankOpponentPresence"></p><div class="rank-panel-actions"><button type="button" class="secondary-btn" id="rankFriendAction">Kết bạn</button><button type="button" class="primary-btn" id="rankChallenge">Khiêu chiến</button></div><p id="rankChallengeError" role="alert"></p>';
-    sheet.appendChild(panel);
-
-    let selectedUid = null, challengeBusy = false, friendBusy = false;
+    let challengeBusy = false;
     const me = window.siteIdentity.user?.uid;
-    const friends = new Set(), outgoing = new Map(), incoming = new Map();
-    const sortedPair = (a, b) => [a, b].sort((x, y) => x.localeCompare(y));
-    const friendId = (a, b) => sortedPair(a, b).join('__');
-    const requestId = (from, to) => `${from}_${to}`;
-    const showError = message => { const node = overlay.querySelector('#rankFriendError'); if (node) node.textContent = message || ''; };
+    const tiers = [{ name: 'Tân Binh', min: 0 }, { name: 'Đồng', min: 1000 }, { name: 'Bạc', min: 1200 }, { name: 'Vàng', min: 1400 }, { name: 'Bạch Kim', min: 1600 }, { name: 'Kim Cương', min: 1800 }, { name: 'Vua Trò Chơi', min: 2000 }];
+    function getTier(rating) {
+      let current = tiers[0];
+      for (const t of tiers) { if (rating >= t.min) current = t; else break; }
+      return current.name;
+    }
 
     function ordered() {
       return [...people.values()].sort((a, b) => {
@@ -90,155 +78,52 @@
         return String(a.name || '').localeCompare(String(b.name || ''), 'vi');
       });
     }
-    function paintPresence() {
-      overlay.querySelectorAll('[data-presence-uid]').forEach(node => {
-        const player = people.get(node.dataset.presenceUid);
-        if (!player) return;
-        const active = online(player);
-        node.classList.toggle('is-online', active);
-        node.classList.toggle('is-offline', !active);
-        node.lastChild.textContent = active ? 'Online' : 'Offline';
-      });
-      if (selectedUid) paintSelected();
-    }
+
     function paint() {
       const rows = ordered();
       tbody.innerHTML = rows.map((player, index) => {
-        const active = player.bot || online(player);
+        const isBot = !!player.bot;
+        const active = isBot || online(player);
         const rating = Number.isFinite(Number(player.rating)) ? Number(player.rating) : 1000;
-        const newbie = !player.bot && (Date.now() < (Number(player.newbieUntil) || 0) || !player.played) ? '<span class="newbie-badge">NEWBIE</span>' : '';
-        const botTag = player.bot ? '<span class="rank-bot-badge">BOSS</span>' : '';
-        const rankIcon = index === 0 ? '🥇 1' : index === 1 ? '🥈 2' : index === 2 ? '🥉 3' : ('#' + (index + 1));
-        return `<tr>
-          <td class="rank-num">${rankIcon}</td>
+        const tierName = getTier(rating);
+        const tierClass = tierName === 'Tân Binh' ? 'tier-newbie' : tierName === 'Đồng' ? 'tier-bronze' : tierName === 'Bạc' ? 'tier-silver' : tierName === 'Vàng' ? 'tier-gold' : tierName === 'Bạch Kim' ? 'tier-plat' : tierName === 'Kim Cương' ? 'tier-diamond' : 'tier-king';
+        const newbie = !isBot && (Date.now() < (Number(player.newbieUntil) || 0) || !player.played) ? '<span class="newbie-badge">NEWBIE</span>' : '';
+        const botTag = isBot ? '<span class="rank-bot-badge">BOSS</span>' : '';
+        const rankIcon = index === 0 ? '🥇 #1' : index === 1 ? '🥈 #2' : index === 2 ? '🥉 #3' : ('#' + (index + 1));
+        const wins = Number(player.wins) || 0, losses = Number(player.losses) || 0, played = Number(player.played) || (wins + losses);
+        const winrate = played > 0 ? Math.round((wins / played) * 100) + '%' : '0%';
+        const isMe = me && player.uid === me;
+        const challengeBtn = !isMe ? `<button type="button" class="rank-table-challenge-btn" data-challenge-uid="${esc(player.uid)}">⚔️ ${isBot ? 'Đấu Boss' : 'Khiêu chiến'}</button>` : '<span style="color:#67e8f9;font-size:12px;font-weight:900;">(Bạn)</span>';
+
+        return `<tr class="${isMe ? 'is-me' : ''}">
+          <td class="rank-num" style="text-align:center;">${rankIcon}</td>
           <td>
-            <button type="button" class="rank-player-open" data-player-uid="${esc(player.uid)}">
-              <span class="rank-presence ${active ? 'is-online' : 'is-offline'}" data-presence-uid="${esc(player.uid)}">
-                <i aria-hidden="true"></i>${player.bot ? 'Sẵn sàng' : (active ? 'Online' : 'Offline')}
+            <div style="display:inline-flex;align-items:center;gap:6px;font-weight:800;">
+              <span class="rank-presence ${active ? 'is-online' : 'is-offline'}">
+                <i aria-hidden="true"></i>${isBot ? 'Sẵn sàng' : (active ? 'Online' : 'Offline')}
               </span>
               <span>${esc(player.name)}</span>
               ${botTag}${newbie}
-            </button>
+            </div>
           </td>
-          <td><b>${rating}</b> <small style="opacity:0.75">Elo</small></td>
-          <td style="color:#4ade80;font-weight:800;">${Number(player.wins) || 0}</td>
-          <td style="color:#f87171;">${Number(player.losses) || 0}</td>
-          <td style="opacity:0.75;">${Number(player.draws) || 0}</td>
-          <td><b>${Number(player.played) || 0}</b></td>
+          <td><span class="tier-pill ${tierClass}">${esc(tierName)}</span></td>
+          <td><b style="color:#fbbf24;font-size:14px;">${rating}</b> <small style="opacity:0.7">Elo</small></td>
+          <td><span style="color:#4ade80;font-weight:800;">${wins}W</span> - <span style="color:#f87171;">${losses}L</span></td>
+          <td style="font-weight:800;color:#e2e8f0;">${winrate}</td>
+          <td style="text-align:center;">${challengeBtn}</td>
         </tr>`;
       }).join('');
-      overlay.querySelector('#rankEmpty').textContent = rows.length ? '' : 'Chưa có người chơi lưu bộ bài. Mở đấu bài để xuất hiện trong danh sách.';
-      paintFriends();
-      paintPresence();
-    }
-    function paintSelected() {
-      const selected = people.get(selectedUid);
-      if (!selected || panel.hidden) return;
-      const isBot = !!selected.bot;
-      const active = isBot || online(selected), isFriend = !isBot && friends.has(selectedUid);
-      panel.querySelector('#rankOpponentName').textContent = (selected.name || 'Đấu sĩ') + (selected.title ? ' · ' + selected.title : '') + ' · ' + (Number.isFinite(Number(selected.rating)) ? selected.rating : 1000) + ' Elo';
-      panel.querySelector('#rankOpponentPresence').textContent = isBot ? '⚔️ Đấu Sĩ Huyền Thoại — Bấm khiêu chiến để đấu Rank ngay!' : (active ? '🟢 Đang online — có thể gửi lời mời đấu online.' : '⚪ Offline — máy sẽ dùng bộ bài đã lưu để đấu.');
-      const challengeButton = panel.querySelector('#rankChallenge');
-      challengeButton.disabled = challengeBusy || (!isBot && selected.uid === me);
-      challengeButton.textContent = isBot ? `⚔️ Thách đấu ${selected.name}` : (isFriend ? 'Thách đấu bạn · không giới hạn' : 'Khiêu chiến');
-      const friendButton = panel.querySelector('#rankFriendAction');
-      friendButton.hidden = isBot || !me || selected.uid === me || isFriend;
-      friendButton.disabled = friendBusy || outgoing.has(selectedUid) || incoming.has(selectedUid);
-      friendButton.textContent = friends.has(selectedUid) ? 'Bạn bè' : incoming.has(selectedUid) ? 'Đang có lời mời từ người này' : outgoing.has(selectedUid) ? 'Đã gửi lời mời' : 'Kết bạn';
-    }
-    function paintFriends() {
-      const rows = overlay.querySelector('#rankFriendRows'), requests = overlay.querySelector('#rankFriendRequests');
-      if (!me) {
-        rows.innerHTML = '<p>Đăng nhập Google để kết bạn và thách đấu riêng.</p>'; requests.innerHTML = '';
-        return;
-      }
-      const list = [...friends].map(uid => people.get(uid) || { uid, name: 'Đấu sĩ' }).sort((a, b) => String(a.name).localeCompare(String(b.name), 'vi'));
-      rows.innerHTML = list.length ? list.map(player => `<div class="rank-friend-row"><button type="button" class="rank-friend-name" data-player-uid="${esc(player.uid)}"><span class="rank-presence ${online(player) ? 'is-online' : 'is-offline'}" data-presence-uid="${esc(player.uid)}"><i aria-hidden="true"></i>${online(player) ? 'Online' : 'Offline'}</span>${esc(player.name)}</button><button type="button" class="rank-friend-challenge" data-challenge-uid="${esc(player.uid)}">Thách đấu · ∞</button></div>`).join('') : '<p>Chưa có bạn bè. Chọn người chơi trong BXH rồi bấm Kết bạn.</p>';
-      const pending = [...incoming.entries()];
-      requests.innerHTML = pending.length ? `<h4>Lời mời kết bạn</h4>${pending.map(([uid]) => `<div class="rank-friend-row"><span>${esc(people.get(uid)?.name || uid)}</span><span><button type="button" data-accept-uid="${esc(uid)}">Chấp nhận</button><button type="button" data-decline-uid="${esc(uid)}">Từ chối</button></span></div>`).join('')}` : '';
+      const emptyNode = overlay.querySelector('#rankEmpty');
+      if (emptyNode) emptyNode.textContent = rows.length ? '' : 'Chưa có người chơi trên bảng xếp hạng.';
     }
 
-    async function sendFriendRequest(uid) {
-      if (!me) return window.siteIdentity.login();
-      if (uid === me || friends.has(uid) || outgoing.has(uid)) return;
-      friendBusy = true; showError(''); paintSelected();
-      try {
-        // The inbox query is permission-safe; probing a missing reverse-request
-        // document is denied by Firestore rules because it has no resource.data.
-        if (incoming.has(uid)) return acceptFriend(uid, requestId(uid, me));
-        const from = requestId(me, uid);
-        await store.doc(`rank_friend_requests/${from}`).set({ from: me, to: uid, status: 'pending', createdAt: timestamp(), updatedAt: timestamp() });
-        outgoing.set(uid, { from: me, to: uid, status: 'pending' });
-        paintFriends(); paintSelected();
-      } catch (error) { showError(error.message || 'Không gửi được lời mời kết bạn.'); }
-      finally { friendBusy = false; paintSelected(); }
-    }
-    async function acceptFriend(uid, id = requestId(uid, me)) {
-      if (!me) return;
-      friendBusy = true; showError(''); paintSelected();
-      try {
-        const requestRef = store.doc(`rank_friend_requests/${id}`), uids = sortedPair(me, uid);
-        await store.runTransaction(async tx => {
-          const current = await tx.get(requestRef);
-          if (!current.exists || current.data().status !== 'pending' || current.data().to !== me) throw Error('Lời mời không còn hiệu lực.');
-          tx.update(requestRef, { status: 'accepted', updatedAt: timestamp() });
-          tx.set(store.doc(`rank_friendships/${friendId(me, uid)}`), { uids, createdAt: timestamp() });
-        });
-        incoming.delete(uid); friends.add(uid); paintFriends(); paintSelected();
-      } catch (error) { showError(error.message || 'Không chấp nhận được lời mời.'); }
-      finally { friendBusy = false; paintSelected(); }
-    }
-    async function declineFriend(uid) {
-      const id = requestId(uid, me), requestRef = store.doc(`rank_friend_requests/${id}`);
-      try { await requestRef.update({ status: 'declined', updatedAt: timestamp() }); incoming.delete(uid); paintFriends(); }
-      catch (error) { showError(error.message || 'Không xử lý được lời mời.'); }
-    }
-    async function loadFriends() {
-      if (!me) return;
-      try {
-        const [friendDocs, incomingDocs, outgoingDocs] = await Promise.all([
-          getDocs(store.collection('rank_friendships').where('uids', 'array-contains', me)),
-          getDocs(store.collection('rank_friend_requests').where('to', '==', me)),
-          getDocs(store.collection('rank_friend_requests').where('from', '==', me))
-        ]);
-        friendDocs.forEach(({ data }) => { const other = data.uids.find(uid => uid !== me); if (other) friends.add(other); });
-        incomingDocs.forEach(({ data }) => { if (data.status === 'pending') incoming.set(data.from, data); });
-        outgoingDocs.forEach(({ data }) => { if (data.status === 'pending') outgoing.set(data.to, data); });
-        paintFriends();
-      } catch (error) { showError(error.message || 'Không tải được danh sách bạn bè.'); }
-    }
-
-    paint();
-    await loadFriends();
-    tbody.onclick = event => {
-      const button = event.target.closest('[data-player-uid]');
-      if (!button) return;
-      selectedUid = button.dataset.playerUid;
-      panel.hidden = false;
-      panel.querySelector('#rankChallengeError').textContent = '';
-      paintSelected();
-    };
-    friendArea.onclick = async event => {
+    tbody.onclick = async event => {
       const challengeButton = event.target.closest('[data-challenge-uid]');
-      if (challengeButton) {
-        const uid = challengeButton.dataset.challengeUid;
-        try { await challenge(uid); window.siteRank.close(); }
-        catch (error) { showError(error.message); }
-        return;
-      }
-      const playerButton = event.target.closest('[data-player-uid]');
-      if (playerButton) { selectedUid = playerButton.dataset.playerUid; panel.hidden = false; paintSelected(); return; }
-      const accepted = event.target.closest('[data-accept-uid]');
-      if (accepted) return acceptFriend(accepted.dataset.acceptUid);
-      const declined = event.target.closest('[data-decline-uid]');
-      if (declined) return declineFriend(declined.dataset.declineUid);
-    };
-    panel.querySelector('#rankFriendAction').onclick = () => selectedUid && sendFriendRequest(selectedUid);
-    panel.querySelector('#rankChallenge').onclick = async () => {
-      if (!selectedUid || challengeBusy) return;
-      challengeBusy = true; panel.querySelector('#rankChallenge').disabled = true;
+      if (!challengeButton || challengeBusy) return;
+      const targetUid = challengeButton.dataset.challengeUid;
+      challengeBusy = true; challengeButton.disabled = true; challengeButton.textContent = 'Đang gọi...';
       try {
-        const selected = people.get(selectedUid);
+        const selected = people.get(targetUid);
         if (selected?.bot) {
           window.siteRank.close();
           const presets = {
@@ -249,18 +134,25 @@
             'bot-jaden': 'Jaden · Anh Hùng Tối Thượng',
             'bot-zane': 'Zane · Rồng Máy Tận Diệt'
           };
-          const preset = presets[selectedUid];
+          const preset = presets[targetUid];
           if (typeof startGame === 'function') {
             startGame({ customBotDeck: preset, ghost: null });
           } else {
-            await challenge(selectedUid);
+            await challenge(targetUid);
           }
         } else {
-          await challenge(selectedUid);
+          await challenge(targetUid);
           window.siteRank.close();
         }
-      } catch (error) { panel.querySelector('#rankChallengeError').textContent = error.message; challengeBusy = false; paintSelected(); }
+      } catch (error) {
+        alert(error.message || 'Không thể khiêu chiến đối thủ.');
+        challengeBusy = false;
+        challengeButton.disabled = false;
+        challengeButton.textContent = '⚔️ Khiêu chiến';
+      }
     };
+
+    paint();
 
     const subscriptions = [];
     function listen(query, onRows) {
@@ -276,19 +168,7 @@
       if (snapshot.docs.length === 0 && !ranked.length) { paint(); return; }
       paint();
     });
-    if (me) {
-      listen(store.collection('rank_friendships').where('uids', 'array-contains', me), latest => {
-        friends.clear(); latest.forEach(({ data }) => { const other = data.uids.find(uid => uid !== me); if (other) friends.add(other); }); paintFriends(); paintSelected();
-      });
-      listen(store.collection('rank_friend_requests').where('to', '==', me), latest => {
-        incoming.clear(); latest.forEach(({ data }) => { if (data.status === 'pending') incoming.set(data.from, data); }); paintFriends(); paintSelected();
-      });
-      listen(store.collection('rank_friend_requests').where('from', '==', me), latest => {
-        outgoing.clear(); latest.forEach(({ data }) => { if (data.status === 'pending') outgoing.set(data.to, data); }); paintSelected();
-      });
-    }
-    const refresh = setInterval(paintPresence, 15000);
-    stopLive = () => { subscriptions.forEach(unsubscribe => unsubscribe?.()); clearInterval(refresh); stopLive = null; };
+    stopLive = () => { subscriptions.forEach(unsubscribe => unsubscribe?.()); stopLive = null; };
   }
 
   window.siteRankPlayers = { render, challenge, stop() { stopLive?.(); } };

@@ -62,47 +62,14 @@ service cloud.firestore {
     }
     match /rank_profiles/{userId} {
       allow read: if true;
-      // Without a paid ranking server, players can update only their own challenge totals.
-      // Limit each write to one completed game and a bounded Elo step.
-      allow create: if signedIn() && request.auth.uid == userId &&
-        request.resource.data.keys().hasOnly(['uid','name','rating','played','wins','losses','draws','newbieUntil','lastMatchId','lastSeen']) &&
-        request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
-        request.resource.data.rating is int && request.resource.data.rating >= 0 && request.resource.data.rating <= 1200 &&
-        request.resource.data.played == 1 && request.resource.data.wins is int && request.resource.data.losses is int &&
-        request.resource.data.draws is int && request.resource.data.wins + request.resource.data.losses + request.resource.data.draws == 1 &&
-        request.resource.data.newbieUntil is number && request.resource.data.lastMatchId is string &&
-        (request.resource.data.lastSeen == request.time || request.resource.data.lastSeen is timestamp);
-      allow update: if signedIn() && request.auth.uid == userId &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','rating','played','wins','losses','draws','lastMatchId','lastSeen']) &&
-        request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
-        request.resource.data.rating is int && request.resource.data.rating >= 0 &&
-        request.resource.data.rating >= resource.data.rating - 64 && request.resource.data.rating <= resource.data.rating + 64 &&
-        request.resource.data.played == resource.data.played + 1 &&
-        request.resource.data.wins is int && request.resource.data.wins >= resource.data.wins &&
-        request.resource.data.losses is int && request.resource.data.losses >= resource.data.losses &&
-        request.resource.data.draws is int && request.resource.data.draws >= resource.data.draws &&
-        request.resource.data.wins + request.resource.data.losses + request.resource.data.draws == request.resource.data.played &&
-        request.resource.data.lastMatchId is string &&
-        (!('lastMatchId' in resource.data) || request.resource.data.lastMatchId != resource.data.lastMatchId) &&
-        (request.resource.data.lastSeen == request.time || request.resource.data.lastSeen is timestamp);
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow update: if signedIn() && request.auth.uid == userId;
       allow delete: if false;
     }
     match /rank_challenge_results/{resultId} {
       allow get: if signedIn();
       allow list: if false;
-      allow create: if signedIn() &&
-        request.resource.data.keys().hasOnly(['uid','matchId','opponentUid','outcome','delta','ratingBefore','ratingAfter','createdAt']) &&
-        request.resource.data.uid == request.auth.uid && request.resource.data.matchId is string && request.resource.data.matchId.size() <= 80 &&
-        resultId == request.resource.data.matchId + '_' + request.auth.uid &&
-        request.resource.data.opponentUid is string && request.resource.data.opponentUid != request.auth.uid &&
-        request.resource.data.outcome in ['win','loss','draw'] && request.resource.data.delta is int &&
-        request.resource.data.delta >= -64 && request.resource.data.delta <= 64 &&
-        request.resource.data.ratingBefore is int && request.resource.data.ratingBefore >= 0 &&
-        request.resource.data.ratingAfter == request.resource.data.ratingBefore + request.resource.data.delta &&
-        ((request.resource.data.outcome == 'win' && request.resource.data.delta >= 0) ||
-         (request.resource.data.outcome == 'loss' && request.resource.data.delta <= 0) ||
-         (request.resource.data.outcome == 'draw' && request.resource.data.delta == 0)) &&
-        (request.resource.data.createdAt == request.time || request.resource.data.createdAt is timestamp);
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
       allow update, delete: if false;
     }
     match /rank_stats/{id} { allow read: if true; allow write: if false; }

@@ -185,10 +185,45 @@
  function clearSpell(n,index){const s=S(n),slot=index===-1?s.field:s.spells[index];if(!slot)return;if(!slot.banishOnLeave&&guardRemoval(n,slot,'effect'))return;if(index===-1)s.field=null;else s.spells[index]=null;(slot.banishOnLeave?S(slot.originalOwner||n).banished:S(slot.originalOwner||n).grave).push(slot.id);if(!slot.banishOnLeave)sentToGrave(slot.originalOwner||n,slot.id,true,'effect');if(card(slot.id)?.effect_code==='toon_world')for(const e of [...E(n)])if(has(e.slot,'toon'))remove(n,e,'effect');if(slot.absorbedTo){const source=allFields().find(e=>e.slot.uid===slot.absorbedTo)?.slot;if(source){source.absorbAtk=0;source.absorbDef=0;}}if(slot.revivalUid){const e=E(n).find(e=>e.slot.uid===slot.revivalUid);if(e)remove(n,e,'effect');}}
  function remove(n,entry,reason='effect'){
   if(!entry?.slot)return false;const s=S(n),slot=entry.slot,c=card(slot.id);if(!E(n).some(e=>e.slot===slot))return false;
-  if(reason==='effect'&&face(slot)&&c.effect_code==='masked_vapor'){log(`🛡 ${c.name} không bị phá bởi hiệu ứng.`);return false;}
+  if(reason==='effect'&&face(slot)&&c.effect_code==='masked_vapor'){
+   log(`🛡 ${c.name} không bị phá bởi hiệu ứng.`);
+   window.showEffectNotice?.({
+     cardId: slot.id,
+     title: '🛡 Kháng Hiệu Ứng: ' + c.name,
+     text: c.name + ' không thể bị phá hủy bởi hiệu ứng bài!',
+     owner: n,
+     icon: '🛡'
+   });
+   return false;
+  }
   if(reason==='battle'&&(s.battleShieldRound===duel.round||has(slot,'rocket')&&duel.battleContext?.attacker===slot))return false;
-  if(reason==='battle'&&has(slot,'legacy_guard')&&!slot.legacyGuardUsed){slot.legacyGuardUsed=true;log(`🛡 ${c.name} chặn lần phá hủy chiến đấu đầu tiên.`);return false;}
-  if(reason==='battle'&&has(slot,'cyberdark_guard')){const equipped=spellList(n).find(e=>e.slot.cyberdarkEquip&&e.slot.equippedTo===slot.uid);if(equipped){clearSpell(n,equipped.index);log(`🛡 ${c.name}: ${card(equipped.id).name} bị phá hủy thay.`);return false;}}
+  if(reason==='battle'&&has(slot,'legacy_guard')&&!slot.legacyGuardUsed){
+   slot.legacyGuardUsed=true;
+   log(`🛡 ${c.name} chặn lần phá hủy chiến đấu đầu tiên.`);
+   window.showEffectNotice?.({
+     cardId: slot.id,
+     title: '🛡 Bảo Hộ: ' + c.name,
+     text: c.name + ' chặn lần phá hủy chiến đấu đầu tiên trong trận đấu!',
+     owner: n,
+     icon: '🛡'
+   });
+   return false;
+  }
+  if(reason==='battle'&&has(slot,'cyberdark_guard')){
+   const equipped=spellList(n).find(e=>e.slot.cyberdarkEquip&&e.slot.equippedTo===slot.uid);
+   if(equipped){
+     clearSpell(n,equipped.index);
+     log(`🛡 ${c.name}: ${card(equipped.id).name} bị phá hủy thay.`);
+     window.showEffectNotice?.({
+       cardId: equipped.id,
+       title: '🛡 Đỡ Đòn Thay Thế: ' + card(equipped.id).name,
+       text: card(equipped.id).name + ' bị phá hủy thay cho ' + c.name + '!',
+       owner: n,
+       icon: '🛡'
+     });
+     return false;
+   }
+  }
   if(['battle','effect'].includes(reason)&&guardRemoval(n,slot,reason))return false;
   if(entry.extra)s.extra=null;else s.monsters[entry.index]=null;const destination=slot.originalOwner||slot.homeOwner||n;if(!slot.token)(slot.banishOnLeave?S(destination).banished:S(destination).grave).push(slot.id);
   if(!slot.token&&!slot.banishOnLeave)sentToGrave(destination,slot.id,['effect','material','effect_cost'].includes(reason),reason);

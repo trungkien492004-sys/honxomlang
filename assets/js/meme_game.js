@@ -150,6 +150,62 @@ function saveDeck(){localStorage.setItem(DECK_KEY,JSON.stringify(deckList));loca
 function showModal(html,wide=false){$('modalContent').innerHTML=html;$('modal').classList.remove('hidden');$('modal').querySelector('.modal-card').classList.remove('pile-modal','hero-skill-modal','arcana-choice','confirm-choice-modal');$('modal').querySelector('.modal-card').classList.toggle('deck-modal',wide);}
 function closeModal(){if(window.memeAnime?.choosing){window.memeAnime.cancelChoice();return;}if(window.memeClassic?.choosing){window.memeClassic.cancelChoice();return;}if(window.arcana200?.choosing){window.arcana200.cancelChoice();return;}$('modal').classList.add('hidden');}
 function notify(text){$('message').textContent=text;}
+window.showActionNotice = function(text, title = 'Không thể thực hiện') {
+  if (!text) return;
+  document.querySelectorAll('.mini-action-toast').forEach(n => n.remove());
+  const toast = document.createElement('div');
+  toast.className = 'mini-action-toast';
+  toast.setAttribute('role', 'alert');
+  toast.innerHTML = `<span class="mini-toast-icon">⚠️</span><div class="mini-toast-body"><strong>${esc(title)}</strong>: ${esc(text)}</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 2400);
+};
+window.showEffectNotice = function({ cardId, title, text, owner = 'player', icon = '✨' }) {
+  const c = typeof card === 'function' ? card(cardId) : null;
+  const name = title || c?.name || 'Hiệu ứng bài';
+  const desc = text || c?.description || '';
+  document.querySelectorAll('.card-effect-banner').forEach(n => n.remove());
+  const banner = document.createElement('div');
+  banner.className = 'card-effect-banner';
+  banner.innerHTML = `
+    <div class="effect-banner-inner">
+      <div class="effect-banner-art">${c ? artHTML(c.id, 'effect-art-mini') : `<span style="font-size:32px;">${icon}</span>`}</div>
+      <div class="effect-banner-info">
+        <div class="effect-banner-tag">${owner === 'player' ? 'BẠN KÍCH HOẠT' : 'ĐỐI THỦ KÍCH HOẠT'} · ${icon}</div>
+        <strong class="effect-banner-name">${esc(name)}</strong>
+        <p class="effect-banner-text">${esc(desc)}</p>
+      </div>
+    </div>
+  `;
+  const layer = document.getElementById('memeFxLayer') || document.body;
+  layer.appendChild(banner);
+  try { window.memeFx?.sound?.('charge'); } catch (_) {}
+  setTimeout(() => {
+    banner.classList.add('fade-out');
+    setTimeout(() => banner.remove(), 400);
+  }, 2300);
+};
+window.attackProblem = function(slot) {
+  if (!duel) return 'Trận đấu chưa bắt đầu.';
+  if (duel.finished) return 'Trận đấu đã kết thúc.';
+  if (duel.turn !== 'player') return 'Đang là lượt của đối thủ!';
+  if (duel.round <= 1) return 'Người đi trước không thể tấn công trong Lượt 1!';
+  if (duel.phase !== 'BATTLE') return 'Hãy bấm "Sang chiến đấu" (Phase BATTLE) để tấn công!';
+  if (!slot) return 'Không tìm thấy quái thú.';
+  if (slot.position !== 'atk' && !(slot.id && card(slot.id)?.traits?.includes('rampart') && slot.position === 'def')) {
+    return 'Quái thú đang ở thế thủ (DEF), không thể tấn công!';
+  }
+  if ((slot.frozenUntil ?? -1) >= duel.round) return 'Quái thú đang bị phong ấn/đóng băng, không thể tấn công!';
+  if (side('enemy').spells.some(p => p && !p.faceDown && p.turnsLeft > 0 && card(p.id)?.effect_code === 'swords')) {
+    return 'Kiếm Ánh Sáng của đối thủ đang khóa tấn công!';
+  }
+  const limit = window.memeAnime?.attacksRemaining ? (slot.attacksUsed || 0) >= (slot.attackAllLimit || 1) : (slot.attacked);
+  if (limit) return 'Quái thú này đã hết số lần tấn công trong lượt này!';
+  return 'Quái thú chưa đủ điều kiện tấn công.';
+};
 function log(text){if(!duel)return;duel.logs.unshift(text);duel.logs=duel.logs.slice(0,50);notify(text);}
 function side(name){return duel[name];}
 function other(name){return name==='player'?'enemy':'player';}
@@ -274,6 +330,13 @@ function effectiveDef(name,slot){return window.memeRules?window.memeRules.stat(n
 function canAttackSlot(slot){return window.memeRules?window.memeRules.canAttack(slot):!!slot&&slot.position==='atk'&&!slot.attacked;}
 function dealDamage(name,amount){if(window.memeRules)return window.memeRules.damage(name,amount);side(name).lp-=amount;return amount;}
 function effect(name,c,context={}){
+  window.showEffectNotice?.({
+    cardId: c.id,
+    title: c.name,
+    text: c.description,
+    owner: name,
+    icon: c.card_type === 'Trap' ? '🔴' : (c.card_type === 'Spell' ? '💚' : '✦')
+  });
   if(window.memeRules)return window.memeRules.execute(name,c,context);
   const self=side(name),foe=side(other(name)),amount=c.effect_value||0;
   if(c.effect_code==='draw_n'){for(let i=0;i<amount;i++){if(!draw(name))break;}log(`🃏 ${name==='player'?'Bạn':'Đối thủ'} rút ${amount} lá.`);}
@@ -293,20 +356,42 @@ function clearMode(){if(!duel)return;duel.mode=null;duel.pending=null;log('Đã 
 function removeHand(index){return side('player').hand.splice(index,1)[0];}
 function monsterSlot(id,position='atk'){return{id,position,attacked:false,attacksUsed:0,equip:0,summonedRound:duel.round};}
 function summon(index,position){
-  if(!mainPhase())return log('Chỉ triệu hồi ở MAIN 1 hoặc MAIN 2.');
+  if(!mainPhase()){
+    const msg = duel.phase === 'BATTLE' ? 'Không thể Triệu hồi trong Phase Chiến Đấu! Hãy quay về Main 2 hoặc sang lượt sau.' : 'Chỉ có thể Triệu hồi ở phase MAIN 1 hoặc MAIN 2.';
+    window.showActionNotice(msg);
+    return log(msg);
+  }
   const id=side('player').hand[index],c=card(id);if(!c||c.card_type!=='Monster')return;
-  if(isExtraCard(id))return log('Quái Extra chỉ được gọi từ Extra Deck.');
+  if(isExtraCard(id)){
+    window.showActionNotice('Quái Extra chỉ được gọi từ Extra Deck.');
+    return log('Quái Extra chỉ được gọi từ Extra Deck.');
+  }
   if(c.monster_category==='Nghi Lễ')return summonRitual(index);
-  if(duel.normalSummoned)return log('Bạn đã triệu hồi thường trong lượt này.');
+  if(duel.normalSummoned){
+    window.showActionNotice('Bạn đã triệu hồi thường trong lượt này rồi! (Mỗi lượt chỉ được 1 lần)');
+    return log('Bạn đã triệu hồi thường trong lượt này.');
+  }
   const need=c.stars>=7?2:c.stars>=5?1:0;
   const occupied=side('player').monsters.map((slot,i)=>slot?i:-1).filter(i=>i>=0);
-  if(occupied.length<need)return log(`Cần ${need} quái trên sân để hiến tế.`);
+  if(occupied.length<need){
+    const msg = `Cần ${need} quái trên sân để hiến tế cho ${c.name} (${c.stars}★)!`;
+    window.showActionNotice(msg);
+    return log(msg);
+  }
+  const freeSlot=side('player').monsters.findIndex((slot,i)=>!slot);
+  if(freeSlot<0 && need === 0){
+    window.showActionNotice('Khu vực quái thú đã đầy (Tối đa 3 ô trên sân)!');
+    return log('Sân đã đầy 3 quái thú.');
+  }
   if(need){duel.mode='tribute';duel.pending={index,position,needed:need,chosen:[]};log(`Chọn ${need} quái của bạn để hiến tế cho ${c.name}.`);render();return;}
   placeSummon(index,position,[]);
 }
 async function placeSummon(handIndex,position,tributes){
   const match=duel,s=side('player');const free=s.monsters.findIndex((slot,i)=>!slot||tributes.includes(i));
-  if(free<0)return log('Sân đã đầy 3 quái thú.');
+  if(free<0){
+    window.showActionNotice('Khu vực quái thú đã đầy (Tối đa 3 ô)!');
+    return log('Sân đã đầy 3 quái thú.');
+  }
   if(window.memeFx){await window.memeFx.summon(handIndex,free,position==='def_down');if(duel!==match||!canAct())return;}
   for(const index of tributes){putGrave('player',s.monsters[index]);s.monsters[index]=null;}
   const id=removeHand(handIndex),c=card(id);s.monsters[free]=monsterSlot(id,position);duel.normalSummoned=true;duel.mode=null;duel.pending=null;
@@ -328,17 +413,28 @@ function synchroOptions(name,id){
 function summonExtra(index){
   if(!mainPhase()||duel.mode)return;
   const id=side('player').extraDeck?.[index],c=card(id);if(!c?.synchro_requirement)return;
-  if(!synchroOptions('player',id).length)return log(`Cần 1 Tuner + quái không Tuner đang ngửa, tổng đúng ${c.stars} sao để gọi ${c.name}.`);
+  if(!synchroOptions('player',id).length){
+    const msg = `Cần 1 Tuner + quái không Tuner đang ngửa, tổng đúng ${c.stars} sao để gọi ${c.name}.`;
+    window.showActionNotice(msg);
+    return log(msg);
+  }
   closeModal();duel.mode='extra';duel.pending={index,id,chosen:[]};log(`🌀 ${c.name}: chọn 1 Tuner + quái không Tuner, tổng đúng ${c.stars} sao. Nhấn lại để bỏ chọn.`);render();
 }
 async function chooseExtraMaterial(index,isExtra=false){
   if(!mainPhase()||duel.mode!=='extra')return;
-  const p=duel.pending,s=side('player'),key=isExtra?-1:index,slot=isExtra?s.extra:s.monsters[index];if(!slot||slot.position==='def_down')return log('Nguyên liệu Đồng Bộ phải đang ngửa.');
+  const p=duel.pending,s=side('player'),key=isExtra?-1:index,slot=isExtra?s.extra:s.monsters[index];
+  if(!slot||slot.position==='def_down'){
+    window.showActionNotice('Nguyên liệu Đồng Bộ phải đang ở tư thế ngửa!');
+    return log('Nguyên liệu Đồng Bộ phải đang ngửa.');
+  }
   if(p.chosen.includes(key))p.chosen=p.chosen.filter(i=>i!==key);else p.chosen.push(key);
   const materials=p.chosen.map(i=>({slot:i===-1?s.extra:s.monsters[i],index:i,extra:i===-1})),c=card(p.id),stars=materials.reduce((n,e)=>n+(card(e.slot?.id)?.stars||0),0);
   if(!synchroValid(c,materials)){log(`Đã chọn ${stars}/${c.stars} sao · ${materials.filter(e=>card(e.slot.id)?.is_tuner).length}/1 Tuner. Cần tổng sao chính xác.`);render();return;}
   const match=duel,target=s.monsters.findIndex((slot,i)=>!slot||p.chosen.includes(i));
-  if(target<0)return log('Cần ô quái thường trống sau khi gửi nguyên liệu.');
+  if(target<0){
+    window.showActionNotice('Cần ít nhất 1 ô quái thường trống sau khi gửi nguyên liệu.');
+    return log('Cần ô quái thường trống sau khi gửi nguyên liệu.');
+  }
   if(window.memeFx){await window.memeFx.summon(-1,target,false,'player',p.id);if(duel!==match||duel.pending!==p)return;}
   for(const e of materials){putGrave('player',e.slot);if(e.extra)s.extra=null;else s.monsters[e.index]=null;}
   s.extraDeck.splice(p.index,1);s.monsters[target]={...monsterSlot(p.id),properlySummoned:true};
@@ -347,9 +443,17 @@ async function chooseExtraMaterial(index,isExtra=false){
 }
 function summonRitual(index){
   const s=side('player'),c=card(s.hand[index]),req=c.ritual_requirement;
-  if(!req||!s.hand.includes(req.spellId))return log('Cần bài Phép Nghi Lễ trên tay.');
+  if(!req||!s.hand.includes(req.spellId)){
+    const msg = 'Cần lá bài Phép Nghi Lễ tương ứng trên tay!';
+    window.showActionNotice(msg);
+    return log(msg);
+  }
   const stars=s.monsters.reduce((n,slot)=>n+(slot?card(slot.id)?.stars||0:0),0);
-  if(stars<req.minStars)return log(`Cần tổng ít nhất ${req.minStars} sao trên sân để Nghi Lễ.`);
+  if(stars<req.minStars){
+    const msg = `Cần tổng ít nhất ${req.minStars} sao trên sân để hiến tế Nghi Lễ.`;
+    window.showActionNotice(msg);
+    return log(msg);
+  }
   duel.mode='ritual';duel.pending={index,minStars:req.minStars,spellId:req.spellId,chosen:[]};log(`Chọn quái hiến tế, tổng ít nhất ${req.minStars} sao.`);render();
 }
 async function chooseRitualMaterial(index){
@@ -367,26 +471,71 @@ async function chooseRitualMaterial(index){
   if(card(ritualId).effect_trigger==='on_summon'){effect('player',card(ritualId));render();}
 }
 async function playSpell(index){
-  if(!mainPhase()||duel.mode)return log('Hoàn tất thao tác chọn bài trước.');
+  if(!mainPhase()||duel.mode){
+    const msg = duel.mode ? 'Hãy hoàn tất hoặc bấm Hủy thao tác chọn bài trước!' : 'Chỉ kích hoạt Phép trong phase MAIN 1 hoặc MAIN 2!';
+    window.showActionNotice(msg);
+    return log(msg);
+  }
   const match=duel,s=side('player'),id=s.hand[index],c=card(id);if(!c||c.card_type!=='Spell')return;
-  if(c.spell_category==='Nghi Lễ')return log('Chọn quái Nghi Lễ trên tay để dùng bài này.');
-  if(window.memeRules&&!window.memeRules.canExecute('player',c))return log('Chưa có mục tiêu hợp lệ cho hiệu ứng này.');
-  if(c.spell_category==='Liên Tục'&&!s.spells.includes(null))return log('Không còn ô Phép/Bẫy trống.');
+  if(c.spell_category==='Nghi Lễ'){
+    window.showActionNotice('Chọn quái Nghi Lễ tương ứng trên tay để dùng bài này.');
+    return log('Chọn quái Nghi Lễ trên tay để dùng bài này.');
+  }
+  if(window.memeRules&&!window.memeRules.canExecute('player',c)){
+    const msg = c.effect_code === 'fusion_summon' ? 'Chưa đủ nguyên liệu trên Tay hoặc Sân để Dung Hợp!' : (c.effect_code === 'miracle_fusion' ? 'Chưa đủ nguyên liệu trên Sân hoặc Mộ để Dung Hợp Anh Hùng!' : 'Chưa có mục tiêu hợp lệ cho hiệu ứng này.');
+    window.showActionNotice(msg);
+    return log(msg);
+  }
+  if(c.spell_category==='Liên Tục'&&!s.spells.includes(null)){
+    window.showActionNotice('Khu vực Phép/Bẫy đã đầy (Tối đa 3 ô)!');
+    return log('Không còn ô Phép/Bẫy trống.');
+  }
   if(window.memeRules?.targetCodes.includes(c.effect_code)){duel.mode='effect_target';duel.pending={index,id,source:'hand'};log(`✦ ${c.name}: chọn 1 ${c.effect_code==='destroy_spell_target'?'Phép/Bẫy':'quái'} đối thủ để phá hủy.`);render();return;}
   if(window.memeRules?.negateSpell('player')){removeHand(index);s.grave.push(id);render();return;}
-  if(c.spell_category==='Trang Bị'){if(!s.monsters.some(Boolean)&&!s.extra)return log('Cần có quái để trang bị.');duel.mode='equip';duel.pending={index};log('Chọn một quái của bạn để trang bị.');render();return;}
+  if(c.spell_category==='Trang Bị'){
+    if(!s.monsters.some(Boolean)&&!s.extra){
+      window.showActionNotice('Cần có quái thú trên sân để trang bị!');
+      return log('Cần có quái để trang bị.');
+    }
+    duel.mode='equip';duel.pending={index};log('Chọn một quái của bạn để trang bị.');render();return;
+  }
   if(window.memeFx){await window.memeFx.cardActivation(index);if(duel!==match||!mainPhase())return;window.memeFx.banner(c.name);}
   if(c.spell_category==='Môi Trường'){if(s.field)putGrave('player',s.field);s.field={id};removeHand(index);log(`🌍 Môi trường: ${c.name}.`);render();return;}
-  if(c.spell_category==='Liên Tục'){const free=s.spells.indexOf(null);if(free<0)return log('Không còn ô Phép/Bẫy trống.');s.spells[free]={id,faceDown:false,setRound:duel.round};removeHand(index);log(`🔗 Kích hoạt ${c.name}.`);render();return;}
+  if(c.spell_category==='Liên Tục'){const free=s.spells.indexOf(null);if(free<0){window.showActionNotice('Khu vực Phép/Bẫy đã đầy (Tối đa 3 ô)!');return log('Không còn ô Phép/Bẫy trống.');}s.spells[free]={id,faceDown:false,setRound:duel.round};removeHand(index);log(`🔗 Kích hoạt ${c.name}.`);render();return;}
   removeHand(index);s.grave.push(id);log(`💚 Kích hoạt ${c.name}.`);effect('player',c);render();
 }
 async function chooseEquip(index,isExtra=false){const match=duel,s=side('player'),slot=isExtra?s.extra:s.monsters[index];if(!slot)return;const handIndex=duel.pending.index;if(window.memeFx){await window.memeFx.cardActivation(handIndex);if(duel!==match||!duel?.pending)return;}const id=removeHand(handIndex),c=card(id);if(window.memeRules)window.memeRules.equip(slot,c);else slot.equip=(slot.equip||0)+(c.effect_value||0);s.grave.push(id);duel.mode=null;duel.pending=null;log(`🧿 ${c.name} trang bị cho ${card(slot.id).name}.`);render();}
-async function setTrap(index){if(!mainPhase())return log('Chỉ úp Bẫy trong MAIN 1 hoặc MAIN 2.');const match=duel,s=side('player'),free=s.spells.indexOf(null);if(free<0)return log('Không còn ô Phép/Bẫy trống.');if(window.memeFx){await window.memeFx.cardActivation(index,'trap');if(duel!==match||!mainPhase())return;}const id=removeHand(index);s.spells[free]={id,faceDown:true,setRound:duel.round};log(`🔴 Đã úp một lá Bẫy.`);render();}
+async function setTrap(index){
+  if(!mainPhase()){
+    window.showActionNotice('Chỉ úp Bẫy trong MAIN 1 hoặc MAIN 2.');
+    return log('Chỉ úp Bẫy trong MAIN 1 hoặc MAIN 2.');
+  }
+  const match=duel,s=side('player'),free=s.spells.indexOf(null);
+  if(free<0){
+    window.showActionNotice('Khu vực Phép/Bẫy đã đầy (Tối đa 3 ô)!');
+    return log('Không còn ô Phép/Bẫy trống.');
+  }
+  if(window.memeFx){await window.memeFx.cardActivation(index,'trap');if(duel!==match||!mainPhase())return;}
+  const id=removeHand(index);s.spells[free]={id,faceDown:true,setRound:duel.round};log(`🔴 Đã úp một lá Bẫy.`);render();
+}
 async function activateTrap(index){
-  if(!mainPhase()||duel.mode)return log('Chỉ lật Bẫy trong phase chính, khi không đang chọn bài.');const s=side('player'),slot=s.spells[index],c=card(slot?.id);if(!slot||!c||!slot.faceDown)return;
-  if(slot.setRound===duel.round)return log('Bẫy vừa úp phải chờ tới lượt sau.');
-  if((window.memeRules?.counterCodes||['negate_attack','destroy_attacker']).includes(c.effect_code))return log('Bẫy phản đòn sẽ tự kích hoạt đúng điều kiện.');
-  if(window.memeRules&&!window.memeRules.canExecute('player',c))return log('Chưa có mục tiêu hợp lệ cho hiệu ứng này.');
+  if(!mainPhase()||duel.mode){
+    window.showActionNotice('Chỉ lật Bẫy trong phase chính, khi không đang chọn bài.');
+    return log('Chỉ lật Bẫy trong phase chính, khi không đang chọn bài.');
+  }
+  const s=side('player'),slot=s.spells[index],c=card(slot?.id);if(!slot||!c||!slot.faceDown)return;
+  if(slot.setRound===duel.round){
+    window.showActionNotice('Bẫy vừa úp trong lượt này! Phải chờ sang lượt sau mới kích hoạt được.');
+    return log('Bẫy vừa úp phải chờ tới lượt sau.');
+  }
+  if((window.memeRules?.counterCodes||['negate_attack','destroy_attacker']).includes(c.effect_code)){
+    window.showActionNotice('Bẫy phản đòn sẽ tự động kích hoạt khi đối thủ tấn công!');
+    return log('Bẫy phản đòn sẽ tự kích hoạt đúng điều kiện.');
+  }
+  if(window.memeRules&&!window.memeRules.canExecute('player',c)){
+    window.showActionNotice('Chưa có mục tiêu hợp lệ cho hiệu ứng này!');
+    return log('Chưa có mục tiêu hợp lệ cho hiệu ứng này.');
+  }
   if(window.memeRules?.targetCodes.includes(c.effect_code)){duel.mode='effect_target';duel.pending={index,id:c.id,source:'trap'};log(`🔴 ${c.name}: chọn 1 quái đối thủ để phá hủy.`);render();return;}
   const match=duel;if(window.memeFx){await window.memeFx.flipTrap('player',index);if(duel!==match||!mainPhase())return;window.memeFx.banner(c.name);}
   slot.faceDown=false;log(`🔴 Kích hoạt Bẫy: ${c.name}.`);
@@ -407,8 +556,17 @@ async function resolveEffectTarget(name,type,index){
   if(!negated)effect('player',c,{target});render();
 }
 function declareAttack(index,isExtra=false){
-  if(!canAct()||duel.phase!=='BATTLE')return log('Chuyển sang phase CHIẾN ĐẤU trước.');
-  const slot=isExtra?side('player').extra:side('player').monsters[index];if(!canAttackSlot(slot))return;
+  if(!canAct()||duel.phase!=='BATTLE'){
+    const msg = duel.round <= 1 ? 'Người đi trước không thể tấn công trong Lượt 1!' : 'Chuyển sang phase CHIẾN ĐẤU (BATTLE) trước!';
+    window.showActionNotice(msg);
+    return log(msg);
+  }
+  const slot=isExtra?side('player').extra:side('player').monsters[index];
+  if(!canAttackSlot(slot)){
+    const prob = window.attackProblem(slot);
+    window.showActionNotice(prob);
+    return log(prob);
+  }
   duel.mode='attack';duel.pending={index,isExtra};
   if(!side('enemy').monsters.some(Boolean)&&!side('enemy').extra){resolveAttack(null,false);return;}
   log(`⚔️ ${card(slot.id).name} sẵn sàng tấn công. Chọn quái đối thủ.`);render();
@@ -464,9 +622,19 @@ function resolveAttackNow(targetIndex,targetExtra=false){
   checkWin();render();
 }
 function nextPhase(){
-  if(!canAct())return;
-  if(duel.mode){log('Hoàn tất hoặc huỷ thao tác đang chọn trước.');return;}
-  if(duel.round===1)return endPlayerTurn();
+  if(!canAct()){
+    if(duel?.turn!=='player')window.showActionNotice('Đang là lượt của đối thủ!');
+    else window.showActionNotice('Đang giải quyết hiệu ứng bài, vui lòng đợi...');
+    return;
+  }
+  if(duel.mode){
+    window.showActionNotice('Hãy hoàn tất hoặc bấm Hủy thao tác đang chọn trước!');
+    return log('Hoàn tất hoặc huỷ thao tác đang chọn trước.');
+  }
+  if(duel.round===1){
+    window.showActionNotice('Người đi trước không thể tấn công trong Lượt 1 (Tự động chuyển lượt)!', 'Lượt 1');
+    return endPlayerTurn();
+  }
   if(duel.phase==='MAIN1'){duel.phase='BATTLE';log('⚔️ Bắt đầu phase CHIẾN ĐẤU.');render();return;}
   if(duel.phase==='BATTLE'){duel.phase='MAIN2';log('➡️ MAIN 2: tiếp tục dùng bài.');render();return;}
   endPlayerTurn();

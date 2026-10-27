@@ -38,17 +38,31 @@
     const summary = document.getElementById('rankProgress');
     if (!summary) return;
     if (!identity.user) {
-      summary.innerHTML = '<div class="rank-progress-title">Đăng nhập để xem hạng và tiến độ của bạn.</div><div class="rank-progress-muted">Thách đấu bạn bè vẫn không giới hạn lượt.</div>';
+      summary.innerHTML = `<div class="rank-login-callout">
+        <p>💡 Đăng nhập Google để lưu điểm Elo, xem tiến độ leo Rank và ghi danh trên Bảng Xếp Hạng!</p>
+        <button type="button" class="rank-top-login-btn" id="rankModalLoginBtn">🔑 Đăng nhập Google</button>
+      </div>`;
+      const btn = document.getElementById('rankModalLoginBtn');
+      if (btn) btn.onclick = () => identity.login();
       return;
     }
     const safeProfile = profile || {};
     const rating = Number.isFinite(Number(safeProfile.rating)) ? Number(safeProfile.rating) : 1000;
     const tier = localTier(rating);
     const newbie = safeProfile.newbie || identity.newbie || Date.now() < Number(safeProfile.newbieUntil || 0) || !safeProfile.played;
-    const used = Number.isFinite(Number(safeProfile.rankedMatchesToday)) ? Number(safeProfile.rankedMatchesToday) : 0;
-    const cap = newbie ? 'ĐẶC QUYỀN NEWBIE · x2 Elo khi thắng · Thua không trừ Elo' : `Hôm nay ${used}/${Number(safeProfile.rankedLimit) || 20} trận rank`;
+    const wins = Number(safeProfile.wins) || 0, losses = Number(safeProfile.losses) || 0, draws = Number(safeProfile.draws) || 0, played = Number(safeProfile.played) || (wins + losses + draws);
+    const winrate = played > 0 ? Math.round((wins / played) * 100) : 0;
     const progress = tier.next ? `${tier.missing} Elo nữa lên ${tier.next}` : 'Đã đạt bậc cao nhất';
-    summary.innerHTML = `<div class="rank-progress-top"><b>${esc(tier.current)}</b><span>${rating} Elo</span>${newbie ? '<span class="newbie-badge">NEWBIE</span>' : ''}</div><div class="rank-progress-track"><i style="width:${tier.progress}%"></i></div><div class="rank-progress-bottom"><span>${esc(progress)}</span><span>${esc(cap)}</span></div><div class="rank-record">${Number(safeProfile.wins) || 0} thắng · ${Number(safeProfile.losses) || 0} thua · ${Number(safeProfile.draws) || 0} hòa · ${Number(safeProfile.played) || 0} trận</div>`;
+    summary.innerHTML = `<div class="rank-progress-top">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="tier-pill tier-${tier.current === 'Vàng' ? 'gold' : tier.current === 'Bạc' ? 'silver' : tier.current === 'Đồng' ? 'bronze' : tier.current === 'Bạch Kim' ? 'plat' : tier.current === 'Kim Cương' ? 'diamond' : 'king'}" style="font-size:13px;padding:3px 10px;">${esc(tier.current)}</span>
+        <b>${rating} Elo</b>
+        ${newbie ? '<span class="newbie-badge">NEWBIE x2</span>' : ''}
+      </div>
+      <span style="font-weight:800;color:#67e8f9;">Tỉ lệ thắng: ${winrate}%</span>
+    </div>
+    <div class="rank-progress-track"><i style="width:${tier.progress}%"></i></div>
+    <div class="rank-progress-bottom"><span>${esc(progress)}</span><span>${wins} thắng · ${losses} thua · ${draws} hòa (${played} trận)</span></div>`;
   }
   function close() {
     window.siteRankPlayers?.stop();
@@ -59,24 +73,44 @@
   async function show(message = '') {
     close();
     const overlay = document.createElement('div'); overlay.id = 'rankOverlay'; overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-labelledby', 'rankTitle');
-    overlay.innerHTML = `<section class="rank-sheet"><header><h2 id="rankTitle">RANK</h2><button type="button" id="closeRank">Đóng ✕</button></header><div class="rank-progress" id="rankProgress"></div><button type="button" class="rank-quick-btn" id="rankQuickMatch">⚔ Đấu Rank nhanh</button><div class="rank-metrics"><span id="rankMembers">Người tham gia: —</span><span id="rankMatches">Trận rank: —</span></div><p class="rank-rules">NEWBIE dưới 7 ngày: không giới hạn trận rank, thua không mất Elo và thắng nhận x2. Sau đó tối đa 20 trận rank mỗi ngày. Đấu bạn bè không giới hạn.</p><p class="rank-status">${esc(message || (cfg.enabled ? 'Elo và thống kê cập nhật sau mỗi trận.' : 'Khiêu chiến trên BXH cập nhật Elo và thống kê. Ghép trận rank nhanh cần máy chủ rank.'))}</p><div class="rank-table-wrap"><table><thead><tr><th>Hạng</th><th>Người chơi · bấm để chọn</th><th>Elo</th><th>Thắng</th><th>Thua</th><th>Hòa</th><th>Trận</th></tr></thead><tbody id="rankRows"></tbody></table><p id="rankEmpty" class="rank-empty">Đang tải bảng xếp hạng…</p></div></section>`;
+    overlay.innerHTML = `<section class="rank-sheet">
+      <header>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:26px;">🏆</span>
+          <div>
+            <h2 id="rankTitle" style="margin:0;font-size:20px;color:#fde047;">BẢNG XẾP HẠNG DUEL RANK</h2>
+            <small style="color:#94a3b8;font-size:12px;">Đấu Sĩ Anime DM / GX · Tích lũy Elo</small>
+          </div>
+        </div>
+        <button type="button" id="closeRank" style="padding:6px 14px;border-radius:8px;font-weight:900;">✕ Đóng</button>
+      </header>
+      <div class="rank-progress" id="rankProgress"></div>
+      <div class="rank-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:center;width:60px;">Hạng</th>
+              <th>Đấu sĩ</th>
+              <th>Bậc</th>
+              <th>Elo</th>
+              <th>Thắng / Thua</th>
+              <th>Tỉ lệ</th>
+              <th style="text-align:center;">Thách đấu</th>
+            </tr>
+          </thead>
+          <tbody id="rankRows"></tbody>
+        </table>
+        <p id="rankEmpty" class="rank-empty">Đang tải bảng xếp hạng…</p>
+      </div>
+    </section>`;
     overlay.onclick = event => { if (event.target === overlay) close(); };
     overlay.onkeydown = event => { if (event.key === 'Escape') close(); };
-    document.body.appendChild(overlay); document.getElementById('closeRank').onclick = close; document.getElementById('rankQuickMatch').onclick = find;
+    document.body.appendChild(overlay); document.getElementById('closeRank').onclick = close;
     try { paintProgress(); } catch (e) { console.warn('paintProgress:', e); }
     try {
       const store = await db(), profileQuery = store.collection('rank_profiles').orderBy('rating', 'desc').limit(100);
-      const [members, stats, players] = await Promise.all([
-        participantCount().catch(() => 12),
-        store.doc('rank_stats/global').get().catch(() => ({ exists: false, data: () => ({}) })),
-        profileQuery.get().catch(() => ({ docs: [], empty: true }))
-      ]);
+      const players = await profileQuery.get().catch(() => ({ docs: [], empty: true }));
       if (!overlay.isConnected) return;
-      document.getElementById('rankMembers').textContent = 'Người tham gia: ' + members;
-      document.getElementById('rankMatches').textContent = 'Trận rank: ' + (stats.data()?.matchesCompleted || 0);
-      if (typeof store.doc('rank_stats/global').onSnapshot === 'function') unwatchStats = store.doc('rank_stats/global').onSnapshot(snapshot => {
-        if (overlay.isConnected) document.getElementById('rankMatches').textContent = 'Trận rank: ' + (snapshot.data()?.matchesCompleted || 0);
-      });
       if (identity.user) {
         const mine = store.doc('rank_profiles/' + identity.user.uid);
         if (typeof mine.onSnapshot === 'function') unwatchProfile = mine.onSnapshot(snapshot => { profile = snapshot.exists ? { ...profile, ...snapshot.data() } : profile; paintProgress(); });
@@ -89,10 +123,19 @@
     if (node) {
       const user = identity.user;
       const rating = Number.isFinite(Number(profile?.rating)) ? profile.rating : 1000;
-      node.style.cursor = 'pointer';
-      node.onclick = () => show();
-      node.title = 'Bấm để xem Bảng Xếp Hạng Rank';
-      node.innerHTML = user ? esc(user.displayName || 'Đấu sĩ') + (identity.newbie ? '<span class="newbie-badge">NEWBIE</span>' : '') + ' · <b>' + rating + ' Elo</b>' : '';
+      const tier = localTier(rating);
+      if (user) {
+        node.style.cursor = 'pointer';
+        node.onclick = () => show();
+        node.title = 'Bấm để xem Bảng Xếp Hạng Rank';
+        node.innerHTML = `👑 <b>${esc(user.displayName || 'Đấu sĩ')}</b> <span class="tier-pill tier-${tier.current === 'Vàng' ? 'gold' : tier.current === 'Bạc' ? 'silver' : tier.current === 'Đồng' ? 'bronze' : tier.current === 'Bạch Kim' ? 'plat' : tier.current === 'Kim Cương' ? 'diamond' : 'king'}">${esc(tier.current)}</span> ${identity.newbie ? '<span class="newbie-badge">NEWBIE</span>' : ''} · <b>${rating} Elo</b>`;
+      } else {
+        node.style.cursor = 'default';
+        node.onclick = null;
+        node.innerHTML = `<button type="button" class="rank-top-login-btn" id="rankTopLoginBtn">🔑 Đăng nhập Google để tính Rank</button>`;
+        const btn = document.getElementById('rankTopLoginBtn');
+        if (btn) btn.onclick = (e) => { e.stopPropagation(); identity.login(); };
+      }
     }
     paintProgress();
     if (typeof duel !== 'undefined' && duel?.rank) {
@@ -268,7 +311,7 @@
   const footer = document.querySelector('#lobby .lobby-footer');
   if (footer) {
     footer.classList.add('rank-actions');
-    for (const [id, text, action] of [['rankPlayBtn', '⚔️ Đấu Rank nhanh', find], ['rankBoardBtn', '🏆 RANK', show]]) {
+    for (const [id, text, action] of [['rankPlayBtn', '⚔️ Đấu Rank nhanh', find], ['rankBoardBtn', '🏆 Bảng Xếp Hạng', show]]) {
       const button = document.createElement('button'); button.type = 'button'; button.id = id;
       button.className = id === 'rankPlayBtn' ? 'rank-quick-btn' : 'secondary-btn';
       button.textContent = text; button.onclick = action; footer.appendChild(button);

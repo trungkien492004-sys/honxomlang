@@ -21,8 +21,7 @@
     projectId: 'honxomlang-e6974',
     appId: '1:163191088062:web:daa4fca2521f3dcd0ccfef'
   };
-  const isGoogle = value => !!value && !value.isAnonymous &&
-    value.providerData?.some(provider => provider.providerId === 'google.com');
+  const isGoogle = value => !!value && !value.isAnonymous;
   const emit = () => listeners.forEach(listener => listener({ user, ready }));
   const timestamp = () => firebase.firestore.FieldValue.serverTimestamp();
   const load = src => new Promise((resolve, reject) => {

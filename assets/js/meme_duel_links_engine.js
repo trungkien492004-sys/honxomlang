@@ -1627,18 +1627,35 @@
     if (i < 0) return false;
     s.grave.splice(i, 1);
     s.banished.push('DL-neos_fusion');
-    log(`🛡 Dung Hợp Tân Vũ trục xuất chính nó để bảo vệ ${c.name}.`);
+    const msg = `Trục xuất khỏi Mộ để đỡ đòn bảo vệ [${c.name}] khỏi bị tiêu diệt bởi ${reason === 'battle' ? 'chiến đấu' : 'hiệu ứng'}!`;
+    log(`🛡️ Dung Hợp Tân Vũ: ${msg}`);
+    window.showEffectNotice?.({
+      cardId: 'DL-neos_fusion',
+      title: '🛡️ Hiệu ứng Mộ: Dung Hợp Tân Vũ',
+      text: msg,
+      owner,
+      icon: '🛡️'
+    });
     return true;
   });
   window.memeAnime.registerGraveGuard((n, slot, reason) => {
     if (!['battle', 'effect'].includes(reason) || !slot) return false;
     if (!['AN-toon_world', 'DL-toon_kingdom'].includes(slot.id)) return false;
-    const s = S(slot.originalOwner || n);
+    const owner = slot.originalOwner || n;
+    const s = S(owner);
     const i = s.grave.indexOf('DL-toon_bookmark');
     if (i < 0) return false;
     s.grave.splice(i, 1);
     s.banished.push('DL-toon_bookmark');
-    log('🛡 Đánh Dấu Trang Hoạt Hình trục xuất chính nó để bảo vệ Thế Giới/Vương Quốc Hoạt Hình.');
+    const msg = 'Trục xuất khỏi Mộ để bảo vệ Thế Giới/Vương Quốc Hoạt Hình khỏi bị phá hủy!';
+    log(`🛡️ Đánh Dấu Trang Hoạt Hình: ${msg}`);
+    window.showEffectNotice?.({
+      cardId: 'DL-toon_bookmark',
+      title: '🛡️ Hiệu ứng Mộ: Đánh Dấu Trang Hoạt Hình',
+      text: msg,
+      owner,
+      icon: '🛡️'
+    });
     return true;
   });
 

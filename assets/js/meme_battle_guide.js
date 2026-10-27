@@ -32,7 +32,42 @@
  }
  const zones=renderZones;renderZones=function(name,type,host){zones(name,type,host);const slots=type==='monster'?side(name).monsters:side(name).spells;[...$(host).children].forEach((node,i)=>decorate(node,name,type,i,slots[i]));};
  const special=renderSpecial;renderSpecial=function(name,type,host){special(name,type,host);const slot=type==='extra'?side(name).extra:side(name).field;if(slot)decorate($(host),name,type,-1,slot);else{const node=$(host);if(!node)return;delete node.dataset.face;node.classList.remove('attack-ready','attack-spent','attacking-selected','own-set-card','face-down');node.removeAttribute('aria-label');}};
- const inspector=renderInspector;renderInspector=function(){inspector();const sel=duel?.selected;if(!sel||sel.type==='hand'||sel.name!=='player')return;const s=side(sel.name),slot=sel.type==='monster'?s.monsters[sel.index]:sel.type==='extra'?s.extra:sel.type==='spell'?s.spells[sel.index]:s.field;if(!slot)return;const text=down(slot)?'🂠 ĐANG ÚP · Chỉ bạn xem được nội dung':'◈ ĐANG NGỬA · Đối thủ xem được';const banner=document.createElement('span');banner.className='inspector-face-state '+(down(slot)?'is-down':'is-up');banner.textContent=text;$('cardInspector').querySelector('.inspect-description')?.prepend(banner);if(sel.type==='spell'&&down(slot)){const flip=[...document.querySelectorAll('#inspectActions button')].find(b=>b.textContent.includes('Lật Bẫy'));if(flip){flip.textContent='🂠 Bẫy tự lật khi đủ điều kiện';flip.disabled=true;}}};
+ const inspector=renderInspector;renderInspector=function(){
+  inspector();
+  const sel=duel?.selected;
+  if(!sel||sel.type==='hand'||sel.name!=='player')return;
+  const s=side(sel.name),slot=sel.type==='monster'?s.monsters[sel.index]:sel.type==='extra'?s.extra:sel.type==='spell'?s.spells[sel.index]:s.field;
+  if(!slot)return;
+  const text=down(slot)?'🂠 ĐANG ÚP · Chỉ bạn xem được nội dung':'◈ ĐANG NGỬA · Đối thủ xem được';
+  const banner=document.createElement('span');
+  banner.className='inspector-face-state '+(down(slot)?'is-down':'is-up');
+  banner.textContent=text;
+  $('cardInspector').querySelector('.inspect-description')?.prepend(banner);
+  if(sel.type==='spell'&&down(slot)){
+    const flip=[...document.querySelectorAll('#inspectActions button')].find(b=>b.textContent.includes('Lật Bẫy'));
+    if(flip){flip.textContent='🂠 Bẫy tự lật khi đủ điều kiện';flip.disabled=true;}
+  }
+  if((sel.type==='monster'||sel.type==='extra')&&slot){
+    const actions=$('inspectActions');
+    if(actions&&canAct()&&!duel.mode){
+      if(duel.phase==='BATTLE'){
+        if(canAttackSlot(slot)){
+          const btn=addAction(actions,'⚔️ Tấn công',()=>declareAttack(sel.index,sel.type==='extra'));
+          btn.className='primary-btn attack-inspector-btn';
+        }else{
+          const btn=addAction(actions,'⚔️ Không thể tấn công',()=>window.showActionNotice(window.attackProblem(slot),'Chưa thể tấn công'),true);
+          btn.className='secondary-btn btn-cant-attack';
+        }
+      }else{
+        const btn=addAction(actions,'⚔️ Tấn công (Cần BATTLE Phase)',()=>{
+          if(duel.round<=1)window.showActionNotice('Người đi trước không thể tấn công trong Lượt 1!');
+          else window.showActionNotice('Hãy bấm "Sang chiến đấu" (Phase BATTLE) ở góc phải để tấn công!');
+        },true);
+        btn.className='secondary-btn btn-phase-locked';
+      }
+    }
+  }
+};
  function refresh(){
   if(!duel)return;
   for(const name of ['player','enemy'])for(const type of ['monster','spell']){const slots=type==='monster'?side(name).monsters:side(name).spells;[...$(name+(type==='monster'?'Monsters':'Spells')).children].forEach((node,i)=>decorate(node,name,type,i,slots[i]));}
