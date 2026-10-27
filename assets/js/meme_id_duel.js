@@ -18,16 +18,7 @@
  const online=p=>p?.online===true&&Date.now()-ms(p.lastSeen)<90000;
  const busy=()=>!!memeRoom||!!duel&&!duel.finished&&!$('duel').classList.contains('hidden');
  function error(e){
-  const msgStr = String(e?.message || e?.code || e || '');
-  if (msgStr.includes('Missing or insufficient permissions') || e?.code === 'permission-denied') {
-    console.warn('[Hệ thống Rank · Bỏ qua lỗi quyền Firestore]:', e);
-    return;
-  }
-  const n=$('idDuelError');
-  if(n)n.textContent=e.message||'Không kết nối được. Hãy thử lại.';
-  else notify(e.message||'Không kết nối được.');
-  if (typeof window.showRankError === 'function') window.showRankError(e, 'Hệ thống Rank');
-  else if (typeof window.parent?.showRankError === 'function') window.parent.showRankError(e, 'Hệ thống Rank');
+  console.warn('[Hệ thống Rank · Đồng bộ nền]:', e?.message || e);
 }
  async function publish(force=false){
   if(!uid||!store)return;const p={uid,name:String(identity.user?.displayName||'Đấu sĩ').slice(0,48),main:[...deckList],extra:[...extraDeckList],heroId:chosenHero,networkId:memeMyId(),online:true,busy:busy(),protocol:MEME_RULES_VERSION};
@@ -207,7 +198,7 @@
  const hero=chooseHero;chooseHero=(...args)=>{const r=hero(...args);publish().catch(error);return r;};
  const names=window.memeOnlineNames;window.memeOnlineNames=()=>duel?.ghostOpponent?{player:identity.user?.displayName||'Bạn',enemy:duel.ghostOpponent.name+' · Máy đại diện'}:names();
   const receive=window.memeOnlineReceive;window.memeOnlineReceive=msg=>{const r=receive(msg);if(pending&&memeRoom?.role==='host'&&memeRoom.peerDeck&&!memeRoom.playing){stopPending();memeStartHostMatch();if(memeRoom?.challengeId&&duel)duel.rankChallengeId=memeRoom.challengeId;}trackResult(duel);return r;};
- const beforeRender=render;render=()=>{beforeRender();publish().catch(error);};
+ const beforeRender=render;render=()=>{beforeRender();};
  $('backBtn').addEventListener('click',()=>publish().catch(error));
  identity.subscribe(async({user,ready})=>{const token=++generation;clearInterval(timer);unsub?.();unsub=null;stopPending();incoming=null;$('directDuelInvite')?.remove();uid=user?.uid||null;store=identity.db;lastSaved='';lastDirectory='';label();if(!ready||!uid||!store)return;try{const saved=(await store.doc('duel_players/'+uid).get()).data();if(token!==generation)return;if(valid(saved)&&localStorage.getItem('duel-profile-owner')!==uid){deckList=[...saved.main];extraDeckList=[...saved.extra];chosenHero=saved.heroId;saveDeck();localStorage.setItem(HERO_KEY,JSON.stringify(chosenHero));const active=deckLibrary.decks.find(d=>d.id===deckLibrary.activeId);if(active){active.cards=[...deckList];active.extra=[...extraDeckList];localStorage.setItem(DECK_LIBRARY_KEY,JSON.stringify(deckLibrary));}hero(chosenHero);}localStorage.setItem('duel-profile-owner',uid);await publish(true);if(token!==generation)return;unsub=store.collection('duel_invites').where('to','==',uid).onSnapshot(s=>{if(incoming&&!s.docs.some(d=>d.id===incoming.id&&d.data().nonce===incoming.nonce&&d.data().status==='pending')){incoming=null;$('directDuelInvite')?.remove();}for(const d of s.docs){const v=d.data();if(v.status==='pending'&&ms(v.expiresAt)>Date.now())showIncoming(d.id,v).catch(error);}},error);timer=setInterval(()=>publish(true).catch(error),60000);}catch(e){error(e);}});
  window.addEventListener('pagehide',()=>{clearInterval(timer);unsub?.();stopPending();});

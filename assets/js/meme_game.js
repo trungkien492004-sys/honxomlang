@@ -287,11 +287,6 @@ function finish(winner,reason=''){
   render();const won=winner==='player',match=duel;
   const rankPromise = window.memeIdDuel?.recordResult?.(match)?.catch(e => {
     console.warn('Rank record error:', e);
-    if (typeof window.showRankError === 'function') {
-      window.showRankError(e, 'Đồng bộ kết quả Rank');
-    } else if (typeof window.parent?.showRankError === 'function') {
-      window.parent.showRankError(e, 'Đồng bộ kết quả Rank');
-    }
     return { error: e.message || 'Lỗi đồng bộ BXH' };
   });
   Promise.race([

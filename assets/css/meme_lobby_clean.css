@@ -8,7 +8,7 @@
 #lobby .hero-heading .eyebrow,#lobby .hero-heading>p{display:none}
 #lobby .hero-heading h1{font-size:clamp(24px,3vw,36px);margin:0;line-height:1.15}
 #lobby .lineup{width:100%;margin:0}
-#lobby .hero-labels{margin:0;gap:10px}
+#lobby .hero-labels{margin:0;gap:10px}#lobby .hero-labels .hero-tag{flex:0 0 calc(25% - 7.5px)}
 #lobby .hero-tag .hero-figure{height:clamp(90px,18dvh,180px)}
 #lobby .hero-tag b{min-height:30px;display:grid;place-items:center;line-height:1.15}
 #lobby .lobby-skill-preview{width:min(100%,650px);margin:0 auto;padding:12px;gap:12px}
@@ -22,7 +22,7 @@
  #lobby .top-actions{gap:5px}#lobby .top-actions .round-btn{width:34px;height:34px;font-size:17px}
  #lobby .lobby-center{width:calc(100% - 24px);gap:12px}
  #lobby .hero-heading h1{font-size:25px}
- #lobby .hero-labels{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px}
+ #lobby .hero-labels{gap:8px}#lobby .hero-labels .hero-tag{flex-basis:calc(33.333% - 5.5px)}
  #lobby .hero-tag{padding:5px;border-radius:12px;gap:3px}
  #lobby .hero-tag .hero-figure{height:clamp(62px,14dvh,118px)}
  #lobby .hero-tag b{font-size:11px;min-height:27px;white-space:normal}
@@ -48,7 +48,7 @@
  #lobby .top-actions .round-btn{width:32px;height:32px;font-size:16px}
  #lobby .lobby-center{width:min(960px,calc(100% - 28px));gap:7px}
  #lobby .hero-heading h1{font-size:20px}
- #lobby .hero-labels{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:6px}
+ #lobby .hero-labels{gap:6px}#lobby .hero-labels .hero-tag{flex-basis:calc(16.666% - 5px)}
  #lobby .hero-tag{padding:4px;gap:2px}#lobby .hero-tag .hero-figure{height:52px;width:52px}
  #lobby .hero-tag b{font-size:9px;min-height:23px}#lobby .hero-tag small{display:none}
  #lobby .lobby-skill-preview{padding:6px 10px;gap:8px;width:min(100%,650px)}
