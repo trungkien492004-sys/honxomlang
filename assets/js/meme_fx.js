@@ -337,11 +337,11 @@
       if(counterType){stage.classList.add('p2-counter-stage');stage.dataset.counter=counterType;const visual=document.createElement('div');visual.className='p2-counter-visual p2-'+counterType;visual.innerHTML=`<i></i><i></i><span>${counterType==='mirror'?'PHẢN CHIẾU':counterType==='cylinders'?'ĐẢO CHIỀU':counterType==='hole'?'HỐ BẪY':counterType==='tools'?'VÔ HIỆU':counterType==='jammer'?'CHẶN PHÉP':'CHẶN SÁT THƯƠNG'}</span>`;stage.prepend(visual);}
       layer.appendChild(stage);sound(tier==='quiet'?'soft':event.kind==='heal'?'heal':'charge');
       try{await animate(stage,[{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'scale(1)'}],{duration:tier==='quiet'?180:360,easing:'ease-out',fill:'forwards'});const fxTextLen = (event.text||'').length;
-        const fxReadTime = tier==='quiet'?450:Math.max(tier==='epic'?2600:2000, Math.min(4200, 1400 + fxTextLen * 35));
+        const fxReadTime = tier==='quiet'?400:2200;
         await delay(fxReadTime);
         if(epoch!==runEpoch||duel!==match)return false;
         await commit?.();if(duel===match)render();if(tier!=='quiet')sound(event.kind==='heal'?'heal':'hit');
-        await delay(tier==='quiet'?180:tier==='epic'?800:600);
+        await delay(tier==='quiet'?180:tier==='epic'?600:500);
         await animate(stage,[{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(1.025)'}],{duration:tier==='quiet'?180:320,fill:'forwards'});return true;
       }finally{stage.remove();board?.classList.remove('anime-soft-lit');for(const node of marked)node.classList.remove('anime-target');}
     };

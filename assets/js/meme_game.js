@@ -193,7 +193,7 @@ window.showEffectNotice = function({ cardId, title, text, owner = 'player', icon
   banner.onclick = dismiss;
   const closeBtn = banner.querySelector('.effect-banner-close');
   if (closeBtn) closeBtn.onclick = (e) => { e.stopPropagation(); dismiss(); };
-  const readDuration = Math.max(4800, Math.min(8000, 3200 + desc.length * 45));
+  const readDuration = 4000;
   timer = setTimeout(dismiss, readDuration);
 };
 window.attackProblem = function(slot) {
