@@ -493,10 +493,12 @@ const HERO_IDS = [
         duel.enemy.spells[0] = { id: 'AN-mirror_force', faceDown: true, setRound: 0 };
         duel.enemy.field = { id: 'AN-skyscraper' };
         ok(await memeAnime.perform(() => memeAnime.fuse('player', null, 'AN-elemental_hero_flare_neos')), 'contact fusion');
-        const fn = duel.player.monsters.find(s => s?.id === 'AN-elemental_hero_flare_neos');
+        const fn = duel.player.extra?.id === 'AN-elemental_hero_flare_neos' ? duel.player.extra : null;
+        ok(fn, 'Flare Neos in the Extra Monster Zone');
         eq(stat('player', fn), 3700, '2500 + 400 × 3');
         await memeAnime.perform(() => memeAnime.endTurn('player'));
-        eq(duel.player.monsters.filter(Boolean).length, 0, 'returned to Extra Deck');
+        eq(duel.player.extra, null, 'returned to Extra Deck');
+        eq(duel.player.monsters.filter(Boolean).length, 0, 'main zones empty');
       });
 
       // ── MGX · GX manga Elemental HERO ────────────────────────────
@@ -506,13 +508,13 @@ const HERO_IDS = [
         duel.player.hand = ['AN-polymerization'];
         duel.player.extraDeck = ['MGX-elemental_hero_absolute_zero'];
         ok(await play(0), 'Absolute Zero fusion');
-        const az = duel.player.monsters.find(s => s?.id === 'MGX-elemental_hero_absolute_zero');
-        ok(az, 'Absolute Zero on field');
+        const az = duel.player.extra?.id === 'MGX-elemental_hero_absolute_zero' ? duel.player.extra : null;
+        ok(az, 'Absolute Zero in the Extra Monster Zone');
         put('player', 'AN-elemental_hero_bubbleman', 1);
         put('enemy', 'AN-elemental_hero_bubbleman', 0);
         put('enemy', 'MGX-elemental_hero_ocean', 1, 'def_down');
         eq(stat('player', az), 3500, '2500 + 500 × 2 face-up WATER');
-        await removeByEffect('player', duel.player.monsters.indexOf(az), az);
+        await memeAnime.perform(() => memeRules.remove('player', { slot: az, index: -1, extra: true }, 'effect'));
         eq(duel.enemy.monsters.filter(Boolean).length, 2, 'manga card does not wipe the board');
       });
 
@@ -535,8 +537,8 @@ const HERO_IDS = [
         duel.player.extraDeck = ['MGX-elemental_hero_gaia'];
         put('enemy', 'AN-blue_eyes_white_dragon');
         ok(await play(0), 'Gaia fusion');
-        const gaia = duel.player.monsters.find(s => s?.id === 'MGX-elemental_hero_gaia');
-        ok(gaia, 'Gaia on field');
+        const gaia = duel.player.extra?.id === 'MGX-elemental_hero_gaia' ? duel.player.extra : null;
+        ok(gaia, 'Gaia in the Extra Monster Zone');
         eq(stat('enemy', duel.enemy.monsters[0]), 1500, 'BEWD halved');
         eq(stat('player', gaia), 3700, '2200 + 1500');
         duel.round++;
@@ -562,10 +564,10 @@ const HERO_IDS = [
         duel.player.hand = ['AN-polymerization'];
         duel.player.extraDeck = ['MGX-elemental_hero_terra_firma'];
         ok(await play(0), 'Terra Firma fusion');
-        const tf = duel.player.monsters.find(s => s?.id === 'MGX-elemental_hero_terra_firma');
-        ok(tf, 'Terra Firma on field');
+        const tf = duel.player.extra?.id === 'MGX-elemental_hero_terra_firma' ? duel.player.extra : null;
+        ok(tf, 'Terra Firma in the Extra Monster Zone');
         put('player', 'AN-elemental_hero_sparkman', 1);
-        ok(await activate(duel.player.monsters.indexOf(tf)), 'effect resolves');
+        ok(await memeAnime.perform(() => memeAnime.resolveEffect('player', card('MGX-elemental_hero_terra_firma'), { source: tf })), 'effect resolves');
         eq(duel.player.monsters[1], null, 'HERO tributed');
         eq(stat('player', tf), 4100, '2500 + 1600');
         eq(stat('player', tf, 'def'), 3400, '2000 + 1400');
@@ -903,14 +905,14 @@ const HERO_IDS = [
         duel.player.extraDeck = ['DL-elemental_hero_brave_neos'];
         ok(memeAnime.fusionOptions('player', 'DL-elemental_hero_brave_neos').length > 0, 'Level 4 effect monster accepted');
         ok(await play(0), 'Fusion Summon');
-        const brave = duel.player.monsters.find(s => s?.id === 'DL-elemental_hero_brave_neos');
-        ok(brave, 'Brave Neos on field');
+        const brave = duel.player.extra?.id === 'DL-elemental_hero_brave_neos' ? duel.player.extra : null;
+        ok(brave, 'Brave Neos in the Extra Monster Zone');
         duel.player.grave = ['AN-elemental_hero_neos', 'AN-neo_spacian_air_hummingbird', 'AN-polymerization', 'DL-elemental_hero_solid_soldier'];
         eq(stat('player', brave), 2800, '2500 + 100 × 3 HERO/Neo-Spacian in GY');
         put('enemy', 'AN-kuriboh');
         duel.player.deck = ['DL-neos_fusion'];
         duel.phase = 'BATTLE';
-        await battle('player', duel.player.monsters.indexOf(brave), 0);
+        await memeAnime.perform(() => memeAnime.battle('player', -1, true, 0, false));
         eq(duel.player.hand.includes('DL-neos_fusion'), true, 'Neos Spell searched after the kill');
       });
 
@@ -921,8 +923,8 @@ const HERO_IDS = [
         duel.player.deck = ['AN-miracle_fusion'];
         duel.player.extraDeck = ['DL-elemental_hero_sunrise'];
         ok(await play(0), 'Sunrise fusion');
-        const sunrise = duel.player.monsters.find(s => s?.id === 'DL-elemental_hero_sunrise');
-        ok(sunrise, 'Sunrise on field');
+        const sunrise = duel.player.extra?.id === 'DL-elemental_hero_sunrise' ? duel.player.extra : null;
+        ok(sunrise, 'Sunrise in the Extra Monster Zone');
         eq(duel.player.hand.includes('AN-miracle_fusion'), true, 'Miracle Fusion searched');
         eq(stat('player', sunrise), 2700, '2500 + 200 for one Attribute');
         put('player', 'AN-elemental_hero_clayman', 1);
