@@ -15,9 +15,12 @@
 
   async function challenge(uid) {
     const identity = window.siteIdentity;
-    if (!identity.user) {
-      try { await identity.login(); } catch(e) { console.warn('Challenge login:', e); }
-      if (!identity.user) throw Error('Bạn cần đăng nhập Google để khiêu chiến đối thủ.');
+    if (!identity?.user) {
+      try {
+        if (typeof identity?.login === 'function' && !identity.signing) {
+          await Promise.race([identity.login(), new Promise(r => setTimeout(r, 1200))]);
+        }
+      } catch(e) { console.warn('Challenge login:', e); }
     }
     if (window.memeIdDuel) return window.memeIdDuel.challenge(uid);
     if (typeof window.openMemeCardGame !== 'function') throw Error('Hãy mở đấu bài từ sảnh để khiêu chiến.');

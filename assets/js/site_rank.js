@@ -306,6 +306,17 @@
 
     const quickPlayBtn = document.getElementById('rankPlayBtn');
     if (quickPlayBtn) quickPlayBtn.classList.add('rank-btn-searching');
+
+    const pMain = typeof deckList !== 'undefined' ? deckList : [];
+    const pExtra = typeof extraDeckList !== 'undefined' ? extraDeckList : [];
+    if (typeof deckProblem === 'function') {
+      const prob = deckProblem(pMain, pExtra);
+      if (prob) {
+        showRankError(new Error('Bộ bài đang dùng chưa hợp lệ: ' + prob), 'Xác thực bộ bài leo Rank');
+        return;
+      }
+    }
+
     if (!identity.user) {
       try {
         if (typeof identity.login === 'function' && !identity.signing) {
@@ -324,11 +335,11 @@
       }
     }
     try {
-      await window.memeIdDuel?.publish?.(true);
+      if (identity.user) {
+        await window.memeIdDuel?.publish?.(true);
+      }
     } catch (pubErr) {
-      console.warn('Rank publish error:', pubErr);
-      showRankError(pubErr, 'Xác thực bộ bài leo Rank');
-      return;
+      console.warn('Rank publish error (matchmaking proceeds):', pubErr);
     }
 
     if (typeof duel !== 'undefined' && duel && !duel.finished && document.getElementById('duel') && !document.getElementById('duel').classList.contains('hidden')) {
@@ -420,7 +431,6 @@
       }
     } catch (e) {
       console.warn('Matchmaking directory scan:', e);
-      showRankError(e, 'Quét tìm đối thủ Online');
     }
 
     matchmakingTimer = setInterval(() => {
@@ -468,8 +478,15 @@
           try {
             if (typeof startGame === 'function') {
               startGame({ customBotDeck: chosenBot.preset });
+            } else if (typeof window.parent?.startGame === 'function') {
+              window.parent.startGame({ customBotDeck: chosenBot.preset });
             } else {
-              throw Error('Hàm khởi tạo trận đấu startGame chưa sẵn sàng.');
+              const frame = document.getElementById('memecardFrame')?.contentWindow;
+              if (typeof frame?.startGame === 'function') {
+                frame.startGame({ customBotDeck: chosenBot.preset });
+              } else {
+                throw Error('Hàm khởi tạo trận đấu startGame chưa sẵn sàng.');
+              }
             }
           } catch (startErr) {
             showRankError(startErr, 'Khởi tạo trận đấu Rank');
@@ -570,7 +587,17 @@
     document.getElementById('promoPlayBtn').onclick = () => {
       dismiss();
       const playBtn = document.getElementById('playBtn');
-      if (playBtn) playBtn.click();
+      if (playBtn) {
+        playBtn.click();
+      } else if (typeof window.openMemeCardGame === 'function') {
+        window.openMemeCardGame();
+        setTimeout(() => {
+          const frame = document.getElementById('memecardFrame')?.contentWindow;
+          if (frame?.siteRank?.find) frame.siteRank.find();
+          else if (frame?.document?.getElementById('rankPlayBtn')) frame.document.getElementById('rankPlayBtn').click();
+          else if (frame?.document?.getElementById('playBtn')) frame.document.getElementById('playBtn').click();
+        }, 600);
+      }
     };
   }
 
