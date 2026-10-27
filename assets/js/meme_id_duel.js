@@ -117,14 +117,14 @@
         const counts={played:Math.round((Number(mine.played)||0)+1),wins:Math.round((Number(mine.wins)||0)+(outcome==='win'?1:0)),losses:Math.round((Number(mine.losses)||0)+(outcome==='loss'?1:0)),draws:Math.round((Number(mine.draws)||0)+(outcome==='draw'?1:0))};
         const nextRating=Math.max(0,Math.round(rating+delta)),createdUntil=Number.isFinite(ownCreated)?ownCreated+7*86400000:0;
         const s=stamp();
-        const result={uid:currentUid,matchId,opponentUid,outcome,delta,ratingBefore:Math.round(rating),ratingAfter:Math.round(nextRating),createdAt:s};
+        const result=Object.assign(native({uid:currentUid,matchId,opponentUid,outcome,delta,ratingBefore:Math.round(rating),ratingAfter:Math.round(nextRating)}),{createdAt:s});
         const profileName=String(currentIdentity?.user?.displayName||mine.name||'Đấu sĩ').slice(0,48);
         tx.set(resultRef,result);
         if(!mineSnap.exists){
-          const newProfile={uid:currentUid,name:profileName,rating:Math.round(nextRating),...counts,newbieUntil:createdUntil,lastMatchId:matchId,lastSeen:s};
+          const newProfile=Object.assign(native({uid:currentUid,name:profileName,rating:Math.round(nextRating),...counts,newbieUntil:createdUntil,lastMatchId:matchId}),{lastSeen:s});
           tx.set(mineRef,newProfile);
         }else{
-          const updateProfile={name:profileName,rating:Math.round(nextRating),...counts,lastMatchId:matchId,lastSeen:s};
+          const updateProfile=Object.assign(native({name:profileName,rating:Math.round(nextRating),...counts,lastMatchId:matchId}),{lastSeen:s});
           tx.update(mineRef,updateProfile);
         }
         receipt={...result,...counts};
