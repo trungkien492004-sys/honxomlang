@@ -244,7 +244,7 @@
     catch (error) { setStatus(error.message); } finally { queueBusy = false; }
   }
   let matchmakingTimer = null;
-  let matchmakingCountdown = 15;
+  let matchmakingCountdown = 60;
   let searchingMatch = false;
 
   function setLocalProfile(receipt) {
@@ -322,6 +322,7 @@
     if (typeof deckProblem === 'function') {
       const prob = deckProblem(pMain, pExtra);
       if (prob) {
+        quickPlayBtn?.classList.remove('rank-btn-searching');
         showRankError(new Error('Bộ bài đang dùng chưa hợp lệ: ' + prob), 'Xác thực bộ bài leo Rank');
         return;
       }
@@ -353,12 +354,13 @@
     }
 
     if (typeof duel !== 'undefined' && duel && !duel.finished && document.getElementById('duel') && !document.getElementById('duel').classList.contains('hidden')) {
+      quickPlayBtn?.classList.remove('rank-btn-searching');
       return window.notify ? window.notify('Bạn đang trong một trận đấu. Hãy hoàn thành trận hiện tại trước.') : alert('Bạn đang trong một trận đấu.');
     }
 
     close();
     searchingMatch = true;
-    matchmakingCountdown = 15;
+    matchmakingCountdown = 60;
 
     document.getElementById('rankMatchOverlay')?.remove();
     const overlay = document.createElement('div');
@@ -374,13 +376,13 @@
         </div>
         <h2 class="rank-match-title">Ghép Trận Rank Nhanh</h2>
         <div class="rank-match-timer">
-          <span id="rankMatchSec">15</span><small>s</small>
+          <span id="rankMatchSec">60</span><small>s</small>
         </div>
         <p class="rank-match-status" id="rankMatchStatus">🔍 Đang quét tìm đối thủ Online cùng đẳng cấp...</p>
         <div class="rank-match-bar">
           <div class="rank-match-bar-fill" id="rankMatchBarFill" style="width:100%"></div>
         </div>
-        <p class="rank-match-hint">Ưu tiên người chơi Online trong 15 giây. Nếu không ai sẵn sàng, hệ thống sẽ tự động ghép với Đấu Sĩ Máy Huyền Thoại để tính điểm Rank!</p>
+        <p class="rank-match-hint">Đang tìm người chơi Online trong tối đa 60 giây. Nếu không ai sẵn sàng, hệ thống sẽ ghép với Đấu Sĩ Máy Huyền Thoại.</p>
         <div class="rank-match-actions">
           <button type="button" class="secondary-btn" id="rankMatchCancelBtn">❌ Hủy tìm trận</button>
         </div>
@@ -392,6 +394,7 @@
       clearInterval(matchmakingTimer);
       matchmakingTimer = null;
       searchingMatch = false;
+      quickPlayBtn?.classList.remove('rank-btn-searching');
       document.getElementById('rankMatchOverlay')?.remove();
       try { window.memeIdDuel?.cancelInvite?.(); } catch (_) {}
       if (window.notify) window.notify('Đã hủy tìm trận Rank.');
@@ -403,67 +406,79 @@
     document.body.appendChild(overlay);
     document.getElementById('rankMatchCancelBtn').onclick = cancelMatchmaking;
 
-    // Scan duel_directory for online opponent
-    try {
-      const store = await db();
-      const myUid = identity.user?.uid;
-      if (myUid) {
-        const snap = await store.collection('duel_directory').limit(30).get();
-        const onlinePlayers = [];
-        const now = Date.now();
-        snap.forEach(doc => {
-          const d = doc.data();
-          if (d && d.uid !== myUid) {
-            const seen = typeof d.lastSeen?.toMillis === 'function' ? d.lastSeen.toMillis() : (Date.parse(d.lastSeen) || Number(d.lastSeen) || 0);
-            if (d.online === true && (now - seen < 90000)) {
-              onlinePlayers.push(d);
-            }
-          }
+    // Scan duel_directory for online opponents, retrying every few seconds
+    const triedPlayers = new Set();
+    let candidateScanBusy = false;
+    const scanCandidates = async () => {
+      if (!searchingMatch || candidateScanBusy || window.memeOnlineIsPlaying?.() || window.memeIdDuel?.hasPendingInvite) return;
+      candidateScanBusy = true;
+      const statusEl = document.getElementById('rankMatchStatus');
+      try {
+        const store = await db();
+        const myUid = identity.user?.uid;
+        if (!myUid) return;
+        const snapshot = await store.collection('duel_directory').limit(100).get();
+        const now = Date.now(), candidates = [];
+        snapshot.forEach(doc => {
+          const player = doc.data();
+          const seen = typeof player?.lastSeen?.toMillis === 'function' ? player.lastSeen.toMillis() : (Date.parse(player?.lastSeen) || Number(player?.lastSeen) || 0);
+          if (player?.uid && player.uid !== myUid && !triedPlayers.has(player.uid) && player.online === true && now - seen < 90000) candidates.push(player);
         });
-
-        if (onlinePlayers.length > 0) {
-          const candidate = onlinePlayers[Math.floor(Math.random() * onlinePlayers.length)];
-          const statusEl = document.getElementById('rankMatchStatus');
-          if (statusEl) statusEl.textContent = `🎯 Đã tìm thấy ${candidate.name}! Đang gửi lời mời thách đấu...`;
+        candidates.sort(() => Math.random() - 0.5);
+        for (const candidate of candidates) {
+          if (!searchingMatch) return;
+          const target = await window.memeIdDuel?.lookup?.(candidate.uid);
+          if (!searchingMatch) return;
+          if (!target || !window.memeIdDuel?.online?.(target)) continue;
+          triedPlayers.add(candidate.uid);
+          if (statusEl) statusEl.textContent = `🎯 Đã tìm thấy ${candidate.name || 'đấu thủ'}! Đang gửi lời mời...`;
           try {
-            const target = await window.memeIdDuel?.lookup?.(candidate.uid);
-            if (target && window.memeIdDuel?.online?.(target)) {
-              window.memeIdDuel?.invite?.(target, { silent: true }).catch(invErr => {
-                console.warn('Rank matchmaking invite skipped:', invErr?.message || invErr);
-                const sEl = document.getElementById('rankMatchStatus');
-                if (sEl) sEl.textContent = '🔍 Đang kết nối đấu thủ phù hợp...';
-              });
+            await window.memeIdDuel?.invite?.(target, { silent: true, shouldCancel: () => searchingMatch });
+            if (!searchingMatch) return;
+            if (window.memeIdDuel?.hasPendingInvite) {
+              if (statusEl) statusEl.textContent = `📨 Đã mời ${candidate.name || 'đấu thủ'}. Đang chờ phản hồi...`;
+              return;
             }
-          } catch (candErr) {
-            console.warn('Lookup candidate error:', candErr);
+          } catch (inviteError) {
+            console.warn('Rank matchmaking invite skipped:', inviteError?.message || inviteError);
+            if (statusEl) statusEl.textContent = `🔍 Chưa gửi được lời mời tới ${candidate.name || 'đấu thủ'}. Đang thử người khác...`;
           }
         }
+        if (!window.memeIdDuel?.hasPendingInvite && statusEl) statusEl.textContent = '🔍 Chưa có đối thủ phù hợp. Đang tiếp tục tìm kiếm...';
+      } catch (error) {
+        console.warn('Rank matchmaking directory scan:', error?.message || error);
+        if (statusEl) statusEl.textContent = '🔍 Chưa tải được danh sách đối thủ. Đang thử lại...';
+      } finally {
+        candidateScanBusy = false;
       }
-    } catch (e) {
-      console.warn('Matchmaking directory scan:', e);
-    }
+    };
+    scanCandidates();
 
     matchmakingTimer = setInterval(() => {
       matchmakingCountdown--;
       const secEl = document.getElementById('rankMatchSec');
       const barEl = document.getElementById('rankMatchBarFill');
       if (secEl) secEl.textContent = matchmakingCountdown;
-      if (barEl) barEl.style.width = ((matchmakingCountdown / 15) * 100) + '%';
+      if (barEl) barEl.style.width = ((matchmakingCountdown / 60) * 100) + '%';
 
       if (window.memeOnlineIsPlaying?.()) {
         window.removeEventListener('keydown', onEsc);
         clearInterval(matchmakingTimer);
         matchmakingTimer = null;
         searchingMatch = false;
+        quickPlayBtn?.classList.remove('rank-btn-searching');
         document.getElementById('rankMatchOverlay')?.remove();
         return;
       }
+
+      if (matchmakingCountdown > 0 && matchmakingCountdown % 4 === 0) scanCandidates();
 
       if (matchmakingCountdown <= 0) {
         window.removeEventListener('keydown', onEsc);
         clearInterval(matchmakingTimer);
         matchmakingTimer = null;
         searchingMatch = false;
+        quickPlayBtn?.classList.remove('rank-btn-searching');
 
         try { window.memeIdDuel?.cancelInvite?.(); } catch (_) {}
 

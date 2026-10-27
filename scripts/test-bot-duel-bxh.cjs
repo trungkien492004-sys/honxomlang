@@ -183,19 +183,19 @@ const server = http.createServer((request, response) => {
     assert.ok(boardData.playerRowText.includes('2'), 'BXH player row shows 2 wins: ' + boardData.playerRowText);
     checks.push('Leaderboard modal displays updated Elo and 2 wins across ' + boardData.totalRows + ' rows');
 
-    // 7. Verify Quick Matchmaking modal and 15s online/bot fallback
+    // 7. Verify Quick Matchmaking modal and 60s online/bot fallback
     await frame.evaluate(() => siteRank.close());
     await frame.evaluate(() => siteRank.find());
     await frame.waitForSelector('#rankMatchOverlay', { timeout: 5000 });
     const mmTitle = await frame.evaluate(() => document.querySelector('.rank-match-title')?.textContent || '');
     assert.ok(mmTitle.includes('Ghép Trận Rank Nhanh'), 'Matchmaking modal shown: ' + mmTitle);
     const mmSec = await frame.evaluate(() => document.getElementById('rankMatchSec')?.textContent);
-    assert.ok(mmSec === '15' || mmSec === '14', 'Countdown started at 15s: ' + mmSec);
+    assert.ok(mmSec === '60' || mmSec === '59', 'Countdown started at 60s: ' + mmSec);
     // Cancel matchmaking to test clean exit
     await frame.evaluate(() => document.getElementById('rankMatchCancelBtn')?.click());
     const mmClosed = await frame.evaluate(() => !document.getElementById('rankMatchOverlay'));
     assert.ok(mmClosed, 'Matchmaking cancelled cleanly on user request');
-    checks.push('Quick Matchmaking 15s modal verified and cancelled cleanly');
+    checks.push('Quick Matchmaking 60s modal verified and cancelled cleanly');
 
     // 8. Quick match must actually dispatch an online invite (and cancel it).
     const api = await frame.evaluate(() => ({ invite: typeof memeIdDuel.invite, cancelInvite: typeof memeIdDuel.cancelInvite, challenge: typeof memeIdDuel.challenge }));

@@ -99,7 +99,13 @@ function renderHeroSkills(){
 function esc(value){return String(value ?? '').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
 function card(id){return CARD_BY_ID.get(id);}
 function imageInfo(id){return card(id)?.custom_image?.startsWith('assets/memecard/art/')?null:(window.MEME_IMAGE_LINKS||{})[id]||null;}
-function art(id){return card(id)?.custom_image||imageInfo(id)?.url||'';}
+function art(id){
+  const pic=window.MEME_CARD_PICTURES?.[id]?.full||window.MEME_CARD_PICTURES?.[id]?.thumb;
+  if(pic)return pic;
+  const c=card(id);
+  if(c?.custom_image&&!c.custom_image.endsWith('.svg'))return c.custom_image;
+  return c?.custom_image||imageInfo(id)?.url||'';
+}
 function artHTML(id,className='card-image'){
   const c=card(id);if(!c)return '';
   if(c.art_atlas){const cols=c.art_cols,rows=c.art_rows,col=c.art_tile%cols,row=Math.floor(c.art_tile/cols);return `<span class="${className} anime-monster-art atlas-picture" role="img" aria-label="${esc(c.name)}" style="background-image:url('${esc(c.custom_image)}')"><img src="${esc(c.art_atlas)}" alt="" loading="lazy" decoding="async" style="position:absolute;width:${cols*100}%;height:${rows*100}%;left:${-col*100}%;top:${-row*100}%;object-fit:fill;max-width:none;max-height:none" onerror="this.remove()"></span>`;}
@@ -303,7 +309,7 @@ function showMatchResult(won,reason,match=duel){
   const receipt=match?.rankChallengeResult;
   let rankText = '';
   if (receipt?.unauthenticated) {
-    rankText = `<p class="rank-challenge-result" style="color:#f59e0b;font-weight:bold;">⚠️ Bạn chưa đăng nhập Google — Điểm Rank không được tích lũy vào Bảng Xếp Hạng. Hãy đăng nhập từ sảnh chính!</p>`;
+    rankText = `<p class="rank-challenge-result" style="color:#f59e0b;font-weight:bold;">⚠️ Bạn chưa đăng nhập Google — Điểm Rank không được tích lũy vào Bảng Xếp Hạng.<br><button type="button" class="primary-btn" id="postMatchLoginBtn" style="background:linear-gradient(135deg,#f59e0b,#d97706);margin-top:8px;font-size:0.95rem;cursor:pointer;">🔑 Đăng nhập Google để lưu Elo trận này</button></p>`;
   } else if (receipt?.error) {
     rankText = `<p class="rank-challenge-result" style="color:#ef4444;font-weight:bold;">⚠️ Chưa đồng bộ BXH: ${esc(receipt.error)} <button type="button" class="rank-error-copy-btn" id="retrySyncEloBtn" style="margin-left:8px;padding:3px 8px;font-size:11px;background:#b91c1c;color:#fff;border:1px solid #ef4444;border-radius:6px;cursor:pointer;">🔄 Thử lưu lại</button></p>`;
   } else if (receipt) {
@@ -322,6 +328,20 @@ function showMatchResult(won,reason,match=duel){
       } else {
         retryBtn.disabled = false;
         retryBtn.textContent = 'Thử lại thất bại';
+      }
+    };
+  }
+  const loginBtn = document.getElementById('postMatchLoginBtn');
+  if (loginBtn) {
+    loginBtn.onclick = async () => {
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Đang mở đăng nhập...';
+      const res = await window.memeIdDuel?.loginToSaveResult?.(match);
+      if (res && !res.unauthenticated && !res.error) {
+        loginBtn.textContent = 'Đã lưu Elo ✅';
+      } else {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Thử đăng nhập lại';
       }
     };
   }

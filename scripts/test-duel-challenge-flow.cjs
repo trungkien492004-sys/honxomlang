@@ -116,10 +116,12 @@ const server = http.createServer((request, response) => {
 
     const matchId = await alice.frame.evaluate(() => duel.rankChallengeId || memeRoom.challengeId);
     await alice.frame.evaluate(() => finish('player'));
-    for (let i = 0; i < 30 && !documents.has('rank_profiles/AliceID'); i++) await new Promise(resolve => setTimeout(resolve, 50));
-    const storedResult = documents.get('rank_challenge_results/' + matchId + '_AliceID');
+    const resultKey = 'rank_challenge_results/' + matchId + '_AliceID';
+    for (let i = 0; i < 40 && !(documents.has('rank_profiles/AliceID') && documents.has(resultKey)); i++) await new Promise(resolve => setTimeout(resolve, 50));
+    const storedResult = documents.get(resultKey);
     await alice.frame.evaluate(() => memeIdDuel.recordResult(duel));
     const savedProfile = documents.get('rank_profiles/AliceID');
+    assert.ok(storedResult, 'Challenge result document written: ' + resultKey);
     assert.equal(storedResult.outcome, 'win');
     assert.ok(savedProfile.rating > 1000);
     assert.equal(savedProfile.wins, 1);

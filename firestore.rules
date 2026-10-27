@@ -122,7 +122,7 @@ service cloud.firestore {
         request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
         request.resource.data.main is list && request.resource.data.main.size() >= 20 && request.resource.data.main.size() <= 30 &&
         request.resource.data.extra is list && request.resource.data.extra.size() <= 10 &&
-        request.resource.data.heroId is int && request.resource.data.heroId >= 0 && request.resource.data.heroId < 6 &&
+        request.resource.data.heroId is int && request.resource.data.heroId >= 0 && request.resource.data.heroId < 7 &&
         request.resource.data.networkId is string && request.resource.data.networkId.size() <= 128 &&
         request.resource.data.protocol is string && request.resource.data.protocol.size() <= 80 &&
         request.resource.data.online is bool && request.resource.data.busy is bool && request.resource.data.lastSeen == request.time;
