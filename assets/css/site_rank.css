@@ -187,7 +187,7 @@ html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending bod
   backdrop-filter: blur(8px);
   color: #f0f9ff;
   font-family: 'Nunito', system-ui, sans-serif;
-  pointer-events: none;
+  pointer-events: auto !important; cursor: pointer; user-select: none;
   animation: effectBannerEnter 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
 }
 .card-effect-banner.fade-out {
@@ -404,4 +404,34 @@ html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending bod
   border-color: #38bdf8 !important;
   color: #bae6fd !important;
   opacity: 1;
+}
+
+.effect-banner-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+.effect-banner-close:hover {
+  background: rgba(239, 68, 68, 0.7);
+  border-color: #f87171;
+}
+.effect-banner-hint {
+  font-size: 9.5px;
+  opacity: 0.65;
+  margin-left: 6px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
 }

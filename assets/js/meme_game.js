@@ -171,10 +171,11 @@ window.showEffectNotice = function({ cardId, title, text, owner = 'player', icon
   const banner = document.createElement('div');
   banner.className = 'card-effect-banner';
   banner.innerHTML = `
+    <button type="button" class="effect-banner-close" aria-label="Đóng">✕</button>
     <div class="effect-banner-inner">
       <div class="effect-banner-art">${c ? artHTML(c.id, 'effect-art-mini') : `<span style="font-size:32px;">${icon}</span>`}</div>
       <div class="effect-banner-info">
-        <div class="effect-banner-tag">${owner === 'player' ? 'BẠN KÍCH HOẠT' : 'ĐỐI THỦ KÍCH HOẠT'} · ${icon}</div>
+        <div class="effect-banner-tag">${owner === 'player' ? 'BẠN KÍCH HOẠT' : 'ĐỐI THỦ KÍCH HOẠT'} · ${icon} <span class="effect-banner-hint">(Chạm để đóng)</span></div>
         <strong class="effect-banner-name">${esc(name)}</strong>
         <p class="effect-banner-text">${esc(desc)}</p>
       </div>
@@ -183,10 +184,17 @@ window.showEffectNotice = function({ cardId, title, text, owner = 'player', icon
   const layer = document.getElementById('memeFxLayer') || document.body;
   layer.appendChild(banner);
   try { window.memeFx?.sound?.('charge'); } catch (_) {}
-  setTimeout(() => {
+  let timer = null;
+  const dismiss = () => {
+    clearTimeout(timer);
     banner.classList.add('fade-out');
-    setTimeout(() => banner.remove(), 400);
-  }, 2300);
+    setTimeout(() => banner.remove(), 300);
+  };
+  banner.onclick = dismiss;
+  const closeBtn = banner.querySelector('.effect-banner-close');
+  if (closeBtn) closeBtn.onclick = (e) => { e.stopPropagation(); dismiss(); };
+  const readDuration = Math.max(4800, Math.min(8000, 3200 + desc.length * 45));
+  timer = setTimeout(dismiss, readDuration);
 };
 window.attackProblem = function(slot) {
   if (!duel) return 'Trận đấu chưa bắt đầu.';
@@ -597,10 +605,26 @@ function resolveAttackNow(targetIndex,targetExtra=false){
   const p=duel?.pending;if(!p)return;const attackerSide=duel.turn,defenderSide=other(attackerSide);
   const a=side(attackerSide),d=side(defenderSide);const attacking=p.isExtra?a.extra:a.monsters[p.index];if(!attacking)return;
   const attackerCard=card(attacking.id);
-  duel.mode=null;duel.pending=null;attacking.attacksUsed=(attacking.attacksUsed||0)+1;attacking.attacked=attacking.attacksUsed>=(window.memeRules?.trait(attacking,'double_attack')?2:1);
-  if(counterTrap(defenderSide,attackerSide,p.index,p.isExtra)){render();return;}
+  if(counterTrap(defenderSide,attackerSide,p.index,p.isExtra)){
+    duel.mode=null;duel.pending=null;attacking.attacksUsed=(attacking.attacksUsed||0)+1;attacking.attacked=attacking.attacksUsed>=(window.memeRules?.trait(attacking,'double_attack')?2:1);
+    render();return;
+  }
   if(duel.arcanaRedirect){targetIndex=duel.arcanaRedirect.index;targetExtra=duel.arcanaRedirect.extra;delete duel.arcanaRedirect;}
   const defending=targetExtra?d.extra:targetIndex===null?null:d.monsters[targetIndex];
+  if(targetIndex!==null && !defending){
+    duel.mode=null;duel.pending=null;
+    log(`🔄 ${attackerCard.name}: Mục tiêu đã rời sân — Kích hoạt Đánh Lại (Replay)!`);
+    window.showEffectNotice?.({
+      cardId: attacking.id,
+      title: '🔄 ĐÁNH LẠI (REPLAY)',
+      text: `Mục tiêu ban đầu đã rời sân. ${attackerCard.name} được quyền chọn lại mục tiêu tấn công mới!`,
+      owner: attackerSide,
+      icon: '🔄'
+    });
+    render();
+    return;
+  }
+  duel.mode=null;duel.pending=null;attacking.attacksUsed=(attacking.attacksUsed||0)+1;attacking.attacked=attacking.attacksUsed>=(window.memeRules?.trait(attacking,'double_attack')?2:1);
   window.arcana200?.beforeDamage(attackerSide,attacking,defending);
   let atk=effectiveAtk(attackerSide,attacking),battleDamage=0;
   if(!defending){battleDamage=dealDamage(defenderSide,atk);log(`💥 ${attackerCard.name} tấn công trực tiếp: ${battleDamage} sát thương!`);}

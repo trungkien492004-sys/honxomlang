@@ -453,12 +453,34 @@
   const metal=spellList(owner).find(e=>e.slot.equippedTo===attacker.uid&&card(e.id)?.traits?.includes('metalmorph'));if(metal&&defender)await fx(owner,card(metal.id),'boost',[{name:owner,index}],()=>{attacker.attackBonus=(attacker.attackBonus||0)+Math.floor(stat(foe,defender)/2);});
   const sunrise=E(owner).find(e=>e.slot!==attacker&&face(e.slot)&&card(e.slot.id)?.effect_code==='dl_hero_sunrise'&&e.slot.sunriseAttackRound!==duel.round);
   if(sunrise&&/\bHERO\b/.test(card(attacker.id)?.name_en||'')){const sunriseTargets=[...targetList(foe),...spellList(foe)];if(sunriseTargets.length){sunrise.slot.sunriseAttackRound=duel.round;const t=await pick(owner,'Thái Dương: chọn 1 lá trên sân đối thủ để phá hủy',sunriseTargets,{optional:true});if(t)await fx(owner,card(sunrise.slot.id),'destroy',[t],()=>{if(t.type==='spell'||t.type==='field')clearSpell(foe,t.index);else remove(foe,t,'effect');});}}
+   if(defender&&!E(foe).some(e=>e.slot===defender)){
+     log(`🔄 ${card(attacker.id).name}: Mục tiêu đã rời sân — Kích hoạt Đánh Lại (Replay)!`);
+     window.showEffectNotice?.({
+       cardId: attacker.id,
+       title: '🔄 ĐÁNH LẠI (REPLAY)',
+       text: `Mục tiêu ban đầu đã rời sân. ${card(attacker.id).name} được quyền chọn lại mục tiêu tấn công mới!`,
+       owner,
+       icon: '🔄'
+     });
+     duel.mode=null;duel.pending=null;duel.battleContext=null;attacker.attackBonus=0;render();return false;
+   }
   duel.battleContext={owner,attacker,defender};const atk=Math.floor(stat(owner,attacker)*(!defender&&(has(attacker,'direct_half')||has(attacker,'rampart')&&attacker.position==='def')?.5:1)),def=defender?stat(foe,defender,defender.position==='atk'?'atk':'def'):0;
   if(defender&&atk>def&&has(defender,'winged_kuriboh')&&!defender.banishOnLeave&&S(foe).battleShieldRound!==duel.round)await fx(foe,card(defender.id),'shield',[],()=>{S(foe).battleDamageShieldRound=duel.round;});
   const takes=defender?atk>def?(defender.position==='atk'||has(attacker,'piercing')?{name:foe,amount:atk-def}:null):atk<def?{name:owner,amount:def-atk}:null:{name:foe,amount:atk};if(takes)await protectDamage(takes.name,takes.amount);
   let victim=null;duel.mode=null;duel.pending=null;
-  const hit=()=>{if(duel!==match)return;attacker.attacksUsed=(attacker.attacksUsed||0)+1;attacker.attacked=attacker.attacksUsed>=attackLimit(attacker);if(defender){attacker.attackTargets??=[];attacker.attackTargets.push(uid(defender));}
-   if(defender&&!E(foe).some(e=>e.slot===defender)){log(`⚔ ${card(attacker.id).name}: mục tiêu đã rời sân, đòn đánh không gây sát thương.`);checkWin();render();return;}
+  const hit=()=>{if(duel!==match)return;
+    if(defender&&!E(foe).some(e=>e.slot===defender)){
+      log(`🔄 ${card(attacker.id).name}: Mục tiêu đã rời sân — Kích hoạt Đánh Lại (Replay)!`);
+      window.showEffectNotice?.({
+        cardId: attacker.id,
+        title: '🔄 ĐÁNH LẠI (REPLAY)',
+        text: `Mục tiêu ban đầu đã rời sân. ${card(attacker.id).name} được quyền chọn lại mục tiêu tấn công mới!`,
+        owner,
+        icon: '🔄'
+      });
+      duel.mode=null;duel.pending=null;checkWin();render();return;
+    }
+    attacker.attacksUsed=(attacker.attacksUsed||0)+1;attacker.attacked=attacker.attacksUsed>=attackLimit(attacker);if(defender){attacker.attackTargets??=[];attacker.attackTargets.push(uid(defender));}
    if(!defender)damage(foe,atk);else if(atk>def){const removed=remove(foe,{slot:defender,index:targetIndex,extra:targetExtra},'battle');if(removed)victim=defender;if(defender.position==='atk'||has(attacker,'piercing'))damage(foe,atk-def);}else if(atk<def){if(defender.position==='atk')remove(owner,{slot:attacker,index,extra},'battle');damage(owner,def-atk);}else if(defender.position==='atk'){remove(owner,{slot:attacker,index,extra},'battle');if(remove(foe,{slot:defender,index:targetIndex,extra:targetExtra},'battle'))victim=defender;}
    log(`⚔ ${card(attacker.id).name} ${defender?'giao chiến với '+card(defender.id).name:'tấn công trực tiếp'}!`);checkWin();render();};
   duel.animeMatchId??='anime-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);duel.animeSerial=(duel.animeSerial||0)+1;duel.animeEvents=[...(duel.animeEvents||[]),{serial:duel.animeSerial,owner,kind:'attack',cardId:attacker.id,index,extra,targetIndex,targetExtra}].slice(-24);
