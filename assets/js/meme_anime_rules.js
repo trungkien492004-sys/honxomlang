@@ -862,12 +862,16 @@
  const originalTribute=chooseTribute;chooseTribute=async index=>{const match=duel,p=duel?.pending,slot=S('player').monsters[index];if(!p||!slot||cancelChoice)return;if(slot.noTribute)return log('Cừu Token không dùng hiến tế.');if(p.chosen.includes(index))return originalTribute(index);const selected=await pick('player','Xác nhận quái hiến tế',[{id:slot.id,slot,index,name:'player',type:'monster'}],{previewIndex:0,text:'Quái này sẽ được dùng làm chi phí triệu hồi.'});if(selected&&duel===match&&duel.pending===p&&S('player').monsters[index]===slot)return originalTribute(index);};
  playSpell=index=>{
    if(!mainPhase()||duel.mode)return;
-   const s=S('player'),c=card(s.hand[index]);
-   const prob=spellProblem('player',c);
-   if(prob){
-     window.showActionNotice(prob, 'Chưa thể kích hoạt');
-     log(prob);
-     return false;
+   const c=card(S('player').hand[index]);
+   const spellBypass=['toon_world','premature','mask_change','mask_change_ii','fusion_summon','miracle_fusion','power_bond','ritual'];
+   const ioOpen=!trapLocked()&&['player','enemy'].some(w=>spellList(w).some(e=>!e.slot.faceDown&&card(e.id)?.effect_code==='imperial_order'));
+   if(!(ioOpen&&c?.card_type==='Spell'&&!spellBypass.includes(c.effect_code))){
+     const prob=spellProblem('player',c);
+     if(prob){
+       window.showActionNotice(prob, 'Chưa thể kích hoạt');
+       log(prob);
+       return false;
+     }
    }
    return perform(()=>playSpellFor('player',index));
  };
