@@ -112,32 +112,166 @@
     try { const result = await api('cancel'); if (result.state === 'matched') return await enter(result.code); stop(); close(); }
     catch (error) { setStatus(error.message); } finally { queueBusy = false; }
   }
+  let matchmakingTimer = null;
+  let matchmakingCountdown = 15;
+  let searchingMatch = false;
+
+  function setLocalProfile(receipt) {
+    if (!receipt) return;
+    profile = {
+      ...(profile || {}),
+      rating: receipt.ratingAfter,
+      wins: receipt.wins,
+      losses: receipt.losses,
+      draws: receipt.draws,
+      played: receipt.played,
+      lastMatchId: receipt.matchId
+    };
+    paint();
+  }
+
   async function find() {
-    if (!identity.user) return identity.login();
-    if (!cfg.enabled) return show('Đấu Rank nhanh đang chờ máy chủ xếp hạng. Bảng RANK và đấu bạn bè vẫn dùng được.');
-    if (searching) return;
-    queueBusy = true;
+    if (searchingMatch) return;
+    if (!identity.user) {
+      await identity.login();
+      if (!identity.user) return;
+    }
+    try { await window.memeIdDuel?.publish?.(true); } catch (_) {}
+
+    if (typeof duel !== 'undefined' && duel && !duel.finished && document.getElementById('duel') && !document.getElementById('duel').classList.contains('hidden')) {
+      return window.notify ? window.notify('Bạn đang trong một trận đấu. Hãy hoàn thành trận hiện tại trước.') : alert('Bạn đang trong một trận đấu.');
+    }
+
+    close();
+    searchingMatch = true;
+    matchmakingCountdown = 15;
+
+    document.getElementById('rankMatchOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'rankMatchOverlay';
+    overlay.className = 'rank-match-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.innerHTML = `
+      <div class="rank-match-modal">
+        <div class="rank-match-radar">
+          <div class="rank-match-pulse"></div>
+          <div class="rank-match-icon">⚔️</div>
+        </div>
+        <h2 class="rank-match-title">Ghép Trận Rank Nhanh</h2>
+        <div class="rank-match-timer">
+          <span id="rankMatchSec">15</span><small>s</small>
+        </div>
+        <p class="rank-match-status" id="rankMatchStatus">🔍 Đang quét tìm đối thủ Online cùng đẳng cấp...</p>
+        <div class="rank-match-bar">
+          <div class="rank-match-bar-fill" id="rankMatchBarFill" style="width:100%"></div>
+        </div>
+        <p class="rank-match-hint">Ưu tiên người chơi Online trong 15 giây. Nếu không ai sẵn sàng, hệ thống sẽ tự động ghép với Đấu Sĩ Máy Huyền Thoại để tính điểm Rank!</p>
+        <div class="rank-match-actions">
+          <button type="button" class="secondary-btn" id="rankMatchCancelBtn">❌ Hủy tìm trận</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const cancelMatchmaking = () => {
+      clearInterval(matchmakingTimer);
+      matchmakingTimer = null;
+      searchingMatch = false;
+      document.getElementById('rankMatchOverlay')?.remove();
+      try { window.memeIdDuel?.cancelInvite?.(); } catch (_) {}
+      if (window.notify) window.notify('Đã hủy tìm trận Rank.');
+    };
+
+    document.getElementById('rankMatchCancelBtn').onclick = cancelMatchmaking;
+
+    // Scan duel_directory for online opponent
     try {
-      const result = await api('queue', prefs());
-      if (result.state === 'matched') return enter(result.code);
-      profile = { ...profile, ...result }; searching = true; close();
-      const overlay = document.createElement('div'); overlay.id = 'rankOverlay';
-      overlay.innerHTML = '<section class="rank-sheet"><header><h2>Đang tìm đối thủ</h2></header><p class="rank-status">Đang ghép trận rank…</p><div class="rank-queue-actions"><button id="cancelRankQueue">Hủy tìm trận</button></div></section>';
-      document.body.appendChild(overlay); document.getElementById('cancelRankQueue').onclick = cancel;
-      poll = setInterval(async () => {
-        if (queueBusy || !searching) return; queueBusy = true;
-        try { const status = await api('status'); if (status.state === 'matched') await enter(status.code); else if (status.state !== 'waiting' || Date.now() > status.expiresAt) { stop(); setStatus('Chưa tìm được đối thủ. Hãy thử lại.'); } }
-        catch (error) { setStatus(error.message); } finally { queueBusy = false; }
-      }, 3000);
-    } catch (error) { window.notify?.(error.message); }
-    finally { queueBusy = false; }
+      const store = await db();
+      const myUid = identity.user.uid;
+      const snap = await store.collection('duel_directory').limit(30).get();
+      const onlinePlayers = [];
+      const now = Date.now();
+      snap.forEach(doc => {
+        const d = doc.data();
+        if (d && d.uid !== myUid) {
+          const seen = typeof d.lastSeen?.toMillis === 'function' ? d.lastSeen.toMillis() : (Date.parse(d.lastSeen) || Number(d.lastSeen) || 0);
+          if (d.online === true && (now - seen < 90000)) {
+            onlinePlayers.push(d);
+          }
+        }
+      });
+
+      if (onlinePlayers.length > 0) {
+        const candidate = onlinePlayers[Math.floor(Math.random() * onlinePlayers.length)];
+        const statusEl = document.getElementById('rankMatchStatus');
+        if (statusEl) statusEl.textContent = `🎯 Đã tìm thấy ${candidate.name}! Đang gửi lời mời thách đấu...`;
+        try {
+          const target = await window.memeIdDuel?.lookup?.(candidate.uid);
+          if (target && window.memeIdDuel?.online?.(target)) {
+            window.memeIdDuel?.invite?.(target).catch(() => {});
+          }
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.warn('Matchmaking directory scan:', e);
+    }
+
+    matchmakingTimer = setInterval(() => {
+      matchmakingCountdown--;
+      const secEl = document.getElementById('rankMatchSec');
+      const barEl = document.getElementById('rankMatchBarFill');
+      if (secEl) secEl.textContent = matchmakingCountdown;
+      if (barEl) barEl.style.width = ((matchmakingCountdown / 15) * 100) + '%';
+
+      if (window.memeOnlineIsPlaying?.()) {
+        clearInterval(matchmakingTimer);
+        matchmakingTimer = null;
+        searchingMatch = false;
+        document.getElementById('rankMatchOverlay')?.remove();
+        return;
+      }
+
+      if (matchmakingCountdown <= 0) {
+        clearInterval(matchmakingTimer);
+        matchmakingTimer = null;
+        searchingMatch = false;
+
+        try { window.memeIdDuel?.cancelInvite?.(); } catch (_) {}
+
+        const statusEl = document.getElementById('rankMatchStatus');
+        if (statusEl) statusEl.textContent = '⏱️ Không có đối thủ Online. Đang ghép với Đấu Sĩ Máy Huyền Thoại...';
+
+        const LEGEND_BOTS = [
+          { name: 'Joey Wheeler', preset: 'Joey · Rồng Đen Bất Diệt', elo: 1150 },
+          { name: 'Pegasus', preset: 'Pegasus · Vương Quốc Hoạt Hình', elo: 1250 },
+          { name: 'Jaden Yuki', preset: 'Jaden · Anh Hùng Tối Thượng', elo: 1350 },
+          { name: 'Zane Truesdale', preset: 'Zane · Rồng Máy Tận Diệt', elo: 1450 },
+          { name: 'Seto Kaiba', preset: 'Kaiba · Đỉnh Cao Mắt Xanh', elo: 1550 },
+          { name: 'Yugi Muto', preset: 'Yugi · Ma Thuật Tối Thượng', elo: 1600 }
+        ];
+
+        const myRating = Number(profile?.rating) || 1000;
+        let chosenBot = LEGEND_BOTS.find(b => myRating <= b.elo) || LEGEND_BOTS[LEGEND_BOTS.length - 1];
+
+        setTimeout(() => {
+          document.getElementById('rankMatchOverlay')?.remove();
+          if (window.notify) window.notify(`⚔️ Ghép thành công! Đối thủ: ${chosenBot.name} (${chosenBot.elo} Elo)`);
+          if (typeof startGame === 'function') {
+            startGame({ customBotDeck: chosenBot.preset });
+          }
+        }, 700);
+      }
+    }, 1000);
   }
 
   const footer = document.querySelector('#lobby .lobby-footer');
   if (footer) {
     footer.classList.add('rank-actions');
-    for (const [id, text, action] of [['rankPlayBtn', 'Đấu Rank nhanh', find], ['rankBoardBtn', 'RANK', show]]) {
-      const button = document.createElement('button'); button.type = 'button'; button.id = id; button.className = 'secondary-btn'; button.textContent = text; button.onclick = action; footer.appendChild(button);
+    for (const [id, text, action] of [['rankPlayBtn', '⚔️ Đấu Rank nhanh', find], ['rankBoardBtn', '🏆 RANK', show]]) {
+      const button = document.createElement('button'); button.type = 'button'; button.id = id;
+      button.className = id === 'rankPlayBtn' ? 'rank-quick-btn' : 'secondary-btn';
+      button.textContent = text; button.onclick = action; footer.appendChild(button);
     }
     const pill = document.createElement('div'); pill.id = 'rankIdentity'; pill.className = 'rank-identity'; document.querySelector('#lobby .topbar').after(pill);
   } else for (const selector of ['#gameModeScreen', '#loginScreen .login-box']) {
@@ -235,7 +369,7 @@
   }
   setTimeout(tryAutoPromo, 900);
 
-  window.siteRank = { show, find, close, paint, showPromo: showRankPromo, refresh: async () => {
+  window.siteRank = { show, find, close, paint, setLocalProfile, showPromo: showRankPromo, refresh: async () => {
     if (identity.user) await loadProfile(identity.user);
     const overlay = document.getElementById('rankOverlay');
     if (overlay && identity.db) {

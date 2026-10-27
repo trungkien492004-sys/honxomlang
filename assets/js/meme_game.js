@@ -163,7 +163,7 @@ function startGame(options={}){
   document.querySelector('.duel-layout').classList.add('inspector-collapsed');
   const p2Settings = window.memePhase2?.settings || {};
   const diff = p2Settings.difficulty || 'hard';
-  const customBotDeck = p2Settings.botDeck;
+  const customBotDeck = options?.customBotDeck || p2Settings.botDeck;
   const supremePresets = [
     'Kaiba · Đỉnh Cao Mắt Xanh',
     'Yugi · Ma Thuật Tối Thượng',
@@ -221,8 +221,14 @@ function startGame(options={}){
 function finish(winner,reason=''){
   if(!duel||duel.finished)return;duel.finished=true;duel.winner=winner;duel.finishReason=reason;clearTimeout(aiTimer);
   render();const won=winner==='player',match=duel;
-  window.memeIdDuel?.recordResult?.(match)?.catch?.(e=>console.warn('Rank record error:',e));
-  Promise.race([window.memeFx?.whenLpSettles() || Promise.resolve(),new Promise(resolve=>setTimeout(resolve,1200))]).then(()=>{
+  const rankPromise = window.memeIdDuel?.recordResult?.(match)?.catch(e => {
+    console.warn('Rank record error:', e);
+    return { error: e.message || 'Lỗi đồng bộ BXH' };
+  });
+  Promise.race([
+    Promise.all([window.memeFx?.whenLpSettles() || Promise.resolve(), rankPromise || Promise.resolve()]),
+    new Promise(resolve=>setTimeout(resolve, 1500))
+  ]).then(()=>{
     if(duel!==match)return;
     $('duel').classList.add('match-finished');
     showMatchResult(won,reason|| (won?'Bạn đã làm chủ đấu trường meme!':'Thử một chiến thuật khác nhé.'),match);
@@ -231,7 +237,14 @@ function finish(winner,reason=''){
 function showMatchResult(won,reason,match=duel){
   const online=!!window.memeOnlineIsPlaying?.();
   const receipt=match?.rankChallengeResult;
-  const rankText=receipt?`<p class="rank-challenge-result">BXH đã cập nhật: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · <b>${receipt.delta>0?'+':''}${receipt.delta} Elo</b> (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua</p>`:'';
+  let rankText = '';
+  if (receipt?.unauthenticated) {
+    rankText = `<p class="rank-challenge-result" style="color:#f59e0b;font-weight:bold;">⚠️ Bạn chưa đăng nhập Google — Điểm Rank không được tích lũy vào Bảng Xếp Hạng. Hãy đăng nhập từ sảnh chính!</p>`;
+  } else if (receipt?.error) {
+    rankText = `<p class="rank-challenge-result" style="color:#ef4444;">⚠️ Chưa đồng bộ BXH: ${esc(receipt.error)}</p>`;
+  } else if (receipt) {
+    rankText = `<p class="rank-challenge-result" style="color:#4ade80;font-weight:bold;">🏆 BXH ĐÃ CẬP NHẬT: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · <span style="font-size:1.15em;color:#fbbf24;">${receipt.delta>0?'+':''}${receipt.delta} Elo</span> (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua</p>`;
+  }
   showModal(`<span class="result-icon">${won?'🏆':'💀'}</span><h2>${won?'Chiến thắng!':'Thất bại!'}</h2><p>${esc(reason||'Trận đấu đã kết thúc.')}</p>${rankText}<div class="result-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"><button class="primary-btn" id="againBtn">⚔️ Đấu lại</button><button class="secondary-btn" id="resultLobbyBtn">🏠 Về sảnh</button></div>`);
   $('againBtn').onclick=()=>{
     if(online){
@@ -630,6 +643,7 @@ function render(){
   if(window.memeFx){window.memeFx.setLp('player',p.lp);window.memeFx.setLp('enemy',e.lp);}
   else {$('playerLife').textContent=`${Math.max(0,p.lp)} LP`;$('enemyLife').textContent=`${Math.max(0,e.lp)} LP`;$('playerLifeBar').style.width=`${Math.max(0,Math.min(100,p.lp/40))}%`;$('enemyLifeBar').style.width=`${Math.max(0,Math.min(100,e.lp/40))}%`;}
   $('playerDeck').textContent=p.deck.length;$('enemyDeck').textContent=e.deck.length;$('playerGY').textContent=p.grave.length;$('enemyGY').textContent=e.grave.length;
+  for(const name of ['player','enemy']){const node=$(name+'Banished');if(node)node.textContent=(side(name).banished||[]).length;}
   for(const name of ['player','enemy'])$(name+'ExtraCount').textContent=side(name).extraDeck?.length||0;
   for(const name of ['player','enemy']){const node=$(name+'Shield');if(node)node.textContent=`💎 ${side(name).shield||0}`;}
   const names=window.memeOnlineNames?.();$('playerName').textContent=names?.player||getHero(p.heroId).name;$('enemyName').textContent=names?.enemy||getHero(e.heroId).name+' · Máy';
@@ -743,4 +757,4 @@ $('closeModal').addEventListener('click',closeModal);$('modal').addEventListener
 $('backBtn').addEventListener('click',()=>{window.memeOnlineLeave?.();window.memeFx?.reset();clearTimeout(aiTimer);$('duel').classList.add('hidden');$('lobby').classList.remove('hidden');closeModal();duel=null;window.scrollTo(0,0);});
 $('nextPhaseBtn').addEventListener('click',nextPhase);$('cancelModeBtn').addEventListener('click',clearMode);
 $('inspectorToggleBtn').addEventListener('click',()=>document.querySelector('.duel-layout').classList.toggle('inspector-collapsed'));
-for(const name of ['player','enemy']){$(name+'GraveBtn').onclick=()=>openPile(name,'grave');$(name+'ExtraDeckBtn').onclick=()=>openPile(name,'extra');$(name+'SkillCard').onclick=()=>showHeroSkill(name);$(name+'Avatar').onclick=()=>showHeroSkill(name);}
+for(const name of ['player','enemy']){$(name+'GraveBtn').onclick=()=>openPile(name,'grave');if($(name+'BanishedBtn'))$(name+'BanishedBtn').onclick=()=>openPile(name,'banished');$(name+'ExtraDeckBtn').onclick=()=>openPile(name,'extra');$(name+'SkillCard').onclick=()=>showHeroSkill(name);$(name+'Avatar').onclick=()=>showHeroSkill(name);}

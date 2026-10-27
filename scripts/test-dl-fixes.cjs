@@ -215,11 +215,14 @@ server.listen(0, async () => {
       await test('Cyberload Fusion shuffles materials from field and banished into deck', async () => {
         duel.player.hand = ['DL-cyberload_fusion'];
         duel.player.extraDeck = ['AN-cyber_twin_dragon'];
+        duel.player.deck = ['AN-kuriboh'];
         duel.player.monsters[0] = { ...monsterSlot('AN-cyber_dragon', 'atk'), uid: 'cydra-1' };
-        duel.player.banished = ['AN-proto_cyber_dragon'];
+        duel.player.banished = ['AN-cyber_dragon'];
         render();
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Cyberload Fusion');
         eq(duel.player.monsters[0].id, 'AN-cyber_twin_dragon', 'Cyber Twin Dragon summoned');
+        eq(duel.player.banished.length, 0, 'banished material left the banished pile');
+        eq(duel.player.deck.filter(id => id === 'AN-cyber_dragon').length, 2, 'both Cyber Dragons shuffled into deck');
       });
 
       return results;

@@ -89,7 +89,8 @@ function memeShowWaiting() {
 }
 
 window.memeOnlineChooseMode = function() {
-  showModal('<h2>Chọn cách chơi</h2><button class="primary-btn" id="memeVsBotBtn">🆚 Đấu với máy</button><button class="primary-btn" id="memeHostBtn">🌐 Tạo phòng online</button><button class="primary-btn" id="memeJoinBtn">🤝 Vào phòng online</button>');
+  showModal('<h2>Chọn cách chơi</h2><button class="primary-btn" id="memeRankQuickBtn" style="background:linear-gradient(135deg,#f59e0b,#d97706);font-weight:900;border:1px solid #fde68a;margin-bottom:8px">⚔️ Đấu Rank nhanh (Ưu tiên Online 15s ➔ Máy)</button><button class="primary-btn" id="memeVsBotBtn">🆚 Đấu thường với máy</button><button class="primary-btn" id="memeHostBtn">🌐 Tạo phòng online</button><button class="primary-btn" id="memeJoinBtn">🤝 Vào phòng online</button>');
+  $('memeRankQuickBtn').onclick = () => { closeModal(); window.siteRank?.find?.(); };
   $('memeVsBotBtn').onclick = startGame;
   $('memeHostBtn').onclick = () => memeShowRoomEntry('host');
   $('memeJoinBtn').onclick = () => memeShowRoomEntry('guest');

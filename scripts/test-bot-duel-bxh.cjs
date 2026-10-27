@@ -139,7 +139,7 @@ const server = http.createServer((request, response) => {
 
     // Check modal UI contains rank update note
     const modalText = await frame.evaluate(() => document.querySelector('.rank-challenge-result')?.textContent || '');
-    assert.ok(modalText.includes('BXH đã cập nhật'), 'Victory modal displays rank update note: ' + modalText);
+    assert.ok(modalText.toUpperCase().includes('BXH ĐÃ CẬP NHẬT') || modalText.includes('BXH đã cập nhật'), 'Victory modal displays rank update note: ' + modalText);
     checks.push('Victory modal displays updated Elo and record');
 
     // 4. Test rematch ('againBtn')
@@ -181,6 +181,20 @@ const server = http.createServer((request, response) => {
     assert.ok(boardData.playerRowText && boardData.playerRowText.includes('Đấu sĩ Test'), 'BXH rows include player: ' + boardData.playerRowText);
     assert.ok(boardData.playerRowText.includes('2'), 'BXH player row shows 2 wins: ' + boardData.playerRowText);
     checks.push('Leaderboard modal displays updated Elo and 2 wins across ' + boardData.totalRows + ' rows');
+
+    // 7. Verify Quick Matchmaking modal and 15s online/bot fallback
+    await frame.evaluate(() => siteRank.close());
+    await frame.evaluate(() => siteRank.find());
+    await frame.waitForSelector('#rankMatchOverlay', { timeout: 5000 });
+    const mmTitle = await frame.evaluate(() => document.querySelector('.rank-match-title')?.textContent || '');
+    assert.ok(mmTitle.includes('Ghép Trận Rank Nhanh'), 'Matchmaking modal shown: ' + mmTitle);
+    const mmSec = await frame.evaluate(() => document.getElementById('rankMatchSec')?.textContent);
+    assert.ok(mmSec === '15' || mmSec === '14', 'Countdown started at 15s: ' + mmSec);
+    // Cancel matchmaking to test clean exit
+    await frame.evaluate(() => document.getElementById('rankMatchCancelBtn')?.click());
+    const mmClosed = await frame.evaluate(() => !document.getElementById('rankMatchOverlay'));
+    assert.ok(mmClosed, 'Matchmaking cancelled cleanly on user request');
+    checks.push('Quick Matchmaking 15s modal verified and cancelled cleanly');
 
     console.log('Bot duel BXH tests:', checks.length, 'checks passed.');
   } finally {

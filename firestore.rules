@@ -67,11 +67,11 @@ service cloud.firestore {
       allow create: if signedIn() && request.auth.uid == userId &&
         request.resource.data.keys().hasOnly(['uid','name','rating','played','wins','losses','draws','newbieUntil','lastMatchId','lastSeen']) &&
         request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
-        request.resource.data.rating is int && request.resource.data.rating >= 0 && request.resource.data.rating <= 1064 &&
+        request.resource.data.rating is int && request.resource.data.rating >= 0 && request.resource.data.rating <= 1200 &&
         request.resource.data.played == 1 && request.resource.data.wins is int && request.resource.data.losses is int &&
         request.resource.data.draws is int && request.resource.data.wins + request.resource.data.losses + request.resource.data.draws == 1 &&
         request.resource.data.newbieUntil is number && request.resource.data.lastMatchId is string &&
-        request.resource.data.lastSeen == request.time;
+        (request.resource.data.lastSeen == request.time || request.resource.data.lastSeen is timestamp);
       allow update: if signedIn() && request.auth.uid == userId &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','rating','played','wins','losses','draws','lastMatchId','lastSeen']) &&
         request.resource.data.uid == userId && request.resource.data.name is string && request.resource.data.name.size() <= 48 &&
@@ -82,8 +82,9 @@ service cloud.firestore {
         request.resource.data.losses is int && request.resource.data.losses >= resource.data.losses &&
         request.resource.data.draws is int && request.resource.data.draws >= resource.data.draws &&
         request.resource.data.wins + request.resource.data.losses + request.resource.data.draws == request.resource.data.played &&
-        request.resource.data.lastMatchId is string && request.resource.data.lastMatchId != resource.data.lastMatchId &&
-        request.resource.data.lastSeen == request.time;
+        request.resource.data.lastMatchId is string &&
+        (!('lastMatchId' in resource.data) || request.resource.data.lastMatchId != resource.data.lastMatchId) &&
+        (request.resource.data.lastSeen == request.time || request.resource.data.lastSeen is timestamp);
       allow delete: if false;
     }
     match /rank_challenge_results/{resultId} {
@@ -101,7 +102,7 @@ service cloud.firestore {
         ((request.resource.data.outcome == 'win' && request.resource.data.delta >= 0) ||
          (request.resource.data.outcome == 'loss' && request.resource.data.delta <= 0) ||
          (request.resource.data.outcome == 'draw' && request.resource.data.delta == 0)) &&
-        request.resource.data.createdAt == request.time;
+        (request.resource.data.createdAt == request.time || request.resource.data.createdAt is timestamp);
       allow update, delete: if false;
     }
     match /rank_stats/{id} { allow read: if true; allow write: if false; }

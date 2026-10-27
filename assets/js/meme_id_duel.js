@@ -2,7 +2,15 @@
 (() => {
  if(!document.getElementById('lobby')||!window.siteIdentity)return;
  const identity=window.siteIdentity;let store=null,uid=null,unsub=null,timer=null,saving=null,lastSaved='',pending=null,incoming=null,generation=0,lastDirectory='';
- const stamp=()=>{try{const s=store||identity?.db||window.parent?.siteIdentity?.db;if(s&&typeof firebase!=='undefined'&&firebase.firestore?.FieldValue?.serverTimestamp)return firebase.firestore.FieldValue.serverTimestamp();if(typeof parent!=='undefined'&&parent.firebase?.firestore?.FieldValue?.serverTimestamp)return parent.firebase.firestore.FieldValue.serverTimestamp();if(typeof firebase!=='undefined'&&firebase.firestore?.FieldValue?.serverTimestamp)return firebase.firestore.FieldValue.serverTimestamp();}catch{}return null;};
+  const stamp=()=>{
+    try{
+      if(typeof firebase!=='undefined'&&firebase.firestore?.FieldValue?.serverTimestamp)return firebase.firestore.FieldValue.serverTimestamp();
+      if(typeof parent!=='undefined'&&parent.firebase?.firestore?.FieldValue?.serverTimestamp)return parent.firebase.firestore.FieldValue.serverTimestamp();
+      if(store?.constructor?.FieldValue?.serverTimestamp)return store.constructor.FieldValue.serverTimestamp();
+      if(identity?.db?.constructor?.FieldValue?.serverTimestamp)return identity.db.constructor.FieldValue.serverTimestamp();
+    }catch{}
+    return null;
+  };
  const native=v=>{try{return parent.JSON.parse(JSON.stringify(v));}catch{return JSON.parse(JSON.stringify(v));}};
  const stamped=v=>Object.assign(native(v),{lastSeen:stamp()});
  const ms=t=>typeof t?.toMillis==='function'?t.toMillis():typeof t==='string'?Date.parse(t)||0:Number(t)||0;
@@ -22,53 +30,84 @@
     const host=$('modalContent');if(!host||!receipt)return;
     host.querySelector('.rank-challenge-result')?.remove();
     const note=document.createElement('p');note.className='rank-challenge-result';
-    note.textContent=`BXH đã cập nhật: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · ${receipt.delta>0?'+':''}${receipt.delta} Elo (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua`;
+    if(receipt.unauthenticated){
+      note.style.color='#f59e0b';note.style.fontWeight='bold';
+      note.textContent='⚠️ Bạn chưa đăng nhập Google — Điểm Rank không được tích lũy vào Bảng Xếp Hạng. Hãy đăng nhập từ sảnh chính!';
+    }else if(receipt.error){
+      note.style.color='#ef4444';
+      note.textContent=`⚠️ Chưa đồng bộ BXH: ${receipt.error}`;
+    }else{
+      note.style.color='#4ade80';note.style.fontWeight='bold';
+      note.textContent=`🏆 BXH ĐÃ CẬP NHẬT: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · ${receipt.delta>0?'+':''}${receipt.delta} Elo (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua`;
+    }
     const actions=host.querySelector('.result-actions');if(actions)host.insertBefore(note,actions);else host.appendChild(note);
-   }
-   async function recordResult(match){
-    const currentUid=uid||identity?.user?.uid||window.parent?.siteIdentity?.user?.uid;
-    const currentStore=store||identity?.db||window.parent?.siteIdentity?.db;
-    const currentIdentity=(identity?.user?identity:(window.parent?.siteIdentity||identity));
-    const rawMatchId=match?.rankChallengeId||memeRoom?.challengeId,opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
-    if(!match?.finished||!rawMatchId||!opponentUid||opponentUid===currentUid||!currentUid||!currentStore)return null;
-    const isBot=String(opponentUid).startsWith('bot-');
-    const matchId=String(rawMatchId).slice(0,75);
-    const resultId=matchId+'_'+currentUid,resultRef=currentStore.doc('rank_challenge_results/'+resultId),mineRef=currentStore.doc('rank_profiles/'+currentUid);
-    const opponentRef=isBot?null:currentStore.doc('rank_profiles/'+opponentUid),directoryRef=isBot?null:currentStore.doc('duel_directory/'+opponentUid);let receipt=null;
-    await currentStore.runTransaction(async tx=>{
-     const reads=[tx.get(resultRef),tx.get(mineRef)];
-     if(opponentRef&&directoryRef)reads.push(tx.get(opponentRef),tx.get(directoryRef));
-     const [prior,mineSnap,opponentSnap,directorySnap]=await Promise.all(reads);
-     if(prior.exists){receipt=prior.data();return;}
-     const mine=mineSnap.exists?mineSnap.data():{},opponent=opponentSnap?.exists?opponentSnap.data():{},directory=directorySnap?.exists?directorySnap.data():{};
-     const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=isBot?1000:Math.max(0,Math.round(Number(opponent.rating)||1000));
-     const outcome=match.winner==='draw'?'draw':match.winner==='player'?'win':'loss';
-     const ownCreated=Date.parse(currentIdentity?.user?.metadata?.creationTime),ownNewbie=Number.isFinite(ownCreated)&&Date.now()<ownCreated+7*86400000;
-     const opponentNewbie=isBot?false:(Date.now()<Number(directory.newbieUntil||opponent.newbieUntil||0));
-     let delta=0;
-     if(outcome!=='draw'){
-      const winnerRating=outcome==='win'?rating:opponentRating,loserRating=outcome==='win'?opponentRating:rating;
-      const base=Math.max(1,Math.round(32*(1-1/(1+10**((loserRating-winnerRating)/400)))));
-      delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):(ownNewbie?0:-Math.min(base,rating));
-     }
-     const counts={played:(Number(mine.played)||0)+1,wins:(Number(mine.wins)||0)+(outcome==='win'?1:0),losses:(Number(mine.losses)||0)+(outcome==='loss'?1:0),draws:(Number(mine.draws)||0)+(outcome==='draw'?1:0)};
-     const nextRating=Math.max(0,Math.round(rating+delta)),createdUntil=Number.isFinite(ownCreated)?ownCreated+7*86400000:0;
-     const result={uid:currentUid,matchId,opponentUid,outcome,delta,ratingBefore:rating,ratingAfter:nextRating,createdAt:stamp()};
-     const profileName=String(currentIdentity?.user?.displayName||mine.name||'Đấu sĩ').slice(0,48);
-     tx.set(resultRef,result);
-     if(!mineSnap.exists){
-       const newProfile={uid:currentUid,name:profileName,rating:nextRating,...counts,newbieUntil:createdUntil,lastMatchId:matchId,lastSeen:stamp()};
-       tx.set(mineRef,newProfile);
-     }else{
-       const updateProfile={name:profileName,rating:nextRating,...counts,lastMatchId:matchId,lastSeen:stamp()};
-       tx.update(mineRef,updateProfile);
-     }
-     receipt={...result,...counts};
+  }
+  async function recordResult(match){
+    if(match?._recordResultPromise)return match._recordResultPromise;
+    const run=async()=>{
+      const currentUid=uid||identity?.user?.uid||window.parent?.siteIdentity?.user?.uid;
+      const currentStore=store||identity?.db||window.parent?.siteIdentity?.db;
+      const currentIdentity=(identity?.user?identity:(window.parent?.siteIdentity||identity));
+      if(!currentUid)return{unauthenticated:true};
+      const rawMatchId=match?.rankChallengeId||memeRoom?.challengeId,opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
+      if(!match?.finished||!rawMatchId||!opponentUid||opponentUid===currentUid||!currentStore)return null;
+      const isBot=String(opponentUid).startsWith('bot-');
+      const matchId=String(rawMatchId).slice(0,75);
+      const resultId=matchId+'_'+currentUid,resultRef=currentStore.doc('rank_challenge_results/'+resultId),mineRef=currentStore.doc('rank_profiles/'+currentUid);
+      const opponentRef=isBot?null:currentStore.doc('rank_profiles/'+opponentUid),directoryRef=isBot?null:currentStore.doc('duel_directory/'+opponentUid);let receipt=null;
+      await currentStore.runTransaction(async tx=>{
+        const reads=[tx.get(resultRef),tx.get(mineRef)];
+        if(opponentRef&&directoryRef)reads.push(tx.get(opponentRef),tx.get(directoryRef));
+        const [prior,mineSnap,opponentSnap,directorySnap]=await Promise.all(reads);
+        if(prior.exists){receipt=prior.data();return;}
+        const mine=mineSnap.exists?mineSnap.data():{},opponent=opponentSnap?.exists?opponentSnap.data():{},directory=directorySnap?.exists?directorySnap.data():{};
+        const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=isBot?1000:Math.max(0,Math.round(Number(opponent.rating)||1000));
+        const outcome=match.winner==='draw'?'draw':match.winner==='player'?'win':'loss';
+        const ownCreated=Date.parse(currentIdentity?.user?.metadata?.creationTime),ownNewbie=Number.isFinite(ownCreated)&&Date.now()<ownCreated+7*86400000;
+        const opponentNewbie=isBot?false:(Date.now()<Number(directory.newbieUntil||opponent.newbieUntil||0));
+        let delta=0;
+        if(outcome!=='draw'){
+          const winnerRating=outcome==='win'?rating:opponentRating,loserRating=outcome==='win'?opponentRating:rating;
+          const base=Math.max(1,Math.round(32*(1-1/(1+10**((loserRating-winnerRating)/400)))));
+          delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):(ownNewbie?0:-Math.min(base,rating));
+        }
+        delta=Math.round(delta);
+        const counts={played:Math.round((Number(mine.played)||0)+1),wins:Math.round((Number(mine.wins)||0)+(outcome==='win'?1:0)),losses:Math.round((Number(mine.losses)||0)+(outcome==='loss'?1:0)),draws:Math.round((Number(mine.draws)||0)+(outcome==='draw'?1:0))};
+        const nextRating=Math.max(0,Math.round(rating+delta)),createdUntil=Number.isFinite(ownCreated)?ownCreated+7*86400000:0;
+        const s=stamp();
+        const result={uid:currentUid,matchId,opponentUid,outcome,delta,ratingBefore:Math.round(rating),ratingAfter:Math.round(nextRating),createdAt:s};
+        const profileName=String(currentIdentity?.user?.displayName||mine.name||'Đấu sĩ').slice(0,48);
+        tx.set(resultRef,result);
+        if(!mineSnap.exists){
+          const newProfile={uid:currentUid,name:profileName,rating:Math.round(nextRating),...counts,newbieUntil:createdUntil,lastMatchId:matchId,lastSeen:s};
+          tx.set(mineRef,newProfile);
+        }else{
+          const updateProfile={name:profileName,rating:Math.round(nextRating),...counts,lastMatchId:matchId,lastSeen:s};
+          tx.update(mineRef,updateProfile);
+        }
+        receipt={...result,...counts};
+      });
+      if(receipt){
+        match.rankChallengeResult=receipt;
+        if(window.siteRank){
+          window.siteRank.setLocalProfile?.(receipt);
+          window.siteRank.paint?.();
+          window.siteRank.refresh?.().catch(()=>{});
+        }
+        updateResultUI(receipt);
+      }
+      return receipt;
+    };
+    const promise=run().catch(e=>{
+      console.error('Không cập nhật được kết quả khiêu chiến:',e);
+      const errObj={error:e.message||'Lỗi lưu BXH'};
+      updateResultUI(errObj);
+      return errObj;
     });
-    if(receipt){match.rankChallengeResult=receipt;window.siteRank?.refresh?.();updateResultUI(receipt);}
-    return receipt;
-   }
-   function trackResult(match){if(!match?.rankChallengeId&&!memeRoom?.challengeId)return;recordResult(match).catch(e=>{console.error('Không cập nhật được kết quả khiêu chiến:',e);notify('Không lưu được kết quả BXH. Hãy giữ màn hình mở và thử tải lại trang.');});}
+    if(match)match._recordResultPromise=promise;
+    return promise;
+  }
+  function trackResult(match){if(!match?.rankChallengeId&&!memeRoom?.challengeId)return;recordResult(match);}
   const finishDuel=finish;finish=(...args)=>{const match=duel,result=finishDuel(...args);trackResult(match);return result;};
   const showDuelResult=window.memeShowResult;window.memeShowResult=(...args)=>{const result=showDuelResult?.(...args);trackResult(duel);return result;};
  async function invite(p){
@@ -106,7 +145,8 @@
     }
     return res;
   };
- const rank=$('rankPlayBtn');if(rank)rank.remove();$('playBtn').textContent='⚔️ Vào trận';
+  if($('rankPlayBtn'))$('rankPlayBtn').onclick=()=>window.siteRank?.find?.();
+  $('playBtn').textContent='⚔️ Vào trận';
  const save=commitDeckDraft;commitDeckDraft=(...args)=>{const r=save(...args);publish().catch(error);return r;};
  const hero=chooseHero;chooseHero=(...args)=>{const r=hero(...args);publish().catch(error);return r;};
  const names=window.memeOnlineNames;window.memeOnlineNames=()=>duel?.ghostOpponent?{player:identity.user?.displayName||'Bạn',enemy:duel.ghostOpponent.name+' · Máy đại diện'}:names();

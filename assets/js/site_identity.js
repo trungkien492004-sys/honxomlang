@@ -16,7 +16,7 @@
   let presenceTimer = null;
 
   const config = {
-    apiKey: 'AIzaSyAmDg8F0GHBAYoEGrIoh8sk8R6oi-Za1I',
+    apiKey: 'AIzaSyAmDg8G0HBEAYoCoEGrIoh8skR6oi-Za1I',
     authDomain: 'honxomlang-e6974.firebaseapp.com',
     projectId: 'honxomlang-e6974',
     appId: '1:163191088062:web:daa4fca2521f3dcd0ccfef'

@@ -365,23 +365,29 @@
     });
   });
 
-  // Illusion Magic
+  // Illusion Magic - tribute a Spellcaster, add up to 2 Dark Magician from Deck and/or GY
   register('DL-illusion_magic', async (n, c, ctx) => {
     const s = S(n);
     const spellcasters = E(n).filter(e => face(e.slot) && C(e.slot.id)?.tribe === 'Pháp Sư');
     if (!spellcasters.length) return false;
     const tribute = await pick(n, 'Ảo Ảnh Ma Pháp: hiến tế 1 Pháp Sư', spellcasters);
     if (!tribute) return false;
+    const options = [...choices(s.deck, 'deck'), ...choices(s.grave, 'grave')].filter(e => e.id === 'AN-dark_magician');
+    if (!options.length) return false;
+    const picked = await pickMany(n, 'Ảo Ảnh Ma Pháp: lấy tối đa 2 Phù Thủy Áo Đen', options, {
+      min: 1, max: Math.min(2, options.length), text: 'Chọn Phù Thủy Áo Đen từ Bộ bài và/hoặc Mộ.'
+    });
+    if (!picked || !picked.length) return false;
 
     return fx(n, c, 'search', [], () => {
       if (!commitSpellSource(n, c, ctx)) return;
       remove(n, tribute, 'tribute');
-      for (let i = 0; i < 2; i++) {
-        const idx = s.deck.indexOf('AN-dark_magician');
-        if (idx >= 0) {
-          window.memeCardMotion?.record('search', n, 'AN-dark_magician');
-          s.hand.push(s.deck.splice(idx, 1)[0]);
-        }
+      for (const p of picked) {
+        const pool = p.zone === 'deck' ? s.deck : s.grave;
+        const idx = pool.indexOf(p.id);
+        if (idx < 0) continue;
+        window.memeCardMotion?.record(p.zone === 'deck' ? 'search' : 'recover', n, p.id);
+        s.hand.push(pool.splice(idx, 1)[0]);
       }
       s.deck = shuffle(s.deck);
     });
@@ -715,7 +721,44 @@
     });
   });
 
-  // Relinquished Fusion
+  // Toon Page-Flipper - reveal 3 differently named Toon monsters, opponent randomly picks 1 to Special Summon
+  register('DL-toon_page_flipper', async (n, c, ctx) => {
+    const s = S(n);
+    if (!spellList(n).some(e => !e.slot.faceDown && ['AN-toon_world', 'DL-toon_kingdom'].includes(C(e.id)?.id))) {
+      log('Cần Thế Giới Hoạt Hình đang ngửa trên sân để dùng Lật Trang Hoạt Hình.');
+      return false;
+    }
+    if (free(n) < 0) return false;
+    const seen = new Set();
+    const pool = [];
+    for (const e of choices(s.deck, 'deck')) {
+      const x = C(e.id);
+      const key = x?.name_en || e.id;
+      if (!x || x.card_type !== 'Monster' || !isToon(x) || seen.has(key)) continue;
+      seen.add(key);
+      pool.push(e);
+    }
+    if (pool.length < 3) {
+      log('Cần ít nhất 3 quái Hoạt Hình khác tên trong Bộ bài.');
+      return false;
+    }
+    const revealed = shuffle(pool).slice(0, 3);
+    const chosen = revealed[Math.floor(Math.random() * 3)];
+
+    return fx(n, c, 'summon', [], () => {
+      if (!commitSpellSource(n, c, ctx)) return;
+      for (const i of revealed.map(e => e.index).sort((a, b) => b - a)) s.deck.splice(i, 1);
+      for (const e of revealed) if (e !== chosen) s.deck.push(e.id);
+      s.deck = shuffle(s.deck);
+      const slot = { ...monsterSlot(chosen.id), specialSummoned: true };
+      uid(slot);
+      s.monsters[free(n)] = slot;
+      enqueue(() => postSummon(n, slot, 'special'));
+      log(`📑 Lật Trang Hoạt Hình: đối thủ chọn ${C(chosen.id).name} — triệu hồi đặc biệt!`);
+    });
+  });
+
+  // Relinquished Fusion - materials from hand, field or GY (GY materials are banished)
   register('DL-relinquished_fusion', async (n, c, ctx) => {
     const s = S(n);
     const fusions = choices(s.extraDeck, 'extra').filter(e => ['DL-millennium_eyes_restrict', 'AN-thousand_eyes_restrict'].includes(e.id));
@@ -723,21 +766,46 @@
     const target = await pick(n, 'Dung Hợp Quỷ Hy Sinh: chọn quái Extra', fusions);
     if (!target) return false;
 
-    const reliq = choices(s.grave, 'grave').find(e => e.id === 'AN-relinquished') ||
-      choices(s.hand, 'hand').find(e => e.id === 'AN-relinquished');
-    const otherMat = choices(s.grave, 'grave').find(e => C(e.id)?.card_type === 'Monster') ||
-      choices(s.hand, 'hand').find(e => C(e.id)?.card_type === 'Monster' && e !== reliq);
-
-    if (!reliq || !otherMat) return false;
+    const requireIdol = target.id === 'AN-thousand_eyes_restrict';
+    const otherOk = x => x?.card_type === 'Monster' && (requireIdol
+      ? x.id === 'AN-thousand_eyes_idol'
+      : x.id !== 'AN-relinquished' && x.monster_category !== 'Thường');
+    const zones = [
+      ...choices(s.hand, 'hand').filter(e => e.index !== ctx.handIndex),
+      ...E(n).filter(e => face(e.slot)).map(e => ({ ...e, id: e.slot.id, zone: 'field' })),
+      ...choices(s.grave, 'grave')
+    ];
+    const reliqPool = zones.filter(e => e.id === 'AN-relinquished');
+    if (!reliqPool.length) return false;
+    const reliq = await pick(n, 'Dung Hợp Quỷ Hy Sinh: chọn Quỷ Hy Sinh', reliqPool);
+    if (!reliq) return false;
+    const otherPool = zones.filter(e => !(e.zone === reliq.zone && e.index === reliq.index) && otherOk(C(e.id)));
+    if (!otherPool.length) return false;
+    const otherMat = await pick(n, requireIdol ? 'Dung Hợp Quỷ Hy Sinh: chọn Tượng Ngàn Mắt' : 'Dung Hợp Quỷ Hy Sinh: chọn Quái Hiệu Ứng', otherPool);
+    if (!otherMat) return false;
 
     return fx(n, c, 'fusion', [], () => {
       if (!commitSpellSource(n, c, ctx)) return;
       for (const m of [reliq, otherMat]) {
-        const pool = m.zone === 'grave' ? s.grave : s.hand;
-        const idx = pool.indexOf(m.id);
-        if (idx >= 0) s.banished.push(pool.splice(idx, 1)[0]);
+        if (m.zone === 'field') { remove(n, m, 'material'); continue; }
+        if (m.zone === 'grave') {
+          const idx = s.grave.indexOf(m.id);
+          if (idx >= 0) {
+            s.banished.push(s.grave.splice(idx, 1)[0]);
+            if (window.memeAnime?.onBanished) enqueue(() => window.memeAnime.onBanished(n, m.id));
+          }
+          continue;
+        }
+        const idx = s.hand.indexOf(m.id);
+        if (idx >= 0) {
+          const id = s.hand.splice(idx, 1)[0];
+          s.grave.push(id);
+          sentToGrave(n, id, true, 'material');
+        }
       }
-      s.extraDeck.splice(target.index, 1);
+      const at = s.extraDeck.indexOf(target.id);
+      if (at < 0) return;
+      s.extraDeck.splice(at, 1);
       const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true };
       uid(slot);
       s.monsters[free(n)] = slot;
@@ -1088,28 +1156,62 @@
     });
   });
 
+  // Cybernetic Fusion Support - pay half LP; Machine Fusion Materials may come from hand/field/GY and are banished
+  register('DL-cybernetic_fusion_support', async (n, c, ctx) => {
+    const s = S(n);
+    if (s.cyberFusionSupportRound === duel.round) return false;
+    if (s.lp < 2) return false;
+
+    return fx(n, c, 'cost', [{ name: n, type: 'lp' }], () => {
+      if (!commitSpellSource(n, c, ctx)) return;
+      s.lp = Math.max(1, Math.floor(s.lp / 2));
+      s.cyberFusionSupportRound = duel.round;
+      log('🔋 Tiếp Ứng Dung Hợp Rồng Máy: nguyên liệu Máy lấy từ Tay, Sân hoặc Mộ và bị trục xuất.');
+    });
+  });
+
   // Cyberload Fusion - Shuffle materials from Field/Banished into Deck
   register('DL-cyberload_fusion', async (n, c, ctx) => {
     const s = S(n);
-    const fusions = choices(s.extraDeck, 'extra').filter(e => isCyber(C(e.id)) || e.id === 'DL-chimeratech_rampage_dragon');
+    const listsCyberDragon = x => {
+      const mats = Array.isArray(x?.fusion_materials) ? x.fusion_materials : [];
+      return mats.includes('AN-cyber_dragon') || x?.flex_machine;
+    };
+    const fusions = choices(s.extraDeck, 'extra').filter(e => {
+      const x = C(e.id);
+      return x?.card_type === 'Monster' && isCyber(x) && listsCyberDragon(x);
+    });
     if (!fusions.length || free(n) < 0) return false;
     const target = await pick(n, 'Dung Hợp Nạp Mạng: chọn quái Extra', fusions);
     if (!target) return false;
 
+    const tc = C(target.id);
+    const mats = Array.isArray(tc?.fusion_materials) ? tc.fusion_materials : [];
+    const isCD = e => e.id === 'AN-cyber_dragon' || (e.zone === 'field' && e.id === 'AN-proto_cyber_dragon');
+    const cdOnly = mats.length > 0 && mats.every(m => m === 'AN-cyber_dragon');
     const materials = [
-      ...E(n).filter(e => face(e.slot) && (isCyber(C(e.slot.id)) || e.slot.id === 'AN-cyber_dragon')).map(e => ({ ...e, zone: 'field' })),
-      ...choices(s.banished, 'banished').filter(e => isCyber(C(e.id)) || e.id === 'AN-cyber_dragon').map(e => ({ ...e, zone: 'banished' }))
+      ...E(n).filter(e => face(e.slot) && (isCyber(C(e.slot.id)) || e.slot.id === 'AN-cyber_dragon')).map(e => ({ ...e, id: e.slot.id, zone: 'field' })),
+      ...choices(s.banished, 'banished').filter(e => C(e.id)?.card_type === 'Monster' && (isCyber(C(e.id)) || e.id === 'AN-cyber_dragon')).map(e => ({ ...e, zone: 'banished' }))
     ];
-    if (materials.length < 2) return false;
-    const m1 = await pick(n, 'Chọn nguyên liệu thứ nhất', materials);
-    if (!m1) return false;
-    const m2 = await pick(n, 'Chọn nguyên liệu thứ hai', materials.filter(e => e !== m1));
-    if (!m2) return false;
+    const pool = tc?.flex_machine
+      ? materials.filter(e => C(e.id)?.tribe === 'Máy')
+      : cdOnly ? materials.filter(isCD) : materials;
+    const min = tc?.flex_machine ? 2 : Math.max(2, mats.length);
+    const max = tc?.flex_machine ? Math.min(3, pool.length) : min;
+    if (pool.length < min) return false;
+    const picked = await pickMany(n, 'Dung Hợp Nạp Mạng: chọn nguyên liệu', pool, {
+      min, max, text: `Chọn ${min === max ? min : `${min}–${max}`} nguyên liệu từ Sân hoặc đã bị trục xuất.`
+    });
+    if (!picked || !picked.length) return false;
+    if (tc?.flex_machine && !picked.some(isCD)) return false;
 
     return fx(n, c, 'fusion', [], () => {
       if (!commitSpellSource(n, c, ctx)) return;
-      for (const m of [m1, m2]) {
-        if (m.zone === 'field') remove(n, m, 'material');
+      for (const m of picked) {
+        if (m.zone === 'field') {
+          if (m.extra) s.extra = null; else s.monsters[m.index] = null;
+          s.deck.push(m.id);
+        }
         else {
           const idx = s.banished.indexOf(m.id);
           if (idx >= 0) s.deck.push(s.banished.splice(idx, 1)[0]);
