@@ -99,7 +99,13 @@ function renderHeroSkills(){
 function esc(value){return String(value ?? '').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
 function card(id){return CARD_BY_ID.get(id);}
 function imageInfo(id){return card(id)?.custom_image?.startsWith('assets/memecard/art/')?null:(window.MEME_IMAGE_LINKS||{})[id]||null;}
-function art(id){return card(id)?.custom_image||imageInfo(id)?.url||'';}
+function art(id){
+  const pic = window.MEME_CARD_PICTURES?.[id]?.full || window.MEME_CARD_PICTURES?.[id]?.thumb;
+  if (pic) return pic;
+  const c = card(id);
+  if (c?.custom_image && !c.custom_image.endsWith('.svg')) return c.custom_image;
+  return c?.custom_image || imageInfo(id)?.url || '';
+}
 function artHTML(id,className='card-image'){
   const c=card(id);if(!c)return '';
   if(c.art_atlas){const cols=c.art_cols,rows=c.art_rows,col=c.art_tile%cols,row=Math.floor(c.art_tile/cols);return `<span class="${className} anime-monster-art atlas-picture" role="img" aria-label="${esc(c.name)}" style="background-image:url('${esc(c.custom_image)}')"><img src="${esc(c.art_atlas)}" alt="" loading="lazy" decoding="async" style="position:absolute;width:${cols*100}%;height:${rows*100}%;left:${-col*100}%;top:${-row*100}%;object-fit:fill;max-width:none;max-height:none" onerror="this.remove()"></span>`;}

@@ -120,13 +120,13 @@ function memeShowRoomEntry(role) {
   input.focus();
   if (host) input.select();
 }
-function memeHostRoom(code) {
+function memeHostRoom(code, options = {}) {
   window.memeOnlineLeave();
   memeRoom = { code, role: 'host', playing: false, peerId: null, peerUid: null, peerName: '', peerDeck: null, version: 0, lastRemoteVersion: 0 };
   const ping = () => { if (memeRoom?.role === 'host' && !memeRoom.playing) memeSend('MEME_ROOM_PING', { hostName: memeMyName() }); };
   ping();
   memeRoom.pingTimer = setInterval(ping, 3000);
-  memeShowWaiting();
+  if (!options.silent) memeShowWaiting();
 }
 function memeJoinRoom(code) {
   window.memeOnlineLeave();
