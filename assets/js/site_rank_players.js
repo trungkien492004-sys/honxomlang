@@ -15,7 +15,10 @@
 
   async function challenge(uid) {
     const identity = window.siteIdentity;
-    if (!identity.user) await identity.login();
+    if (!identity.user) {
+      try { await identity.login(); } catch(e) { console.warn('Challenge login:', e); }
+      if (!identity.user) throw Error('Bạn cần đăng nhập Google để khiêu chiến đối thủ.');
+    }
     if (window.memeIdDuel) return window.memeIdDuel.challenge(uid);
     if (typeof window.openMemeCardGame !== 'function') throw Error('Hãy mở đấu bài từ sảnh để khiêu chiến.');
     window.openMemeCardGame();
@@ -109,7 +112,7 @@
           <td><span class="tier-pill ${tierClass}">${esc(tierName)}</span></td>
           <td><b style="color:#fbbf24;font-size:14px;">${rating}</b> <small style="opacity:0.7">Elo</small></td>
           <td><span style="color:#4ade80;font-weight:800;">${wins}W</span> - <span style="color:#f87171;">${losses}L</span></td>
-          <td style="font-weight:800;color:#e2e8f0;">${winrate}</td>
+          <td class="rank-col-winrate" style="font-weight:800;color:#e2e8f0;">${winrate}</td>
           <td style="text-align:center;">${challengeBtn}</td>
         </tr>`;
       }).join('');
@@ -121,9 +124,9 @@
       const challengeButton = event.target.closest('[data-challenge-uid]');
       if (!challengeButton || challengeBusy) return;
       const targetUid = challengeButton.dataset.challengeUid;
+      const selected = people.get(targetUid);
       challengeBusy = true; challengeButton.disabled = true; challengeButton.textContent = 'Đang gọi...';
       try {
-        const selected = people.get(targetUid);
         if (selected?.bot) {
           window.siteRank.close();
           const presets = {
@@ -134,7 +137,7 @@
             'bot-jaden': 'Jaden · Anh Hùng Tối Thượng',
             'bot-zane': 'Zane · Rồng Máy Tận Diệt'
           };
-          const preset = presets[targetUid];
+          const preset = presets[targetUid] || 'Kaiba · Đỉnh Cao Mắt Xanh';
           if (typeof startGame === 'function') {
             startGame({ customBotDeck: preset, ghost: null });
           } else {
@@ -145,10 +148,17 @@
           window.siteRank.close();
         }
       } catch (error) {
-        alert(error.message || 'Không thể khiêu chiến đối thủ.');
+        if (window.showActionNotice) {
+          window.showActionNotice('⚠️ ' + (error.message || 'Không thể khiêu chiến đối thủ.'));
+        } else {
+          alert(error.message || 'Không thể khiêu chiến đối thủ.');
+        }
+      } finally {
         challengeBusy = false;
-        challengeButton.disabled = false;
-        challengeButton.textContent = '⚔️ Khiêu chiến';
+        if (challengeButton && challengeButton.isConnected) {
+          challengeButton.disabled = false;
+          challengeButton.textContent = selected?.bot ? '⚔️ Đấu Boss' : '⚔️ Khiêu chiến';
+        }
       }
     };
 
