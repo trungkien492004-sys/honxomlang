@@ -188,7 +188,7 @@ const HERO_IDS = [
         put('player', 'AN-elemental_hero_avian');
         put('player', 'AN-elemental_hero_burstinatrix', 1);
         ok(await play(0), 'Polymerization resolves');
-        ok(duel.player.monsters.some(s => s?.id === 'AN-elemental_hero_flame_wingman'), 'Flame Wingman summoned');
+        eq(duel.player.extra?.id, 'AN-elemental_hero_flame_wingman', 'Flame Wingman in the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-elemental_hero_avian'), true, 'Avian material');
         eq(duel.player.grave.includes('AN-elemental_hero_burstinatrix'), true, 'Burstinatrix material');
         eq(duel.player.extraDeck.length, 0, 'Extra Deck spent');
@@ -211,7 +211,7 @@ const HERO_IDS = [
         duel.player.hand = ['AN-polymerization'];
         duel.player.extraDeck = ['AN-elemental_hero_thunder_giant'];
         ok(await play(0), 'Thunder Giant fusion');
-        ok(duel.player.monsters.some(s => s?.id === 'AN-elemental_hero_thunder_giant'), 'Thunder Giant on field');
+        eq(duel.player.extra?.id, 'AN-elemental_hero_thunder_giant', 'Thunder Giant in the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-elemental_hero_clayman'), true, 'Clayman material');
       });
 
@@ -326,7 +326,7 @@ const HERO_IDS = [
         duel.player.grave = ['AN-elemental_hero_avian', 'AN-elemental_hero_burstinatrix'];
         duel.player.extraDeck = ['AN-elemental_hero_flame_wingman'];
         ok(await play(0), 'Miracle Fusion resolves');
-        ok(duel.player.monsters.some(s => s?.id === 'AN-elemental_hero_flame_wingman'), 'Fusion summoned');
+        eq(duel.player.extra?.id, 'AN-elemental_hero_flame_wingman', 'Fusion summoned to the Extra Monster Zone');
         eq(duel.player.banished.length, 2, 'materials banished');
         eq(duel.player.grave.includes('AN-elemental_hero_avian'), false, 'Avian left GY');
         eq(duel.player.grave.includes('AN-miracle_fusion'), true, 'Spell in GY');
@@ -402,17 +402,17 @@ const HERO_IDS = [
         duel.player.hand = ['AN-polymerization'];
         duel.player.extraDeck = ['AN-elemental_hero_mudballman'];
         ok(await play(0), 'Mudballman fusion');
-        const mud = duel.player.monsters.find(s => s?.id === 'AN-elemental_hero_mudballman');
-        ok(mud, 'Mudballman on field');
+        const mud = duel.player.extra?.id === 'AN-elemental_hero_mudballman' ? duel.player.extra : null;
+        ok(mud, 'Mudballman in the Extra Monster Zone');
         eq(mud.position, 'atk', 'summoned in attack');
-        eq(await activate(duel.player.monsters.indexOf(mud)), false, 'no effect');
+        eq(await memeAnime.perform(() => memeAnime.resolveEffect('player', card('AN-elemental_hero_mudballman'), { source: mud })), false, 'no effect');
         put('player', 'AN-elemental_hero_avian', 1);
         put('enemy', 'AN-blue_eyes_white_dragon');
         duel.turn = 'enemy';
         duel.phase = 'BATTLE';
         await battle('enemy', 0, 1);
         eq(duel.player.monsters[1], null, 'Avian destroyed, no redirect to Mudballman');
-        ok(duel.player.monsters[0]?.id === 'AN-elemental_hero_mudballman', 'Mudballman unharmed');
+        ok(duel.player.extra?.id === 'AN-elemental_hero_mudballman', 'Mudballman unharmed in the Extra Monster Zone');
       });
 
       await test('Shining Flare Wingman: +300 per HERO in the GY and burns for the victim ATK', async () => {
@@ -460,11 +460,12 @@ const HERO_IDS = [
         eq(await play(0), false, 'cannot Polymerization a contact fusion');
         duel.player.hand = [];
         ok(await memeAnime.perform(() => memeAnime.fuse('player', null, 'AN-elemental_hero_air_neos')), 'contact fusion');
-        const an = duel.player.monsters.find(s => s?.id === 'AN-elemental_hero_air_neos');
-        ok(an, 'Air Neos on field');
+        const an = duel.player.extra?.id === 'AN-elemental_hero_air_neos' ? duel.player.extra : null;
+        ok(an, 'Air Neos in the Extra Monster Zone');
         eq(stat('player', an), 4500, '2500 + 2000 LP difference');
         await memeAnime.perform(() => memeAnime.endTurn('player'));
-        eq(duel.player.monsters.filter(Boolean).length, 0, 'returned to Extra Deck');
+        eq(duel.player.extra, null, 'returned to Extra Deck');
+        eq(duel.player.monsters.filter(Boolean).length, 0, 'main zones empty');
         ok(duel.player.extraDeck.includes('AN-elemental_hero_air_neos'), 'back in Extra Deck');
       });
 
@@ -475,12 +476,13 @@ const HERO_IDS = [
         duel.player.hand = ['AN-kuriboh'];
         duel.enemy.hand = ['AN-blue_eyes_white_dragon', 'AN-celtic_guardian'];
         ok(await memeAnime.perform(() => memeAnime.fuse('player', null, 'AN-elemental_hero_aqua_neos')), 'contact fusion');
-        ok(await activate(0), 'random discard effect');
+        ok(await memeAnime.perform(() => memeAnime.resolveEffect('player', card('AN-elemental_hero_aqua_neos'), { source: duel.player.extra })), 'random discard effect');
         eq(duel.player.hand.length, 0, 'cost paid');
         eq(duel.enemy.hand.length, 1, 'one random card destroyed');
         eq(duel.enemy.grave.length, 1, 'destroyed card in GY');
         await memeAnime.perform(() => memeAnime.endTurn('player'));
-        eq(duel.player.monsters.filter(Boolean).length, 0, 'returned to Extra Deck');
+        eq(duel.player.extra, null, 'returned to Extra Deck');
+        eq(duel.player.monsters.filter(Boolean).length, 0, 'main zones empty');
       });
 
       await test('Flare Neos: +400 per Spell/Trap on both fields and End Phase return', async () => {
@@ -657,7 +659,7 @@ const HERO_IDS = [
         duel.player.extraDeck = ['MGX-masked_hero_blast'];
         put('enemy', 'AN-blue_eyes_white_dragon');
         ok(await play(0), 'transforms');
-        eq(duel.player.monsters[0].id, 'MGX-masked_hero_blast', 'Blast on field');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_blast', 'Blast in the Extra Monster Zone');
         eq(duel.player.grave.includes('MGX-masked_hero_gust'), true, 'source sent to GY');
         eq(stat('enemy', duel.enemy.monsters[0]), 1500, 'BEWD halved');
       });
@@ -667,9 +669,9 @@ const HERO_IDS = [
         duel.player.hand = ['MGX-mask_change_ii', 'AN-kuriboh'];
         duel.player.extraDeck = ['MGX-masked_hero_divine_wind'];
         ok(await play(0), 'transforms');
-        eq(duel.player.monsters[0].id, 'MGX-masked_hero_divine_wind', 'Divine Wind on field');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_divine_wind', 'Divine Wind in the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-kuriboh'), true, 'discard cost paid');
-        eq(duel.player.monsters[0].transformationSummoned, true, 'Transformation flags');
+        eq(duel.player.extra?.transformationSummoned, true, 'Transformation flags');
       });
 
       await test('Ray: Mask Change into Koga; Mask Change II cannot reach a Level 6 target', async () => {
@@ -677,7 +679,7 @@ const HERO_IDS = [
         duel.player.hand = ['MGX-mask_change'];
         duel.player.extraDeck = ['MGX-masked_hero_koga'];
         ok(await play(0), 'transforms');
-        eq(duel.player.monsters[0].id, 'MGX-masked_hero_koga', 'Koga on field');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_koga', 'Koga in the Extra Monster Zone');
         duel.player.monsters[0] = null;
         put('player', 'MGX-masked_hero_ray');
         duel.player.hand = ['MGX-mask_change_ii', 'AN-kuriboh'];
@@ -738,7 +740,7 @@ const HERO_IDS = [
         put('enemy', 'AN-blue_eyes_white_dragon');
         put('enemy', 'AN-kuriboh', 1, 'def_down');
         ok(await play(0), 'transforms into Acid');
-        eq(duel.player.monsters[0].id, 'MGX-masked_hero_acid', 'Acid on field');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_acid', 'Acid in the Extra Monster Zone');
         eq(duel.player.grave.includes('MGX-masked_hero_vapor'), true, 'Vapor source');
         eq(duel.enemy.spells[0], null, 'backrow destroyed');
         eq(duel.enemy.field, null, 'Field Spell destroyed');
@@ -817,7 +819,7 @@ const HERO_IDS = [
         duel.player.extraDeck = ['MGX-masked_hero_koga'];
         duel.player.spells[0] = { id: 'MGX-mask_change', faceDown: true, setRound: 3 };
         ok(await playSet(0), 'set Spell activation');
-        eq(duel.player.monsters[0].id, 'MGX-masked_hero_koga', 'Koga on field');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_koga', 'Koga in the Extra Monster Zone');
         eq(duel.player.spells[0], null, 'Spell Zone emptied');
         eq(duel.player.grave.filter(id => id === 'MGX-mask_change').length, 1, 'Spell in GY');
       });
@@ -831,7 +833,7 @@ const HERO_IDS = [
         ok(duel.player.monsters[0], 'source preserved');
         duel.player.hand = ['MGX-mask_change_ii', 'AN-kuriboh'];
         ok(await play(0), 'transforms with a discard cost');
-        eq(duel.player.monsters[0].id, 'MGX-masked_hero_daian', 'Daian on field');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_daian', 'Daian in the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-kuriboh'), true, 'discard paid');
         eq(duel.player.grave.includes('MGX-masked_hero_bassols'), true, 'source sent to GY');
       });
@@ -842,7 +844,7 @@ const HERO_IDS = [
         duel.player.extraDeck = ['MGX-masked_hero_acid'];
         put('enemy', 'AN-blue_eyes_white_dragon');
         ok(await play(0), 'transforms');
-        eq(duel.player.monsters[0].id, 'MGX-masked_hero_acid', 'Acid on field');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_acid', 'Acid in the Extra Monster Zone');
         eq(stat('enemy', duel.enemy.monsters[0]), 2700, 'Acid on-summon effect');
       });
 
@@ -852,7 +854,7 @@ const HERO_IDS = [
         duel.player.deck = ['AN-elemental_hero_neos', 'DL-elemental_hero_solid_soldier'];
         duel.player.extraDeck = ['DL-elemental_hero_brave_neos'];
         ok(await play(0), 'Neos Fusion resolves');
-        eq(duel.player.monsters[0].id, 'DL-elemental_hero_brave_neos', 'Brave Neos summoned');
+        eq(duel.player.extra?.id, 'DL-elemental_hero_brave_neos', 'Brave Neos summoned to the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-elemental_hero_neos'), true, 'Neos sent to GY');
         eq(duel.player.grave.includes('DL-elemental_hero_solid_soldier'), true, 'Solid Soldier sent to GY');
         eq(duel.player.noSpecialRound, duel.round, 'lock marked');
@@ -875,7 +877,7 @@ const HERO_IDS = [
         duel.player.deck = ['AN-elemental_hero_neos', 'AN-neo_spacian_air_hummingbird'];
         duel.player.extraDeck = ['AN-elemental_hero_air_neos'];
         ok(await play(0), 'Air Neos via Neos Fusion');
-        eq(duel.player.monsters[0].id, 'AN-elemental_hero_air_neos', 'Air Neos summoned');
+        eq(duel.player.extra?.id, 'AN-elemental_hero_air_neos', 'Air Neos summoned to the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-neo_spacian_air_hummingbird'), true, 'Hummingbird sent to GY');
       });
 
@@ -884,9 +886,9 @@ const HERO_IDS = [
         duel.player.deck = ['AN-elemental_hero_neos', 'DL-elemental_hero_solid_soldier'];
         duel.player.extraDeck = ['DL-elemental_hero_brave_neos'];
         ok(await play(0), 'Brave Neos summoned');
-        const brave = duel.player.monsters[0];
-        eq(await removeByEffect('player', 0, brave), false, 'destruction replaced');
-        eq(duel.player.monsters[0], brave, 'Brave Neos survives');
+        const brave = duel.player.extra;
+        eq(await memeAnime.perform(() => memeRules.remove('player', { slot: brave, index: -1, extra: true }, 'effect')), false, 'destruction replaced');
+        eq(duel.player.extra, brave, 'Brave Neos survives');
         eq(duel.player.banished.includes('DL-neos_fusion'), true, 'Neos Fusion banished instead');
         eq(duel.player.grave.includes('DL-neos_fusion'), false, 'left the GY');
       });
@@ -1069,8 +1071,8 @@ const HERO_IDS = [
         duel.player.hand = ['DL-form_change'];
         duel.player.extraDeck = ['MGX-masked_hero_koga'];
         ok(await play(0), 'Form Change');
-        eq(duel.player.monsters[0].id, 'MGX-masked_hero_koga', 'Koga on field');
-        eq(duel.player.monsters[0].transformationSummoned, true, 'Transformation flags');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_koga', 'Koga in the Extra Monster Zone');
+        eq(duel.player.extra?.transformationSummoned, true, 'Transformation flags');
         eq(duel.player.extraDeck, ['AN-elemental_hero_flame_wingman'], 'source returned to Extra Deck');
         eq(duel.player.grave.includes('DL-form_change'), true, 'Spell in GY');
         duel.player.monsters[0] = null;

@@ -3,11 +3,19 @@
   if (typeof window.memeAnime === 'undefined') return;
   const core = window.memeAnime.tcgCore;
   const {
-    S, E, face, has, uid, free, allFields, targetList, spellList, choices,
+    S, E, face, has, uid, free, allFields, extraOpen, placeOnField, targetList, spellList, choices,
     pick, pickMany, enqueue, fx, flush, stat, remove, clearSpell, revive, revivalPosition,
     takeDiscard, drawCards, damage, spendSpellSource, commitSpellSource,
     negateSpell, postSummon, specialSummon, normalSummon, fuse, sentToGrave
   } = core;
+
+  // Extra Deck summons prefer the Extra Monster Zone; fall back to a free main zone.
+  function summonExtra(n, slot, extraDeckId) {
+    if (placeOnField(n, slot)) return true;
+    if (extraDeckId != null) S(n).extraDeck.push(extraDeckId);
+    log('Không còn ô trống cho quái Extra.');
+    return false;
+  }
 
   const C = id => card(id);
   const isHero = c => /\bHERO\b/.test(c?.name_en || '');
@@ -360,7 +368,7 @@
       s.extraDeck.splice(fusionChoice.index, 1);
       const slot = { ...monsterSlot(fusionChoice.id, 'atk'), fusionSummoned: true };
       uid(slot);
-      s.monsters[free(n)] = slot;
+      if (!summonExtra(n, slot, fusionChoice.id)) return;
       enqueue(() => postSummon(n, slot));
     });
   });
@@ -421,7 +429,7 @@
   register('DL-red_eyes_fusion', async (n, c, ctx) => {
     const s = S(n);
     const fusions = choices(s.extraDeck, 'extra').filter(e => ['DL-red_eyes_slash_dragon', 'AN-black_skull_dragon'].includes(e.id));
-    if (!fusions.length || free(n) < 0) return false;
+    if (!fusions.length || !extraOpen(n)) return false;
     const fusionTarget = await pick(n, 'Dung Hợp Mắt Đỏ: chọn quái Extra', fusions);
     if (!fusionTarget) return false;
 
@@ -463,6 +471,10 @@
     }
     const secondCard = await pick(n, isSlash ? 'Dung Hợp Mắt Đỏ: chọn quái Chiến Binh làm nguyên liệu' : 'Dung Hợp Mắt Đỏ: chọn Quỷ Triệu Hồi làm nguyên liệu', secondPool);
     if (!secondCard) return false;
+    if (!extraOpen(n) && ![reCard, secondCard].some(m => m.zone === 'field')) {
+      log('Không còn ô trống cho quái Dung Hợp.');
+      return false;
+    }
 
     return fx(n, c, 'fusion', [], () => {
       if (!commitSpellSource(n, c, ctx)) return;
@@ -480,7 +492,7 @@
       s.extraDeck.splice(fusionTarget.index, 1);
       const slot = { ...monsterSlot(fusionTarget.id, 'atk'), fusionSummoned: true };
       uid(slot);
-      s.monsters[free(n)] = slot;
+      if (!summonExtra(n, slot, fusionTarget.id)) return;
       enqueue(() => postSummon(n, slot));
       log(`🌀 Dung Hợp Mắt Đỏ gọi ${C(fusionTarget.id).name} từ Bộ bài phụ!`);
     });
@@ -762,7 +774,7 @@
   register('DL-relinquished_fusion', async (n, c, ctx) => {
     const s = S(n);
     const fusions = choices(s.extraDeck, 'extra').filter(e => ['DL-millennium_eyes_restrict', 'AN-thousand_eyes_restrict'].includes(e.id));
-    if (!fusions.length || free(n) < 0) return false;
+    if (!fusions.length || !extraOpen(n)) return false;
     const target = await pick(n, 'Dung Hợp Quỷ Hy Sinh: chọn quái Extra', fusions);
     if (!target) return false;
 
@@ -783,6 +795,10 @@
     if (!otherPool.length) return false;
     const otherMat = await pick(n, requireIdol ? 'Dung Hợp Quỷ Hy Sinh: chọn Tượng Ngàn Mắt' : 'Dung Hợp Quỷ Hy Sinh: chọn Quái Hiệu Ứng', otherPool);
     if (!otherMat) return false;
+    if (!extraOpen(n) && ![reliq, otherMat].some(m => m.zone === 'field')) {
+      log('Không còn ô trống cho quái Dung Hợp.');
+      return false;
+    }
 
     return fx(n, c, 'fusion', [], () => {
       if (!commitSpellSource(n, c, ctx)) return;
@@ -808,7 +824,7 @@
       s.extraDeck.splice(at, 1);
       const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true };
       uid(slot);
-      s.monsters[free(n)] = slot;
+      if (!summonExtra(n, slot, target.id)) return;
       enqueue(() => postSummon(n, slot));
     });
   });
@@ -867,7 +883,7 @@
     const secondCard = await pick(n, 'Dung Hợp Tân Vũ: chọn nguyên liệu còn lại', secondPool);
     if (!secondCard) return false;
     const chosen = [neosCard, secondCard];
-    if (free(n) < 0 && !chosen.some(m => m.zone === 'field')) return false;
+    if (!extraOpen(n) && !chosen.some(m => m.zone === 'field')) return false;
 
     return fx(n, c, 'fusion', [], () => {
       if (!commitSpellSource(n, c, ctx)) return;
@@ -884,7 +900,7 @@
       s.extraDeck.splice(s.extraDeck.indexOf(target.id), 1);
       const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true };
       uid(slot);
-      s.monsters[free(n)] = slot;
+      if (!summonExtra(n, slot, target.id)) return;
       s.noSpecialRound = duel.round;
       enqueue(() => postSummon(n, slot));
       log(`🌀 Dung Hợp Tân Vũ gọi ${tc.name} từ Bộ bài phụ!`);
@@ -1101,7 +1117,12 @@
       s.extraDeck.splice(s.extraDeck.indexOf(target.id), 1);
       summoned = { ...monsterSlot(target.id), transformationSummoned: true, properlySummoned: true };
       uid(summoned);
-      s.monsters[entry.extra ? free(n) : entry.index] = summoned;
+      if (!placeOnField(n, summoned)) {
+        s.extraDeck.push(target.id);
+        summoned = null;
+        log('Không còn ô trống cho quái Extra.');
+        return;
+      }
       log(`🔄 Biến Đổi Hình Thái: ${C(source.id).name} → ${targetCard.name}.`);
     }, { title: 'BIẾN ĐỔI HÌNH THÁI', text: targetCard.name, materials: [source.id] });
     if (done && summoned) await postSummon(n, summoned);
@@ -1181,7 +1202,7 @@
       const x = C(e.id);
       return x?.card_type === 'Monster' && isCyber(x) && listsCyberDragon(x);
     });
-    if (!fusions.length || free(n) < 0) return false;
+    if (!fusions.length || !extraOpen(n)) return false;
     const target = await pick(n, 'Dung Hợp Nạp Mạng: chọn quái Extra', fusions);
     if (!target) return false;
 
@@ -1204,6 +1225,7 @@
     });
     if (!picked || !picked.length) return false;
     if (tc?.flex_machine && !picked.some(isCD)) return false;
+    if (!extraOpen(n) && !picked.some(m => m.zone === 'field')) return false;
 
     return fx(n, c, 'fusion', [], () => {
       if (!commitSpellSource(n, c, ctx)) return;
@@ -1221,7 +1243,7 @@
       s.extraDeck.splice(target.index, 1);
       const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true };
       uid(slot);
-      s.monsters[free(n)] = slot;
+      if (!summonExtra(n, slot, target.id)) return;
       enqueue(() => postSummon(n, slot));
     });
   });

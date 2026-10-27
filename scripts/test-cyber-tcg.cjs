@@ -212,9 +212,9 @@ server.listen(0, async () => {
         duel.player.field = { id: 'AN-toon_world' };
         render();
         await memeAnime.perform(() => memeAnime.playSpellFor('player', 0));
-        const chimera = duel.player.monsters.find(slot => slot?.id === 'AN-chimeratech_overdragon');
-        ok(chimera, 'Chimeratech Fusion Summoned');
-        eq(duel.player.monsters.filter(Boolean).length, 1, 'other monsters sent to GY');
+        const chimera = duel.player.extra?.id === 'AN-chimeratech_overdragon' ? duel.player.extra : null;
+        ok(chimera, 'Chimeratech Fusion Summoned to the Extra Monster Zone');
+        eq(duel.player.monsters.filter(Boolean).length, 0, 'other monsters sent to GY');
         eq(duel.player.spells.filter(Boolean).length, 0, 'spells sent to GY');
         eq(duel.player.field, null, 'field spell sent to GY');
         eq(duel.player.grave.includes('AN-toon_world'), true, 'field spell in GY');

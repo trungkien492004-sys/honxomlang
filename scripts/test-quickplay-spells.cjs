@@ -108,7 +108,7 @@ const QUICK_PLAY = [
       const play = (index = 0) => memeAnime.perform(() => memeAnime.playSpellFor('player', index));
       const playSet = (index = 0) => memeAnime.perform(() => memeAnime.playSetSpellFor('player', index));
       const setSpell = (id, index = 0) => { duel.player.spells[index] = { id, faceDown: true, setRound: duel.round }; };
-      const summonedIds = () => duel.player.monsters.filter(Boolean).map(s => s.id);
+      const summonedIds = () => [...duel.player.monsters.filter(Boolean).map(s => s.id), ...(duel.player.extra ? [duel.player.extra.id] : [])];
 
       // ── Data integrity ───────────────────────────────────────────
       await test('All 9 Quick-Play Spells are flagged and wired to an effect handler', () => {

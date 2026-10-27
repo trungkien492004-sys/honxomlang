@@ -194,7 +194,7 @@ server.listen(0, async () => {
         duel.player.deck = ['AN-red_eyes_black_dragon', 'DL-gearfried_the_red_eyes_iron_knight'];
         render();
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Red-Eyes Fusion');
-        eq(duel.player.monsters[0].id, 'DL-red_eyes_slash_dragon', 'Slash Dragon summoned');
+        eq(duel.player.extra?.id, 'DL-red_eyes_slash_dragon', 'Slash Dragon summoned to the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-red_eyes_black_dragon'), true, 'Red-Eyes in GY');
         eq(duel.player.grave.includes('DL-gearfried_the_red_eyes_iron_knight'), true, 'Gearfried in GY');
       });
@@ -206,7 +206,7 @@ server.listen(0, async () => {
         duel.player.deck = ['AN-elemental_hero_neos', 'DL-elemental_hero_solid_soldier'];
         render();
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Neos Fusion');
-        eq(duel.player.monsters[0].id, 'DL-elemental_hero_brave_neos', 'Brave Neos summoned');
+        eq(duel.player.extra?.id, 'DL-elemental_hero_brave_neos', 'Brave Neos summoned to the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-elemental_hero_neos'), true, 'Neos in GY');
         eq(duel.player.grave.includes('DL-elemental_hero_solid_soldier'), true, 'Solid Soldier in GY');
       });
@@ -220,7 +220,7 @@ server.listen(0, async () => {
         duel.player.banished = ['AN-cyber_dragon'];
         render();
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Cyberload Fusion');
-        eq(duel.player.monsters[0].id, 'AN-cyber_twin_dragon', 'Cyber Twin Dragon summoned');
+        eq(duel.player.extra?.id, 'AN-cyber_twin_dragon', 'Cyber Twin Dragon summoned to the Extra Monster Zone');
         eq(duel.player.banished.length, 0, 'banished material left the banished pile');
         eq(duel.player.deck.filter(id => id === 'AN-cyber_dragon').length, 2, 'both Cyber Dragons shuffled into deck');
       });

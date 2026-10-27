@@ -138,14 +138,14 @@ server.listen(0, async () => {
         duel.player.extraDeck = ['AN-xyz_dragon_cannon'];
         render();
         ok(await memeAnime.perform(() => memeAnime.fuse('player', null, 'AN-xyz_dragon_cannon')), 'contact summon');
-        const xyz = duel.player.monsters.find(slot => slot?.id === 'AN-xyz_dragon_cannon');
+        const xyz = duel.player.extra?.id === 'AN-xyz_dragon_cannon' ? duel.player.extra : null;
         ok(xyz, 'XYZ on field');
         eq(xyz.materialCount, 3, 'three materials');
         for (const id of ['AN-x_head_cannon', 'AN-y_dragon_head', 'AN-z_metal_tank']) {
           eq(duel.player.banished.includes(id), true, id + ' banished');
           eq(duel.player.grave.includes(id), false, id + ' not in GY');
         }
-        eq(duel.player.monsters.filter(Boolean).length, 1, 'only XYZ remains');
+        eq(duel.player.monsters.filter(Boolean).length, 0, 'main zones emptied by the contact summon');
         eq(duel.player.extraDeck.length, 0, 'left the Extra Deck');
       });
 

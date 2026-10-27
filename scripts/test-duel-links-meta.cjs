@@ -151,7 +151,7 @@ const server = http.createServer((req, res) => {
         duel.player.monsters[1] = monsterSlot('AN-blue_eyes_white_dragon', 'atk');
         duel.player.extraDeck = ['DL-blue_eyes_twin_burst_dragon'];
         ok(await memeAnime.perform(() => memeAnime.fuse('player', null, 'DL-blue_eyes_twin_burst_dragon')), 'contact fuse with Alternative as Blue-Eyes');
-        ok(duel.player.monsters.some(s => s?.id === 'DL-blue_eyes_twin_burst_dragon'), 'Twin Burst summoned');
+        eq(duel.player.extra?.id, 'DL-blue_eyes_twin_burst_dragon', 'Twin Burst summoned to the Extra Monster Zone');
         ok(duel.player.grave.includes('DL-blue_eyes_alternative_white_dragon'), 'Alternative used as material');
       });
 
@@ -186,7 +186,7 @@ const server = http.createServer((req, res) => {
         duel.player.hand = ['DL-the_eye_of_timaeus'];
         duel.player.extraDeck = ['DL-dark_cavalry'];
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Timaeus');
-        eq(duel.player.monsters[0].id, 'DL-dark_cavalry', 'Dark Cavalry summoned');
+        eq(duel.player.extra?.id, 'DL-dark_cavalry', 'Dark Cavalry summoned to the Extra Monster Zone');
       });
 
       // Test 8: Yugi - Eternal Soul revives Dark Magician
@@ -203,7 +203,7 @@ const server = http.createServer((req, res) => {
         duel.player.deck = ['AN-red_eyes_black_dragon', 'AN-axe_raider'];
         duel.player.extraDeck = ['DL-red_eyes_slash_dragon'];
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Red-Eyes Fusion');
-        eq(duel.player.monsters[0].id, 'DL-red_eyes_slash_dragon', 'Slash Dragon summoned');
+        eq(duel.player.extra?.id, 'DL-red_eyes_slash_dragon', 'Slash Dragon summoned to the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-red_eyes_black_dragon'), true, 'REBD in grave');
         eq(duel.player.grave.includes('AN-axe_raider'), true, 'Axe Raider in grave');
       });
@@ -233,7 +233,7 @@ const server = http.createServer((req, res) => {
         duel.player.deck = ['AN-elemental_hero_neos', 'DL-elemental_hero_solid_soldier'];
         duel.player.extraDeck = ['DL-elemental_hero_brave_neos'];
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Neos Fusion');
-        eq(duel.player.monsters[0].id, 'DL-elemental_hero_brave_neos', 'Brave Neos summoned');
+        eq(duel.player.extra?.id, 'DL-elemental_hero_brave_neos', 'Brave Neos summoned to the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-elemental_hero_neos'), true, 'Neos sent to grave');
         eq(duel.player.grave.includes('DL-elemental_hero_solid_soldier'), true, 'Solid Soldier sent to grave');
         eq(duel.player.noSpecialRound, duel.round, 'Special Summon locked for the rest of the turn');
@@ -247,7 +247,7 @@ const server = http.createServer((req, res) => {
         duel.player.deck = ['AN-elemental_hero_neos', 'AN-neo_spacian_air_hummingbird'];
         duel.player.extraDeck = ['AN-elemental_hero_air_neos'];
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Neos Fusion for Air Neos');
-        eq(duel.player.monsters[0].id, 'AN-elemental_hero_air_neos', 'Air Neos summoned');
+        eq(duel.player.extra?.id, 'AN-elemental_hero_air_neos', 'Air Neos summoned to the Extra Monster Zone');
         eq(duel.player.grave.includes('AN-neo_spacian_air_hummingbird'), true, 'Air Hummingbird sent to grave');
       });
 
@@ -261,7 +261,7 @@ const server = http.createServer((req, res) => {
         eq(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), false, 'fusion rejected');
         duel.player.monsters[1] = monsterSlot('DL-elemental_hero_solid_soldier', 'atk');
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'fusion accepted with Solid Soldier');
-        eq(duel.player.monsters.some(s => s?.id === 'DL-elemental_hero_brave_neos'), true, 'Brave Neos summoned');
+        eq(duel.player.extra?.id, 'DL-elemental_hero_brave_neos', 'Brave Neos summoned to the Extra Monster Zone');
       });
 
       // Test 12d: Brave Neos grave ATK boost
@@ -289,7 +289,7 @@ const server = http.createServer((req, res) => {
         duel.player.extraDeck = ['DL-elemental_hero_sunrise'];
         duel.player.deck = ['AN-miracle_fusion'];
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Polymerization for Sunrise');
-        const sunrise = duel.player.monsters.find(s => s?.id === 'DL-elemental_hero_sunrise');
+        const sunrise = duel.player.extra?.id === 'DL-elemental_hero_sunrise' ? duel.player.extra : null;
         ok(sunrise, 'Sunrise summoned from Sparkman + Clayman');
         eq(duel.player.grave.includes('AN-elemental_hero_sparkman'), true, 'Sparkman used as material');
         eq(duel.player.grave.includes('AN-elemental_hero_clayman'), true, 'Clayman used as material');
@@ -350,8 +350,8 @@ const server = http.createServer((req, res) => {
         duel.player.hand = ['DL-form_change'];
         duel.player.extraDeck = ['DL-masked_hero_anki'];
         ok(await memeAnime.perform(() => memeAnime.playSpellFor('player', 0)), 'play Form Change');
-        eq(duel.player.monsters[0].id, 'DL-masked_hero_anki', 'Anki summoned');
-        eq(duel.player.monsters[0].transformationSummoned, true, 'counts as a Mask Change Special Summon');
+        eq(duel.player.extra?.id, 'DL-masked_hero_anki', 'Anki summoned to the Extra Monster Zone');
+        eq(duel.player.extra?.transformationSummoned, true, 'counts as a Mask Change Special Summon');
         eq(duel.player.extraDeck.includes('AN-elemental_hero_shining_flare_wingman'), true, 'original returned to the Extra Deck');
         eq(duel.player.grave.includes('DL-form_change'), true, 'Form Change in grave');
       });

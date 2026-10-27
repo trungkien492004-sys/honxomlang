@@ -430,14 +430,17 @@ async function chooseExtraMaterial(index,isExtra=false){
   if(p.chosen.includes(key))p.chosen=p.chosen.filter(i=>i!==key);else p.chosen.push(key);
   const materials=p.chosen.map(i=>({slot:i===-1?s.extra:s.monsters[i],index:i,extra:i===-1})),c=card(p.id),stars=materials.reduce((n,e)=>n+(card(e.slot?.id)?.stars||0),0);
   if(!synchroValid(c,materials)){log(`Đã chọn ${stars}/${c.stars} sao · ${materials.filter(e=>card(e.slot.id)?.is_tuner).length}/1 Tuner. Cần tổng sao chính xác.`);render();return;}
-  const match=duel,target=s.monsters.findIndex((slot,i)=>!slot||p.chosen.includes(i));
-  if(target<0){
+  const match=duel,extraFree=!s.extra||p.chosen.includes(-1),freeMain=s.monsters.findIndex((slot,i)=>!slot||p.chosen.includes(i));
+  if(!extraFree&&freeMain<0){
     window.showActionNotice('Cần ít nhất 1 ô quái thường trống sau khi gửi nguyên liệu.');
     return log('Cần ô quái thường trống sau khi gửi nguyên liệu.');
   }
-  if(window.memeFx){await window.memeFx.summon(-1,target,false,'player',p.id);if(duel!==match||duel.pending!==p)return;}
+  const dest=extraFree?'extra':freeMain;
+  if(window.memeFx){await window.memeFx.summon(-1,dest==='extra'?'extra':dest,false,'player',p.id);if(duel!==match||duel.pending!==p)return;}
   for(const e of materials){putGrave('player',e.slot);if(e.extra)s.extra=null;else s.monsters[e.index]=null;}
-  s.extraDeck.splice(p.index,1);s.monsters[target]={...monsterSlot(p.id),properlySummoned:true};
+  s.extraDeck.splice(p.index,1);
+  const summoned={...monsterSlot(p.id),properlySummoned:true};
+  if(dest==='extra')s.extra=summoned;else s.monsters[dest]=summoned;
   duel.mode=null;duel.pending=null;log(`🌀 Đồng Bộ thành công: ${c.name}!`);render();
   if(c.effect_trigger==='on_summon'){effect('player',c);render();}
 }
@@ -793,8 +796,8 @@ function renderZones(name,type,hostId){
   });
 }
 function renderSpecial(name,type,hostId){
-  const host=$(hostId),slot=type==='field'?side(name).field:side(name).extra,c=card(slot?.id);
-  host.classList.toggle('has-card',!!slot);host.innerHTML=slot?`${artHTML(slot.id,'special-art')}<small>${esc(c.name)}</small>`:`${type==='field'?'🌍':'✦'}<small>${type==='field'?'Môi trường':'Ô quái Extra'}</small>`;
+  const host=$(hostId),slot=type==='field'?side(name).field:side(name).extra,c=card(slot?.id),monster=type==='extra'&&slot&&c?.card_type==='Monster';
+  host.classList.toggle('has-card',!!slot);host.innerHTML=slot?`${artHTML(slot.id,'special-art')}<small>${esc(c.name)}</small>${monster?`<b class="special-stats">${slot.position==='atk'?'⚔':'🛡'}${slot.position==='atk'?effectiveAtk(name,slot):effectiveDef(name,slot)}</b>`:''}`:`${type==='field'?'🌍':'✦'}<small>${type==='field'?'Môi trường':'Ô quái Extra'}</small>`;
   host.classList.toggle('valid-target',effectTargetValid(name,type,-1)||!!slot&&((name==='enemy'&&type==='extra'&&duel.mode==='attack')||(name==='player'&&type==='extra'&&duel.mode==='extra'&&slot.position!=='def_down')));
   host.classList.toggle('material-chosen',duel.mode==='extra'&&name==='player'&&type==='extra'&&duel.pending?.chosen.includes(-1));
   host.onclick=()=>handleZone(name,type,-1);

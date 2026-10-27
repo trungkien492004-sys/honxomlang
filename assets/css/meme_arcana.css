@@ -22,7 +22,8 @@
 .field-slot .slot-label{font-size:9px;line-height:1.2;padding:2px 1px;background:#071722ef;color:#fff2cd}
 .field-slot .slot-stats{font-size:11px;top:auto;bottom:17px;right:2px;color:#fff;background:#071b2be8;padding:2px 4px;border:1px solid #e5c46c66}
 .slot-status{position:absolute;left:3px;top:3px;border-radius:4px;background:#153a5ce8;color:#b5f3ff;padding:2px 4px;font-size:9px;font-weight:900}
-.special-zone{flex:0 1 100px;max-height:120px;min-height:0}
+.special-zone{flex:0 1 100px;max-height:120px;min-height:0;position:relative}
+.special-zone .special-stats{position:absolute;z-index:3;right:1px;top:1px;border-radius:4px;background:#071b2be8;border:1px solid #e5c46c66;color:#fff5d8;font-size:8px;font-weight:900;padding:1px 3px;line-height:1.1;pointer-events:none}
 .board-side{justify-content:space-evenly}
 .player-row{border:1px solid #e1c991;min-height:43px;border-radius:10px;padding:3px 7px}
 .player-info b{font-size:12px;max-width:170px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

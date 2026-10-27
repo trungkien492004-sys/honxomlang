@@ -282,11 +282,12 @@ server.listen(0, async () => {
         duel.player.lp = 2000;
         render();
         ok(await memeAnime.perform(() => memeAnime.fuse('player', null, 'AN-elemental_hero_air_neos')), 'contact fusion');
-        const an = duel.player.monsters.find(slot => slot?.id === 'AN-elemental_hero_air_neos');
-        ok(an, 'Air Neos on field');
+        const an = duel.player.extra?.id === 'AN-elemental_hero_air_neos' ? duel.player.extra : null;
+        ok(an, 'Air Neos in the Extra Monster Zone');
         eq(memeAnime.tcgCore.stat('player', an), 4500, '2500 + 2000');
         await memeAnime.perform(() => memeAnime.endTurn('player'));
-        eq(duel.player.monsters.filter(Boolean).length, 0, 'returned to Extra Deck');
+        eq(duel.player.extra, null, 'returned to Extra Deck');
+        eq(duel.player.monsters.filter(Boolean).length, 0, 'main zones empty');
         ok(duel.player.extraDeck.includes('AN-elemental_hero_air_neos'), 'card back in Extra Deck');
       });
 
@@ -345,7 +346,7 @@ server.listen(0, async () => {
         duel.player.extraDeck = ['AN-elemental_hero_flame_wingman'];
         render();
         await playSpell(0);
-        eq(duel.player.monsters[0]?.id, 'AN-elemental_hero_flame_wingman', 'Fusion Summoned');
+        eq(duel.player.extra?.id, 'AN-elemental_hero_flame_wingman', 'Fusion Summoned to the Extra Monster Zone');
         eq(duel.player.banished.length, 2, 'materials banished');
         eq(duel.player.grave.includes('AN-elemental_hero_avian'), false, 'Avian left the GY');
         eq(duel.player.grave.includes('AN-miracle_fusion'), true, 'spell in GY');
