@@ -31,9 +31,15 @@ const mismatches={
 (async()=>{
  const pictures={},details={},audit=[];
  for(const c of data.cards){
-  const src=c.art_atlas||'assets/memecard/anime-monsters-v1.png',cols=c.art_cols||6,rows=c.art_rows||4,m=await sharp(path.join(root,src)).metadata(),col=c.art_tile%cols,row=Math.floor(c.art_tile/cols);
-  const left=Math.floor(col*m.width/cols),top=Math.floor(row*m.height/rows),width=Math.floor((col+1)*m.width/cols)-left,height=Math.floor((row+1)*m.height/rows)-top;
-  const buffer=await sharp(path.join(root,src)).extract({left,top,width,height}).webp({quality:88}).toBuffer();
+  let width,height,buffer;
+  if(c.custom_image&&c.art_tile==null){
+   buffer=await sharp(path.join(root,c.custom_image)).webp({quality:88}).toBuffer();
+   const meta=await sharp(buffer).metadata();width=meta.width;height=meta.height;
+  }else{
+   const src=c.art_atlas||'assets/memecard/anime-monsters-v1.png',cols=c.art_cols||6,rows=c.art_rows||4,m=await sharp(path.join(root,src)).metadata(),col=c.art_tile%cols,row=Math.floor(c.art_tile/cols);
+   const left=Math.floor(col*m.width/cols),top=Math.floor(row*m.height/rows);width=Math.floor((col+1)*m.width/cols)-left;height=Math.floor((row+1)*m.height/rows)-top;
+   buffer=await sharp(path.join(root,src)).extract({left,top,width,height}).webp({quality:88}).toBuffer();
+  }
   fs.writeFileSync(path.join(full,c.id+'.webp'),buffer);await sharp(buffer).resize({width:144,height:144,fit:'inside',withoutEnlargement:true}).webp({quality:78}).toFile(path.join(thumb,c.id+'.webp'));
   pictures[c.id]={full:'assets/memecard/pictures/'+c.id+'.webp',thumb:'assets/memecard/pictures/thumbs/'+c.id+'.webp',width,height,fallback:c.custom_image};
   if(c.uncollectible)continue;
@@ -44,7 +50,9 @@ const mismatches={
   audit.push({id:c.id,name_vi:c.name,name_en:c.name_en,type:c.card_type,tribe:c.tribe,attribute:c.element,level:c.stars||0,atk:c.atk||0,def:c.def||0,rarity:c.rarity,max_copies:c.max_copies,old_effect:c.description,phase1_effect:c.description,phase2_effect:null,phase1_status:'Giữ nguyên luật và hiệu ứng; cập nhật trình bày và tra cứu.',engine_binding:{code:c.effect_code,trigger:c.effect_trigger,traits:c.traits},effects:[...(c.effect_code?[{id:c.id+':'+c.effect_code,trigger:c.effect_trigger,condition:detail.condition,cost:detail.cost,usage_limit:detail.limit,implementation:'meme_anime_rules.js',status:'legacy_binding'}]:[]),...(c.traits||[]).map(trait=>({id:c.id+':'+trait,trigger:'trait',implementation:'meme_anime_rules.js',status:'legacy_binding'}))],reference_url:c.source_url||null,anime_evidence_status:'Chưa xác minh cảnh anime cho từng hiệu ứng; không gán nguyên tác cho chỉnh sửa H5.',combo:combo.map(x=>data.cards.find(c=>c.id===x)?.name),counter:detail.counters.map(x=>data.cards.find(c=>c.id===x)?.name),review_note:mismatches[c.name_en]||'Đợt 2 cần kiểm thử ngữ nghĩa riêng và xác minh căn cứ anime.',tests_needed:['Điều kiện và chi phí','Vùng và mục tiêu hợp lệ','Tư thế và giới hạn','Miễn nhiễm và vô hiệu','Đấu máy và online']});
  }
  fs.writeFileSync(path.join(root,'assets/js/meme_card_details.js'),'window.MEME_CARD_PICTURES='+JSON.stringify(pictures)+';\nwindow.MEME_CARD_DETAILS='+JSON.stringify(details)+';\n');
- const out=path.join(root,'outputs/upgrade-phase1');fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'cards-audit-156.json'),JSON.stringify({phase:1,count:audit.length,semanticsChanged:false,cards:audit},null,2));
- const headers=['ID','Tên Việt','Tên gốc','Loại','Hiệu ứng cũ','Hiệu ứng đợt 1','Hiệu ứng đợt 2','Ghi chú rà soát'];const quote=x=>'"'+String(x??'').replaceAll('"','""')+'"';fs.writeFileSync(path.join(out,'cards-audit-156.csv'),'\ufeff'+[headers,...audit.map(c=>[c.id,c.name_vi,c.name_en,c.type,c.old_effect,c.phase1_effect,'Chưa triển khai',c.review_note])].map(r=>r.map(quote).join(',')).join('\r\n'));
+ const out=path.join(root,'outputs/upgrade-phase1');fs.mkdirSync(out,{recursive:true});
+ for(const f of fs.readdirSync(out))if(/^cards-audit-\d+\.(json|csv)$/.test(f)&&f!=='cards-audit-'+audit.length+'.json'&&f!=='cards-audit-'+audit.length+'.csv')fs.unlinkSync(path.join(out,f));
+ fs.writeFileSync(path.join(out,'cards-audit-'+audit.length+'.json'),JSON.stringify({phase:1,count:audit.length,semanticsChanged:false,cards:audit},null,2));
+ const headers=['ID','Tên Việt','Tên gốc','Loại','Hiệu ứng cũ','Hiệu ứng đợt 1','Hiệu ứng đợt 2','Ghi chú rà soát'];const quote=x=>'"'+String(x??'').replaceAll('"','""')+'"';fs.writeFileSync(path.join(out,'cards-audit-'+audit.length+'.csv'),'\ufeff'+[headers,...audit.map(c=>[c.id,c.name_vi,c.name_en,c.type,c.old_effect,c.phase1_effect,'Chưa triển khai',c.review_note])].map(r=>r.map(quote).join(',')).join('\r\n'));
  console.log(`Prepared ${data.cards.length} full pictures and thumbnails; audited ${audit.length} cards with stable IDs and unchanged effects.`);
 })().catch(e=>{console.error(e);process.exitCode=1;});

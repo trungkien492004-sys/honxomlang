@@ -141,14 +141,30 @@
           if (typeof startGame === 'function') {
             startGame({ customBotDeck: preset, ghost: null });
           } else {
-            await challenge(targetUid);
+            if (typeof window.openMemeCardGame !== 'function') throw Error('Hãy mở đấu bài từ sảnh để khiêu chiến.');
+            window.openMemeCardGame();
+            let started = false;
+            for (let i = 0; i < 100; i++) {
+              const child = document.getElementById('memecardFrame')?.contentWindow;
+              if (typeof child?.startGame === 'function') {
+                child.startGame({ customBotDeck: preset, ghost: null });
+                started = true;
+                break;
+              }
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            if (!started) throw Error('Chưa mở được đấu bài. Hãy thử lại.');
           }
         } else {
           await challenge(targetUid);
           window.siteRank.close();
         }
       } catch (error) {
-        if (window.showActionNotice) {
+        if (typeof window.showRankError === 'function') {
+          window.showRankError(error, 'Khiêu chiến đối thủ');
+        } else if (typeof window.parent?.showRankError === 'function') {
+          window.parent.showRankError(error, 'Khiêu chiến đối thủ');
+        } else if (window.showActionNotice) {
           window.showActionNotice('⚠️ ' + (error.message || 'Không thể khiêu chiến đối thủ.'));
         } else {
           alert(error.message || 'Không thể khiêu chiến đối thủ.');

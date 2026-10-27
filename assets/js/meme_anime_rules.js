@@ -61,7 +61,7 @@
  const applyHeroTcg=()=>{for(const x of window.MEME_CARDS||[]){const p=heroTcg[x.id],el=heroElement[x.id];if(!p&&!el)continue;const t=p?.traits?[...new Set([...(x.traits||[]),...p.traits])]:null;if(p)Object.assign(x,p);if(el)x.element=el;if(t)x.traits=t;if(x.id==='AN-elemental_hero_mudballman')x.traits=(x.traits||[]).filter(t=>t!=='hero_guard');}};
  applyHeroTcg();
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyHeroTcg,{once:true});
- const S=n=>{const s=side(n);s.banished??=[];return s;},E=n=>base.entries(n),face=s=>s&&s.position!=='def_down'&&!s.faceDown,has=(s,t)=>base.trait(s,t),hero=c=>/^Elemental HERO /.test(c?.name_en||''),dragon=c=>c?.tribe==='Rồng',machine=c=>c?.tribe==='Máy',necroCopies=n=>S(n).grave.filter(id=>id===aid('Elemental HERO Necroshade')).length;
+ const S=n=>{const s=side(n);s.banished??=[];return s;},E=n=>base.entries(n),face=s=>s&&s.position!=='def_down'&&!s.faceDown,has=(s,t)=>base.trait(s,t),hero=c=>/^Elemental HERO /.test(c?.name_en||''),dragon=c=>c?.tribe==='Rồng',machine=c=>c?.tribe==='Máy',amazoness=c=>/\bAmazoness\b/.test(c?.name_en||''),necroCopies=n=>S(n).grave.filter(id=>id===aid('Elemental HERO Necroshade')).length;
  const free=n=>S(n).monsters.indexOf(null),allFields=()=>['player','enemy'].flatMap(n=>E(n).map(e=>({...e,name:n,id:e.slot.id,type:e.extra?'extra':'monster'}))),extraOpen=n=>{const s=S(n);return !s.extra||s.monsters.includes(null)};
  function placeOnField(n,slot){const s=S(n);if(!s.extra){s.extra=slot;return{extra:true,index:-1};}const i=s.monsters.indexOf(null);if(i<0)return null;s.monsters[i]=slot;return{extra:false,index:i};}
  const lpFee=amount=>window.memeLpCosts?.fixed(amount)??amount,payLp=(n,amount,id)=>window.memeLpCosts?window.memeLpCosts.pay(n,amount,id):(S(n).lp>amount?(S(n).lp-=amount,true):false);
@@ -155,7 +155,10 @@
   let value=base.stat(n,slot,kind);if(slot.statAtk!=null)value=(kind==='atk'?slot.statAtk:slot.statDef??c.def)+(kind==='atk'&&slot.tempRound===duel.round?(slot.tempAtk||0):0);
   if(has(slot,'slifer'))value=s.hand.length*1000;if(has(slot,'relinquished'))value=kind==='atk'?slot.absorbAtk||0:slot.absorbDef||0;
   if(has(slot,'chimeratech'))value=(slot.materialCount||2)*800;
+  if(has(slot,'pet_dragon'))value+=300*allFields().filter(e=>face(e.slot)&&(e.slot.id===aid('Harpie Lady')||has(e.slot,'harpie_name'))).length;
   if(kind==='atk'){
+   if(slot.swapRound===duel.round&&slot.swapAtk!=null)value=slot.swapAtk;
+   if(has(slot,'amazon_tiger'))value+=400*E(n).filter(e=>e.slot!==slot&&face(e.slot)&&amazoness(card(e.slot.id))).length;
    if(has(slot,'dark_girl'))value+=300*[...s.grave,...foe.grave].filter(id=>[aid('Dark Magician'),aid('Magician of Black Chaos')].includes(id)).length;
    if(has(slot,'buster'))value+=500*[...E(other(n)).map(e=>e.slot.id),...foe.grave].filter(id=>dragon(card(id))).length;
    if(has(slot,'paladin'))value+=500*[...allFields().map(e=>e.id),...s.grave,...foe.grave].filter(id=>dragon(card(id))).length;
@@ -176,13 +179,14 @@
    if(E(n).some(e=>face(e.slot)&&card(e.slot.id)?.effect_code==='dl_hero_sunrise'))value+=200*new Set(E(n).filter(e=>face(e.slot)).map(e=>card(e.slot.id)?.element)).size;
    if(slot.favoriteHero&&s.field)value+=card(slot.id)?.def||0;
    value+=(slot.mangaAtkDelta||0)+(slot.mangaTempRound===duel.round?slot.mangaTempAtk||0:0);
+   if([...spellList(n),...spellList(other(n))].some(e=>e.slot&&!e.slot.faceDown&&(e.slot.halvedUids||[]).includes(slot.uid)))value=Math.floor(value/2);
   }else value+=(slot.mangaDefDelta||0)+(slot.mangaTempRound===duel.round?slot.mangaTempDef||0:0);
   return Math.max(0,Math.round(value));
  }
  function ownerOf(slot){return ['player','enemy'].find(n=>E(n).some(e=>e.slot===slot))||duel.turn;}
  function attackLimit(slot){const n=ownerOf(slot);return has(slot,'double_attack')?2:has(slot,'chimeratech')?E(other(n)).length?slot.materialCount||2:1:has(slot,'attack_all')?slot.attackAllLimit||Math.max(1,E(other(n)).length):1;}
  function canAttack(slot){if(!slot||!duel||duel.round<=1)return false;const n=ownerOf(slot);if(window.memeTcgEngine?.attackProblem(n,slot))return false;if(has(slot,'rampart')&&slot.position==='def'&&E(other(n)).length)return false;if((slot.position!=='atk'&&!(has(slot,'rampart')&&slot.position==='def'))||(slot.frozenUntil??-1)>=duel.round)return false;if(allFields().some(e=>face(e.slot)&&has(e.slot,'restrict')&&e.slot!==slot))return false;if(spellList(other(n)).some(e=>e.slot.turnsLeft>0&&card(e.id)?.effect_code==='swords'))return false;return (slot.attacksUsed||0)<attackLimit(slot);}
- function damage(n,amount){if(duel.battleContext){const c=duel.battleContext;if(S(n).battleShieldRound===duel.round||S(n).battleDamageShieldRound===duel.round||c.owner===n&&has(c.attacker,'rocket')||has(c.attacker,'exploder')||c.defender&&has(c.defender,'exploder'))return 0;}return base.damage(n,amount);}
+ function damage(n,amount){if(duel.battleContext){const c=duel.battleContext;if(S(n).battleShieldRound===duel.round||S(n).battleDamageShieldRound===duel.round||c.owner===n&&has(c.attacker,'rocket')||has(c.attacker,'exploder')||c.defender&&has(c.defender,'exploder')||c.owner===n&&has(c.attacker,'amazon_fighter')||c.defender&&has(c.defender,'amazon_fighter')&&n!==c.owner)return 0;}return base.damage(n,amount);}
  function clearSpell(n,index){const s=S(n),slot=index===-1?s.field:s.spells[index];if(!slot)return;if(!slot.banishOnLeave&&guardRemoval(n,slot,'effect'))return;if(index===-1)s.field=null;else s.spells[index]=null;(slot.banishOnLeave?S(slot.originalOwner||n).banished:S(slot.originalOwner||n).grave).push(slot.id);if(!slot.banishOnLeave)sentToGrave(slot.originalOwner||n,slot.id,true,'effect');if(card(slot.id)?.effect_code==='toon_world')for(const e of [...E(n)])if(has(e.slot,'toon'))remove(n,e,'effect');if(slot.absorbedTo){const source=allFields().find(e=>e.slot.uid===slot.absorbedTo)?.slot;if(source){source.absorbAtk=0;source.absorbDef=0;}}if(slot.revivalUid){const e=E(n).find(e=>e.slot.uid===slot.revivalUid);if(e)remove(n,e,'effect');}}
  function remove(n,entry,reason='effect'){
   if(!entry?.slot)return false;const s=S(n),slot=entry.slot,c=card(slot.id);if(!E(n).some(e=>e.slot===slot))return false;
@@ -236,7 +240,7 @@
   });
   if(['battle','effect'].includes(reason)&&!slot.banishOnLeave&&!slot.token){
    if(has(slot,'winged_kuriboh'))s.battleDamageShieldRound=duel.round;
-   if(c.effect_trigger==='on_destroy'&&(c.name_en!=='Cyber Phoenix'||reason==='battle'))deathQueue.push(()=>resolveEffect(n,c,{source:slot}));
+   if(c.effect_trigger==='on_destroy'&&(!['Cyber Phoenix','Amazoness Chain Master'].includes(c.name_en)||reason==='battle'))deathQueue.push(()=>resolveEffect(n,c,{source:slot}));
    if(has(slot,'chimera'))deathQueue.push(async()=>{const t=await pick(n,'Chimera: hồi sinh Gazelle hoặc Berfomet',choices(s.grave,'grave').filter(e=>[aid('Berfomet'),aid('Gazelle the King of Mythical Beasts')].includes(e.id)));if(t&&free(n)>=0){const position=await revivalPosition(n,c,t.id);if(!position)return;let slot;await fx(n,c,'revive',[],()=>{slot=revive(n,n,t.id,position);});if(slot)await postSummon(n,slot);}});
    if(has(slot,'darkbright'))deathQueue.push(()=>destroyChoice(n,c));
    if(reason==='battle'&&has(slot,'exploder')){const opponent=duel.battleContext?.attacker===slot?duel.battleContext?.defender:duel.battleContext?.attacker;deathQueue.push(async()=>{const x=allFields().find(e=>e.slot===opponent);if(x)await fx(n,c,'destroy',[x],()=>remove(x.name,x,'effect'));});}
@@ -303,8 +307,10 @@
  async function normalSummon(n,index,position='atk',tributes=[]){const s=S(n),c=card(s.hand[index]);if(!c||!usable(n,c)||c.traits.includes('toon')&&!spellList(n).some(e=>card(e.id).effect_code==='toon_world'))return false;const expected=(c.tribute_count??(c.stars>=7?2:c.stars>=5?1:0)),necro=hero(c)&&c.stars>=5&&(s.necroUses||0)<necroCopies(n);
   if(s.normalUsed||(n==='player'&&duel.normalSummoned)||tributes.length<(necro?0:expected)||free(n)<0&&!tributes.length)return false;if(has({id:c.id},'god'))position='atk';
   let summoned=null;const atk=tributes.reduce((sum,i)=>sum+stat(n,s.monsters[i]),0),def=tributes.reduce((sum,i)=>sum+stat(n,s.monsters[i],'def'),0);
-  const success=await fx(n,c,position==='def_down'?'set':c.traits.includes('god')?'god':'summon',[],()=>{if(necro&&!tributes.length)s.necroUses=(s.necroUses||0)+1;for(const i of tributes)remove(n,{slot:s.monsters[i],index:i,extra:false},'tribute');s.hand.splice(s.hand.indexOf(c.id),1);const slot=monsterSlot(c.id,position);uid(slot);if(c.traits.includes('ra')){slot.statAtk=atk;slot.statDef=def;}s.monsters[free(n)]=slot;summoned=slot;s.normalUsed=true;if(n==='player')duel.normalSummoned=true;duel.mode=null;duel.pending=null;log(position==='def_down'?'🂠 Một quái được đặt úp.':`✨ ${c.name} được triệu hồi.`);},{materials:tributes.map(i=>s.monsters[i]?.id).filter(Boolean)});
-  if(success&&position!=='def_down'&&summoned)await postSummon(n,summoned,'normal');return success;
+  const success=await fx(n,c,position==='def_down'?'set':c.traits.includes('god')?'god':'summon',[],()=>{if(necro&&!tributes.length)s.necroUses=(s.necroUses||0)+1;for(const i of tributes)remove(n,{slot:s.monsters[i],index:i,extra:false},'tribute');s.hand.splice(s.hand.indexOf(c.id),1);const slot=monsterSlot(c.id,position);uid(slot);if(c.traits.includes('ra')){slot.statAtk=atk;slot.statDef=def;}s.monsters[free(n)]=slot;summoned=slot;s.normalUsed=true;if(n==='player'){duel.normalSummoned=true;duel.selected=null;}duel.mode=null;duel.pending=null;log(position==='def_down'?'🂠 Một quái được đặt úp.':`✨ ${c.name} được triệu hồi.`);},{materials:tributes.map(i=>s.monsters[i]?.id).filter(Boolean)});
+  if(success&&position!=='def_down'&&summoned)await postSummon(n,summoned,'normal');
+  if(success&&position==='def_down'&&summoned&&S(n).monsters.includes(summoned)){const trap=await chooseTrap(other(n),['shadow_of_eyes'],()=>true,card(summoned.id).name+' vừa được Úp.',{kind:'set',atk:stat(n,summoned)});if(trap){const flipped=await trapUse(other(n),trap,[{name:n,index:S(n).monsters.indexOf(summoned)}],()=>{summoned.position='atk';});if(flipped&&E(n).some(e=>e.slot===summoned)){const fc=card(summoned.id);if(fc?.effect_trigger==='on_flip'||fc?.effect_code==='search_gazelle')await resolveEffect(n,fc,{source:summoned,kind:'flip'});}}}
+  return success;
  }
  function specialMode(n,c){const s=S(n);if(s.noSpecialRound===duel.round)return null;if(c.traits.includes('valkyrion')&&['Alpha The Magnet Warrior','Beta The Magnet Warrior','Gamma The Magnet Warrior'].every(name=>materialPool(n).some(e=>e.id===aid(name))))return 'valkyrion';if(c.traits.includes('shining_dragon')&&E(n).some(e=>e.slot.id===aid('Blue-Eyes Ultimate Dragon')))return 'shining';if(free(n)<0)return null;if(c.traits.includes('cyber_special')&&!E(n).length&&E(other(n)).length)return 'free';if(c.traits.includes('bubbleman')&&s.hand.length===1&&s.bubbleSpecialRound!==duel.round)return 'bubbleman';if(c.traits.includes('valkyrion')&&['Alpha The Magnet Warrior','Beta The Magnet Warrior','Gamma The Magnet Warrior'].every(name=>materialPool(n).some(e=>e.id===aid(name))))return 'valkyrion';if(c.traits.includes('shining_dragon')&&E(n).some(e=>e.slot.id===aid('Blue-Eyes Ultimate Dragon')))return 'shining';return null;}
  async function specialSummon(n,index){const s=S(n),c=card(s.hand[index]),mode=c&&specialMode(n,c);if(!mode)return false;const mats=mode==='valkyrion'?['Alpha The Magnet Warrior','Beta The Magnet Warrior','Gamma The Magnet Warrior'].map(name=>materialPool(n).find(e=>e.id===aid(name))):mode==='shining'?[materialPool(n).find(e=>e.zone==='field'&&e.id===aid('Blue-Eyes Ultimate Dragon'))]:[];
@@ -372,7 +378,39 @@
    });
   }
   if(code==='charity'){return commit('draw',[],async()=>{drawCards(n,3);await window.memeCardMotion?.flush();render();if(duel.finished||!s.hand.length)return;const count=Math.min(2,s.hand.length),options=choices(s.hand,'hand'),picked=await pickMany(n,'Thiên Sứ: chọn các lá phải bỏ',options,{min:count,max:count,cheap:true})||options.sort((a,b)=>(card(a.id).atk||0)-(card(b.id).atk||0)).slice(0,count);for(const t of picked.sort((a,b)=>b.index-a.index))takeDiscard(n,t);await window.memeCardMotion?.flush();render();});}
-  if(['anime_reborn','premature'].includes(code)){if(free(n)<0||code==='premature'&&(s.lp<=lpFee(800)||!s.spells.includes(null)&&!ctx.fromSet))return false;const options=[n,...(code==='anime_reborn'?[foe]:[])].flatMap(who=>choices(S(who).grave,'grave').filter(e=>card(e.id)?.card_type==='Monster'&&!card(e.id).uncollectible&&!card(e.id).noRevive).map(e=>({...e,from:who,zone:'grave'})));const t=await pick(n,'Chọn quái trong Mộ để hồi sinh',options);if(!t)return false;const position=await revivalPosition(n,c,t.id);if(!position)return false;if(code==='premature'){const payment=await paySpellActivation(n,c,ctx,800);if(payment!=='paid')return payment==='negated';}return commit('revive',[],()=>{if(!S(t.from).grave.includes(t.id)||free(n)<0)return;const slot=revive(n,t.from,t.id,position);if(slot&&code==='premature'){const i=s.grave.lastIndexOf(c.id);if(i>=0)s.grave.splice(i,1);s.spells[s.spells.indexOf(null)]={id:c.id,faceDown:false,setRound:duel.round,revivalUid:uid(slot),equippedTo:uid(slot),equipValue:0};}if(slot)deathQueue.push(()=>postSummon(n,slot));});}
+  if(['anime_reborn','premature'].includes(code)){
+    if(free(n)<0||code==='premature'&&(s.lp<=lpFee(800)||!s.spells.includes(null)&&!ctx.fromSet))return false;
+    const options=[n,...(code==='anime_reborn'?[foe]:[])].flatMap(who=>choices(S(who).grave,'grave').filter(e=>card(e.id)?.card_type==='Monster'&&!card(e.id).uncollectible&&!card(e.id).noRevive).map(e=>({...e,from:who,zone:'grave'})));
+    const t=await pick(n,'Chọn quái trong Mộ để hồi sinh',options);
+    if(!t)return false;
+    const position=await revivalPosition(n,c,t.id);
+    if(!position)return false;
+    if(code==='premature'){
+      const payment=await paySpellActivation(n,c,ctx,800);
+      if(payment!=='paid')return payment==='negated';
+    }
+    return commit('revive',[],()=>{
+      if(!S(t.from).grave.includes(t.id)||free(n)<0)return;
+      const slot=revive(n,t.from,t.id,position);
+      if(slot&&code==='premature'){
+        let spellSlot=s.spells.find(sp=>sp&&sp.id===c.id&&!sp.equippedTo);
+        if(spellSlot){
+          spellSlot.revivalUid=uid(slot);
+          spellSlot.equippedTo=uid(slot);
+          spellSlot.equipValue=0;
+          spellSlot.faceDown=false;
+        }else{
+          const i=s.grave.lastIndexOf(c.id);
+          if(i>=0)s.grave.splice(i,1);
+          const nullIdx=s.spells.indexOf(null);
+          if(nullIdx>=0){
+            s.spells[nullIdx]={id:c.id,faceDown:false,setRound:duel.round,revivalUid:uid(slot),equippedTo:uid(slot),equipValue:0};
+          }
+        }
+      }
+      if(slot)deathQueue.push(()=>postSummon(n,slot));
+    });
+  }
   if(['destroy_spell_target','control','de_fusion','discard_destroy','thunder_giant'].includes(code)){
    let options=code==='destroy_spell_target'?spellList(foe):code==='de_fusion'?allFields().filter(e=>card(e.id).fusion_materials):code==='discard_destroy'?[...targetList(foe),...spellList(foe)]:code==='thunder_giant'?allFields().filter(e=>face(e.slot)&&(card(e.id)?.atk||0)<stat(n,source)):targetList(foe);
    if(code==='control'&&free(n)<0)return false;options=options.filter(e=>spellTargetAllowed(n,c,e));
@@ -396,6 +434,12 @@
   if(code==='absorb'){if(!s.spells.includes(null))return false;const t=await pick(n,'Hấp thụ quái đối thủ',targetList(foe).filter(e=>spellTargetAllowed(n,c,e)).map(e=>({...e,hidden:e.slot.position==='def_down'})));if(!t)return false;const a=stat(foe,t.slot),d=stat(foe,t.slot,'def');return commit('absorb',[t],()=>{for(const e of spellList(n).filter(e=>e.slot.absorbedTo===uid(source)))clearSpell(n,e.index);if(t.extra)f.extra=null;else f.monsters[t.index]=null;s.spells[s.spells.indexOf(null)]={id:t.id,faceDown:false,equippedTo:uid(source),absorbedTo:uid(source),originalOwner:t.slot.originalOwner||t.slot.homeOwner||foe,equipValue:0};source.absorbAtk=a;source.absorbDef=d;});}
   if(code==='cyberdark_equip'){if(!s.spells.includes(null))return false;const options=choices(s.grave,'grave').filter(e=>dragon(card(e.id))&&(has(source,'cyberdark_dragon')||card(e.id).stars<=3));const target=await pick(n,'Cyberdark: trang bị Rồng trong Mộ',options);if(!target)return false;return commit('equip',[],()=>{s.grave.splice(s.grave.indexOf(target.id),1);s.spells[s.spells.indexOf(null)]={id:target.id,faceDown:false,equippedTo:uid(source),equipValue:card(target.id).atk,cyberdarkEquip:true};});}
   if(code==='thunder_search'){const count=s.deck.filter(id=>id===c.id).length;if(!count)return false;return commit('draw',[],()=>{takeDiscard(n,{id:c.id});for(let i=0;i<Math.min(2,count);i++){const index=s.deck.indexOf(c.id);if(index>=0){window.memeCardMotion?.record('search',n,c.id);s.hand.push(s.deck.splice(index,1)[0]);}}s.deck=shuffle(s.deck);});}
+  if(code==='egotist'){if(s.noSpecialRound===duel.round||!E(n).some(e=>face(e.slot)&&(e.slot.id===aid('Harpie Lady')||has(e.slot,'harpie_name')))||free(n)<0)return false;const pool=[...choices(s.hand,'hand'),...choices(s.deck,'deck')].filter(e=>e.id===aid('Harpie Lady')||e.id===aid('Harpie Lady Sisters'));const t=await pick(n,'Màn Vũ Điệu Kiêu Kỳ: gọi Yêu Điểu',pool);if(!t)return false;let summoned;
+   const done=await commit('summon',[],()=>{const src=t.zone==='hand'?s.hand:s.deck,i=src.indexOf(t.id);if(i<0)return;src.splice(i,1);if(t.zone==='deck')s.deck=shuffle(s.deck);const slot={...monsterSlot(t.id),properlySummoned:true};uid(slot);s.monsters[free(n)]=slot;summoned=slot;log(`✦ Gọi đặc biệt ${card(t.id).name} nhờ Màn Vũ Điệu Kiêu Kỳ.`);},{materials:[t.id]});if(done&&summoned)await postSummon(n,summoned);return !!summoned;
+  }
+  if(['cyber_shield','rose_whip'].includes(code)){if(!s.spells.includes(null)&&!ctx.fromSet)return false;const t=await pick(n,'Chọn Yêu Điểu để trang bị',targetList(n,slot=>face(slot)&&(slot.id===aid('Harpie Lady')||has(slot,'harpie_name'))));if(!t)return false;return commit('equip',[t],()=>{const i=s.grave.lastIndexOf(c.id);if(i>=0)s.grave.splice(i,1);const slot={id:c.id,faceDown:false,equippedTo:uid(t.slot),setRound:duel.round,equipValue:c.effect_value||0,equippedSerial:duel.equipSerial=(duel.equipSerial||0)+1};s.spells[s.spells.indexOf(null)]=slot;if(has(t.slot,'gearfried'))clearSpell(n,s.spells.indexOf(slot));});}
+  if(code==='amazon_spellcaster'){const mine=targetList(n,slot=>face(slot)&&amazoness(card(slot.id)));if(!mine.length||!E(foe).some(e=>face(e.slot)))return false;const t1=await pick(n,'Chọn Amazoness của bạn',mine);if(!t1)return false;const t2=await pick(n,'Chọn quái ngửa của đối thủ để hoán đổi ATK gốc',targetList(foe,face));if(!t2)return false;return commit('boost',[t1,t2],()=>{if(!E(n).some(e=>e.slot===t1.slot)||!E(foe).some(e=>e.slot===t2.slot))return;t1.slot.swapAtk=card(t2.slot.id).atk;t1.slot.swapRound=duel.round;t2.slot.swapAtk=card(t1.slot.id).atk;t2.slot.swapRound=duel.round;log(`🔄 Pháp Sư Amazoness hoán đổi ATK gốc của ${card(t1.slot.id).name} và ${card(t2.slot.id).name}!`);});}
+  if(code==='amazon_chain'){if(s.lp<=lpFee(1500)||!f.hand.some(id=>card(id)?.card_type==='Monster'))return false;const t=await pick(n,'Xiềng Amazoness: trả 1500 LP để lấy 1 quái từ tay đối thủ?',choices(f.hand,'hand').filter(e=>card(e.id)?.card_type==='Monster'),{optional:true});if(!t)return false;return commit('steal',[],()=>{if(f.hand[t.index]!==t.id)return;if(!payLp(n,1500,c.id))return;window.memeCardMotion?.record('discard',foe,t.id,t.index);s.hand.push(f.hand.splice(t.index,1)[0]);log(`⛓ ${c.name}: lấy ${card(t.id).name} từ tay đối thủ!`);});}
   return false;
  }
  function transformationOptions(n,spellId,forcedId=null){const spell=card(spellId),s=S(n);if(!['mask_change','mask_change_ii'].includes(spell?.effect_code))return[];const options=[];for(const source of E(n).map(e=>({...e,id:e.slot.id,name:n,zone:'field'}))){const c=card(source.id);if(!face(source.slot)||!/^Masked HERO /.test(c?.name_en||''))continue;for(const target of choices(s.extraDeck,'extra')){const x=card(target.id);if(x?.summon_type!=='transformation'||x.element!==c.element||forcedId&&x.id!==forcedId)continue;const legal=spell.effect_code==='mask_change_ii'?x.stars===8:x.stars>c.stars&&x.stars<=c.stars+2;if(legal)options.push({source,target});}}return options;}
@@ -413,7 +457,7 @@
  async function playSetSpellFor(n,index){const s=S(n),slot=s.spells[index],c=card(slot?.id);if(!slot?.faceDown||c?.card_type!=='Spell')return false;const fromSet={index,slot},modes={fusion_summon:'fusion',miracle_fusion:'miracle',power_bond:'power'};if(['mask_change','mask_change_ii'].includes(c.effect_code))return transform(n,c.id,fromSet);if(modes[c.effect_code])return fuse(n,c.id,null,modes[c.effect_code],fromSet);if(c.effect_code==='ritual')return ritual(n,c,fromSet);if(!['toon_world','premature'].includes(c.effect_code)&&await negateSpell(n,c)){spendSpellSource(n,c.id,fromSet);return true;}return resolveEffect(n,c,{fromSet});}
  window.memeActivateSetSpell=index=>{if(!mainPhase()||duel.mode)return;return perform(()=>playSetSpellFor('player',index));};
  async function activateMonster(n,index,extra=false){const slot=extra?S(n).extra:S(n).monsters[index],c=card(slot?.id);if(!face(slot)||!c||c.effect_trigger!=='activated'||slot.effectUsedRound===duel.round&&(!c.tcg||c.tcg_once!==false))return false;return resolveEffect(n,c,{source:slot,markSlot:c.tcg&&c.tcg_once===false?null:slot});}
- function beginTurn(n){for(const e of E(n)){e.slot.attacked=false;e.slot.attacksUsed=0;e.slot.attackTargets=[];delete e.slot.attackAllLimit;if(face(e.slot)&&card(e.slot.id)?.effect_code==='p3_woodsman'&&e.slot.woodsmanOfferedRound!==duel.round){e.slot.woodsmanOfferedRound=duel.round;enqueue(()=>woodsman(n,e.slot));}}S(n).normalUsed=false;if(window.memeAnime?.onStartTurn)enqueue(()=>window.memeAnime.onStartTurn(n));}
+ function beginTurn(n){for(const e of E(n)){e.slot.attacked=false;e.slot.attacksUsed=0;e.slot.attackTargets=[];delete e.slot.attackAllLimit;if(face(e.slot)&&card(e.slot.id)?.effect_code==='p3_woodsman'&&e.slot.woodsmanOfferedRound!==duel.round){e.slot.woodsmanOfferedRound=duel.round;enqueue(()=>woodsman(n,e.slot));}}for(const p of spellList(n))if(p.slot?.halvedUids)p.slot.halvedUids=[];S(n).normalUsed=false;if(window.memeAnime?.onStartTurn)enqueue(()=>window.memeAnime.onStartTurn(n));}
  async function endTurn(n){const s=S(n);
   for(const e of [...E(n)])if(e.slot.returnExtraEnd){if(guardRemoval(n,e.slot,'effect')){delete e.slot.returnExtraEnd;continue;}await fx(n,card(e.slot.id),'fusion',[{name:n,index:e.index}],()=>{if(e.extra)s.extra=null;else s.monsters[e.index]=null;s.extraDeck.push(e.slot.id);});}
   if(s.powerBondDebt){const debt=s.powerBondDebt;s.powerBondDebt=0;await fx(n,card(aid('Power Bond')),'damage',[{name:n,type:'lp'}],()=>damage(n,debt),{text:`Power Bond: nhận ${debt} sát thương cuối lượt.`});}
@@ -428,17 +472,31 @@
   if(defender&&has(defender,'toon')&&spellList(opponent).some(e=>card(e.id).effect_code==='toon_world')&&defender.dodgeRound!==duel.round){await fx(opponent,card(defender.id),'dodge',[],()=>{defender.dodgeRound=duel.round;},{text:'Toon né đòn và trốn vào Thế Giới Hoạt Hình!'});return {cancel:true};}
   if(defender&&face(defender)&&has(defender,'cyber_valley')){await fx(opponent,card(defender.id),'negate',[],()=>{defender.banishOnLeave=true;remove(opponent,{slot:defender,index:targetIndex,extra:targetExtra},'cost');drawCards(opponent,1);duel.phase='MAIN2';});return {cancel:true};}
   const attackEvent={kind:'attack',atk:stat(owner,attacker),def:defender?stat(opponent,defender,defender.position==='atk'?'atk':'def'):0,direct:!defender,wouldDestroy:!!defender&&stat(owner,attacker)>stat(opponent,defender,defender.position==='atk'?'atk':'def'),defenderId:defender?.id,immune,attackers:E(owner).filter(e=>e.slot.position==='atk').length};
-  const trap=await chooseTrap(opponent,['destroy_attack_position','magic_cylinder','negate_battle','waboku','haunted'],e=>(!immune||!['destroy_attack_position','magic_cylinder'].includes(e.c.effect_code))&&(e.c.effect_code!=='haunted'||free(opponent)>=0&&s.grave.some(id=>card(id)?.card_type==='Monster'&&!card(id).uncollectible)),card(attacker.id).name+' đang tấn công.',attackEvent);if(trap){let cancel=false,changed=null;const revived=trap.c.effect_code==='haunted'?await hauntedTarget(opponent):null;if(trap.c.effect_code==='haunted'&&!revived)return {};await trapUse(opponent,trap,[{name:owner,index:S(owner).monsters.indexOf(attacker)}],()=>{const code=trap.c.effect_code;
+  const trap=await chooseTrap(opponent,['destroy_attack_position','magic_cylinder','negate_battle','waboku','haunted','mirror_wall','amazoness_archers','dramatic_rescue'],e=>(!immune||!['destroy_attack_position','magic_cylinder','mirror_wall','amazoness_archers'].includes(e.c.effect_code))&&(e.c.effect_code!=='haunted'||free(opponent)>=0&&s.grave.some(id=>card(id)?.card_type==='Monster'&&!card(id).uncollectible))&&(e.c.effect_code!=='amazoness_archers'||E(opponent).some(x=>face(x.slot)&&amazoness(card(x.slot.id))))&&(e.c.effect_code!=='dramatic_rescue'||!!defender&&face(defender)&&amazoness(card(defender.id))&&s.hand.some(id=>card(id)?.card_type==='Monster')),card(attacker.id).name+' đang tấn công.',attackEvent);
+  if(trap){
+   if(trap.c.effect_code==='mirror_wall'){
+    const counter=await chooseTrap(owner,['seven_tools'],()=>S(owner).lp>lpFee(1000),trap.c.name+' đang kích hoạt.',{kind:'trap',cardId:trap.id});
+    if(counter){let negated=false;await trapUse(owner,counter,[trap],()=>{negated=true;},1);if(negated){await fx(owner,counter.c,'negate',[trap],()=>{clearSpell(opponent,trap.index);window.memePhase2?.trace(opponent,trap.id,'negated',1);},{counterDepth:2,text:'Phản Bẫy thành công — hiệu ứng gốc bị vô hiệu.'});return {};}}
+    if(S(opponent).spells[trap.index]!==trap.slot)return {};
+    await fx(opponent,trap.c,'flip',[{name:opponent,index:trap.index}],()=>{trap.slot.faceDown=false;(trap.slot.halvedUids||=[]).push(uid(attacker));window.memePhase2?.trace(opponent,trap.id,'resolved');},{text:'Tường Gương: ATK quái đang tấn công bị giảm một nửa.'});return {};
+   }
+   let cancel=false,changed=null;const revived=trap.c.effect_code==='haunted'?await hauntedTarget(opponent):null;if(trap.c.effect_code==='haunted'&&!revived)return {};
+   const rescue=trap.c.effect_code==='dramatic_rescue'?await pick(opponent,'Giải Cứu Ngoạn Mục: chọn quái từ tay',choices(s.hand,'hand').filter(e=>card(e.id)?.card_type==='Monster')):null;if(trap.c.effect_code==='dramatic_rescue'&&!rescue)return {};
+   await trapUse(opponent,trap,[{name:owner,index:S(owner).monsters.indexOf(attacker)}],()=>{const code=trap.c.effect_code;
    if(code==='destroy_attack_position'){for(const e of [...E(owner)])if(e.slot.position==='atk'&&!has(e.slot,'trap_immune')&&!has(e.slot,'god'))remove(owner,e,'effect');cancel=!E(owner).some(e=>e.slot===attacker);}
    if(code==='magic_cylinder'){damage(owner,stat(owner,attacker));cancel=true;}if(code==='negate_battle'){duel.phase='MAIN2';cancel=true;}if(code==='waboku')s.battleShieldRound=duel.round;
    if(code==='haunted'&&revived&&free(opponent)>=0){const slot=revive(opponent,opponent,revived.id,trap.c.revival_position||'def');if(slot){changed={slot,index:s.monsters.indexOf(slot),extra:false};deathQueue.push(()=>postSummon(opponent,slot));}}
+   if(code==='amazoness_archers'){for(const e of [...E(owner)]){const wasDown=e.slot.position==='def_down';e.slot.position='atk';e.slot.mangaTempAtk=(e.slot.mangaTempRound===duel.round?e.slot.mangaTempAtk||0:0)-500;e.slot.mangaTempRound=duel.round;if(wasDown){const fc=card(e.slot.id);if(fc?.effect_trigger==='on_flip'||fc?.effect_code==='search_gazelle')deathQueue.push(()=>resolveEffect(owner,fc,{source:e.slot,kind:'flip'}));}}}
+   if(code==='dramatic_rescue'&&rescue&&defender&&E(opponent).some(e=>e.slot===defender)&&s.hand[rescue.index]===rescue.id){if(targetExtra)s.extra=null;else s.monsters[targetIndex]=null;const id=s.hand.splice(rescue.index,1)[0];s.hand.push(defender.id);log(`🎭 Giải Cứu Ngoạn Mục: ${card(defender.id).name} về tay, ${card(id).name} vào sân!`);const slot=monsterSlot(id,'atk');uid(slot);if(placeOnField(opponent,slot))deathQueue.push(()=>postSummon(opponent,slot));}
   });if(cancel)return {cancel:true};if(changed&&targetIndex===null)return {defender:changed.slot,targetIndex:changed.index,targetExtra:false};}
   return {};
  }
- async function protectDamage(n,amount){if(amount<=0||S(n).battleShieldRound===duel.round||S(n).battleDamageShieldRound===duel.round||duel.battleContext?.owner===n&&has(duel.battleContext.attacker,'rocket')||has(duel.battleContext?.attacker,'exploder')||duel.battleContext?.defender&&has(duel.battleContext.defender,'exploder'))return;const id=S(n).hand.find(id=>card(id)?.traits?.includes('kuriboh'));if(id)await fx(n,card(id),'shield',[{name:n,type:'lp'}],()=>{takeDiscard(n,{id});if(duel.battleContext)duel.battleContext.kuribohBlock=n;},{text:'Kuriboh — chặn sát thương chiến đấu này!'});}
+ async function protectDamage(n,amount){if(amount<=0||S(n).battleShieldRound===duel.round||S(n).battleDamageShieldRound===duel.round||duel.battleContext?.owner===n&&has(duel.battleContext.attacker,'rocket')||has(duel.battleContext?.attacker,'exploder')||duel.battleContext?.defender&&has(duel.battleContext.defender,'exploder')||duel.battleContext?.owner===n&&has(duel.battleContext.attacker,'amazon_fighter')||duel.battleContext?.defender&&has(duel.battleContext.defender,'amazon_fighter')&&n!==duel.battleContext.owner)return;const id=S(n).hand.find(id=>card(id)?.traits?.includes('kuriboh'));if(id)await fx(n,card(id),'shield',[{name:n,type:'lp'}],()=>{takeDiscard(n,{id});if(duel.battleContext)duel.battleContext.kuribohBlock=n;},{text:'Kuriboh — chặn sát thương chiến đấu này!'});}
  async function battle(owner,index,extra,targetIndex,targetExtra=false){const match=duel,s=S(owner),foe=other(owner),attacker=extra?s.extra:s.monsters[index];
   if(duel.phase==='BATTLE'&&s.favoriteFieldRound!==duel.round&&spellList(owner).some(p=>p.id==='DL-favorite_hero'&&p.slot.equippedTo&&E(owner).some(e=>e.slot.uid===p.slot.equippedTo&&face(e.slot)))){s.favoriteFieldRound=duel.round;const fields=[...choices(s.hand,'hand').map(e=>({...e,zone:'hand'})),...choices(s.deck,'deck').map(e=>({...e,zone:'deck'}))].filter(e=>card(e.id)?.spell_category==='Môi Trường');if(fields.length){const t=await pick(owner,'Anh Hùng Tâm Đắc: kích hoạt 1 Phép Môi Trường',fields,{optional:true});if(t)await fx(owner,card(t.id),'spell',[],()=>{const src=t.zone==='hand'?s.hand:s.deck,i=src.indexOf(t.id);if(i<0)return;src.splice(i,1);if(t.zone==='deck')s.deck=shuffle(s.deck);if(s.field){s.grave.push(s.field.id);sentToGrave(owner,s.field.id,true,'effect');}s.field={id:t.id};log(`🌐 Anh Hùng Tâm Đắc kích hoạt ${card(t.id).name}.`);});}}if(!canAttack(attacker))return false;
   let defender=targetExtra?S(foe).extra:targetIndex==null?null:S(foe).monsters[targetIndex];if(!defender&&!directAllowed(owner,attacker))return false;
+  const taunt=defender?E(foe).find(e=>e.slot!==defender&&face(e.slot)&&has(e.slot,'amazon_tiger')):E(foe).find(e=>face(e.slot)&&has(e.slot,'amazon_tiger'));
+  if(taunt){log(`🐯 ${card(taunt.slot.id).name} chặn đường tấn công — chỉ được đánh nó!`);return false;}
   const guard=defender&&hero(card(defender.id))?E(foe).find(e=>e.slot!==defender&&face(e.slot)&&e.slot.position==='def'&&has(e.slot,'hero_guard')&&e.slot.p2GuardRound!==duel.round&&stat(foe,e.slot,'def')>=stat(owner,attacker)&&stat(owner,attacker)>stat(foe,defender,defender.position==='atk'?'atk':'def')):null;
   if(guard){await fx(foe,card(guard.slot.id),'shield',[{name:foe,index:guard.index}],()=>{guard.slot.p2GuardRound=duel.round;});defender=guard.slot;targetIndex=guard.index;targetExtra=!!guard.extra;}
   if(has(attacker,'attack_all')&&defender){uid(defender);if(attacker.attackTargets?.includes(defender.uid))return false;attacker.attackAllLimit??=Math.max(1,E(foe).length);}
@@ -464,9 +522,9 @@
      });
      duel.mode=null;duel.pending=null;duel.battleContext=null;attacker.attackBonus=0;render();return false;
    }
-  duel.battleContext={owner,attacker,defender};const atk=Math.floor(stat(owner,attacker)*(!defender&&(has(attacker,'direct_half')||has(attacker,'rampart')&&attacker.position==='def')?.5:1)),def=defender?stat(foe,defender,defender.position==='atk'?'atk':'def'):0;
+  duel.battleContext={owner,attacker,defender};const swAtt=has(attacker,'amazon_swords'),swDef=defender&&has(defender,'amazon_swords');const atk=Math.floor(stat(owner,attacker)*(!defender&&(has(attacker,'direct_half')||has(attacker,'rampart')&&attacker.position==='def')?.5:1)),def=defender?stat(foe,defender,defender.position==='atk'?'atk':'def'):0;
   if(defender&&atk>def&&has(defender,'winged_kuriboh')&&!defender.banishOnLeave&&S(foe).battleShieldRound!==duel.round)await fx(foe,card(defender.id),'shield',[],()=>{S(foe).battleDamageShieldRound=duel.round;});
-  const takes=defender?atk>def?(defender.position==='atk'||has(attacker,'piercing')?{name:foe,amount:atk-def}:null):atk<def?{name:owner,amount:def-atk}:null:{name:foe,amount:atk};if(takes)await protectDamage(takes.name,takes.amount);
+  const takes=defender?atk>def?(defender.position==='atk'||has(attacker,'piercing')?{name:swDef?owner:foe,amount:atk-def}:null):atk<def?{name:swAtt?foe:owner,amount:def-atk}:null:{name:foe,amount:atk};if(takes)await protectDamage(takes.name,takes.amount);
   let victim=null;duel.mode=null;duel.pending=null;
   const hit=()=>{if(duel!==match)return;
     if(defender&&!E(foe).some(e=>e.slot===defender)){
@@ -481,7 +539,7 @@
       duel.mode=null;duel.pending=null;checkWin();render();return;
     }
     attacker.attacksUsed=(attacker.attacksUsed||0)+1;attacker.attacked=attacker.attacksUsed>=attackLimit(attacker);if(defender){attacker.attackTargets??=[];attacker.attackTargets.push(uid(defender));}
-   if(!defender)damage(foe,atk);else if(atk>def){const removed=remove(foe,{slot:defender,index:targetIndex,extra:targetExtra},'battle');if(removed)victim=defender;if(defender.position==='atk'||has(attacker,'piercing'))damage(foe,atk-def);}else if(atk<def){if(defender.position==='atk')remove(owner,{slot:attacker,index,extra},'battle');damage(owner,def-atk);}else if(defender.position==='atk'){remove(owner,{slot:attacker,index,extra},'battle');if(remove(foe,{slot:defender,index:targetIndex,extra:targetExtra},'battle'))victim=defender;}
+   if(!defender)damage(foe,atk);else if(atk>def){const removed=remove(foe,{slot:defender,index:targetIndex,extra:targetExtra},'battle');if(removed)victim=defender;if(defender.position==='atk'||has(attacker,'piercing'))damage(swDef?owner:foe,atk-def);}else if(atk<def){if(defender.position==='atk')remove(owner,{slot:attacker,index,extra},'battle');damage(swAtt?foe:owner,def-atk);}else if(defender.position==='atk'){remove(owner,{slot:attacker,index,extra},'battle');if(remove(foe,{slot:defender,index:targetIndex,extra:targetExtra},'battle'))victim=defender;}
    log(`⚔ ${card(attacker.id).name} ${defender?'giao chiến với '+card(defender.id).name:'tấn công trực tiếp'}!`);checkWin();render();};
   duel.animeMatchId??='anime-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);duel.animeSerial=(duel.animeSerial||0)+1;duel.animeEvents=[...(duel.animeEvents||[]),{serial:duel.animeSerial,owner,kind:'attack',cardId:attacker.id,index,extra,targetIndex,targetExtra}].slice(-24);
   try{if(window.memeFx)await window.memeFx.attack(owner,index,extra,targetIndex,targetExtra,hit);else hit();}finally{duel.battleContext=null;attacker.attackBonus=0;}
@@ -512,9 +570,10 @@
    if (s.noSpecialRound === duel.round) {
      return 'Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!';
    }
-   if (free(n) < 0 && !extraOpen(n)) {
-     return 'Khu vực quái thú và Extra Zone trên sân đã kín (Tối đa 3 ô + 1 Extra)!';
-   }
+   const opts = fusionOptions(n, id);
+    if (free(n) < 0 && !extraOpen(n) && !opts.some(chosen => chosen.some(e => e.zone === 'field'))) {
+      return 'Khu vực quái thú và Extra Zone trên sân đã kín (Tối đa 3 ô + 1 Extra)!';
+    }
    if (c.summon_type === 'transformation') {
      const spell = availableFusionSpell(n, id);
      if (!spell) return 'Cần quái Mặt Nạ phù hợp trên sân và Phép Biến Đổi (Mask Change) trên tay!';
@@ -569,6 +628,9 @@
        return 'Cần tiết lộ 1 lá Rồng Trắng Mắt Xanh trên tay!';
      }
    }
+   if (c.traits?.includes('harpie_name')) {
+     return 'Yêu Điểu Tam Tỷ chỉ được Triệu hồi Đặc biệt bằng Elegant Egotist!';
+   }
    return 'Chưa thỏa mãn điều kiện Triệu hồi Đặc biệt ghi trên lá bài.';
  }
  window.cardSpecialProblem = cardSpecialProblem;
@@ -579,7 +641,7 @@
    if (!['MAIN1','MAIN2'].includes(duel.phase)) return 'Chỉ kích hoạt Phép trong phase MAIN 1 hoặc MAIN 2!';
    if (duel.mode) return 'Hãy hoàn tất hoặc bấm Hủy thao tác đang chọn trước!';
    const s = S(n);
-   const isSpecialSummonSpell = ['fusion_summon','miracle_fusion','power_bond','ritual','mask_change','mask_change_ii','premature','anime_reborn','DL-neos_fusion','DL-relinquished_fusion','DL-cyberload_fusion','DL-red_eyes_fusion','DL-a_hero_lives','DL-silvers_cry','DL-form_change'].includes(c.effect_code || c.id);
+   const isSpecialSummonSpell = ['fusion_summon','miracle_fusion','power_bond','ritual','mask_change','mask_change_ii','premature','anime_reborn','egotist','DL-neos_fusion','DL-relinquished_fusion','DL-cyberload_fusion','DL-red_eyes_fusion','DL-a_hero_lives','DL-silvers_cry','DL-form_change'].includes(c.effect_code || c.id);
    if (isSpecialSummonSpell && s.noSpecialRound === duel.round) {
      return 'Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!';
    }
@@ -590,9 +652,10 @@
      return 'Cần có quái thú ngửa trên sân để trang bị!';
    }
    const modes = {fusion_summon:'fusion', miracle_fusion:'miracle', power_bond:'power'};
-   if (modes[c.effect_code]) {
-     if (free(n) < 0 && !extraOpen(n)) return 'Khu vực quái thú trên sân đã đầy!';
-     if (!fusionCandidates(n, modes[c.effect_code]).length) {
+    if (modes[c.effect_code]) {
+      const candidates = fusionCandidates(n, modes[c.effect_code]);
+      if (!candidates.length) {
+        if (free(n) < 0 && !extraOpen(n)) return 'Khu vực quái thú trên sân đã đầy!';
        if (c.effect_code === 'miracle_fusion') return 'Chưa đủ nguyên liệu Anh Hùng trên Sân hoặc Mộ để Dung Hợp!';
        if (c.effect_code === 'power_bond') return 'Chưa đủ nguyên liệu Quái Máy trên Tay hoặc Sân để kích hoạt Power Bond!';
        return 'Chưa đủ nguyên liệu trên Tay hoặc Sân cho bất kỳ quái Dung Hợp nào trong Extra Deck!';
@@ -622,13 +685,14 @@
      if (s.lp <= 1) return 'Không đủ LP để kích hoạt!';
    }
    if (c.effect_code === 'premature') {
-     if (s.lp <= 800) return 'Cần ít nhất 800 LP để kích hoạt Chôn Sống!';
-     if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
-     if (!s.grave.some(id => card(id)?.card_type === 'Monster' && !card(id)?.uncollectible)) return 'Không có quái thú hợp lệ trong Mộ để hồi sinh!';
-   }
+      if (s.lp <= lpFee(800)) return 'Cần ít nhất ' + lpFee(800) + ' LP để kích hoạt Chôn Sống!';
+      if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
+      if (!s.spells.includes(null) && !fromSet) return 'Khu vực Phép/Bẫy đã đầy (Tối đa 3 ô trên sân)!';
+      if (!s.grave.some(id => card(id)?.card_type === 'Monster' && !card(id)?.uncollectible && !card(id)?.noRevive)) return 'Không có quái thú hợp lệ trong Mộ để hồi sinh!';
+    }
    if (c.effect_code === 'anime_reborn') {
      if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
-     if (![...s.grave, ...S(other(n)).grave].some(id => card(id)?.card_type === 'Monster' && !card(id)?.uncollectible)) return 'Không có quái thú hợp lệ trong Mộ để hồi sinh!';
+     if (![...s.grave, ...S(other(n)).grave].some(id => card(id)?.card_type === 'Monster' && !card(id)?.uncollectible && !card(id)?.noRevive)) return 'Không có quái thú hợp lệ trong Mộ để hồi sinh!';
    }
    if (c.id === 'DL-silvers_cry') {
      if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
@@ -655,6 +719,18 @@
    }
    if (c.id === 'DL-the_melody_of_awakening_dragon') {
      if (s.hand.length < (fromSet ? 1 : 2)) return 'Cần 1 lá bài khác trên tay để bỏ làm chi phí!';
+   }
+   if (c.effect_code === 'egotist') {
+     if (!E(n).some(e => face(e.slot) && (e.slot.id === aid('Harpie Lady') || has(e.slot,'harpie_name')))) return 'Cần Yêu Điểu (Harpie Lady) đang ngửa trên sân!';
+     if (free(n) < 0) return 'Khu vực quái thú trên sân đã đầy!';
+     if (![...s.hand,...s.deck].some(id => id === aid('Harpie Lady') || id === aid('Harpie Lady Sisters'))) return 'Không còn Yêu Điểu nào trong Tay hoặc Deck để gọi!';
+   }
+   if (['cyber_shield','rose_whip'].includes(c.effect_code) && !E(n).some(e => face(e.slot) && (e.slot.id === aid('Harpie Lady') || has(e.slot,'harpie_name')))) {
+     return 'Cần Yêu Điểu (Harpie Lady) đang ngửa trên sân để trang bị!';
+   }
+   if (c.effect_code === 'amazon_spellcaster') {
+     if (!E(n).some(e => face(e.slot) && amazoness(card(e.slot.id)))) return 'Cần Amazoness đang ngửa trên sân của bạn!';
+     if (!E(other(n)).some(e => face(e.slot))) return 'Đối thủ không có quái thú ngửa nào để hoán đổi ATK!';
    }
    return '';
  }
@@ -693,11 +769,13 @@
  window.monsterEffectProblem = monsterEffectProblem;
 
  summon=(index,position='atk')=>{
-   if(!mainPhase()){
-     const msg = duel?.phase === 'BATTLE' ? 'Không thể Triệu hồi trong Phase Chiến Đấu! Hãy quay về Main 2 hoặc sang lượt sau.' : 'Chỉ có thể Triệu hồi ở phase MAIN 1 hoặc MAIN 2.';
-     window.showActionNotice(msg);
-     return log(msg);
-   }
+    if(duel?.turn!=='player'){window.showActionNotice('Đang là lượt của đối thủ!');return;}
+    if(!['MAIN1','MAIN2'].includes(duel?.phase)){
+      const msg = duel?.phase === 'BATTLE' ? 'Không thể Triệu hồi trong Phase Chiến Đấu! Hãy quay về Main 2 hoặc sang lượt sau.' : 'Chỉ có thể Triệu hồi ở phase MAIN 1 hoặc MAIN 2.';
+      window.showActionNotice(msg);
+      return log(msg);
+    }
+    if(!canAct()||!mainPhase())return;
    if(duel.mode){
      window.showActionNotice('Hãy hoàn tất hoặc bấm Hủy thao tác chọn bài trước!');
      return log('Đang trong thao tác chọn bài.');
@@ -822,7 +900,7 @@
   for(const e of [...E('enemy')])for(let i=0;i<3&&canAttack(e.slot);i++){if(duel!==match||duel.finished||duel.phase!=='BATTLE')break;const targets=targetList('player').filter(t=>!has(e.slot,'attack_all')||!e.slot.attackTargets?.includes(t.slot.uid)),target=window.memePhase2?memePhase2.attack('enemy',e.slot,targets):targets.find(t=>stat('enemy',e.slot)>(t.slot.position==='atk'?stat('player',t.slot):stat('player',t.slot,'def')));if(targets.length&&!target&&!directAllowed('enemy',e.slot))break;await perform(()=>battle('enemy',e.index,e.extra,target?.index??null,target?.extra||false));}
   if(duel!==match||duel.finished)return;await perform(async()=>{await endTurn('enemy');if(duel.finished)return;duel.turn='player';duel.phase='MAIN1';duel.round++;duel.normalSummoned=false;beginTurn('player');await fx('player',null,'draw',[],()=>drawCards('player',1),{title:'Lượt của bạn',text:'Rút 1 lá từ Deck.'});});
  };
- function skillCandidates(n,h){if(h.code==='jaden')return choices(S(n).deck,'deck').filter(e=>['fusion_summon','miracle_fusion','mask_change','mask_change_ii'].includes(card(e.id)?.effect_code));return choices(S(n).deck,'deck').filter(e=>h.code==='destiny'||({kaiba:['Blue-Eyes White Dragon'],joey:['Time Wizard','Red-Eyes Black Dragon'],pegasus:['Toon World','Black Illusion Ritual'],jaden:['Polymerization','Miracle Fusion'],zane:['Cyber Dragon','Power Bond']}[h.code]||[]).map(aid).includes(e.id));}
+ function skillCandidates(n,h){if(h.code==='jaden')return choices(S(n).deck,'deck').filter(e=>['fusion_summon','miracle_fusion','mask_change','mask_change_ii'].includes(card(e.id)?.effect_code));return choices(S(n).deck,'deck').filter(e=>h.code==='destiny'||({kaiba:['Blue-Eyes White Dragon'],joey:['Time Wizard','Red-Eyes Black Dragon'],pegasus:['Toon World','Black Illusion Ritual'],jaden:['Polymerization','Miracle Fusion'],zane:['Cyber Dragon','Power Bond'],mai:['Harpie Lady','Elegant Egotist']}[h.code]||[]).map(aid).includes(e.id));}
  function skillProblem(n,internal=false){if(window.memeOpening?.pending())return 'Chờ tung xu chọn lượt.';if(!duel||duel.finished)return 'Trận đấu đã kết thúc.';const s=S(n),h=getHero(s.heroId);if(s.skillUsed)return 'Đã dùng kỹ năng trong trận này.';if(duel.turn!==n||!['MAIN1','MAIN2'].includes(duel.phase))return 'Dùng trong MAIN của bạn.';if(duel.mode)return 'Hoàn tất thao tác chọn bài trước.';if(!internal&&(busy||window.memeFx?.busy))return 'Chờ hoạt ảnh hiện tại hoàn tất.';if(h.code==='destiny'&&s.lp>2000)return 'Trái Tim Lá Bài cần LP từ 2000 trở xuống.';if(['kaiba','joey','zane'].includes(h.code)&&!s.hand.length)return 'Cần 1 lá trên tay làm chi phí.';if(h.code==='jaden'&&!E(n).some(e=>face(e.slot)&&/\bHERO\b/.test(card(e.slot.id)?.name_en||'')))return 'Cần 1 HERO đang ngửa trên sân.';if(!skillCandidates(n,h).length&&!(h.code==='pegasus'&&S(other(n)).hand.length))return 'Không còn lá phù hợp trong Deck.';return '';}
  async function skillFor(n){const problem=skillProblem(n,true);if(problem)return false;const s=S(n),h=getHero(s.heroId),cost=['kaiba','joey','zane'].includes(h.code)?await discard(n,'Đổi 1 lá trên tay làm chi phí kỹ năng'):null;if(['kaiba','joey','zane'].includes(h.code)&&!cost)return false;
   if(h.code==='pegasus'&&S(other(n)).hand.length)await pick(n,'Con Mắt Ngàn Năm: xem tay đối thủ',choices(S(other(n)).hand,'hand'),{optional:true,text:'Chọn một lá hoặc bấm Bỏ qua để tiếp tục; không lấy lá đối thủ.'});
@@ -841,7 +919,7 @@
    }
    if(specialMode('player',c)){
      addAction(actions,'✦ Triệu hồi đặc biệt',()=>perform(()=>specialSummon('player',sel.index)));
-   } else if(c.special_only || c.traits?.some(t => ['cyber_special','bubbleman','valkyrion','shining_dragon'].includes(t)) || c.id === 'DL-blue_eyes_alternative_white_dragon'){
+   } else if(c.special_only || c.traits?.some(t => ['cyber_special','bubbleman','valkyrion','shining_dragon','harpie_name'].includes(t)) || c.id === 'DL-blue_eyes_alternative_white_dragon'){
      const prob = cardSpecialProblem('player', c);
      addAction(actions,'✦ Triệu hồi đặc biệt',()=>window.showActionNotice(prob, 'Chưa thể Triệu hồi ĐB'), true);
    }
@@ -854,15 +932,15 @@
  const detail=renderDeckInspector;renderDeckInspector=()=>{detail();const c=card(deckInspectedId),body=document.querySelector('.deck-inspect-body');if(c&&body){const note=document.createElement('div');note.className='anime-source-note';note.innerHTML=`<details><summary>Tên gốc để đối chiếu</summary><b>${esc(c.name_en)}</b></details>`;body.prepend(note);}};
  function setBackrow(index,type){if(!mainPhase()||duel.mode)return;const s=S('player'),id=s.hand[index],c=card(id);if(c?.card_type!==type)return;if(!s.spells.includes(null)){log('Không còn ô Phép/Bẫy trống.');return;}return perform(()=>fx('player',c,'set',[],()=>{s.hand.splice(index,1);s.spells[s.spells.indexOf(null)]={id,faceDown:true,setRound:duel.round};duel.selected=null;}));}
  setTrap=index=>setBackrow(index,'Trap');window.memeSetSpell=index=>setBackrow(index,'Spell');
- const supported=new Set(['warrior_inspire','search_gazelle','obelisk','ra','thunder_search','time_wizard','gilford','absorb','hummingbird','dolphin','draw_n','cyberdark_equip','cyber_valley','discard_destroy','thunder_giant','aqua_neos','fusion_summon','charity','anime_reborn','dark_hole','destroy_all_opponent_monsters','duster','swords','card_destruction','control','destroy_spell_target','dark_magic_attack','flute','toon_world','ritual','miracle_fusion','power_bond','de_fusion','fusion_search','skyscraper','equip_atk_n','multiply','scapegoat','lambs','reincarnate','premature','heal_n','destroy_attack_position','magic_cylinder','negate_battle','trap_hole','torrential','haunted','seven_tools','magic_jammer','waboku','dust_tornado']);
+ const supported=new Set(['warrior_inspire','search_gazelle','obelisk','ra','thunder_search','time_wizard','gilford','absorb','hummingbird','dolphin','draw_n','cyberdark_equip','cyber_valley','discard_destroy','thunder_giant','aqua_neos','fusion_summon','charity','anime_reborn','dark_hole','destroy_all_opponent_monsters','duster','swords','card_destruction','control','destroy_spell_target','dark_magic_attack','flute','toon_world','ritual','miracle_fusion','power_bond','de_fusion','fusion_search','skyscraper','equip_atk_n','multiply','scapegoat','lambs','reincarnate','premature','heal_n','destroy_attack_position','magic_cylinder','negate_battle','trap_hole','torrential','haunted','seven_tools','magic_jammer','waboku','dust_tornado','egotist','cyber_shield','rose_whip','amazon_spellcaster','amazon_chain','shadow_of_eyes','mirror_wall','amazoness_archers','dramatic_rescue']);
  window.memeRules={...base,stat,canAttack,remove,damage,beginTurn,supported,execute:(n,c,ctx)=>effect(n,c,ctx),canExecute:(n,c)=>{if(!c||!c.effect_code)return false;return c.effect_code==='fusion_summon'?fusionCandidates(n).length>0:true;},counter:()=>false,negateSpell:()=>false,aiSpecialSummon:()=>{}};
  for(const code of ['p3_zero','p3_shining','p3_gaia','p3_tornado','p3_terra','p3_escuridao','p3_ocean','p3_stratos','p3_umi','p3_woodsman','p3_shadow_mist','masked_fountain','masked_vapor','masked_acid','masked_dian','masked_blast','masked_koga','masked_divine','mask_change','mask_change_ii'])supported.add(code);
  window.memeAnime={choose:pick,trapProblem,get manualTraps(){return manualTraps;},setManualTraps(v){manualTraps=false;localStorage.removeItem('meme-manual-traps');},get busy(){return busy;},get choosing(){return !!cancelChoice;},cancelChoice(){cancelChoice?.();},setAuto(v){auto=!!v;},directAllowed,perform,fx,flush,resolveEffect,playSpellFor,playSetSpellFor,normalSummon,specialSummon,specialMode,postSummon,fuse,fusionOptions,transform,transformationOptions,battle,endTurn,revivalPosition,skillFor,skillProblem,registerGraveGuard:guard=>{graveGuards.push(guard);},attacksRemaining:slot=>Math.max(0,attackLimit(slot)-(slot.attacksUsed||0)),supported};
  window.memeAnime.chooseMany=pickMany;
  window.memeAnime.changePosition=changePosition;
  window.memeAnime.tcgCore={S,E,face,has,uid,free,allFields,extraOpen,placeOnField,targetList,spellList,choices,pick,pickMany,enqueue,fx,flush,stat,remove,clearSpell,revive,revivalPosition,takeDiscard,drawCards,damage,heal:base.heal,spendSpellSource,commitSpellSource,negateSpell,postSummon,specialSummon,normalSummon,fuse,resolveEffect,spellTargetAllowed,materialPool,sentToGrave};
- showCredits=()=>showModal('<h2>Tranh Anime DM / GX</h2><p>Toàn bộ 156 lá và Cừu Thế Thân có tranh minh họa phỏng theo anime, được tạo bằng AI và lưu cùng game. Hình ảnh là bản minh họa phỏng theo, tên Việt và hiệu ứng được viết riêng cho sân H5.</p>');
- showRules=()=>showModal('<h2>Anime DM / GX · Luật H5</h2><ul><li>4000 LP · Main 20–30 lá · Extra tối đa 10. Online: 60 giây cho toàn bộ MAIN 1 / Battle / MAIN 2; hết giờ tự kết thúc lượt. Bộ mẫu theo 6 nhân vật.</li><li>Người đi trước không có Battle Phase trong lượt đầu: MAIN 1 → kết thúc lượt. Người đi sau được đánh từ lượt 2 của trận.</li><li>Quái thường 1 lần/lượt; 5–6 sao hiến tế 1, từ 7 sao hiến tế 2. Các Thần và Gilford cần 3.</li><li>Dung Hợp dùng nguyên liệu tay/sân. Miracle Fusion trục xuất sân/Mộ; Power Bond có sát thương cuối lượt. Contact Fusion dùng nguyên liệu trên sân, không cần Phép.</li><li>Hiệu ứng được trình bày bằng hoạt ảnh rồi mới áp dụng. Có thể bấm Bỏ qua hiệu ứng.</li><li>Phép có thể úp và lật lên để dùng trong MAIN của bạn. Bẫy phải chờ sang lượt sau khi úp. Bẫy tự phản ứng khi đủ điều kiện; bạn vẫn chọn mục tiêu và chi phí. Bão Bụi, Tiếng Gọi Người Chết và Waboku có thể chủ động kích hoạt; các Bẫy phản đòn vẫn chờ đúng tình huống. Jinzo vô hiệu Bẫy. Kỹ năng anime riêng của mỗi nhân vật, 1 lần/trận.</li><li>Đây là bản phỏng theo anime cho sân 3 ô, có ghi điều chỉnh H5 trên từng lá. Đủ 5 phần Exodia trên tay là thắng.</li></ul>');$('helpBtn').onclick=showRules;$('rulesBtn').onclick=showRules;
+ showCredits=()=>showModal('<h2>Tranh Anime DM / GX</h2><p>Toàn bộ 171 lá và Cừu Thế Thân có tranh minh họa phỏng theo anime, được tạo bằng AI và lưu cùng game. Hình ảnh là bản minh họa phỏng theo, tên Việt và hiệu ứng được viết riêng cho sân H5.</p>');
+ showRules=()=>showModal('<h2>Anime DM / GX · Luật H5</h2><ul><li>4000 LP · Main 20–30 lá · Extra tối đa 10. Online: 60 giây cho toàn bộ MAIN 1 / Battle / MAIN 2; hết giờ tự kết thúc lượt. Bộ mẫu theo 7 nhân vật.</li><li>Người đi trước không có Battle Phase trong lượt đầu: MAIN 1 → kết thúc lượt. Người đi sau được đánh từ lượt 2 của trận.</li><li>Quái thường 1 lần/lượt; 5–6 sao hiến tế 1, từ 7 sao hiến tế 2. Các Thần và Gilford cần 3.</li><li>Dung Hợp dùng nguyên liệu tay/sân. Miracle Fusion trục xuất sân/Mộ; Power Bond có sát thương cuối lượt. Contact Fusion dùng nguyên liệu trên sân, không cần Phép.</li><li>Hiệu ứng được trình bày bằng hoạt ảnh rồi mới áp dụng. Có thể bấm Bỏ qua hiệu ứng.</li><li>Phép có thể úp và lật lên để dùng trong MAIN của bạn. Bẫy phải chờ sang lượt sau khi úp. Bẫy tự phản ứng khi đủ điều kiện; bạn vẫn chọn mục tiêu và chi phí. Bão Bụi, Tiếng Gọi Người Chết và Waboku có thể chủ động kích hoạt; các Bẫy phản đòn vẫn chờ đúng tình huống. Jinzo vô hiệu Bẫy. Kỹ năng anime riêng của mỗi nhân vật, 1 lần/trận.</li><li>Đây là bản phỏng theo anime cho sân 3 ô, có ghi điều chỉnh H5 trên từng lá. Đủ 5 phần Exodia trên tay là thắng.</li></ul>');$('helpBtn').onclick=showRules;$('rulesBtn').onclick=showRules;
  // Incoming snapshots replay unseen effects before exposing their final state.
  let remoteChain=Promise.resolve(),remoteMatch=null,remoteSerial=0;const receive=window.memeOnlineReceive;
  window.memeOnlineReceive=msg=>{if(msg?.type!=='MEME_ROOM_STATE'||!msg.state||!window.memeOnlineIsPlaying?.())return receive(msg);const room=memeRoom;if(msg.id!==room?.peerId||msg.targetId!==memeMyId()||msg.roomId!==room.code)return;

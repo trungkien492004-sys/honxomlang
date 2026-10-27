@@ -133,7 +133,7 @@ function memeJoinRoom(code) {
   memeRoom = { code, role: 'guest', playing: false, peerId: null, peerName: '', version: 0, lastRemoteVersion: 0 };
   const join = () => {
     if (memeRoom?.role === 'guest' && !memeRoom.playing && !memeRoom.peerId)
-      memeSend('MEME_ROOM_JOIN', { guestName: memeMyName(), deck: [...deckList], extraDeck:[...extraDeckList],heroId:chosenHero });
+      memeSend('MEME_ROOM_JOIN', { guestName: memeMyName(), guestUid: (window.siteIdentity?.user?.uid || null), deck: [...deckList], extraDeck:[...extraDeckList],heroId:chosenHero });
   };
   join();
   memeRoom.joinTimer = setInterval(join, 5000);
@@ -263,6 +263,10 @@ window.memeOnlineReceive = function(msg) {
       (!memeRoom.peerId || memeRoom.peerId === msg.id)) {
     memeRoom.peerId = msg.id;
     memeRoom.peerName = msg.guestName || 'Khách';
+    if (msg.guestUid) {
+      memeRoom.peerUid = msg.guestUid;
+      memeRoom.rankOpponentUid = msg.guestUid;
+    }
     memeRoom.peerDeck = [...msg.deck];
     memeRoom.peerExtraDeck = [...(msg.extraDeck||[])];
     memeRoom.peerHeroId = msg.heroId;

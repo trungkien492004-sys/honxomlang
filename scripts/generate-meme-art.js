@@ -4,7 +4,7 @@ const context={window:{},localStorage:{getItem:()=>null},console:{log(){}}};vm.c
 for(const name of ['meme_catalog_anime.js'])vm.runInContext(fs.readFileSync(path.join(root,'assets/js',name),'utf8'),context);
 const out=path.join(root,'assets/memecard/art');fs.mkdirSync(out,{recursive:true});
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
-const symbol={Hỏa:'火',Thủy:'水',Phong:'風',Quang:'光',Ám:'影',Cơ:'機'};
+const symbol={Hỏa:'火',Thủy:'水',Phong:'風',Quang:'光',Ám:'影',Cơ:'機',Địa:'地'};
 for(const [index,c] of context.window.MEME_CARDS.entries()){
  const hash=[...c.id].reduce((n,x)=>(n*31+x.charCodeAt(0))>>>0,0),variant=hash%5;
  const color=c.art.c1,dark=c.art.c2,flip=hash%2?-1:1;

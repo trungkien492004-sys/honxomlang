@@ -4,6 +4,79 @@
   const tiers = [{ name: 'Tân Binh', min: 0 }, { name: 'Đồng', min: 1000 }, { name: 'Bạc', min: 1200 }, { name: 'Vàng', min: 1400 }, { name: 'Bạch Kim', min: 1600 }, { name: 'Kim Cương', min: 1800 }, { name: 'Cao Thủ', min: 2000 }];
   let profile = null, poll = null, searching = false, queueBusy = false, unwatchProfile = null, unwatchStats = null;
 
+  function showRankError(error, context = 'Đấu Rank') {
+    const rawMsg = typeof error === 'string' ? error : (error?.message || error?.code || JSON.stringify(error) || 'Lỗi không xác định');
+    const stack = error?.stack || '';
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('vi-VN');
+    const errObj = { message: rawMsg, stack, context, time: now.toISOString(), timeStr };
+    try { localStorage.setItem('last_rank_error', JSON.stringify(errObj)); } catch {}
+    window.lastRankError = errObj;
+    if (window.parent && window.parent !== window) {
+      try { window.parent.lastRankError = errObj; } catch {}
+    }
+    console.error(`[LỖI ĐẤU RANK · ${context}]:`, error);
+
+    document.getElementById('rankErrorBanner')?.remove();
+    const banner = document.createElement('div');
+    banner.id = 'rankErrorBanner';
+    banner.className = 'rank-error-banner';
+    banner.setAttribute('role', 'alert');
+    banner.innerHTML = `
+      <div class="rank-error-content">
+        <div class="rank-error-header">
+          <span class="rank-error-icon">🚨</span>
+          <strong>LỖI ĐẤU RANK · ${esc(context)}</strong>
+          <span class="rank-error-time">[${timeStr}]</span>
+          <button type="button" class="rank-error-close" id="closeRankErrorBtn" aria-label="Đóng">✕</button>
+        </div>
+        <div class="rank-error-msg">${esc(rawMsg)}</div>
+        <div class="rank-error-actions">
+          <button type="button" class="rank-error-copy-btn" id="copyRankErrorBtn">📋 Sao chép lỗi để gửi dev</button>
+          <span class="rank-error-tip">Đã lưu lỗi vào bộ nhớ để kiểm tra</span>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(banner);
+    const closeBtn = document.getElementById('closeRankErrorBtn');
+    if (closeBtn) closeBtn.onclick = () => banner.remove();
+    const copyBtn = document.getElementById('copyRankErrorBtn');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        const text = `[LỖI ĐẤU RANK · ${context}]\nThời gian: ${timeStr}\nChi tiết: ${rawMsg}${stack ? '\nStack: ' + stack : ''}`;
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            copyBtn.textContent = '✅ Đã sao chép!';
+            setTimeout(() => { if (copyBtn) copyBtn.textContent = '📋 Sao chép lỗi để gửi dev'; }, 2000);
+          }).catch(() => prompt('Sao chép thông tin lỗi:', text));
+        } else {
+          prompt('Sao chép thông tin lỗi:', text);
+        }
+      };
+    }
+  }
+  window.showRankError = showRankError;
+  if (window.parent && window.parent !== window) {
+    try { window.parent.showRankError = showRankError; } catch {}
+  }
+
+  function appendLastErrorNotice(summary) {
+    if (!summary) return;
+    try {
+      summary.querySelector('.rank-last-error-notice')?.remove();
+      const savedErr = localStorage.getItem('last_rank_error');
+      if (savedErr) {
+        const errData = JSON.parse(savedErr);
+        const errDiv = document.createElement('div');
+        errDiv.className = 'rank-last-error-notice';
+        errDiv.style.cssText = 'margin-top:7px;display:flex;align-items:center;justify-content:space-between;background:rgba(239,68,68,0.18);border:1px solid #ef4444;border-radius:6px;padding:5px 8px;font-size:11.5px;color:#fee2e2;gap:6px;';
+        errDiv.innerHTML = `<span>⚠️ Lỗi Rank gần nhất: <b>${esc(errData.context || 'Đấu Rank')}</b> (${esc(errData.timeStr || '')})</span><button type="button" style="background:#b91c1c;border:1px solid #f87171;color:#fff;border-radius:4px;padding:2px 7px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">🚨 Mở lỗi đỏ</button>`;
+        errDiv.querySelector('button').onclick = () => showRankError(errData.message, errData.context);
+        summary.appendChild(errDiv);
+      }
+    } catch {}
+  }
+
   function localTier(rating) {
     let current = tiers[0], next = null;
     for (const tier of tiers) { if (rating >= tier.min) current = tier; else { next = tier; break; } }
@@ -44,6 +117,7 @@
       </div>`;
       const btn = document.getElementById('rankModalLoginBtn');
       if (btn) btn.onclick = () => identity.login();
+      appendLastErrorNotice(summary);
       return;
     }
     const safeProfile = profile || {};
@@ -63,6 +137,7 @@
     </div>
     <div class="rank-progress-track"><i style="width:${tier.progress}%"></i></div>
     <div class="rank-progress-bottom"><span>${esc(progress)}</span><span>${wins} thắng · ${losses} thua · ${draws} hòa (${played} trận)</span></div>`;
+    appendLastErrorNotice(summary);
   }
   function close() {
     window.siteRankPlayers?.stop();
@@ -116,7 +191,10 @@
         if (typeof mine.onSnapshot === 'function') unwatchProfile = mine.onSnapshot(snapshot => { profile = snapshot.exists ? { ...profile, ...snapshot.data() } : profile; paintProgress(); });
       }
       await window.siteRankPlayers.render(store, overlay, players, profileQuery);
-    } catch (error) { if (overlay.isConnected) document.getElementById('rankEmpty').textContent = error.message; }
+    } catch (error) {
+      if (overlay.isConnected) document.getElementById('rankEmpty').textContent = error.message;
+      showRankError(error, 'Tải Bảng Xếp Hạng');
+    }
   }
   function paint() {
     const node = document.getElementById('rankIdentity');
@@ -226,18 +304,32 @@
       }
     }
 
+    const quickPlayBtn = document.getElementById('rankPlayBtn');
+    if (quickPlayBtn) quickPlayBtn.classList.add('rank-btn-searching');
     if (!identity.user) {
       try {
-        await identity.login();
+        if (typeof identity.login === 'function' && !identity.signing) {
+          await Promise.race([
+            identity.login(),
+            new Promise(res => setTimeout(() => res(null), 1200))
+          ]);
+        }
       } catch (err) {
         console.warn('Rank identity login error:', err);
       }
+      // If user remains unauthenticated, continue matchmaking as Guest
+      // (Guest Elo starts at 1000 and can be synced to Google after the match!)
       if (!identity.user) {
-        showRankLoginPrompt();
-        return;
+        if (window.notify) window.notify('⚔️ Đang ghép Rank Khách (Điểm sẽ được lưu sau khi đăng nhập Google)');
       }
     }
-    try { await window.memeIdDuel?.publish?.(true); } catch (_) {}
+    try {
+      await window.memeIdDuel?.publish?.(true);
+    } catch (pubErr) {
+      console.warn('Rank publish error:', pubErr);
+      showRankError(pubErr, 'Xác thực bộ bài leo Rank');
+      return;
+    }
 
     if (typeof duel !== 'undefined' && duel && !duel.finished && document.getElementById('duel') && !document.getElementById('duel').classList.contains('hidden')) {
       return window.notify ? window.notify('Bạn đang trong một trận đấu. Hãy hoàn thành trận hiện tại trước.') : alert('Bạn đang trong một trận đấu.');
@@ -315,13 +407,20 @@
           try {
             const target = await window.memeIdDuel?.lookup?.(candidate.uid);
             if (target && window.memeIdDuel?.online?.(target)) {
-              window.memeIdDuel?.invite?.(target).catch(() => {});
+              window.memeIdDuel?.invite?.(target).catch(invErr => {
+                console.warn('Rank invite error:', invErr);
+                const sEl = document.getElementById('rankMatchStatus');
+                if (sEl) sEl.textContent = `⚠️ Lời mời tới ${candidate.name} thất bại: ${invErr.message}. Tiếp tục tìm kiếm...`;
+              });
             }
-          } catch (_) {}
+          } catch (candErr) {
+            console.warn('Lookup candidate error:', candErr);
+          }
         }
       }
     } catch (e) {
       console.warn('Matchmaking directory scan:', e);
+      showRankError(e, 'Quét tìm đối thủ Online');
     }
 
     matchmakingTimer = setInterval(() => {
@@ -366,8 +465,14 @@
         setTimeout(() => {
           document.getElementById('rankMatchOverlay')?.remove();
           if (window.notify) window.notify(`⚔️ Ghép thành công! Đối thủ: ${chosenBot.name} (${chosenBot.elo} Elo)`);
-          if (typeof startGame === 'function') {
-            startGame({ customBotDeck: chosenBot.preset });
+          try {
+            if (typeof startGame === 'function') {
+              startGame({ customBotDeck: chosenBot.preset });
+            } else {
+              throw Error('Hàm khởi tạo trận đấu startGame chưa sẵn sàng.');
+            }
+          } catch (startErr) {
+            showRankError(startErr, 'Khởi tạo trận đấu Rank');
           }
         }, 600);
       }

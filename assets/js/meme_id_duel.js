@@ -17,10 +17,18 @@
  const valid=p=>p&&Array.isArray(p.main)&&Array.isArray(p.extra)&&!deckProblem(p.main,p.extra)&&validHero(p.heroId);
  const online=p=>p?.online===true&&Date.now()-ms(p.lastSeen)<90000;
  const busy=()=>!!memeRoom||!!duel&&!duel.finished&&!$('duel').classList.contains('hidden');
- function error(e){const n=$('idDuelError');if(n)n.textContent=e.message||'Không kết nối được. Hãy thử lại.';else notify(e.message||'Không kết nối được.');}
+ function error(e){
+  const n=$('idDuelError');
+  if(n)n.textContent=e.message||'Không kết nối được. Hãy thử lại.';
+  else notify(e.message||'Không kết nối được.');
+  if (typeof window.showRankError === 'function') window.showRankError(e, 'Hệ thống Rank');
+  else if (typeof window.parent?.showRankError === 'function') window.parent.showRankError(e, 'Hệ thống Rank');
+}
  async function publish(force=false){
   if(!uid||!store)return;const p={uid,name:String(identity.user?.displayName||'Đấu sĩ').slice(0,48),main:[...deckList],extra:[...extraDeckList],heroId:chosenHero,networkId:memeMyId(),online:true,busy:busy(),protocol:MEME_RULES_VERSION};
-  if(!valid(p))throw Error('Bộ bài đang dùng chưa hợp lệ.');const key=JSON.stringify(p);if(!force&&lastSaved===key)return;if(saving){await saving;if(uid)return publish(force);return;}
+  const prob = deckProblem(p.main, p.extra);
+  if(prob) throw Error('Bộ bài đang dùng chưa hợp lệ: ' + prob);
+  if(!valid(p)) throw Error('Bộ bài đang dùng chưa hợp lệ (nhân vật hoặc số lượng bài sai).');const key=JSON.stringify(p);if(!force&&lastSaved===key)return;if(saving){await saving;if(uid)return publish(force);return;}
   const owner=uid; const created=Date.parse(identity.user?.metadata?.creationTime),directory={uid:owner,name:p.name,newbieUntil:Number.isFinite(created)?created+7*86400000:0,online:true},directoryKey=JSON.stringify(directory);saving=Promise.all([store.doc('duel_players/'+owner).set(stamped(p)),...(lastDirectory===directoryKey?[]:[store.doc('duel_directory/'+owner).set(Object.assign(native(directory),{lastSeen:stamp(),updatedAt:stamp()})).then(()=>{lastDirectory=directoryKey;})])]);try{await saving;if(uid===owner)lastSaved=key;}finally{saving=null;}
  }
  function label(){$('duelPlayerId')?.remove();}
@@ -48,7 +56,18 @@
       },50);
     }else if(receipt.error){
       note.style.color='#ef4444';
-      note.textContent=`⚠️ Chưa đồng bộ BXH: ${receipt.error}`;
+      note.style.fontWeight='bold';
+      note.innerHTML=`⚠️ Chưa đồng bộ BXH: ${esc(receipt.error)} <button type="button" class="rank-error-copy-btn" id="retrySyncEloBtn" style="margin-left:8px;padding:3px 8px;font-size:11px;background:#b91c1c;color:#fff;border:1px solid #ef4444;border-radius:6px;cursor:pointer;">🔄 Thử lưu lại</button>`;
+      setTimeout(()=>{
+        const retryBtn = document.getElementById('retrySyncEloBtn');
+        if (retryBtn) retryBtn.onclick = async () => {
+          retryBtn.disabled = true; retryBtn.textContent = 'Đang thử lại...';
+          if (duel) delete duel._recordResultPromise;
+          const res = await recordResult(duel);
+          if (res && !res.error) updateResultUI(res);
+          else { retryBtn.disabled = false; retryBtn.textContent = 'Thử lại thất bại'; }
+        };
+      }, 50);
     }else{
       note.style.color='#4ade80';note.style.fontWeight='bold';
       note.textContent=`🏆 BXH ĐÃ CẬP NHẬT: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · ${receipt.delta>0?'+':''}${receipt.delta} Elo (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua`;
@@ -62,7 +81,22 @@
       const currentStore=store||identity?.db||window.parent?.siteIdentity?.db;
       const currentIdentity=(identity?.user?identity:(window.parent?.siteIdentity||identity));
       if(!currentUid)return{unauthenticated:true};
-      const rawMatchId=match?.rankChallengeId||memeRoom?.challengeId,opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
+      let rawMatchId=match?.rankChallengeId||memeRoom?.challengeId;
+      let opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
+      if (!rawMatchId) {
+        const botGroup = (typeof HEROES !== 'undefined' && HEROES[match?.enemy?.heroId]?.group || 'kaiba').toLowerCase();
+        rawMatchId = 'bot-' + crypto.randomUUID().replaceAll('-', '').slice(0, 24);
+        opponentUid = opponentUid || ('bot-' + botGroup);
+        if (match) {
+          match.rankChallengeId = rawMatchId;
+          match.rankChallengeOpponentUid = opponentUid;
+        }
+      }
+      if (!opponentUid) {
+        const botGroup = (typeof HEROES !== 'undefined' && HEROES[match?.enemy?.heroId]?.group || 'kaiba').toLowerCase();
+        opponentUid = 'bot-' + botGroup;
+        if (match) match.rankChallengeOpponentUid = opponentUid;
+      }
       if(!match?.finished||!rawMatchId||!opponentUid||opponentUid===currentUid||!currentStore)return null;
       const isBot=String(opponentUid).startsWith('bot-');
       const matchId=String(rawMatchId).slice(0,75);
@@ -74,7 +108,8 @@
         const [prior,mineSnap,opponentSnap,directorySnap]=await Promise.all(reads);
         if(prior.exists){receipt=prior.data();return;}
         const mine=mineSnap.exists?mineSnap.data():{},opponent=opponentSnap?.exists?opponentSnap.data():{},directory=directorySnap?.exists?directorySnap.data():{};
-        const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=isBot?1000:Math.max(0,Math.round(Number(opponent.rating)||1000));
+        const LEGEND_BOT_ELOS = { 'bot-kaiba': 1550, 'bot-yugi': 1600, 'bot-zane': 1450, 'bot-jaden': 1350, 'bot-pegasus': 1250, 'bot-joey': 1150 };
+        const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=isBot?(match?.botOpponent?.elo||LEGEND_BOT_ELOS[opponentUid]||1200):Math.max(0,Math.round(Number(opponent.rating)||1000));
         const outcome=match.winner==='draw'?'draw':match.winner==='player'?'win':'loss';
         const ownCreated=Date.parse(currentIdentity?.user?.metadata?.creationTime),ownNewbie=Number.isFinite(ownCreated)&&Date.now()<ownCreated+7*86400000;
         const opponentNewbie=isBot?false:(Date.now()<Number(directory.newbieUntil||opponent.newbieUntil||0));
@@ -114,7 +149,10 @@
     const promise=run().catch(e=>{
       console.error('Không cập nhật được kết quả khiêu chiến:',e);
       const errObj={error:e.message||'Lỗi lưu BXH'};
+      if (match) match.rankChallengeResult = errObj;
       updateResultUI(errObj);
+      if (typeof window.showRankError === 'function') window.showRankError(e, 'Lưu kết quả Rank lên BXH');
+      else if (typeof window.parent?.showRankError === 'function') window.parent.showRankError(e, 'Lưu kết quả Rank lên BXH');
       return errObj;
     });
     if(match)match._recordResultPromise=promise;
@@ -168,5 +206,5 @@
  $('backBtn').addEventListener('click',()=>publish().catch(error));
  identity.subscribe(async({user,ready})=>{const token=++generation;clearInterval(timer);unsub?.();unsub=null;stopPending();incoming=null;$('directDuelInvite')?.remove();uid=user?.uid||null;store=identity.db;lastSaved='';lastDirectory='';label();if(!ready||!uid||!store)return;try{const saved=(await store.doc('duel_players/'+uid).get()).data();if(token!==generation)return;if(valid(saved)&&localStorage.getItem('duel-profile-owner')!==uid){deckList=[...saved.main];extraDeckList=[...saved.extra];chosenHero=saved.heroId;saveDeck();localStorage.setItem(HERO_KEY,JSON.stringify(chosenHero));const active=deckLibrary.decks.find(d=>d.id===deckLibrary.activeId);if(active){active.cards=[...deckList];active.extra=[...extraDeckList];localStorage.setItem(DECK_LIBRARY_KEY,JSON.stringify(deckLibrary));}hero(chosenHero);}localStorage.setItem('duel-profile-owner',uid);await publish(true);if(token!==generation)return;unsub=store.collection('duel_invites').where('to','==',uid).onSnapshot(s=>{if(incoming&&!s.docs.some(d=>d.id===incoming.id&&d.data().nonce===incoming.nonce&&d.data().status==='pending')){incoming=null;$('directDuelInvite')?.remove();}for(const d of s.docs){const v=d.data();if(v.status==='pending'&&ms(v.expiresAt)>Date.now())showIncoming(d.id,v).catch(error);}},error);timer=setInterval(()=>publish(true).catch(error),60000);}catch(e){error(e);}});
  window.addEventListener('pagehide',()=>{clearInterval(timer);unsub?.();stopPending();});
-  window.memeIdDuel={challenge,lookup,publish,online,ghost,recordResult,invite,cancelInvite,get id(){return uid;}};
+  window.memeIdDuel={updateResultUI,challenge,lookup,publish,online,ghost,recordResult,invite,cancelInvite,get id(){return uid;}};
 })();

@@ -287,6 +287,11 @@ function finish(winner,reason=''){
   render();const won=winner==='player',match=duel;
   const rankPromise = window.memeIdDuel?.recordResult?.(match)?.catch(e => {
     console.warn('Rank record error:', e);
+    if (typeof window.showRankError === 'function') {
+      window.showRankError(e, 'Đồng bộ kết quả Rank');
+    } else if (typeof window.parent?.showRankError === 'function') {
+      window.parent.showRankError(e, 'Đồng bộ kết quả Rank');
+    }
     return { error: e.message || 'Lỗi đồng bộ BXH' };
   });
   Promise.race([
@@ -305,11 +310,26 @@ function showMatchResult(won,reason,match=duel){
   if (receipt?.unauthenticated) {
     rankText = `<p class="rank-challenge-result" style="color:#f59e0b;font-weight:bold;">⚠️ Bạn chưa đăng nhập Google — Điểm Rank không được tích lũy vào Bảng Xếp Hạng. Hãy đăng nhập từ sảnh chính!</p>`;
   } else if (receipt?.error) {
-    rankText = `<p class="rank-challenge-result" style="color:#ef4444;">⚠️ Chưa đồng bộ BXH: ${esc(receipt.error)}</p>`;
+    rankText = `<p class="rank-challenge-result" style="color:#ef4444;font-weight:bold;">⚠️ Chưa đồng bộ BXH: ${esc(receipt.error)} <button type="button" class="rank-error-copy-btn" id="retrySyncEloBtn" style="margin-left:8px;padding:3px 8px;font-size:11px;background:#b91c1c;color:#fff;border:1px solid #ef4444;border-radius:6px;cursor:pointer;">🔄 Thử lưu lại</button></p>`;
   } else if (receipt) {
     rankText = `<p class="rank-challenge-result" style="color:#4ade80;font-weight:bold;">🏆 BXH ĐÃ CẬP NHẬT: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · <span style="font-size:1.15em;color:#fbbf24;">${receipt.delta>0?'+':''}${receipt.delta} Elo</span> (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua</p>`;
   }
   showModal(`<span class="result-icon">${won?'🏆':'💀'}</span><h2>${won?'Chiến thắng!':'Thất bại!'}</h2><p>${esc(reason||'Trận đấu đã kết thúc.')}</p>${rankText}<div class="result-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"><button class="primary-btn" id="againBtn">⚔️ Đấu lại</button><button class="secondary-btn" id="resultLobbyBtn">🏠 Về sảnh</button></div>`);
+  const retryBtn = document.getElementById('retrySyncEloBtn');
+  if (retryBtn) {
+    retryBtn.onclick = async () => {
+      retryBtn.disabled = true;
+      retryBtn.textContent = 'Đang thử lại...';
+      if (match) delete match._recordResultPromise;
+      const res = await window.memeIdDuel?.recordResult?.(match);
+      if (res && !res.error) {
+        window.memeIdDuel?.updateResultUI?.(res);
+      } else {
+        retryBtn.disabled = false;
+        retryBtn.textContent = 'Thử lại thất bại';
+      }
+    };
+  }
   $('againBtn').onclick=()=>{
     if(online){
       if(window.memeOnlineRequestRematch?.())return;
@@ -364,11 +384,13 @@ function clearMode(){if(!duel)return;duel.mode=null;duel.pending=null;log('Đã 
 function removeHand(index){return side('player').hand.splice(index,1)[0];}
 function monsterSlot(id,position='atk'){return{id,position,attacked:false,attacksUsed:0,equip:0,summonedRound:duel.round};}
 function summon(index,position){
-  if(!mainPhase()){
-    const msg = duel.phase === 'BATTLE' ? 'Không thể Triệu hồi trong Phase Chiến Đấu! Hãy quay về Main 2 hoặc sang lượt sau.' : 'Chỉ có thể Triệu hồi ở phase MAIN 1 hoặc MAIN 2.';
+  if(duel?.turn!=='player'){window.showActionNotice('Đang là lượt của đối thủ!');return;}
+  if(!['MAIN1','MAIN2'].includes(duel?.phase)){
+    const msg = duel?.phase === 'BATTLE' ? 'Không thể Triệu hồi trong Phase Chiến Đấu! Hãy quay về Main 2 hoặc sang lượt sau.' : 'Chỉ có thể Triệu hồi ở phase MAIN 1 hoặc MAIN 2.';
     window.showActionNotice(msg);
     return log(msg);
   }
+  if(!canAct())return;
   const id=side('player').hand[index],c=card(id);if(!c||c.card_type!=='Monster')return;
   if(isExtraCard(id)){
     window.showActionNotice('Quái Extra chỉ được gọi từ Extra Deck.');
@@ -765,7 +787,7 @@ function handleZone(name,type,index){
   if(name==='enemy'&&duel.mode==='attack'&&(type==='monster'||type==='extra')&&slot)return resolveAttack(type==='extra'?null:index,type==='extra');
   if(slot)select({name,type,index});
 }
-function addAction(host,label,fn,secondary=false){const b=document.createElement('button');b.className=secondary?'secondary-btn':'primary-btn';b.textContent=label;b.onclick=fn;b.addEventListener('click',fn);host.appendChild(b);return b;}
+function addAction(host,label,fn,secondary=false){const b=document.createElement('button');b.type='button';b.className=secondary?'secondary-btn':'primary-btn';b.textContent=label;b.onclick=e=>{if(b.disabled)return;return fn(e);};host.appendChild(b);return b;}
 async function activateMonsterEffect(index,isExtra=false){
   if(!mainPhase())return;const match=duel,slot=isExtra?side('player').extra:side('player').monsters[index],c=card(slot?.id);
   if(!slot||slot.position==='def_down'||c?.effect_trigger!=='activated'||slot.effectUsedRound===duel.round||!window.memeRules?.canExecute('player',c))return;
