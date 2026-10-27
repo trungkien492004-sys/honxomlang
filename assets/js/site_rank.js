@@ -428,10 +428,10 @@
           try {
             const target = await window.memeIdDuel?.lookup?.(candidate.uid);
             if (target && window.memeIdDuel?.online?.(target)) {
-              window.memeIdDuel?.invite?.(target).catch(invErr => {
-                console.warn('Rank invite error:', invErr);
+              window.memeIdDuel?.invite?.(target, { silent: true }).catch(invErr => {
+                console.warn('Rank matchmaking invite skipped:', invErr?.message || invErr);
                 const sEl = document.getElementById('rankMatchStatus');
-                if (sEl) sEl.textContent = `⚠️ Lời mời tới ${candidate.name} thất bại: ${invErr.message}. Tiếp tục tìm kiếm...`;
+                if (sEl) sEl.textContent = '🔍 Đang kết nối đấu thủ phù hợp...';
               });
             }
           } catch (candErr) {

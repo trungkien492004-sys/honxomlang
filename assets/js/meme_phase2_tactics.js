@@ -26,6 +26,7 @@
   if(event.kind==='spell'&&code==='magic_jammer'){
    if(!v.self.hand.some(id=>!has(get(id),'exodia')))return 0;const effect=get(event.cardId)?.effect_code,boardValue=v.self.monsters.filter(Boolean).reduce((a,x)=>a+(get(x.id)?.atk||0),0),key=['fusion_summon','miracle_fusion','power_bond','mask_change','mask_change_ii','ritual','control','anime_reborn'].includes(effect),wipe=['dark_hole','destroy_all_opponent_monsters'].includes(effect);return key?2200:wipe&&boardValue>=1500?boardValue:effect==='card_destruction'&&v.self.hand.some(id=>has(get(id),'exodia'))?3000:0;
   }
+  if(event.kind==='spell'&&code==='imperial_order')return get(event.cardId)?.card_type==='Spell'?2000:0;
   if(event.kind==='spell'&&code==='dust_tornado')return v.foe.spells.some(x=>x)||v.foe.field?900:0;
   if(event.kind==='trap'&&code==='seven_tools'){if(v.self.lp<=(root.memeLpCosts?.fixed(1000)??1000))return 0;const target=get(event.cardId)?.effect_code;return ['destroy_attack_position','magic_cylinder','trap_hole','torrential','seven_tools','magic_jammer'].includes(target)?(economy&&v.self.lp<=2000?0:2500):0;}
   return 0;

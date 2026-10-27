@@ -157,13 +157,17 @@
   function trackResult(match){if(!match?.rankChallengeId&&!memeRoom?.challengeId)return;recordResult(match);}
   const finishDuel=finish;finish=(...args)=>{const match=duel,result=finishDuel(...args);trackResult(match);return result;};
   const showDuelResult=window.memeShowResult;window.memeShowResult=(...args)=>{const result=showDuelResult?.(...args);trackResult(duel);return result;};
- async function invite(p){
+ async function invite(p, options = {}){
   if(!memeParent()||!memeMyId())throw Error('Hãy mở đấu bài từ trang chính để nhận lời mời online.');await publish(true);if(p.protocol!==MEME_RULES_VERSION)throw Error('Hai người cần tải lại game để dùng cùng phiên bản.');if(p.busy)throw Error('Người này đang trong trận đấu. Hãy thử lại sau.');
    await cancelInvite();const roomId='ID-'+crypto.randomUUID().replaceAll('-','').slice(0,16).toUpperCase(),id=uid+'_'+p.uid,nonce=crypto.randomUUID();memeHostRoom(roomId);memeRoom.peerId=p.networkId;memeRoom.peerName=p.name;memeRoom.challengeId=nonce;memeRoom.rankOpponentUid=p.uid;
-  try{await store.doc('duel_invites/'+id).set(Object.assign(native({from:uid,to:p.uid,nonce,roomId,status:'pending'}),{createdAt:stamp(),expiresAt:new parent.Date(Date.now()+60000)}));}catch(e){window.memeOnlineLeave();showModal('<h2>Không gửi được lời mời</h2><p>'+esc(e.message)+'</p><button type="button" class="secondary-btn" id="idRetryInvite">Quay lại</button>');$('idRetryInvite').onclick=()=>window.siteRank?.show();throw e;}
-  pending={id,nonce,timer:null,unsub:null};showModal('<h2>Đã gửi lời mời</h2><p>Đang chờ '+esc(p.name)+' nhận lời (60 giây).</p><p id="idInviteStatus"></p><button type="button" class="secondary-btn" id="idCancelInvite">Hủy lời mời</button>');$('idCancelInvite').onclick=cancelInvite;
+  try{await store.doc('duel_invites/'+id).set(Object.assign(native({from:uid,to:p.uid,nonce,roomId,status:'pending'}),{createdAt:stamp(),expiresAt:new parent.Date(Date.now()+120000)}));}catch(e){window.memeOnlineLeave();if(!options?.silent){showModal('<h2>Không gửi được lời mời</h2><p>'+esc(e.message)+'</p><button type="button" class="secondary-btn" id="idRetryInvite">Quay lại</button>');$('idRetryInvite').onclick=()=>window.siteRank?.show();}throw e;}
+  pending={id,nonce,timer:null,unsub:null};
+  if(!options?.silent){
+    showModal('<h2>Đã gửi lời mời</h2><p>Đang chờ '+esc(p.name)+' nhận lời (60 giây).</p><p id="idInviteStatus"></p><button type="button" class="secondary-btn" id="idCancelInvite">Hủy lời mời</button>');
+    $('idCancelInvite').onclick=cancelInvite;
+  }
   pending.unsub=store.doc('duel_invites/'+id).onSnapshot(s=>{const v=s.data();if(!v||v.nonce!==nonce||!pending)return;if(v.status==='declined'){$('idInviteStatus')&&($('idInviteStatus').textContent='Đối thủ đã từ chối.');window.memeOnlineLeave();stopPending();}else if(v.status==='accepted'){if($('idInviteStatus'))$('idInviteStatus').textContent='Đã nhận lời. Đang kết nối phòng…';}},error);
-  pending.timer=setTimeout(()=>{if(pending?.nonce===nonce){cancelInvite();notify('Lời mời hết hạn. Bạn có thể gửi lại.');}},60000);
+  pending.timer=setTimeout(()=>{if(pending?.nonce===nonce){cancelInvite();if(!options?.silent)notify('Lời mời hết hạn. Bạn có thể gửi lại.');}},60000);
  }
  async function showIncoming(id,v){
   if(incoming||busy()||ms(v.expiresAt)<=Date.now())return;const snap=await store.doc('duel_players/'+v.from).get(),p=snap.data();if(!snap.exists||!p||incoming||busy())return;
@@ -175,7 +179,15 @@
  async function lookup(value){const id=String(value||'').trim();if(!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw Error('Không tìm thấy người chơi.');if(uid&&id===uid)throw Error('Bạn không thể khiêu chiến chính mình.');try{if(uid)await publish();}catch(_){}let snap=null;try{if(store)snap=await store.doc('duel_players/'+id).get();}catch(e){console.warn('Lookup player doc error:',e);}if(!snap||!snap.exists){return {uid:id,name:'Đấu sĩ #'+id.slice(0,5),main:[...defaultDeck()],extra:[...defaultExtraDeck()],heroId:0,protocol:MEME_RULES_VERSION};}const p=snap.data();if(!valid(p)){p.main=[...defaultDeck()];p.extra=[...defaultExtraDeck()];p.heroId=validHero(p.heroId)?p.heroId:0;}return p;}
  function ghost(p){if(!valid(p)){p.main=[...defaultDeck()];p.extra=[...defaultExtraDeck()];p.heroId=validHero(p.heroId)?p.heroId:0;}startGame({ghost:p});}
   async function challenge(id){
-    if(!identity.user){try{if(typeof identity.login==='function'&&!identity.signing)await Promise.race([identity.login(),new Promise(r=>setTimeout(r,1200))]);}catch(_){}}if(busy())throw Error('Hãy kết thúc hoặc rời trận hiện tại trước khi khiêu chiến.');const p=await lookup(id);if(uid&&online(p)&&memeParent()&&memeMyId())return invite(p);ghost(p);
+    if(!identity.user){try{if(typeof identity.login==='function'&&!identity.signing)await Promise.race([identity.login(),new Promise(r=>setTimeout(r,1200))]);}catch(_){}}if(busy())throw Error('Hãy kết thúc hoặc rời trận hiện tại trước khi khiêu chiến.');const p=await lookup(id);
+    if(uid&&online(p)&&memeParent()&&memeMyId()){
+      try{
+        return await invite(p);
+      }catch(err){
+        console.warn('Online invite unavailable, falling back to ghost deck:', err?.message || err);
+      }
+    }
+    ghost(p);
   }
   const baseStartGame=startGame;startGame=(options={})=>{
     const res=baseStartGame(options);

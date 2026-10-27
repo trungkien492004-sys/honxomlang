@@ -301,9 +301,9 @@
   if(c.traits.includes('bubbleman')&&S(n).bubbleDrawRound!==duel.round&&E(n).length===1&&!S(n).hand.length&&!S(n).spells.some(Boolean)&&!S(n).field){S(n).bubbleDrawRound=duel.round;await fx(n,c,'draw',[],()=>drawCards(n,2),{text:'Bọt Biển: rút 2 lá vì tay trống và không còn lá nào khác.'});}
   if(kind==='special'&&c.effect_code==='p3_shadow_mist')enqueue(()=>shadowMist(n,true));
   if(kind!=='flip')for(const e of E(other(n)))if(face(e.slot)&&has(e.slot,'slifer')&&slot.position==='atk'&&E(n).some(e=>e.slot===slot))await fx(other(n),card(e.slot.id),'destroy',[{name:n,index:S(n).monsters.indexOf(slot)}],()=>{slot.powerAtk=(slot.powerAtk||0)-2000;if(stat(n,slot)===0){const self=E(n).find(x=>x.slot===slot);if(self)remove(n,self,'effect');}});
-  if(kind!=='flip'&&(c.id===aid('Harpie Lady')||has(slot,'harpie_name'))&&s.field&&card(s.field.id)?.effect_code==='hunting_ground'){
+  if(kind!=='flip'&&(c.id===aid('Harpie Lady')||has(slot,'harpie_name'))&&S(n).field&&card(S(n).field.id)?.effect_code==='hunting_ground'){
    const groundTargets=spellList(other(n)).filter(e=>e.slot);
-   if(groundTargets.length){const t=await pick(n,'Thánh Địa Săn Mồi: chọn Phép/Bẫy đối thủ để phá hủy',groundTargets.map(e=>({...e,hidden:!!e.slot.faceDown})),{optional:true});if(t)await fx(n,card(s.field.id),'destroy',[t],()=>clearSpell(other(n),t.index));}
+   if(groundTargets.length){const t=await pick(n,'Thánh Địa Săn Mồi: chọn Phép/Bẫy đối thủ để phá hủy',groundTargets.map(e=>({...e,hidden:!!e.slot.faceDown})),{optional:true});if(t)await fx(n,card(S(n).field.id),'destroy',[t],()=>clearSpell(other(n),t.index));}
   }
   const hole=E(n).some(e=>e.slot===slot)&&!has(slot,'god')&&!has(slot,'trap_immune')?await chooseTrap(other(n),['trap_hole','torrential'],e=>e.c.effect_code==='torrential'||['normal','flip'].includes(kind)&&stat(n,slot)>=1000&&spellTargetAllowed(other(n),e.c,{slot,id:slot.id,name:n}),c.name+' vừa được triệu hồi.',{kind:'summon',summonKind:kind,cardId:c.id,atk:stat(n,slot)}):null;if(hole)await trapUse(other(n),hole,[{name:n,index:S(n).monsters.indexOf(slot)}],()=>{if(hole.c.effect_code==='torrential'){for(const e of allFields())if(!has(e.slot,'god')&&!has(e.slot,'trap_immune')&&e.slot.sparkRound!==duel.round)remove(e.name,e,'effect');}else{const current=E(n).find(e=>e.slot===slot);if(current)remove(n,current,'effect');}});
  }
@@ -692,7 +692,7 @@
    if (['Liên Tục','Trang Bị'].includes(c.spell_category) && !s.spells.includes(null) && !fromSet) {
      return 'Khu vực Phép/Bẫy đã đầy (Tối đa 3 ô trên sân)!';
    }
-   if (c.spell_category === 'Trang Bị' && c.effect_code !== 'premature' && !s.monsters.some(Boolean) && !s.extra) {
+   if (c.spell_category === 'Trang Bị' && !['premature','snatch_steal'].includes(c.effect_code) && !s.monsters.some(Boolean) && !s.extra) {
      return 'Cần có quái thú ngửa trên sân để trang bị!';
    }
    const modes = {fusion_summon:'fusion', miracle_fusion:'miracle', power_bond:'power'};
