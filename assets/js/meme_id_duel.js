@@ -18,6 +18,11 @@
  const online=p=>p?.online===true&&Date.now()-ms(p.lastSeen)<90000;
  const busy=()=>!!memeRoom||!!duel&&!duel.finished&&!$('duel').classList.contains('hidden');
  function error(e){
+  const msgStr = String(e?.message || e?.code || e || '');
+  if (msgStr.includes('Missing or insufficient permissions') || e?.code === 'permission-denied') {
+    console.warn('[Hệ thống Rank · Bỏ qua lỗi quyền Firestore]:', e);
+    return;
+  }
   const n=$('idDuelError');
   if(n)n.textContent=e.message||'Không kết nối được. Hãy thử lại.';
   else notify(e.message||'Không kết nối được.');

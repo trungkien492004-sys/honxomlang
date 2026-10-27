@@ -103,20 +103,25 @@
 
         return `<tr class="${isMe ? 'is-me' : ''}">
           <td class="rank-num" style="text-align:center;">${rankIcon}</td>
-          <td>
-            <div style="display:inline-flex;align-items:center;gap:6px;font-weight:800;">
+          <td class="rank-col-player">
+            <div class="rank-player-row-top">
               <span class="rank-presence ${active ? 'is-online' : 'is-offline'}">
-                <i aria-hidden="true"></i>${isBot ? 'Sẵn sàng' : (active ? 'Online' : 'Offline')}
+                <i aria-hidden="true"></i><span class="rank-presence-label">${isBot ? 'Sẵn sàng' : (active ? 'Online' : 'Offline')}</span>
               </span>
-              <span>${esc(player.name)}</span>
+              <span class="rank-player-name">${esc(player.name)}</span>
               ${botTag}${newbie}
             </div>
+            <div class="rank-mobile-subinfo">
+              <span class="tier-pill ${tierClass}">${esc(tierName)}</span>
+              <span class="rank-mobile-record">${wins}W - ${losses}L</span>
+              <span class="rank-mobile-rate">(${winrate})</span>
+            </div>
           </td>
-          <td><span class="tier-pill ${tierClass}">${esc(tierName)}</span></td>
-          <td><b style="color:#fbbf24;font-size:14px;">${rating}</b> <small style="opacity:0.7">Elo</small></td>
-          <td><span style="color:#4ade80;font-weight:800;">${wins}W</span> - <span style="color:#f87171;">${losses}L</span></td>
+          <td class="rank-col-tier"><span class="tier-pill ${tierClass}">${esc(tierName)}</span></td>
+          <td class="rank-col-elo"><b class="rank-elo-val">${rating}</b> <small class="rank-elo-lbl">Elo</small></td>
+          <td class="rank-col-record"><span class="rank-wins">${wins}W</span> - <span class="rank-losses">${losses}L</span></td>
           <td class="rank-col-winrate" style="font-weight:800;color:#e2e8f0;">${winrate}</td>
-          <td style="text-align:center;">${challengeBtn}</td>
+          <td class="rank-col-action">${challengeBtn}</td>
         </tr>`;
       }).join('');
       const emptyNode = overlay.querySelector('#rankEmpty');

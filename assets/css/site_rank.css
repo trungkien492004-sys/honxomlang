@@ -544,4 +544,207 @@ html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending bod
   color: #fecaca;
   opacity: 0.9;
 }
+/* ────────────────── RESPONSIVE MOBILE LEADERBOARD (BXH) ────────────────── */
+.rank-mobile-subinfo {
+  display: none;
+}
+.rank-col-num {
+  text-align: center;
+  width: 52px;
+}
+.rank-col-elo {
+  text-align: center;
+}
+.rank-col-action {
+  text-align: center;
+}
+.rank-elo-val {
+  color: #fbbf24;
+  font-size: 14px;
+}
+.rank-elo-lbl {
+  opacity: 0.7;
+}
+.rank-wins {
+  color: #4ade80;
+  font-weight: 800;
+}
+.rank-losses {
+  color: #f87171;
+}
 
+@media (max-width: 640px) {
+  #rankOverlay {
+    padding: 6px 4px !important;
+    align-items: center !important;
+  }
+  .rank-sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 96dvh !important;
+    padding: 10px 6px !important;
+    border-radius: 14px !important;
+    border-width: 1.5px !important;
+    box-sizing: border-box !important;
+  }
+  .rank-sheet header {
+    padding: 0 2px 8px !important;
+  }
+  .rank-sheet h2 {
+    font-size: 15.5px !important;
+    line-height: 1.2 !important;
+  }
+  .rank-sheet header small {
+    font-size: 10.5px !important;
+  }
+  .rank-sheet header button {
+    padding: 4px 8px !important;
+    min-height: 30px !important;
+    font-size: 11.5px !important;
+  }
+  .rank-progress {
+    padding: 6px 8px !important;
+    margin: 4px 0 6px !important;
+    border-radius: 8px !important;
+  }
+  .rank-progress-top b {
+    font-size: 14px !important;
+  }
+  .rank-progress-track {
+    height: 6px !important;
+    margin: 4px 0 !important;
+  }
+  .rank-progress-bottom {
+    font-size: 10px !important;
+  }
+  
+  /* Hide desktop-only columns on mobile */
+  .rank-col-tier,
+  .rank-col-record,
+  .rank-col-winrate {
+    display: none !important;
+  }
+
+  /* Show mobile subinfo below duelist name */
+  .rank-mobile-subinfo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin-top: 2px !important;
+    font-size: 10px !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+  .rank-mobile-record {
+    color: #cbd5e1;
+    font-weight: 700;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .rank-mobile-rate {
+    color: #94a3b8;
+    font-size: 9.5px;
+    white-space: nowrap;
+  }
+
+  /* Table structure fits 100% without horizontal scroll */
+  .rank-table-wrap {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rank-sheet table {
+    font-size: 11.5px !important;
+    table-layout: fixed !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    border-collapse: collapse !important;
+  }
+  .rank-sheet th,
+  .rank-sheet td {
+    padding: 6px 2px !important;
+    box-sizing: border-box !important;
+  }
+  .rank-col-num,
+  .rank-num {
+    width: 42px !important;
+    font-size: 11.5px !important;
+    text-align: center !important;
+    padding: 6px 1px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+  }
+  .rank-col-player-head {
+    width: auto !important;
+  }
+  .rank-col-player {
+    width: auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .rank-player-row-top {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+  .rank-presence-label {
+    display: none !important;
+  }
+  .rank-presence {
+    padding: 3px !important;
+    flex-shrink: 0 !important;
+  }
+  .rank-player-name {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    color: #f1f5f9;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+  .rank-bot-badge, .newbie-badge {
+    flex-shrink: 0 !important;
+    font-size: 9px !important;
+    padding: 1px 3px !important;
+    margin-left: 2px !important;
+  }
+  .rank-col-elo {
+    width: 48px !important;
+    text-align: center !important;
+    padding: 6px 1px !important;
+  }
+  .rank-elo-val {
+    font-size: 13px !important;
+    display: block !important;
+    line-height: 1.1 !important;
+  }
+  .rank-elo-lbl {
+    font-size: 9px !important;
+    display: block !important;
+    opacity: 0.6 !important;
+  }
+  .rank-col-action {
+    width: 74px !important;
+    text-align: center !important;
+    padding: 6px 1px !important;
+  }
+  .rank-table-challenge-btn {
+    padding: 4px 4px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    border-radius: 5px !important;
+    white-space: nowrap !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}

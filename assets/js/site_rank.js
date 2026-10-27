@@ -6,6 +6,11 @@
 
   function showRankError(error, context = 'Đấu Rank') {
     const rawMsg = typeof error === 'string' ? error : (error?.message || error?.code || JSON.stringify(error) || 'Lỗi không xác định');
+    const msgStr = String(rawMsg);
+    if (msgStr.includes('Missing or insufficient permissions') || (msgStr === 'permission-denied' && context === 'Hệ thống Rank')) {
+      console.warn(`[Hệ thống Rank · ${context} (Bỏ qua pop-up quyền)]:`, error);
+      return;
+    }
     const stack = error?.stack || '';
     const now = new Date();
     const timeStr = now.toLocaleTimeString('vi-VN');
@@ -67,10 +72,15 @@
       const savedErr = localStorage.getItem('last_rank_error');
       if (savedErr) {
         const errData = JSON.parse(savedErr);
+        const msg = String(errData?.message || '');
+        if (msg.includes('Missing or insufficient permissions') || msg.includes('permission-denied')) {
+          localStorage.removeItem('last_rank_error');
+          return;
+        }
         const errDiv = document.createElement('div');
         errDiv.className = 'rank-last-error-notice';
         errDiv.style.cssText = 'margin-top:7px;display:flex;align-items:center;justify-content:space-between;background:rgba(239,68,68,0.18);border:1px solid #ef4444;border-radius:6px;padding:5px 8px;font-size:11.5px;color:#fee2e2;gap:6px;';
-        errDiv.innerHTML = `<span>⚠️ Lỗi Rank gần nhất: <b>${esc(errData.context || 'Đấu Rank')}</b> (${esc(errData.timeStr || '')})</span><button type="button" style="background:#b91c1c;border:1px solid #f87171;color:#fff;border-radius:4px;padding:2px 7px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">🚨 Mở lỗi đỏ</button>`;
+        errDiv.innerHTML = `<span>⚠️ Lỗi Rank gần nhất: <b>${esc(errData.context || 'Đấu Rank')}</b> (${esc(errData.timeStr || '')})</span><button type="button" style="background:#1e3a5f;border:1px solid #38bdf8;color:#e0f2fe;border-radius:4px;padding:2px 7px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;">Chi tiết lỗi</button>`;
         errDiv.querySelector('button').onclick = () => showRankError(errData.message, errData.context);
         summary.appendChild(errDiv);
       }
@@ -164,13 +174,13 @@
         <table>
           <thead>
             <tr>
-              <th style="text-align:center;width:60px;">Hạng</th>
-              <th>Đấu sĩ</th>
-              <th>Bậc</th>
-              <th>Elo</th>
-              <th>Thắng / Thua</th>
+              <th class="rank-col-num" style="text-align:center;">Hạng</th>
+              <th class="rank-col-player-head">Đấu sĩ</th>
+              <th class="rank-col-tier">Bậc</th>
+              <th class="rank-col-elo" style="text-align:center;">Elo</th>
+              <th class="rank-col-record">Thắng / Thua</th>
               <th class="rank-col-winrate">Tỉ lệ</th>
-              <th style="text-align:center;">Thách đấu</th>
+              <th class="rank-col-action" style="text-align:center;">Thách đấu</th>
             </tr>
           </thead>
           <tbody id="rankRows"></tbody>
