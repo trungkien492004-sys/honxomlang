@@ -1,6 +1,13 @@
 // Multiplayer transport for the standalone Yu-Gi-Oh! duel.
 // The parent page owns Firebase Auth and the Firestore event channel.
 let memeRoom = null;
+try {
+  Object.defineProperty(window, 'memeRoom', {
+    get() { return memeRoom; },
+    set(v) { memeRoom = v; },
+    configurable: true
+  });
+} catch (_) {}
 let memeApplyingRemoteState = false;
 const MEME_RULES_VERSION = 'tcg-equip-chain-v20-rematch';
 let memeReactionPending=null,memeRemoteReaction=null;
@@ -25,23 +32,40 @@ window.memeOnlineAskReaction=intent=>new Promise(resolve=>{
 
 function memeParent() {
   try {
-    return window.parent !== window && window.parent.currentFirebaseUser &&
-      window.parent.pvpChannel ? window.parent : null;
+    const p = (window.parent && window.parent !== window) ? window.parent : window;
+    const u = p.currentFirebaseUser || p.siteIdentity?.user || window.currentFirebaseUser || window.siteIdentity?.user;
+    if (u) {
+      if (!p.currentFirebaseUser) p.currentFirebaseUser = u;
+      if (!window.currentFirebaseUser) window.currentFirebaseUser = u;
+      if (!p.myNetworkId) p.myNetworkId = window.myNetworkId || ('P_' + String(u.uid).slice(0, 10));
+      if (!window.myNetworkId) window.myNetworkId = p.myNetworkId;
+      if (!p.pvpChannel && window.pvpChannel) p.pvpChannel = window.pvpChannel;
+      return p;
+    }
+    return (window.parent !== window) ? window.parent : null;
   } catch (_) {
     return null;
   }
 }
 
-function memeMyId() { return memeParent()?.myNetworkId || ''; }
-function memeMyName() { return memeParent()?.player?.name || memeParent()?.currentFirebaseUser?.displayName || 'Người chơi'; }
+function memeMyId() {
+  const p = memeParent();
+  return p?.myNetworkId || window.myNetworkId || p?.currentFirebaseUser?.uid || window.currentFirebaseUser?.uid || window.siteIdentity?.user?.uid || '';
+}
+
+function memeMyName() {
+  const p = memeParent();
+  return p?.player?.name || p?.currentFirebaseUser?.displayName || p?.siteIdentity?.user?.displayName || window.player?.name || window.currentFirebaseUser?.displayName || 'Người chơi';
+}
+
 function memeRoomCode(value) { return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 32); }
 function memeSend(type, data = {}) {
   const parent = memeParent();
-  if (!parent || !memeRoom) return;
-  // Firestore rejects arrays and objects created in a different window realm.
-  // Parse in the parent window so the whole payload uses its native prototypes.
-  const payload = parent.JSON.parse(parent.JSON.stringify({ type, id: memeMyId(), roomId: memeRoom.code, rulesVersion:MEME_RULES_VERSION, sentAt:Date.now(), ...data }));
-  parent.pvpChannel.postMessage(payload);
+  const channel = parent?.pvpChannel || window.pvpChannel;
+  if (!channel || !memeRoom) return;
+  const jsonParser = parent?.JSON || JSON;
+  const payload = jsonParser.parse(jsonParser.stringify({ type, id: memeMyId(), roomId: memeRoom.code, rulesVersion:MEME_RULES_VERSION, sentAt:Date.now(), ...data }));
+  channel.postMessage(payload);
 }
 function memeSnapshot() {
   if (!duel) return null;

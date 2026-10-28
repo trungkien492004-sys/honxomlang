@@ -228,7 +228,44 @@
    const respond=async accept=>{for(const b of box.querySelectorAll('button'))b.disabled=true;try{if(accept&&(busy()||p.protocol!==MEME_RULES_VERSION))throw Error('Bạn đang bận hoặc hai người khác phiên bản.');await publish(true);await store.runTransaction(async tx=>{const ref=store.doc('duel_invites/'+id),latest=(await tx.get(ref)).data();if(!latest||latest.nonce!==v.nonce||latest.status!=='pending'||inviteExpiry(latest)<=Date.now())throw Error('Lời mời đã hết hạn hoặc bị hủy.');tx.update(ref,native({status:accept?'accepted':'declined'}));});if(accept){memeJoinRoom(v.roomId);memeRoom.peerId=p.networkId;memeRoom.peerName=p.name;memeRoom.challengeId=v.nonce;memeRoom.rankOpponentUid=p.uid;}clear();}catch(e){box.querySelector('.id-invite-error').textContent=e.message;for(const b of box.querySelectorAll('button'))b.disabled=false;}};
   box.querySelector('#idAcceptInvite').onclick=()=>respond(true);box.querySelector('#idDeclineInvite').onclick=()=>respond(false);setTimeout(clear,Math.max(0,inviteExpiry(v)-Date.now()));
  }
- async function lookup(value){const id=String(value||'').trim();if(!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw Error('Không tìm thấy người chơi.');if(uid&&id===uid)throw Error('Bạn không thể khiêu chiến chính mình.');try{if(uid)await publish();}catch(_){}let snap=null;try{if(store)snap=await store.doc('duel_players/'+id).get();}catch(e){console.warn('Lookup player doc error:',e);}if(!snap||!snap.exists){return {uid:id,name:'Đấu sĩ #'+id.slice(0,5),main:[...defaultDeck()],extra:[...defaultExtraDeck()],heroId:0,protocol:MEME_RULES_VERSION};}const p=snap.data();if(!valid(p)){p.main=[...defaultDeck()];p.extra=[...defaultExtraDeck()];p.heroId=validHero(p.heroId)?p.heroId:0;}return p;}
+ async function lookup(value){
+  const id=String(value||'').trim();
+  if(!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw Error('Không tìm thấy người chơi.');
+  if(uid&&id===uid)throw Error('Bạn không thể khiêu chiến chính mình.');
+  try{if(uid)await publish();}catch(_){}
+  let snap=null, dirSnap=null;
+  try{
+    if(store){
+      [snap, dirSnap] = await Promise.all([
+        store.doc('duel_players/'+id).get().catch(()=>null),
+        store.doc('duel_directory/'+id).get().catch(()=>null)
+      ]);
+    }
+  }catch(e){console.warn('Lookup player doc error:',e);}
+  const dir = dirSnap?.exists ? dirSnap.data() : null;
+  const isDirOnline = dir?.online === true && (Date.now() - ms(dir.lastSeen) < 90000);
+  if(!snap||!snap.exists){
+    return {
+      uid: id,
+      name: dir?.name || ('Đấu sĩ #'+id.slice(0,5)),
+      main: [...defaultDeck()],
+      extra: [...defaultExtraDeck()],
+      heroId: 0,
+      protocol: MEME_RULES_VERSION,
+      online: isDirOnline,
+      lastSeen: dir?.lastSeen || null,
+      networkId: dir?.uid || id
+    };
+  }
+  const p=snap.data();
+  if(isDirOnline){
+    p.online = true;
+    p.lastSeen = dir.lastSeen;
+  }
+  if(dir?.name && !p.name) p.name = dir.name;
+  if(!valid(p)){p.main=[...defaultDeck()];p.extra=[...defaultExtraDeck()];p.heroId=validHero(p.heroId)?p.heroId:0;}
+  return p;
+ }
  function ghost(p){if(!valid(p)){p.main=[...defaultDeck()];p.extra=[...defaultExtraDeck()];p.heroId=validHero(p.heroId)?p.heroId:0;}startGame({ghost:p});}
   async function challenge(id){
     if(!identity.user){try{if(typeof identity.login==='function'&&!identity.signing)await Promise.race([identity.login(),new Promise(r=>setTimeout(r,1200))]);}catch(_){}}if(busy())throw Error('Hãy kết thúc hoặc rời trận hiện tại trước khi khiêu chiến.');const p=await lookup(id);
@@ -287,6 +324,23 @@
   publish(true).catch(error);
   timer=setInterval(()=>publish(true).catch(error),60000);
  });
+ function checkPendingJoin() {
+  try {
+    const pendingJoin = window.parent?.pendingInviteJoin || window.pendingInviteJoin;
+    if (pendingJoin && pendingJoin.roomId) {
+      if (window.parent) window.parent.pendingInviteJoin = null;
+      window.pendingInviteJoin = null;
+      memeJoinRoom(pendingJoin.roomId);
+      if (memeRoom) {
+        memeRoom.peerId = pendingJoin.peerId;
+        memeRoom.peerName = pendingJoin.peerName;
+        memeRoom.challengeId = pendingJoin.challengeId;
+        memeRoom.rankOpponentUid = pendingJoin.rankOpponentUid;
+      }
+    }
+  } catch (e) { console.warn('Check pending join error:', e); }
+ }
+ setTimeout(checkPendingJoin, 250);
  window.addEventListener('pagehide',()=>{clearInterval(timer);unsub?.();stopPending();});
-  window.memeIdDuel={updateResultUI,challenge,lookup,publish,online,ghost,recordResult,invite,cancelInvite,loginToSaveResult,get id(){return uid;},get hasPendingInvite(){return !!pending;}};
+ window.memeIdDuel={updateResultUI,challenge,lookup,publish,online,ghost,recordResult,invite,cancelInvite,loginToSaveResult,get id(){return uid;},get hasPendingInvite(){return !!pending;}};
 })();

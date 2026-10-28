@@ -1,6 +1,9 @@
 // One Firebase identity shared by the lobby and the duel iframe.
 (() => {
   try {
+    if (window.siteIdentity && window.siteIdentity.db && window.siteIdentity.user) {
+      return;
+    }
     if (parent !== window && parent.siteIdentity) {
       window.siteIdentity = parent.siteIdentity;
       return;
@@ -52,7 +55,30 @@
     const playerRef = db.doc('duel_players/' + uid);
     try {
       const snapshot = await playerRef.get();
-      if (!snapshot.exists) return;
+      if (!snapshot.exists) {
+        if (online) {
+          const starterDeck = [
+            'trau_tre_len_doi','trau_tre_len_doi','co_mat_job','ech_xanh_triet_ly','ech_xanh_triet_ly',
+            'cua_dong_bat_khuat','meo_map_lan_long','thanh_chui_binh_luan','ninja_luon_dem','ninja_luon_dem',
+            'ba_hoa_dam_drama','anh_grab_da_nhiem','hiep_si_tra_sua','kiem_lam_bao_ve',
+            'thuy_quai_lay_loi','trum_cuoi_bi_an','phap_su_bang_tra',
+            'hot_via','dinh_cua_chop','vong_tay_ban_than'
+          ];
+          await playerRef.set({
+            uid,
+            name: profile.name,
+            main: starterDeck,
+            extra: [],
+            heroId: 0,
+            networkId: window.myNetworkId || uid,
+            protocol: 'tcg-equip-chain-v20-rematch',
+            online: true,
+            busy: false,
+            lastSeen: stamp
+          });
+        }
+        return;
+      }
       const player = snapshot.data() || {};
       const seen = typeof player.lastSeen?.toMillis === 'function'
         ? player.lastSeen.toMillis()
@@ -109,8 +135,11 @@
       emit();
       clearInterval(presenceTimer);
       if (user) {
+        window.currentFirebaseUser = window.currentFirebaseUser || user;
+        window.myNetworkId = window.myNetworkId || ('P_' + user.uid.slice(0, 10));
         startPresence(user);
         registerMember(user).catch(error => console.warn('Site membership:', error.code || error.message));
+        if (typeof window.startNetworkListeners === 'function') window.startNetworkListeners();
       } else if (previous) {
         publishPresence(previous, false).catch(error => console.warn('Presence sign-out:', error.code || error.message));
       }

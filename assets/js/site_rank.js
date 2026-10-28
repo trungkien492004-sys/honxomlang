@@ -552,7 +552,172 @@
     }
     paint();
   }
-  identity.subscribe(async ({ user, ready }) => { if (!ready) return; if (!user) { stop(); profile = null; paint(); return; } await loadProfile(user); });
+  let globalInviteUnsub = null;
+  let globalIncoming = null;
+  let globalInviteTimer = null;
+
+  function stopGlobalInvite() {
+    if (globalInviteTimer) clearInterval(globalInviteTimer);
+    globalInviteTimer = null;
+    globalIncoming = null;
+    document.getElementById('globalDuelInvite')?.remove();
+  }
+
+  function showGlobalInvite(inviteId, v, sender) {
+    if (globalIncoming?.nonce === v.nonce) return;
+    stopGlobalInvite();
+    globalIncoming = { id: inviteId, nonce: v.nonce };
+
+    const modal = document.createElement('div');
+    modal.id = 'globalDuelInvite';
+    modal.className = 'global-duel-invite-overlay';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Lời mời khiêu chiến Đấu Rank');
+
+    const senderName = String(sender?.name || 'Đấu sĩ').slice(0, 48);
+    const expiresAt = typeof v.expiresAt?.toMillis === 'function' ? v.expiresAt.toMillis() : (Number(v.expiresAt) || (Date.now() + 60000));
+    let remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+
+    modal.innerHTML = `
+      <div class="global-invite-card">
+        <div class="global-invite-badge">⚔️ LỜI MỜI ĐẤU RANK YU-GI-OH!</div>
+        <h3>Đấu Sĩ Khiêu Chiến!</h3>
+        <p class="global-invite-sender"><strong style="color:#fde047;font-size:16px;">${esc(senderName)}</strong> muốn khiêu chiến một trận Đấu Rank với bạn!</p>
+        <p class="global-invite-timer">Thời gian phản hồi: <b id="globalInviteTimerVal" style="color:#f59e0b;font-size:16px;">${remaining}</b>s</p>
+        <div class="global-invite-actions">
+          <button type="button" class="primary-btn" id="globalAcceptDuelBtn" style="background:linear-gradient(135deg,#16a34a,#15803d);border:1.5px solid #86efac;color:#fff;font-weight:900;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:14px;">⚔️ Nhận Lời (Vào Trận)</button>
+          <button type="button" class="secondary-btn" id="globalDeclineDuelBtn" style="background:#334155;border:1px solid #64748b;color:#f1f5f9;font-weight:800;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:14px;">Từ Chối</button>
+        </div>
+        <p class="id-invite-error" id="globalInviteError" role="status" style="color:#ef4444;margin-top:8px;font-size:13px;font-weight:700;"></p>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const timerVal = modal.querySelector('#globalInviteTimerVal');
+    globalInviteTimer = setInterval(() => {
+      remaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      if (timerVal) timerVal.textContent = String(remaining);
+      if (remaining <= 0) {
+        stopGlobalInvite();
+      }
+    }, 1000);
+
+    const respond = async accept => {
+      for (const btn of modal.querySelectorAll('button')) btn.disabled = true;
+      const statusEl = modal.querySelector('#globalInviteError');
+      if (statusEl) statusEl.textContent = accept ? 'Đang vào trận đấu...' : 'Đang từ chối...';
+      try {
+        const store = identity.db;
+        await store.runTransaction(async tx => {
+          const ref = store.doc('duel_invites/' + inviteId);
+          const snap = await tx.get(ref);
+          if (!snap.exists) throw Error('Lời mời không còn tồn tại.');
+          const latest = snap.data();
+          const exp = typeof latest.expiresAt?.toMillis === 'function' ? latest.expiresAt.toMillis() : (Number(latest.expiresAt) || 0);
+          if (latest.nonce !== v.nonce || latest.status !== 'pending' || (exp > 0 && exp <= Date.now())) {
+            throw Error('Lời mời đã hết hạn hoặc bị hủy.');
+          }
+          tx.update(ref, { status: accept ? 'accepted' : 'declined' });
+        });
+
+        if (accept) {
+          stopGlobalInvite();
+          window.pendingInviteJoin = {
+            roomId: v.roomId,
+            peerId: sender?.networkId || v.from,
+            peerName: senderName,
+            challengeId: v.nonce,
+            rankOpponentUid: v.from
+          };
+          if (typeof window.openMemeCardGame === 'function') {
+            window.openMemeCardGame();
+          }
+          for (let i = 0; i < 50; i++) {
+            const frame = document.getElementById('memecardFrame')?.contentWindow;
+            if (frame && typeof frame.memeJoinRoom === 'function') {
+              frame.memeJoinRoom(v.roomId);
+              if (frame.memeRoom) {
+                frame.memeRoom.peerId = sender?.networkId || v.from;
+                frame.memeRoom.peerName = senderName;
+                frame.memeRoom.challengeId = v.nonce;
+                frame.memeRoom.rankOpponentUid = v.from;
+              }
+              window.pendingInviteJoin = null;
+              break;
+            }
+            await new Promise(r => setTimeout(r, 100));
+          }
+        } else {
+          stopGlobalInvite();
+        }
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err.message || 'Lỗi xử lý lời mời';
+        for (const btn of modal.querySelectorAll('button')) btn.disabled = false;
+      }
+    };
+
+    modal.querySelector('#globalAcceptDuelBtn').onclick = () => respond(true);
+    modal.querySelector('#globalDeclineDuelBtn').onclick = () => respond(false);
+  }
+
+  function startGlobalInviteListener(user) {
+    if (globalInviteUnsub) { globalInviteUnsub(); globalInviteUnsub = null; }
+    stopGlobalInvite();
+    if (!user?.uid || !identity?.db) return;
+    const isMainSite = !!document.getElementById('memecardFrame');
+    if (!isMainSite) return;
+
+    const store = identity.db;
+    const expMs = val => typeof val?.toMillis === 'function' ? val.toMillis() : (Number(val) || 0);
+    const inviteExpiry = val => val?.createdAt ? (expMs(val.createdAt) + 60000) : expMs(val?.expiresAt);
+
+    globalInviteUnsub = store.collection('duel_invites').where('to', '==', user.uid).onSnapshot(async snap => {
+      const pendingDoc = snap.docs.find(d => {
+        const val = d.data();
+        return val && val.status === 'pending' && inviteExpiry(val) > Date.now();
+      });
+      if (!pendingDoc) {
+        stopGlobalInvite();
+        return;
+      }
+      const invVal = pendingDoc.data();
+      const cardModal = document.getElementById('memecardGameModal');
+      const isCardOpen = cardModal && cardModal.style.display !== 'none' && cardModal.style.display !== '';
+      if (isCardOpen) {
+        return;
+      }
+      try {
+        let sender = null;
+        const [pSnap, dSnap] = await Promise.all([
+          store.doc('duel_players/' + invVal.from).get().catch(() => null),
+          store.doc('duel_directory/' + invVal.from).get().catch(() => null)
+        ]);
+        if (pSnap?.exists) sender = pSnap.data();
+        else if (dSnap?.exists) sender = dSnap.data();
+        showGlobalInvite(pendingDoc.id, invVal, sender || { name: 'Đấu sĩ' });
+      } catch (err) {
+        console.warn('Global invite listener sender lookup error:', err);
+      }
+    }, err => {
+      console.warn('Global invite listener error:', err?.message || err);
+    });
+  }
+
+  identity.subscribe(async ({ user, ready }) => {
+    if (!ready) return;
+    if (!user) {
+      stop();
+      if (globalInviteUnsub) { globalInviteUnsub(); globalInviteUnsub = null; }
+      stopGlobalInvite();
+      profile = null;
+      paint();
+      return;
+    }
+    startGlobalInviteListener(user);
+    await loadProfile(user);
+  });
   if (typeof render === 'function') { const before = render; render = () => { before(); paint(); }; }
   if (typeof memeShowResult === 'function') {
     const before = memeShowResult;
