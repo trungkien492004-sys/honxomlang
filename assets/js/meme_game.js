@@ -169,7 +169,7 @@ window.showActionNotice = function(text, title = 'Không thể thực hiện') {
     setTimeout(() => toast.remove(), 300);
   }, 2400);
 };
-window.showEffectNotice = function({ cardId, title, text, owner = 'player', icon = '✨' }) {
+window.showEffectNotice = function({ cardId, title, text, owner = 'player', icon = '✨', fromRemote = false }) {
   const c = typeof card === 'function' ? card(cardId) : null;
   const name = title || c?.name || 'Hiệu ứng bài';
   const desc = text || c?.description || '';
@@ -190,16 +190,25 @@ window.showEffectNotice = function({ cardId, title, text, owner = 'player', icon
   const layer = document.getElementById('memeFxLayer') || document.body;
   layer.appendChild(banner);
   try { window.memeFx?.sound?.('charge'); } catch (_) {}
+  if (!fromRemote && typeof duel === 'object' && duel) {
+    duel.effectNoticeSerial = (duel.effectNoticeSerial || 0) + 1;
+    duel.lastNotice = { serial: duel.effectNoticeSerial, cardId, title: name, text: desc, owner, icon };
+  }
+  window.memeTurnClock?.bannerStart?.();
   let timer = null;
+  let dismissed = false;
   const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
     clearTimeout(timer);
+    window.memeTurnClock?.bannerEnd?.();
     banner.classList.add('fade-out');
     setTimeout(() => banner.remove(), 300);
   };
   banner.onclick = dismiss;
   const closeBtn = banner.querySelector('.effect-banner-close');
   if (closeBtn) closeBtn.onclick = (e) => { e.stopPropagation(); dismiss(); };
-  const readDuration = 2500;
+  const readDuration = 1500;
   timer = setTimeout(dismiss, readDuration);
 };
 window.attackProblem = function(slot) {

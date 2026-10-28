@@ -20,7 +20,20 @@ function memeMergeReaction(incoming){
     });
     Object.assign(current,next);incoming[name]=current;
   }
-  const local={mode:duel.mode,pending:duel.pending,selected:duel.selected};Object.assign(duel,incoming,local);
+  const local={mode:duel.mode,pending:duel.pending,selected:duel.selected};
+  if(memeRoom?.role==='host'&&duel?.turnClock&&incoming?.turnClock){
+    const guestBonus=(incoming.turnClock.bannerBonus||0)-(duel.turnClock.bannerBonus||0);
+    if(guestBonus>0){
+      duel.turnClock.deadline+=guestBonus;
+      duel.turnClock.bannerBonus=(duel.turnClock.bannerBonus||0)+guestBonus;
+    }
+    local.turnClock=duel.turnClock;
+  }
+  Object.assign(duel,incoming,local);
+  if(duel.lastNotice&&duel.lastNotice.serial!==(memeRoom?.lastNoticeSerial||0)){
+    if(memeRoom)memeRoom.lastNoticeSerial=duel.lastNotice.serial;
+    window.showEffectNotice?.({...duel.lastNotice,fromRemote:true});
+  }
 }
 window.memeOnlineAskReaction=intent=>new Promise(resolve=>{
   if(!memeRoom?.playing)return resolve(false);
@@ -81,6 +94,7 @@ function memeMirror(state) {
   for(const side of [copy.player,copy.enemy])for(const slot of [...side.monsters,...side.spells,side.extra,side.field].filter(Boolean))for(const key of ['homeOwner','originalOwner'])if(slot[key])slot[key]=slot[key]==='player'?'enemy':'player';
   if(copy.lastSkill)copy.lastSkill.owner=copy.lastSkill.owner==='player'?'enemy':'player';
   if(copy.lastRandom)copy.lastRandom.owner=copy.lastRandom.owner==='player'?'enemy':'player';
+  if(copy.lastNotice)copy.lastNotice.owner=copy.lastNotice.owner==='player'?'enemy':'player';
   if(copy.attackContext)copy.attackContext.attackerSide=copy.attackContext.attackerSide==='player'?'enemy':'player';
   return {
     ...copy,
@@ -334,7 +348,22 @@ window.memeOnlineReceive = function(msg) {
     memeApplyingRemoteState = true;
     duel = memeMirror(msg.state);
     // Keep the host's deadline across actions; a handoff gets a fresh host clock.
-    if(memeRoom.role==='host')duel.turnClock=duel.round===priorRound?priorClock:null;
+    if(memeRoom.role==='host'){
+      if(duel.round===priorRound&&priorClock){
+        const guestBonus=(duel.turnClock?.bannerBonus||0)-(priorClock.bannerBonus||0);
+        if(guestBonus>0){
+          priorClock.deadline+=guestBonus;
+          priorClock.bannerBonus=(priorClock.bannerBonus||0)+guestBonus;
+        }
+        duel.turnClock=priorClock;
+      }else{
+        duel.turnClock=null;
+      }
+    }
+    if(duel.lastNotice&&duel.lastNotice.serial!==(memeRoom.lastNoticeSerial||0)){
+      memeRoom.lastNoticeSerial=duel.lastNotice.serial;
+      window.showEffectNotice?.({...duel.lastNotice,fromRemote:true});
+    }
     if (!hadTurn && duel.turn === 'player' && !duel.finished) {
       duel.normalSummoned = false;
       window.memeRules?.beginTurn('player');
