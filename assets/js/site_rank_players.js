@@ -99,7 +99,7 @@
         const wins = Number(player.wins) || 0, losses = Number(player.losses) || 0, played = Number(player.played) || (wins + losses);
         const winrate = played > 0 ? Math.round((wins / played) * 100) + '%' : '0%';
         const isMe = me && player.uid === me;
-        const challengeBtn = !isMe ? `<button type="button" class="rank-table-challenge-btn" data-challenge-uid="${esc(player.uid)}">⚔️ ${isBot ? 'Đấu Boss' : 'Khiêu chiến'}</button>` : '<span style="color:#67e8f9;font-size:12px;font-weight:900;">(Bạn)</span>';
+        const challengeBtn = !isMe ? `<button type="button" class="rank-table-challenge-btn" data-challenge-uid="${esc(player.uid)}"><span class="btn-full-text">⚔️ ${isBot ? 'Đấu Boss' : 'Khiêu chiến'}</span><span class="btn-short-text">⚔️ ${isBot ? 'Boss' : 'Đấu'}</span></button>` : '<span style="color:#67e8f9;font-size:12px;font-weight:900;">(Bạn)</span>';
 
         return `<tr class="${isMe ? 'is-me' : ''}">
           <td class="rank-num" style="text-align:center;">${rankIcon}</td>

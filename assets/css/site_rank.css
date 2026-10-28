@@ -353,6 +353,7 @@ html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending bod
 .rank-table-challenge-btn:hover {
   background: #2563eb;
 }
+.btn-short-text { display: none; }
 .rank-login-callout {
   display: flex;
   align-items: center;
@@ -747,4 +748,6 @@ html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending bod
     width: 100% !important;
     box-sizing: border-box !important;
   }
+  .btn-full-text { display: none !important; }
+  .btn-short-text { display: inline !important; }
 }

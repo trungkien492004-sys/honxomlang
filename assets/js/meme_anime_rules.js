@@ -935,12 +935,20 @@
     if (modes[c.effect_code]) {
       const candidates = fusionCandidates(n, modes[c.effect_code]);
       if (!candidates.length) {
-        if (free(n) < 0 && !extraOpen(n)) return 'Khu vực quái thú trên sân đã đầy!';
-       if (c.effect_code === 'miracle_fusion') return 'Chưa đủ nguyên liệu Anh Hùng trên Sân hoặc Mộ để Dung Hợp!';
-       if (c.effect_code === 'power_bond') return 'Chưa đủ nguyên liệu Quái Máy trên Tay hoặc Sân để kích hoạt Power Bond!';
-       return 'Chưa đủ nguyên liệu trên Tay hoặc Sân cho bất kỳ quái Dung Hợp nào trong Extra Deck!';
-     }
-   }
+        const extraFusions = choices(S(n).extraDeck, 'extra').filter(e => {
+          const ec = card(e.id);
+          if (!ec || (!ec.fusion_materials && !ec.fusion_recipe) || ec.summon_type === 'transformation') return false;
+          if (modes[c.effect_code] === 'miracle' && !hero(ec)) return false;
+          if (modes[c.effect_code] === 'power' && !machine(ec)) return false;
+          return true;
+        });
+        if (!extraFusions.length) return 'Không có quái Dung Hợp phù hợp trong Extra Deck!';
+        if (free(n) < 0 && !extraOpen(n)) return 'Sân và Ô quái Extra đã đầy! Cần có ít nhất 1 nguyên liệu trên sân để giải phóng chỗ trống khi Dung Hợp.';
+        if (c.effect_code === 'miracle_fusion') return 'Chưa đủ nguyên liệu Anh Hùng trên Sân hoặc Mộ để Dung Hợp!';
+        if (c.effect_code === 'power_bond') return 'Chưa đủ nguyên liệu Quái Máy trên Tay hoặc Sân để kích hoạt Power Bond!';
+        return 'Chưa đủ nguyên liệu trên Tay hoặc Sân cho bất kỳ quái Dung Hợp nào trong Extra Deck!';
+      }
+    }
    if (['mask_change','mask_change_ii'].includes(c.effect_code)) {
      if (c.effect_code === 'mask_change_ii' && s.hand.length < (fromSet ? 1 : 2)) return 'Cần 1 lá bài khác trên tay để bỏ làm chi phí!';
      if (!transformationOptions(n, c.id).length) return 'Không có quái HERO phù hợp trên sân hoặc quái Mặt Nạ tương ứng trong Extra Deck!';

@@ -7,8 +7,13 @@
   function showRankError(error, context = 'Đấu Rank') {
     const rawMsg = typeof error === 'string' ? error : (error?.message || error?.code || JSON.stringify(error) || 'Lỗi không xác định');
     const msgStr = String(rawMsg);
-    if (msgStr.includes('Missing or insufficient permissions') || (msgStr === 'permission-denied' && context === 'Hệ thống Rank')) {
-      console.warn(`[Hệ thống Rank · ${context} (Bỏ qua pop-up quyền)]:`, error);
+    if (msgStr.includes('Missing or insufficient permissions') || (msgStr.includes('permission-denied') && (context === 'Hệ thống Rank' || context.includes('Đồng bộ nền')))) {
+      console.warn(`[Hệ thống Rank · ${context}]:`, error);
+      return;
+    }
+    const duelEl = document.getElementById('duel');
+    if (duelEl && !duelEl.classList.contains('hidden') && (context === 'Hệ thống Rank' || context.includes('Đồng bộ nền'))) {
+      console.warn(`[Hệ thống Rank · ${context} (Đang trong trận đấu, bỏ qua banner)]:`, error);
       return;
     }
     const stack = error?.stack || '';
@@ -73,7 +78,7 @@
       if (savedErr) {
         const errData = JSON.parse(savedErr);
         const msg = String(errData?.message || '');
-        if (msg.includes('Missing or insufficient permissions') || msg.includes('permission-denied')) {
+        if (msg.includes('Missing or insufficient permissions') || (msg.includes('permission-denied') && (errData?.context === 'Hệ thống Rank' || errData?.context?.includes('Đồng bộ nền')))) {
           localStorage.removeItem('last_rank_error');
           return;
         }

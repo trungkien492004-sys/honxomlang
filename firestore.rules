@@ -125,21 +125,24 @@ service cloud.firestore {
         request.resource.data.heroId is int && request.resource.data.heroId >= 0 && request.resource.data.heroId < 7 &&
         request.resource.data.networkId is string && request.resource.data.networkId.size() <= 128 &&
         request.resource.data.protocol is string && request.resource.data.protocol.size() <= 80 &&
-        request.resource.data.online is bool && request.resource.data.busy is bool && request.resource.data.lastSeen == request.time;
+        request.resource.data.online is bool && request.resource.data.busy is bool &&
+        (request.resource.data.lastSeen == request.time || request.resource.data.lastSeen is timestamp);
       allow delete: if signedIn() && request.auth.uid == userId;
     }
     match /duel_invites/{inviteId} {
-      function party() { return signedIn() && request.auth.uid in [resource.data.from,resource.data.to]; }
+      function party() { return signedIn() && (request.auth.uid == resource.data.from || request.auth.uid == resource.data.to); }
       function invitation() {
         return request.resource.data.keys().hasOnly(['from','to','nonce','roomId','status','createdAt','expiresAt']) &&
           request.resource.data.from is string && request.resource.data.to is string && request.resource.data.from != request.resource.data.to &&
           inviteId == request.resource.data.from + '_' + request.resource.data.to &&
           request.resource.data.nonce is string && request.resource.data.nonce.size() <= 64 &&
           request.resource.data.roomId is string && request.resource.data.roomId.size() <= 32 &&
-          request.resource.data.status == 'pending' && request.resource.data.createdAt == request.time &&
+          request.resource.data.status == 'pending' &&
+          (request.resource.data.createdAt == request.time || request.resource.data.createdAt is timestamp) &&
           request.resource.data.expiresAt is timestamp;
       }
-      allow read: if party();
+      allow get: if party();
+      allow list: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
       allow create: if signedIn() && request.auth.uid == request.resource.data.from && invitation();
       allow update: if (signedIn() && request.auth.uid == resource.data.from && request.resource.data.from == resource.data.from && invitation()) ||
         (party() && resource.data.status == 'pending' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
