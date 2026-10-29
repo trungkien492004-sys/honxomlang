@@ -135,7 +135,8 @@ const server = http.createServer((req, res) => {
       // Scenario 1a: Valid execution - pays 500 LP, discards 1 card, searches Junk Synchron
       reset();
       const yHero = window.MEME_HEROES?.find(h => h.code === 'yusei');
-      duel.player.heroId = yHero ? yHero.id : 8; // Yusei
+      const yuseiId = yHero ? yHero.id : 8; // Yusei
+      duel.player.heroId = yuseiId;
       duel.player.lp = 4000;
       duel.player.hand = [id('Kuriboh')];
       duel.player.deck = [id('Junk Synchron'), id('Celtic Guardian')];
@@ -148,7 +149,7 @@ const server = http.createServer((req, res) => {
 
       // Scenario 1b: Low LP restriction (< 500 LP)
       reset();
-      duel.player.heroId = yHero ? yHero.id : 8;
+duel.player.heroId = yuseiId;
       duel.player.lp = 500;
       duel.player.hand = [id('Kuriboh')];
       duel.player.deck = [id('Junk Synchron')];
@@ -156,7 +157,7 @@ const server = http.createServer((req, res) => {
 
       // Scenario 1c: Empty hand restriction
       reset();
-      duel.player.heroId = yHero ? yHero.id : 8;
+duel.player.heroId = yuseiId;
       duel.player.lp = 4000;
       duel.player.hand = [];
       duel.player.deck = [id('Junk Synchron')];
