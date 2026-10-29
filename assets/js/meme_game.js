@@ -34,7 +34,7 @@ function validHero(id){return Number.isInteger(id)&&id>=0&&id<HEROES.length;}
 function getHero(id){return HEROES[validHero(id)?id:0];}
 function loadHero(){try{const id=JSON.parse(localStorage.getItem(HERO_KEY));if(validHero(id))return id;}catch{}return 0;}
 function heroStyle(hero){return `--hero-color:${hero.color};--hero-pos:${hero.position}`;}
-function heroFigure(hero,className='hero-figure'){return `<span class="${className}" style="${heroStyle(hero)}" aria-hidden="true"></span>`;}
+function heroFigure(hero,className='hero-figure'){return `<span class="${className}${hero.figure?' '+className+'-'+hero.code:''}" style="${heroStyle(hero)}" aria-hidden="true"></span>`;}
 function chooseHero(id){
   if(!validHero(id))return;chosenHero=id;try{localStorage.setItem(HERO_KEY,JSON.stringify(id));}catch{}
   document.querySelectorAll('[data-hero]').forEach(b=>{const selected=Number(b.dataset.hero)===id;b.classList.toggle('selected',selected);b.setAttribute('aria-checked',String(selected));});

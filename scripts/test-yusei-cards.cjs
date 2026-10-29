@@ -97,7 +97,7 @@ const server = http.createServer((req, res) => {
       const logStep = msg => { logs.push(msg); console.log(msg); };
       logStep('Testing Filter Polish & Archetype Separation...');
       const collectible = CARDS.filter(c => !c.uncollectible && c.archetype !== 'Token');
-      eq(collectible.length, 290, 'Total collectible cards should be 290');
+      eq(collectible.length, 305, 'Total collectible cards should be 305');
 
       const expectedHeroCounts = {
         yugi: 43,
@@ -108,6 +108,7 @@ const server = http.createServer((req, res) => {
         zane: 24,
         mai: 26,
         yusei: 20,
+        yuma: 15,
         staples: 36
       };
       for (const [hero, expected] of Object.entries(expectedHeroCounts)) {
@@ -133,7 +134,8 @@ const server = http.createServer((req, res) => {
       logStep('Testing Hero Skill: yusei...');
       // Scenario 1a: Valid execution - pays 500 LP, discards 1 card, searches Junk Synchron
       reset();
-      duel.player.heroId = 7; // Yusei
+      const yHero = window.MEME_HEROES?.find(h => h.code === 'yusei');
+      duel.player.heroId = yHero ? yHero.id : 8; // Yusei
       duel.player.lp = 4000;
       duel.player.hand = [id('Kuriboh')];
       duel.player.deck = [id('Junk Synchron'), id('Celtic Guardian')];
