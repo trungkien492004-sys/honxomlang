@@ -179,6 +179,84 @@
   display: none !important;
 }
 
+/* ── 4b. Mũi tên điều hướng danh sách đấu sĩ ── */
+#lobby .hero-picker {
+  position: relative;
+  width: 100%;
+}
+#lobby .hero-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 7;
+  width: 28px;
+  height: 58px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid rgba(230, 195, 110, 0.75);
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(20, 52, 78, 0.96), rgba(7, 24, 42, 0.98));
+  color: #ffe9b0;
+  font: 700 24px/1 'Baloo 2', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 10px rgba(230, 195, 110, 0.18);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+#lobby .hero-nav:hover {
+  background: linear-gradient(160deg, #2a5a7e, #0d2d4b);
+  color: #fff;
+}
+#lobby .hero-nav:focus-visible {
+  outline: 2px solid #ffe9b0;
+  outline-offset: 2px;
+}
+#lobby .hero-nav[hidden] {
+  display: none !important;
+}
+#lobby .hero-nav.is-idle {
+  color: rgba(255, 233, 176, 0.3);
+  border-color: rgba(230, 195, 110, 0.25);
+  background: linear-gradient(160deg, rgba(14, 36, 56, 0.62), rgba(6, 18, 32, 0.72));
+  box-shadow: none;
+  cursor: default;
+  pointer-events: none;
+}
+#lobby .hero-nav-prev {
+  left: 0;
+}
+#lobby .hero-nav-next {
+  right: 0;
+}
+#lobby .hero-picker::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(6, 20, 36, 0), rgba(6, 20, 36, 0.92));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 5;
+}
+#lobby .hero-picker.overflowing:not(.at-end)::after {
+  opacity: 1;
+}
+@keyframes heroNavPulse {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(3px); }
+}
+#lobby .hero-picker.overflowing:not(.at-end) .hero-nav-next:not(.is-idle) {
+  animation: heroNavPulse 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  #lobby .hero-nav-next { animation: none !important; }
+}
+
 /* ── 5. Khung Kỹ năng & Xem bộ mẫu (#selectedHeroSummary) ── */
 #lobby .lobby-skill-preview {
   flex: 0 0 auto !important;
@@ -333,7 +411,7 @@
     overscroll-behavior-x: contain !important;
     scroll-snap-type: x mandatory !important;
     -webkit-overflow-scrolling: touch !important;
-    padding: 2px 4px 6px !important;
+    padding: 2px 34px 6px !important;
     scrollbar-width: none !important;
     display: block !important;
   }

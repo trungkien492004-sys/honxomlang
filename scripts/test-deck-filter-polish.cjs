@@ -90,19 +90,21 @@ const server = http.createServer((req, res) => {
     // 4. Verify Limit Filter & Badges
     await page.select('#deckLimitFilter', '1');
     const limit1Count = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(limit1Count, 83, `Limit 1 expected 82 cards, got ${limit1Count}`);
+    assert.equal(limit1Count, 92, `Limit 1 expected 92 cards, got ${limit1Count}`);
 
-    // Verify all 82 cards display the red circular limit badge with text "1"
+    // Verify every limit-1 card displays the red circular limit badge with text "1"
     const limit1Badges = await page.$$eval('#deckGrid .deck-item .limit-badge.limit-1', els => els.length);
-    assert.equal(limit1Badges, 83, 'All 82 limit-1 cards should display limit-1 badge');
+    assert.equal(limit1Badges, 92, 'All 92 limit-1 cards should display limit-1 badge');
+    const aceBadges = await page.$$eval('#deckGrid .deck-item', els => els.filter(el => ['AN-number_39_utopia', 'AN-stardust_dragon', 'AN-harpie_s_pet_dragon'].includes(el.dataset.cardId) && el.querySelector('.limit-badge.limit-1')).length);
+    assert.equal(aceBadges, 3, 'Yuma, Yusei and Mai aces are shown as Limit 1');
 
     // Take screenshot of limit 1 filter
     await page.screenshot({ path: path.join(out, 'builder-limit1-filter.png') });
-    console.log('✓ Limit 1 filter returned 82 cards (including Graceful Charity, Change of Heart, Mirror Force, Premature Burial), all with .limit-badge.limit-1');
+    console.log('✓ Limit 1 filter returned 92 cards (including the Yuma/Yusei/Mai aces), all with .limit-badge.limit-1');
 
     await page.select('#deckLimitFilter', '3');
     const limit3Count = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(limit3Count, 216, `Unlimited (3 copies) expected 216 cards, got ${limit3Count}`);
+    assert.equal(limit3Count, 212, `Unlimited (3 copies) expected 212 cards, got ${limit3Count}`);
     await page.select('#deckLimitFilter', '');
 
     // 5. Verify Badge Layout: Rarity at top-left, Limit badge at top-right

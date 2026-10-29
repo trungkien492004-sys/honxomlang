@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="assets/css/meme_mobile_cards.css?v=20261026-hand-preview1" />
   <link rel="stylesheet" href="assets/css/meme_card_flow.css?v=20261026-confirm-v1" />
   <link rel="stylesheet" href="assets/css/meme_phase2.css?v=20261026-confirm-v1" />
-  <link rel="stylesheet" href="assets/css/meme_lobby_clean.css?v=20261026-confirm-v1" />
+  <link rel="stylesheet" href="assets/css/meme_lobby_clean.css?v=20261030-hero-nav1" />
   <link rel="stylesheet" href="assets/css/meme_choice_confirm.css?v=20261026-multi1" />
   <link rel="stylesheet" href="assets/css/meme_id_duel.css?v=20261026-rank-challenge1">
 </head>
@@ -40,7 +40,11 @@
       </header>
       <div class="lobby-center">
         <div class="hero-heading"><span class="eyebrow">AVATAR · KỸ NĂNG ĐẤU SĨ</span><h1>Chọn đấu sĩ của bạn</h1><p>Mỗi nhân vật một kỹ năng · Dùng được với mọi bộ bài</p></div>
-        <div class="lineup" aria-label="Chọn avatar đấu sĩ"><div class="hero-labels" id="heroRoster" role="radiogroup" aria-label="Nhân vật"></div></div>
+        <div class="hero-picker">
+          <div class="lineup" aria-label="Chọn avatar đấu sĩ"><div class="hero-labels" id="heroRoster" role="radiogroup" aria-label="Nhân vật"></div></div>
+          <button type="button" class="hero-nav hero-nav-prev" id="heroPrev" aria-label="Xem đấu sĩ phía trước" aria-controls="heroRoster" hidden>‹</button>
+          <button type="button" class="hero-nav hero-nav-next" id="heroNext" aria-label="Xem thêm đấu sĩ" aria-controls="heroRoster" hidden>›</button>
+        </div>
         <div id="selectedHeroSummary" class="lobby-skill-preview" aria-live="polite"></div>
       </div>
       <footer class="lobby-footer"><button class="secondary-btn" id="lobbyDeckBtn" data-modal="Bộ bài">🃏 Bộ bài</button><button class="primary-btn" id="playBtn">⚔️ Vào trận</button></footer>
@@ -74,19 +78,20 @@
   <script src="assets/js/meme_fusion_recipes.js?v=20261026-phase3-hero1"></script>
   <script src="assets/js/meme_lp_costs.js?v=20261026-tcg-work1"></script>
   <script src="assets/js/meme_zexal_catalog.js?v=20261029-zexal1"></script>
-  <script src="assets/js/meme_game.js?v=20261027-invite-quick1"></script>
+  <script src="assets/js/meme_supreme_new.js?v=20261030-supreme1"></script>
+  <script src="assets/js/meme_game.js?v=20261030-supreme1"></script>
   <script src="assets/js/meme_rules.js?v=20261025-polish-v1"></script>
   <script src="assets/js/meme_online.js?v=20261027-invite-quick1"></script>
   <script src="assets/js/meme_fx.js?v=20261025-phase1-v1"></script>
   <script src="assets/js/meme_tcg_equips.js?v=20261026-equip-chain1"></script>
-  <script src="assets/js/meme_anime_rules.js?v=20261027-io-quick1"></script>
+  <script src="assets/js/meme_anime_rules.js?v=20261030-supreme1"></script>
   <script src="assets/js/meme_battle_guide.js?v=20261026-inline-attack1"></script>
   <script src="assets/js/meme_turn_clock.js?v=20261026-confirm-v1"></script>
   <script src="assets/js/meme_revival_online.js?v=20261025-polish-v1"></script>
   <script src="assets/js/meme_vietnamese.js?v=20261026-player-copy1"></script>
   <script src="assets/js/meme_music_tracks.js?v=20261025-polish-v1"></script>
   <script src="assets/js/meme_music.js?v=20261025-polish-v1"></script>
-  <script src="assets/js/meme_upgrade_phase1.js?v=20261027-deckui1"></script>
+  <script src="assets/js/meme_upgrade_phase1.js?v=20261030-supreme1"></script>
   <script src="assets/js/meme_opening_coin.js?v=20261026-confirm-v1"></script>
   <script src="assets/js/meme_decisions.js?v=20261026-multi1"></script>
   <script src="assets/js/meme_mobile_cards.js?v=20261026-hand-preview1"></script>

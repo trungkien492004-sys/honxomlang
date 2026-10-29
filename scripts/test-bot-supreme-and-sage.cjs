@@ -111,7 +111,10 @@ const server = http.createServer((req, res) => {
           'Joey · Rồng Đen Bất Diệt',
           'Pegasus · Vương Quốc Hoạt Hình',
           'Jaden · Anh Hùng Tối Thượng',
-          'Zane · Rồng Máy Tận Diệt'
+          'Zane · Rồng Máy Tận Diệt',
+          'Mai · Tối Thượng',
+          'Yuma · Tối Thượng',
+          'Yusei · Tối Thượng'
         ];
 
         // Default / Hard mode

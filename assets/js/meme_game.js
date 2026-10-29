@@ -39,8 +39,9 @@ function chooseHero(id){
   if(!validHero(id))return;chosenHero=id;try{localStorage.setItem(HERO_KEY,JSON.stringify(id));}catch{}
   document.querySelectorAll('[data-hero]').forEach(b=>{const selected=Number(b.dataset.hero)===id;b.classList.toggle('selected',selected);b.setAttribute('aria-checked',String(selected));});
   const h=getHero(id);
-  const supremeDeckName={yugi:'Yugi · Ma Thuật Tối Thượng',kaiba:'Kaiba · Đỉnh Cao Mắt Xanh',joey:'Joey · Rồng Đen Bất Diệt',pegasus:'Pegasus · Vương Quốc Hoạt Hình',jaden:'Jaden · Anh Hùng Tối Thượng',zane:'Zane · Rồng Máy Tận Diệt'}[h.code];
-  $('selectedHeroSummary').innerHTML=`${heroFigure(h,'hero-portrait')}<div><small>${esc(h.name)} · KỸ NĂNG ĐẤU SĨ</small><strong>${h.icon} ${esc(h.skill)}</strong><p>${esc(h.description)}</p><span>Mọi bộ bài · MAIN của bạn · 1 lần/trận</span>${supremeDeckName?`<div style="margin-top:6px;"><button type="button" class="secondary-btn" id="equipHeroSupremeBtn" style="font-size:0.8rem;padding:3px 10px;">⭐ Dùng Bộ Tối Thượng ${esc(h.name)}</button></div>`:''}</div>`;
+  const supremeDeckName=window.MEME_SUPREME_DECKS?.[h.code];
+  const aceLimitNote=window.memeHeroAceNote?.(h.code)||'';
+  $('selectedHeroSummary').innerHTML=`${heroFigure(h,'hero-portrait')}<div><small>${esc(h.name)} · KỸ NĂNG ĐẤU SĨ</small><strong>${h.icon} ${esc(h.skill)}</strong><p>${esc(h.description)}</p><span>Mọi bộ bài · MAIN của bạn · 1 lần/trận${aceLimitNote}</span>${supremeDeckName?`<div style="margin-top:6px;"><button type="button" class="secondary-btn" id="equipHeroSupremeBtn" style="font-size:0.8rem;padding:3px 10px;">⭐ Dùng Bộ Tối Thượng ${esc(h.name)}</button></div>`:''}</div>`;
   const equipBtn=$('equipHeroSupremeBtn');
   if(equipBtn&&supremeDeckName&&window.MEME_DECK_PRESETS?.[supremeDeckName]){
     equipBtn.onclick=()=>{
@@ -51,9 +52,30 @@ function chooseHero(id){
     };
   }
 }
+function setupHeroNav(){
+  const scroller=$('heroRoster')?.closest('.lineup'),picker=scroller?.closest('.hero-picker'),prev=$('heroPrev'),next=$('heroNext');
+  if(!scroller||!picker||!prev||!next)return;
+  if(!scroller.dataset.navBound){
+    scroller.dataset.navBound='1';
+    const sync=()=>{
+      const max=scroller.scrollWidth-scroller.clientWidth,more=max>4,atStart=scroller.scrollLeft<=2,atEnd=scroller.scrollLeft>=max-2;
+      prev.hidden=!more;next.hidden=!more;
+      for(const [btn,idle]of[[prev,atStart],[next,atEnd]]){btn.classList.toggle('is-idle',idle);btn.setAttribute('aria-disabled',String(idle));}
+      picker.classList.toggle('overflowing',more);
+      picker.classList.toggle('at-end',atEnd);
+    };
+    const step=()=>Math.max(140,Math.round(scroller.clientWidth*0.8));
+    scroller._syncNav=sync;
+    scroller.addEventListener('scroll',sync,{passive:true});
+    window.addEventListener('resize',sync);
+    prev.onclick=()=>scroller.scrollBy({left:-step(),behavior:'smooth'});
+    next.onclick=()=>scroller.scrollBy({left:step(),behavior:'smooth'});
+  }
+  scroller._syncNav();requestAnimationFrame(scroller._syncNav);
+}
 function renderHeroRoster(){
   $('heroRoster').innerHTML=HEROES.map(h=>`<button class="hero-tag" data-hero="${h.id}" role="radio" aria-checked="false" style="${heroStyle(h)}" aria-label="Chọn ${esc(h.name)}. ${esc(h.skill)}: ${esc(h.description)}">${heroFigure(h)}<b>${esc(h.name)}</b><small>${h.icon} ${esc(h.skill)}</small></button>`).join('');
-  document.querySelectorAll('[data-hero]').forEach(b=>b.onclick=()=>chooseHero(Number(b.dataset.hero)));chooseHero(chosenHero);
+  document.querySelectorAll('[data-hero]').forEach(b=>b.onclick=()=>chooseHero(Number(b.dataset.hero)));chooseHero(chosenHero);setupHeroNav();
 }
 function heroSkillProblem(name){
   if(!duel||duel.finished)return 'Trận đấu đã kết thúc.';
@@ -129,9 +151,10 @@ function deckLimit(id){return card(id)?.max_copies??(id==='trung_tang_bat_ngo'?1
 function isExtraCard(id){return card(id)?.deck_zone==='Extra';}
 function extraEligible(id){return isExtraCard(id)||card(id)?.extra_eligible===true;}
 function defaultExtraDeck(){if(CATALOGUE.defaultExtra)return [...CATALOGUE.defaultExtra];return CARDS.filter(c=>c.deck_zone==='Extra').map(c=>c.id);}
+function clampCopies(list){const seen=new Map();return list.filter(id=>{const cap=deckLimit(id),n=seen.get(id)||0;if(n>=cap)return false;seen.set(id,n+1);return true;});}
 function migrateDeck(cards,extra){
   if(!Array.isArray(cards)||cards.some(id=>!CARD_BY_ID.has(id)))return null;
-  const main=cards.filter(id=>!isExtraCard(id)),extras=Array.isArray(extra)?[...extra]:[...new Set([...cards.filter(isExtraCard),...defaultExtraDeck()])];
+  const main=clampCopies(cards.filter(id=>!isExtraCard(id))),extras=clampCopies(Array.isArray(extra)?[...extra]:[...new Set([...cards.filter(isExtraCard),...defaultExtraDeck()])]);
   if(main.length<20)for(const id of defaultDeck()){if(main.length>=20)break;if(!isExtraCard(id)&&main.filter(x=>x===id).length<deckLimit(id))main.push(id);}
   return {cards:main,extra:extras};
 }
@@ -243,14 +266,7 @@ function startGame(options={}){
   const p2Settings = window.memePhase2?.settings || {};
   const diff = p2Settings.difficulty || 'hard';
   const customBotDeck = options?.customBotDeck || p2Settings.botDeck;
-  const supremePresets = [
-    'Kaiba · Đỉnh Cao Mắt Xanh',
-    'Yugi · Ma Thuật Tối Thượng',
-    'Joey · Rồng Đen Bất Diệt',
-    'Pegasus · Vương Quốc Hoạt Hình',
-    'Jaden · Anh Hùng Tối Thượng',
-    'Zane · Rồng Máy Tận Diệt'
-  ];
+  const supremePresets = Object.values(window.MEME_SUPREME_DECKS || {}).filter(name => window.MEME_DECK_PRESETS?.[name]);
   const normalPresets = [
     'Kaiba · Phản công', 'Kaiba · Obelisk',
     'Yugi · Phản công', 'Yugi · Thần Osiris',
@@ -952,7 +968,7 @@ function renderDeckBuilder(){
     <label class="deck-name">Tên bộ bài<input id="deckNameInput" maxlength="40" value="${esc(deckDraft.name)}" placeholder="Đặt tên bộ bài…"></label>
     <div class="deck-summary"><b>Main ${count}/${MAIN_SIZE} · Extra ${deckDraft.extra.length}/${EXTRA_LIMIT}</b><span>⚔ ${counts.Monster} Quái</span><span>✦ ${counts.Spell} Phép</span><span>◈ ${counts.Trap} Bẫy</span></div>
     <div class="deck-tabs" role="tablist" aria-label="Xem bài"><button id="allCardsTab" role="tab" aria-selected="${deckView==='all'}">Kho ${CARDS.length} lá</button><button id="selectedCardsTab" role="tab" aria-selected="${deckView==='selected'}">Main (${count})</button><button id="extraCardsTab" role="tab" aria-selected="${deckView==='extra'}">Extra (${deckDraft.extra.length})</button><a id="downloadCardExcel" class="deck-excel" href="assets/exports/${CATALOGUE.excelFilename||`xom-arcana-${CARDS.length}-la.xlsx`}" download="YuGiOh-DMGX-${CARDS.length}-la-VietHoa.xlsx" title="Tải danh mục và hiệu ứng đầy đủ">↓ Excel · ${CARDS.length} lá</a></div>
-    <div class="library-tools"><input id="deckSearchInput" type="search" placeholder="Tìm tên, tộc, hiệu ứng…" aria-label="Tìm lá bài" value="${esc(deckSearch)}"><select id="deckPreset" aria-label="Chọn bộ bài mẫu"><option value="">Áp dụng bộ bài mẫu…</option><optgroup label="⭐ Bộ Tối Thượng (Duel Links Meta)">${['Kaiba · Đỉnh Cao Mắt Xanh','Yugi · Ma Thuật Tối Thượng','Joey · Rồng Đen Bất Diệt','Pegasus · Vương Quốc Hoạt Hình','Jaden · Anh Hùng Tối Thượng','Zane · Rồng Máy Tận Diệt'].filter(n=>window.MEME_DECK_PRESETS?.[n]).map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')}</optgroup><optgroup label="⚔️ Bộ Cân Bằng (Phản công & Thần)">${Object.keys(window.MEME_DECK_PRESETS||{}).filter(n=>!['Kaiba · Đỉnh Cao Mắt Xanh','Yugi · Ma Thuật Tối Thượng','Joey · Rồng Đen Bất Diệt','Pegasus · Vương Quốc Hoạt Hình','Jaden · Anh Hùng Tối Thượng','Zane · Rồng Máy Tận Diệt'].includes(n)&&!n.includes('Kinh điển')).map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')}</optgroup><optgroup label="🛡️ Bộ Cơ Bản (Kinh điển)">${Object.keys(window.MEME_DECK_PRESETS||{}).filter(n=>n.includes('Kinh điển')).map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')}</optgroup></select></div>
+    <div class="library-tools"><input id="deckSearchInput" type="search" placeholder="Tìm tên, tộc, hiệu ứng…" aria-label="Tìm lá bài" value="${esc(deckSearch)}"><select id="deckPreset" aria-label="Chọn bộ bài mẫu"><option value="">Áp dụng bộ bài mẫu…</option><optgroup label="⭐ Bộ Tối Thượng (Duel Links Meta)">${Object.values(window.MEME_SUPREME_DECKS||{}).filter(n=>window.MEME_DECK_PRESETS?.[n]).map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')}</optgroup><optgroup label="⚔️ Bộ Cân Bằng (Phản công & Thần)">${Object.keys(window.MEME_DECK_PRESETS||{}).filter(n=>!Object.values(window.MEME_SUPREME_DECKS||{}).includes(n)&&!n.includes('Kinh điển')).map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')}</optgroup><optgroup label="🛡️ Bộ Cơ Bản (Kinh điển)">${Object.keys(window.MEME_DECK_PRESETS||{}).filter(n=>n.includes('Kinh điển')).map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('')}</optgroup></select></div>
     <div class="catalog-filters"><div class="deck-filters" id="deckFilters"></div><select id="deckArchetype" aria-label="Lọc theo bộ"><option value="">Tất cả bộ / tộc</option>${Object.keys(window.MEME_DECK_PRESETS||{}).map(name=>`<option ${name===deckArchetype?'selected':''}>${esc(name)}</option>`).join('')}</select><select id="deckRarity" aria-label="Lọc độ hiếm"><option value="">N / R / SR / UR</option>${['N','R','SR','UR'].map(r=>`<option ${r===deckRarity?'selected':''}>${r}</option>`).join('')}</select></div>
     <div class="deck-workspace"><div class="deck-builder"><div class="deck-grid" id="deckGrid"></div></div><aside id="deckInspector" class="deck-inspector" aria-label="Thông tin lá bài" aria-live="polite"></aside></div>
     <div id="deckStatus" role="status" class="deck-status ${problem?'invalid':''}">${esc(problem||`Hợp lệ · Main ${MAIN_SIZE} lá · N/R: 3 · SR: 2 · UR: 1 bản/tên`)}</div>
