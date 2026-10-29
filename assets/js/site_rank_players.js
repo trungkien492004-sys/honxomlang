@@ -6,6 +6,7 @@
   const timeOf = value => typeof value?.toMillis === 'function' ? value.toMillis()
     : typeof value === 'string' ? Date.parse(value) || 0 : Number(value) || 0;
   const online = player => player?.online === true && timeOf(player.lastSeen) > 0 && Date.now() - timeOf(player.lastSeen) <= 90000;
+  const withoutPresence = data => { const copy = { ...(data || {}) }; delete copy.online; delete copy.lastSeen; return copy; };
   let stopLive = null;
 
   function timestamp() {
@@ -58,7 +59,7 @@
     const people = new Map();
     for (const b of LEGEND_BOTS) people.set(b.uid, { ...b });
     for (const { id, data } of directory) people.set(data.uid || id, { ...data, uid: data.uid || id });
-    for (const { id, data } of ranked) people.set(data.uid || id, { ...people.get(data.uid || id), ...data, uid: data.uid || id });
+    for (const { id, data } of ranked) people.set(data.uid || id, { ...people.get(data.uid || id), ...withoutPresence(data), uid: data.uid || id });
 
     const tbody = overlay.querySelector('#rankRows');
     let challengeBusy = false;
@@ -198,7 +199,7 @@
       paint();
     });
     listen(rankedQuery, (latest, snapshot) => {
-      for (const { id, data } of latest) people.set(data.uid || id, { ...people.get(data.uid || id), ...data, uid: data.uid || id });
+      for (const { id, data } of latest) people.set(data.uid || id, { ...people.get(data.uid || id), ...withoutPresence(data), uid: data.uid || id });
       if (snapshot.docs.length === 0 && !ranked.length) { paint(); return; }
       paint();
     });

@@ -1,7 +1,7 @@
 // Saved opponent profiles, direct challenges, and client-side challenge results.
 (() => {
  if(!document.getElementById('lobby')||!window.siteIdentity)return;
- const identity=window.siteIdentity;let store=null,uid=null,unsub=null,timer=null,saving=null,lastSaved='',pending=null,incoming=null,generation=0,lastDirectory='';
+ const identity=window.siteIdentity;let store=null,uid=null,unsub=null,timer=null,saving=null,lastSaved='',pending=null,incoming=null,generation=0;
   const stamp=()=>{
     try{
       if(typeof firebase!=='undefined'&&firebase.firestore?.FieldValue?.serverTimestamp)return firebase.firestore.FieldValue.serverTimestamp();
@@ -36,7 +36,7 @@
   const prob = deckProblem(p.main, p.extra);
   if(prob) throw Error('Bộ bài đang dùng chưa hợp lệ: ' + prob);
   if(!valid(p)) throw Error('Bộ bài đang dùng chưa hợp lệ (nhân vật hoặc số lượng bài sai).');const key=JSON.stringify(p);if(!force&&lastSaved===key)return;if(saving){await saving;if(uid)return publish(force);return;}
-  const owner=uid; const created=Date.parse(identity.user?.metadata?.creationTime),directory={uid:owner,name:p.name,newbieUntil:Number.isFinite(created)?created+7*86400000:0,online:true},directoryKey=JSON.stringify(directory);saving=Promise.all([store.doc('duel_players/'+owner).set(stamped(p)),...(lastDirectory===directoryKey?[]:[store.doc('duel_directory/'+owner).set(Object.assign(native(directory),{lastSeen:stamp(),updatedAt:stamp()})).then(()=>{lastDirectory=directoryKey;})])]);try{await saving;if(uid===owner)lastSaved=key;}finally{saving=null;}
+  const owner=uid;const created=Date.parse(identity.user?.metadata?.creationTime),directory={uid:owner,name:p.name,newbieUntil:Number.isFinite(created)?created+7*86400000:0,online:true};saving=Promise.all([store.doc('duel_players/'+owner).set(stamped(p)),store.doc('duel_directory/'+owner).set(Object.assign(native(directory),{lastSeen:stamp(),updatedAt:stamp()}))]);try{await saving;if(uid===owner)lastSaved=key;}finally{saving=null;}
  }
  function label(){$('duelPlayerId')?.remove();}
  function stopPending(){pending?.unsub?.();if(pending?.timer)clearTimeout(pending.timer);pending=null;}
@@ -85,6 +85,7 @@
     if(!currentUid){const receipt={unauthenticated:true};if(match)match.rankChallengeResult=receipt;updateResultUI(receipt);return receipt;}
     let rawMatchId=match?.rankChallengeId||memeRoom?.challengeId;
     let opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
+    if(opponentUid&&currentUid&&opponentUid===currentUid) opponentUid=memeRoom?.rankOpponentUid||memeRoom?.peerUid||memeRoom?.hostUid||null;
     if (!rawMatchId) {
       const botGroup = (typeof HEROES !== 'undefined' && HEROES[match?.enemy?.heroId]?.group || 'kaiba').toLowerCase();
       rawMatchId = 'bot-' + crypto.randomUUID().replaceAll('-', '').slice(0, 24);
@@ -121,7 +122,7 @@
         if(outcome!=='draw'){
           const winnerRating=outcome==='win'?rating:opponentRating,loserRating=outcome==='win'?opponentRating:rating;
           const base=Math.max(1,Math.round(32*(1-1/(1+10**((loserRating-winnerRating)/400)))));
-          delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):(ownNewbie?0:-Math.min(base,rating));
+          delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):-Math.min(base,rating);
         }
         delta=Math.round(delta);
         const counts={played:Math.round((Number(mine.played)||0)+1),wins:Math.round((Number(mine.wins)||0)+(outcome==='win'?1:0)),losses:Math.round((Number(mine.losses)||0)+(outcome==='loss'?1:0)),draws:Math.round((Number(mine.draws)||0)+(outcome==='draw'?1:0))};
@@ -305,7 +306,7 @@
  const beforeRender=render;render=()=>{beforeRender();};
  $('backBtn').addEventListener('click',()=>publish().catch(error));
  identity.subscribe(async({user,ready})=>{
-  const token=++generation;clearInterval(timer);unsub?.();unsub=null;stopPending();incoming=null;$('directDuelInvite')?.remove();uid=user?.uid||null;store=identity.db;lastSaved='';lastDirectory='';label();
+  const token=++generation;clearInterval(timer);unsub?.();unsub=null;stopPending();incoming=null;$('directDuelInvite')?.remove();uid=user?.uid||null;store=identity.db;lastSaved='';label();
   if(!ready||!uid||!store)return;
   try{
     const saved=(await store.doc('duel_players/'+uid).get()).data();

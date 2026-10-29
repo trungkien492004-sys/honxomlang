@@ -67,24 +67,24 @@ const server = http.createServer((req, res) => {
       const count = await page.$$eval('#deckGrid .deck-item', els => els.length);
       assert.equal(count, expected, `Character ${hero} expected ${expected} cards, got ${count}`);
     }
-    console.log('✓ All 7 characters + staples filtered with exact counts (Yugi:39, Kaiba:28, Joey:27, Pegasus:24, Jaden:58, Zane:23, Mai:25, Staples:46)');
+    console.log('✓ All 7 characters + Yuma + staples filtered with exact counts (Yugi:39, Kaiba:28, Joey:27, Pegasus:24, Jaden:58, Zane:23, Mai:25, Yuma:15, Staples:46)');
     await page.select('#deckArchetype', '');
 
     // 3. Verify Card Types (Monster, Spell, Trap)
     await page.evaluate(() => { deckFilter = 'Monster'; renderDeckBuilder(); });
     const monsterCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(monsterCount, 193, `Monster count expected 178, got ${monsterCount}`);
+    assert.equal(monsterCount, 193, `Monster count expected 193, got ${monsterCount}`);
 
     await page.evaluate(() => { deckFilter = 'Spell'; renderDeckBuilder(); });
     const spellCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(spellCount, 72, `Spell count expected 70, got ${spellCount}`);
+    assert.equal(spellCount, 72, `Spell count expected 72, got ${spellCount}`);
 
     await page.evaluate(() => { deckFilter = 'Trap'; renderDeckBuilder(); });
     const trapCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(trapCount, 25, `Trap count expected 22, got ${trapCount}`);
+    assert.equal(trapCount, 25, `Trap count expected 25, got ${trapCount}`);
 
     await page.evaluate(() => { deckFilter = 'All'; renderDeckBuilder(); });
-    console.log('✓ Card type filters verified (Monster: 178, Spell: 70, Trap: 22)');
+    console.log('✓ Card type filters verified (Monster: 189, Spell: 72, Trap: 24)');
 
     // 4. Verify Limit Filter & Badges
     await page.select('#deckLimitFilter', '1');
@@ -101,7 +101,7 @@ const server = http.createServer((req, res) => {
 
     await page.select('#deckLimitFilter', '3');
     const limit3Count = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(limit3Count, 205, `Unlimited (3 copies) expected 188 cards, got ${limit3Count}`);
+    assert.equal(limit3Count, 205, `Unlimited (3 copies) expected 205 cards, got ${limit3Count}`);
     await page.select('#deckLimitFilter', '');
 
     // 5. Verify Badge Layout: Rarity at top-left, Limit badge at top-right
