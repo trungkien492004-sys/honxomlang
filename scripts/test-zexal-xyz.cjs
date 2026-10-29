@@ -27,6 +27,16 @@ for(const name of ['Yuma · Kinh điển','Yuma · Utopia']){
   for(const id of extra)assert.ok(cards.get(id)?.xyz_requirement,name+' extra card '+id+' is Xyz');
 }
 check('Catalog: 15 ZEXAL cards, 2 legal Yuma presets, all Extra cards are Xyz with matching ranks');
+vm.runInContext(fs.readFileSync('assets/js/meme_anime_heroes.js','utf8'),ctx);
+const yumaHero=ctx.MEME_HEROES.find(h=>h.code==='yuma');
+assert.ok(yumaHero,'Yuma hero is registered');
+assert.equal(ctx.MEME_HEROES.length,8,'eight heroes are registered');
+assert.equal(yumaHero.id,7,'Yuma hero id is 7');
+assert.equal(yumaHero.skill,'Kattobingu!','skill name');
+assert.ok(ctx.MEME_DECK_PRESETS[yumaHero.primaryDeck],'primary preset exists');
+assert.ok(ctx.MEME_EXTRA_PRESETS[yumaHero.primaryDeck],'primary Extra Deck exists');
+assert.ok(fs.existsSync(path.resolve(pub,yumaHero.figure)),'Yuma portrait file exists');
+check('Catalog: Yuma hero entry, portrait file and primary preset');
 
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -371,6 +381,102 @@ check('Catalog: 15 ZEXAL cards, 2 legal Yuma presets, all Extra cards are Xyz wi
   assert.equal(r.readyLabel,'✦ XYZ','the summon button is enabled with legal materials');
   assert.ok(r.lockedLabel.includes('Chưa đủ điều kiện'),'the summon button is disabled without legal materials');
   check('Extra Deck UI: Rank label, stats and Xyz summon gating');
+
+  // 22. Yuma hero: skill refuels an Xyz with a Level-4 Graveyard monster.
+  r=await p.evaluate(async()=>{
+   zxReset({monsters:['AN-gagaga_magician','AN-gogogo_golem',null],extraDeck:['AN-number_39_utopia'],deck:['AN-onomatopaira']});
+   await summonExtra(0);
+   duel.player.heroId=7;duel.player.grave.push('AN-gogogo_golem');
+   const problem=heroSkillProblem('player');
+   const used=await useHeroSkill();
+   return {problem,used,skillUsed:duel.player.skillUsed,materials:(duel.player.extra?.materials||[]).slice(),grave:duel.player.grave.slice(),hand:duel.player.hand.slice(),deck:duel.player.deck.slice(),logs:duel.logs.join(' | ')};
+  });
+  assert.equal(r.problem,'','Kattobingu is legal with an Xyz and a Level-4 Graveyard monster');
+  assert.equal(r.used,true,'the skill resolves');
+  assert.equal(r.skillUsed,true,'the skill is marked used');
+  assert.deepEqual(r.materials,['AN-gagaga_magician','AN-gogogo_golem','AN-gogogo_golem'],'the Graveyard monster becomes a third overlay unit');
+  assert.deepEqual(r.grave,[],'the attached monster leaves the Graveyard');
+  assert.deepEqual(r.hand,['AN-onomatopaira'],'Utopia draws one card');
+  assert.deepEqual(r.deck,[],'the draw comes from the top of the deck');
+  assert.ok(r.logs.includes('Kattobingu!'),'the log names the skill');
+  check('Yuma skill Kattobingu: attaches a Level-4 Grave monster and draws with Utopia');
+
+  // 23. A non-Utopia Xyz gains the unit but no draw.
+  r=await p.evaluate(async()=>{
+   zxReset({monsters:['AN-gagaga_magician','AN-gogogo_golem',null],extraDeck:['AN-gagaga_cowboy'],deck:['AN-onomatopaira']});
+   await summonExtra(0);
+   duel.player.heroId=7;duel.player.grave.push('AN-gogogo_golem','AN-gagaga_girl');
+   const used=await useHeroSkill();
+   return {used,target:duel.player.extra?.id||null,materials:(duel.player.extra?.materials||[]).slice(),grave:duel.player.grave.slice(),hand:duel.player.hand.slice()};
+  });
+  assert.equal(r.target,'AN-gagaga_cowboy','Gagaga Cowboy is the Xyz target');
+  assert.equal(r.used,true,'the skill resolves on any Xyz');
+  assert.deepEqual(r.materials,['AN-gagaga_magician','AN-gogogo_golem','AN-gogogo_golem'],'the first Level-4 monster is attached');
+  assert.deepEqual(r.grave,['AN-gagaga_girl'],'only the attached copy leaves the Graveyard');
+  assert.deepEqual(r.hand,[],'only Utopia draws a card');
+  check('Yuma skill: any Xyz gains a unit, only Utopia draws');
+
+  // 24. Kattobingu gating: MAIN, once per duel, Xyz and Level-4 Grave unit required.
+  r=await p.evaluate(async()=>{
+   zxReset({monsters:['AN-gagaga_magician',null,null]});
+   duel.player.heroId=7;duel.player.grave.push('AN-zubaba_knight');
+   const noXyz=heroSkillProblem('player');
+   zxReset({monsters:['AN-gagaga_magician','AN-gogogo_golem',null],extraDeck:['AN-number_39_utopia']});
+   duel.player.heroId=7;
+   await summonExtra(0);
+   const noUnit=heroSkillProblem('player');
+   zxReset({monsters:['AN-gagaga_magician','AN-gogogo_golem',null],extraDeck:['AN-number_39_utopia']});
+   duel.player.heroId=7;duel.player.grave.push('AN-blue_eyes_white_dragon');
+   await summonExtra(0);
+   const wrongLevel=heroSkillProblem('player');
+   return {noXyz,noUnit,wrongLevel};
+  });
+  assert.ok(r.noXyz.includes('XYZ'),'an Xyz monster is required');
+  assert.ok(r.noUnit.includes('Cấp 4'),'a Level-4 Graveyard monster is required');
+  assert.ok(r.wrongLevel.includes('Cấp 4'),'a Level-8 Graveyard monster is not a valid unit');
+  r=await p.evaluate(async()=>{
+   zxReset({monsters:['AN-gagaga_magician','AN-gogogo_golem',null],extraDeck:['AN-number_39_utopia'],deck:['AN-onomatopaira']});
+   await summonExtra(0);
+   duel.player.heroId=7;duel.player.grave.push('AN-gogogo_golem');
+   await useHeroSkill();
+   const second=heroSkillProblem('player');
+   duel.phase='BATTLE';const inBattle=heroSkillProblem('enemy');
+   return {second,inBattle};
+  });
+  assert.ok(r.second.includes('Đã dùng'),'the skill is once per duel');
+  assert.equal(r.inBattle,'Dùng trong MAIN của bạn.','the skill needs the MAIN phase');
+  check('Yuma skill gating: MAIN only, once per duel, Xyz plus Level-4 unit required');
+
+  // 25. The refueled unit can fuel Utopia's negate.
+  r=await p.evaluate(async()=>{
+   zxReset({monsters:['AN-gagaga_magician','AN-gogogo_golem',null],extraDeck:['AN-number_39_utopia'],deck:['AN-onomatopaira'],enemyMonsters:['AN-blue_eyes_white_dragon',null,null],positions:['atk','def','atk']});
+   await summonExtra(0);
+   duel.player.heroId=7;duel.player.grave.push('AN-gogogo_golem');
+   await useHeroSkill();
+   duel.phase='BATTLE';duel.turn='enemy';
+   await zxBattle('enemy',0,false,null,true);
+   return {lp:duel.player.lp,materials:(duel.player.extra?.materials||[]).length};
+  });
+  assert.equal(r.lp,4000,'the attack is still negated');
+  assert.equal(r.materials,2,'one of the three units is spent on the negate');
+  check('Yuma skill: the attached unit fuels a later Utopia negate');
+
+  // 26. The Yuma hero registers with its skill, preset and custom portrait.
+  r=await p.evaluate(()=>{
+   const h=HEROES[7],tile=document.querySelector('#heroRoster .hero-tag[data-hero="7"]');
+   return {count:HEROES.length,code:h.code,skill:h.skill,title:h.title,group:h.group,deck:h.primaryDeck,preset:!!MEME_DECK_PRESETS[h.primaryDeck],extra:!!MEME_EXTRA_PRESETS[h.primaryDeck],tiles:document.querySelectorAll('#heroRoster .hero-tag').length,tileText:tile?tile.textContent.replace(/\s+/g,' ').trim():'',figureClass:tile?.querySelector('.hero-figure')?.className||'',figureArt:getComputedStyle(tile.querySelector('.hero-figure')).backgroundImage,skillProblem:heroSkillProblem('player')};
+  });
+  assert.equal(r.count,8,'eight heroes are registered');
+  assert.equal(r.code,'yuma','the eighth hero is Yuma');
+  assert.equal(r.skill,'Kattobingu!','the skill name matches');
+  assert.equal(r.preset,true,'the primary preset exists');
+  assert.equal(r.extra,true,'the primary Extra Deck exists');
+  assert.equal(r.tiles,8,'the roster shows every hero');
+  assert.ok(r.tileText.includes('Yuma Tsukumo')&&r.tileText.includes('Kattobingu!'),'the roster tile shows name and skill');
+  assert.ok(r.figureClass.includes('hero-figure-yuma'),'the roster tile uses the custom portrait class');
+  assert.ok(r.figureArt.includes('yuma-v1.png'),'the roster tile loads the Yuma portrait');
+  assert.ok(r.skillProblem.length>0,'the skill is gated outside a duel');
+  check('Yuma hero: registration, roster tile, custom portrait, skill and preset');
 
   assert.deepEqual(errors,[]);
   fs.writeFileSync(path.join(out,'zexal-xyz-results.json'),JSON.stringify({status:'passed',checks},null,2));
