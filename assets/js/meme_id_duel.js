@@ -85,6 +85,7 @@
     if(!currentUid){const receipt={unauthenticated:true};if(match)match.rankChallengeResult=receipt;updateResultUI(receipt);return receipt;}
     let rawMatchId=match?.rankChallengeId||memeRoom?.challengeId;
     let opponentUid=match?.rankChallengeOpponentUid||memeRoom?.rankOpponentUid||match?.ghostOpponent?.uid;
+    if(opponentUid&&currentUid&&opponentUid===currentUid) opponentUid=memeRoom?.rankOpponentUid||memeRoom?.peerUid||memeRoom?.hostUid||null;
     if (!rawMatchId) {
       const botGroup = (typeof HEROES !== 'undefined' && HEROES[match?.enemy?.heroId]?.group || 'kaiba').toLowerCase();
       rawMatchId = 'bot-' + crypto.randomUUID().replaceAll('-', '').slice(0, 24);
@@ -121,7 +122,7 @@
         if(outcome!=='draw'){
           const winnerRating=outcome==='win'?rating:opponentRating,loserRating=outcome==='win'?opponentRating:rating;
           const base=Math.max(1,Math.round(32*(1-1/(1+10**((loserRating-winnerRating)/400)))));
-          delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):(ownNewbie?0:-Math.min(base,rating));
+          delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):-Math.min(base,rating);
         }
         delta=Math.round(delta);
         const counts={played:Math.round((Number(mine.played)||0)+1),wins:Math.round((Number(mine.wins)||0)+(outcome==='win'?1:0)),losses:Math.round((Number(mine.losses)||0)+(outcome==='loss'?1:0)),draws:Math.round((Number(mine.draws)||0)+(outcome==='draw'?1:0))};
