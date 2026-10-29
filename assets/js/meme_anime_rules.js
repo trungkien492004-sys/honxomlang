@@ -64,6 +64,7 @@
  const S=n=>{const s=side(n);s.banished??=[];return s;},E=n=>base.entries(n),face=s=>s&&s.position!=='def_down'&&!s.faceDown,has=(s,t)=>base.trait(s,t),hero=c=>/\bHERO\b/i.test(c?.name_en||''),dragon=c=>c?.tribe==='Rồng',machine=c=>c?.tribe==='Máy',amazoness=c=>/\bAmazoness\b/.test(c?.name_en||''),isRedEyes=c=>/Red-Eyes/i.test(c?.name_en||'')||c?.id==='AN-red_eyes_black_dragon'||/Mắt Đỏ/i.test(c?.name||''),darkSpellcaster=c=>c?.element==='Ám'&&c?.tribe==='Pháp Sư',necroCopies=n=>S(n).grave.filter(id=>id===aid('Elemental HERO Necroshade')).length;
  const free=n=>S(n).monsters.indexOf(null),allFields=()=>['player','enemy'].flatMap(n=>E(n).map(e=>({...e,name:n,id:e.slot.id,type:e.extra?'extra':'monster'}))),extraOpen=n=>{const s=S(n);return !s.extra||s.monsters.includes(null)};
  function placeOnField(n,slot){const s=S(n);if(!s.extra){s.extra=slot;return{extra:true,index:-1};}const i=s.monsters.indexOf(null);if(i<0)return null;s.monsters[i]=slot;return{extra:false,index:i};}
+ function spaceAfterMaterials(n,entries){const s=S(n);return !s.extra||entries.some(e=>e.extra)||s.monsters.some((m,i)=>!m||entries.some(e=>!e.extra&&e.index===i));}
  const lpFee=amount=>window.memeLpCosts?.fixed(amount)??amount,payLp=(n,amount,id)=>window.memeLpCosts?window.memeLpCosts.pay(n,amount,id):(S(n).lp>amount?(S(n).lp-=amount,true):false);
  function uid(slot){slot.uid??='anime-'+(duel.uidSeq=(duel.uidSeq||0)+1);return slot.uid;}
  function targetList(n,p=()=>true){return E(n).filter(e=>p(e.slot,card(e.slot.id))).map(e=>({...e,id:e.slot.id,name:n,type:e.extra?'extra':'monster'}));}
@@ -217,13 +218,14 @@
   const rank=req.rank??c.rank;
   const picked=await pickMany(n,'XYZ · '+c.name,pool.map(e=>({...e,id:e.slot.id,zone:'field'})),{min:req.materials||2,max:req.materials||2,validSets,text:'Chọn đúng '+(req.materials||2)+' quái ngửa cùng Cấp '+rank+' để chồng lên nhau.'});
   if(!picked?.length)return false;
-  const mats=picked.map(e=>e.slot);
+  const mats=picked.map(e=>e.slot),extraFree=!s.extra||picked.some(e=>e.extra),freeMain=s.monsters.findIndex((m,i)=>!m||picked.some(e=>!e.extra&&e.index===i));
+  if(!extraFree&&freeMain<0)return false;
   let summoned=null;
   const done=await fx(n,c,'summon',[],()=>{
    for(const mat of mats){const entry=E(n).find(e=>e.slot===mat);if(!entry)continue;if(entry.extra)s.extra=null;else s.monsters[entry.index]=null;}
    const at=s.extraDeck.indexOf(c.id);if(at<0)return;s.extraDeck.splice(at,1);
    const slot={...monsterSlot(c.id),properlySummoned:true,xyzSummoned:true,rank,materials:picked.map(e=>e.id)};
-   uid(slot);if(placeOnField(n,slot)){summoned=slot;log(`✦ XYZ: ${c.name} (Rank ${rank}) xuất hiện với ${slot.materials.length} nguyên liệu!`);}else s.extraDeck.push(c.id);
+   uid(slot);if(extraFree)s.extra=slot;else s.monsters[freeMain]=slot;summoned=slot;log(`✦ XYZ: ${c.name} (Rank ${rank}) xuất hiện với ${slot.materials.length} nguyên liệu!`);
   },{materials:picked.map(e=>e.id),title:'XYZ TRIỆU HỒI',text:c.name+' · Rank '+rank});
   if(done&&summoned)await postSummon(n,summoned,'xyz');
   return !!summoned;
@@ -579,6 +581,8 @@
       if (!chosen) return false;
       picked = chosen;
     }
+    const extraFree = !s.extra || picked.some(x => x.extra), freeMain = s.monsters.findIndex((m, i) => !m || picked.some(x => !x.extra && x.index === i));
+    if (!extraFree && freeMain < 0) return false;
     let summoned = null;
     const success = await fx(n, c, 'synchro', [], () => {
       for (const x of picked) {
@@ -608,14 +612,9 @@
         materialCount: picked.length
       };
       uid(slot);
-      const at = placeOnField(n, slot);
-      if (!at) {
-        s.extraDeck.push(c.id);
-        log('Không còn ô trống cho quái Đồng Bộ.');
-        return;
-      }
+      if (extraFree) s.extra = slot; else s.monsters[freeMain] = slot;
       summoned = slot;
-      log(`🌀 Triệu hồi Đồng Bộ thành công: ${c.name}${at.extra ? ' tại Ô quái Extra' : ' trên sân'}!`);
+      log(`🌀 Triệu hồi Đồng Bộ thành công: ${c.name}${extraFree ? ' tại Ô quái Extra' : ' trên sân'}!`);
     }, { materials: picked.map(e => e.id), title: 'TRIỆU HỒI ĐỒNG BỘ', text: c.name });
     if (success && summoned) {
       await postSummon(n, summoned, 'synchro');
@@ -1304,17 +1303,13 @@
      return 'Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!';
    }
    if (c.xyz_requirement) {
-     const req = c.xyz_requirement, rank = req.rank ?? c.rank;
-     if (!xyzOptions(n, id).length) {
+     const req = c.xyz_requirement, rank = req.rank ?? c.rank, combos = xyzOptions(n, id);
+     if (!combos.length) {
        return 'Cần ' + (req.materials || 2) + ' quái ngửa cùng Cấp ' + rank + ' trên sân để Triệu hồi XYZ ' + c.name + '!';
      }
-     if (!extraOpen(n)) return 'Ô quái Extra và cả 3 ô quái đều đã kín!';
+     if (!combos.some(combo => spaceAfterMaterials(n, combo))) return 'Ô quái Extra và cả 3 ô quái đều đã kín!';
      return '';
    }
-   const opts = fusionOptions(n, id);
-    if (free(n) < 0 && !extraOpen(n) && !opts.some(chosen => chosen.some(e => e.zone === 'field'))) {
-      return 'Khu vực quái thú và Extra Zone trên sân đã kín (Tối đa 3 ô + 1 Extra)!';
-    }
    if (c.monster_category?.includes('Đồng Bộ') || c.synchro_requirement) {
       const combos = synchroCombinations(n, id);
       if (!combos.length) {
@@ -1322,6 +1317,7 @@
         const tunerReq = req.tunerName ? req.tunerName : '1 Tuner';
         return `Cần ${tunerReq} + quái không Tuner đang ngửa, tổng đúng ${c.stars} sao để gọi ${c.name}!`;
       }
+      if (!combos.some(combo => spaceAfterMaterials(n, combo))) return 'Ô quái Extra và cả 3 ô quái đều đã kín!';
       return '';
     }
     if (c.summon_type === 'transformation') {
@@ -1335,6 +1331,7 @@
        const matNames = c.fusion_materials ? c.fusion_materials.map(m => card(m)?.name || m).join(' + ') : 'nguyên liệu phù hợp';
        return 'Cần đúng nguyên liệu ngửa trên sân để Hợp Thể (' + matNames + ')!';
      }
+     if (free(n) < 0 && !extraOpen(n) && !opts.some(chosen => chosen.some(e => e.zone === 'field'))) return 'Khu vực quái thú và Extra Zone trên sân đã kín (Tối đa 3 ô + 1 Extra)!';
      return '';
    }
    const spell = availableFusionSpell(n, id);
@@ -1342,6 +1339,7 @@
      const matNames = c.fusion_materials ? c.fusion_materials.map(m => card(m)?.name || m).join(' + ') : 'nguyên liệu phù hợp';
      return 'Cần Phép Dung Hợp phù hợp trên tay (Dung Hợp / Miracle Fusion / Power Bond) và đủ ' + matNames + '!';
    }
+   if (free(n) < 0 && !extraOpen(n) && !fusionOptions(n, id, card(spell).effect_code === 'miracle_fusion' ? 'miracle' : card(spell).effect_code === 'power_bond' ? 'power' : 'fusion').some(chosen => chosen.some(e => e.zone === 'field'))) return 'Khu vực quái thú và Extra Zone trên sân đã kín (Tối đa 3 ô + 1 Extra)!';
    return '';
  }
  window.extraSummonProblem = extraSummonProblem;

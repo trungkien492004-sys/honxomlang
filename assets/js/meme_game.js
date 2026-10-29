@@ -316,10 +316,12 @@ function startGame(options={}){
 function finish(winner,reason=''){
   if(!duel||duel.finished)return;duel.finished=true;duel.winner=winner;duel.finishReason=reason;clearTimeout(aiTimer);
   render();const won=winner==='player',match=duel;
+  const historyId=window.memeMatchHistory?.record?.(match);
   const rankPromise = window.memeIdDuel?.recordResult?.(match)?.catch(e => {
     console.warn('Rank record error:', e);
     return { error: e.message || 'Lỗi đồng bộ BXH' };
   });
+  rankPromise?.then?.(receipt=>{if(receipt&&typeof receipt.delta==='number')window.memeMatchHistory?.patch?.(historyId,{rankDelta:receipt.delta});});
   Promise.race([
     Promise.all([window.memeFx?.whenLpSettles() || Promise.resolve(), rankPromise || Promise.resolve()]),
     new Promise(resolve=>setTimeout(resolve, 1500))

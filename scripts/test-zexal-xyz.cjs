@@ -116,6 +116,25 @@ check('Catalog: Yuma hero entry, portrait file and primary preset');
   assert.deepEqual(r.main,['AN-gagaga_cowboy',null,null],'the new Xyz takes the first free main zone');
   check('Xyz summon: occupied Extra zone falls back to a free main monster zone');
 
+  // 3b. Full board: three monsters plus an occupied Extra zone still leave room
+  // because the field materials are cleared before the Xyz monster is placed.
+  r=await p.evaluate(async()=>{
+   zxReset({monsters:['AN-gagaga_magician','AN-gogogo_golem','AN-zubaba_knight'],extraDeck:['AN-number_39_utopia'],extra:'AN-stardust_dragon'});
+   const problem=extraSummonProblem('player','AN-number_39_utopia'),options=memeAnime.xyzOptions('player','AN-number_39_utopia').length;
+   const summoned=await summonExtra(0);
+   const utopia=duel.player.monsters.find(s=>s?.id==='AN-number_39_utopia');
+   return {problem,options,summoned,extra:duel.player.extra?.id||null,main:duel.player.monsters.map(s=>s?.id||null),grave:duel.player.grave.slice(),extraDeck:duel.player.extraDeck.length,materials:(utopia?.materials||[]).slice()};
+  });
+  assert.equal(r.problem,'','a full board still allows Xyz when the materials are on the field');
+  assert.equal(r.options,1,'exactly one pair of Level-4 materials');
+  assert.equal(r.summoned,true,'Xyz summon succeeds on a full board');
+  assert.equal(r.extra,'AN-stardust_dragon','the occupied Extra zone is untouched');
+  assert.deepEqual(r.main,['AN-number_39_utopia',null,'AN-zubaba_knight'],'the Xyz takes a material zone');
+  assert.deepEqual(r.materials,['AN-gagaga_magician','AN-gogogo_golem'],'both materials become overlay units');
+  assert.deepEqual(r.grave,[],'no material is lost to the Graveyard');
+  assert.equal(r.extraDeck,0,'one copy leaves the Extra Deck');
+  check('Xyz summon: full board uses the cleared material zone instead of refusing');
+
   // 4. Leviathan Dragon: detaching a unit sends it to the Graveyard and grants +500 ATK.
   r=await p.evaluate(async()=>{
    zxReset({monsters:['AN-zubaba_knight','AN-gagaga_girl',null],extraDeck:['AN-number_17_leviathan_dragon']});

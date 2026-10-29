@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="assets/css/meme_mobile_cards.css?v=20261026-hand-preview1" />
   <link rel="stylesheet" href="assets/css/meme_card_flow.css?v=20261026-confirm-v1" />
   <link rel="stylesheet" href="assets/css/meme_phase2.css?v=20261026-confirm-v1" />
-  <link rel="stylesheet" href="assets/css/meme_lobby_clean.css?v=20261030-hero-nav1" />
+  <link rel="stylesheet" href="assets/css/meme_lobby_clean.css?v=20261030-pc1" />
   <link rel="stylesheet" href="assets/css/meme_choice_confirm.css?v=20261026-multi1" />
   <link rel="stylesheet" href="assets/css/meme_id_duel.css?v=20261026-rank-challenge1">
 </head>
@@ -39,13 +39,19 @@
         </div>
       </header>
       <div class="lobby-center">
-        <div class="hero-heading"><span class="eyebrow">AVATAR · KỸ NĂNG ĐẤU SĨ</span><h1>Chọn đấu sĩ của bạn</h1><p>Mỗi nhân vật một kỹ năng · Dùng được với mọi bộ bài</p></div>
-        <div class="hero-picker">
-          <div class="lineup" aria-label="Chọn avatar đấu sĩ"><div class="hero-labels" id="heroRoster" role="radiogroup" aria-label="Nhân vật"></div></div>
-          <button type="button" class="hero-nav hero-nav-prev" id="heroPrev" aria-label="Xem đấu sĩ phía trước" aria-controls="heroRoster" hidden>‹</button>
-          <button type="button" class="hero-nav hero-nav-next" id="heroNext" aria-label="Xem thêm đấu sĩ" aria-controls="heroRoster" hidden>›</button>
-        </div>
-        <div id="selectedHeroSummary" class="lobby-skill-preview" aria-live="polite"></div>
+        <section class="lobby-roster" aria-label="Chọn đấu sĩ">
+          <div class="hero-heading"><span class="eyebrow">AVATAR · KỸ NĂNG ĐẤU SĨ</span><h1>Chọn đấu sĩ của bạn</h1><p>Mỗi nhân vật một kỹ năng · Dùng được với mọi bộ bài</p></div>
+          <div class="hero-picker">
+            <div class="lineup" aria-label="Chọn avatar đấu sĩ"><div class="hero-labels" id="heroRoster" role="radiogroup" aria-label="Nhân vật"></div></div>
+            <button type="button" class="hero-nav hero-nav-prev" id="heroPrev" aria-label="Xem đấu sĩ phía trước" aria-controls="heroRoster" hidden>‹</button>
+            <button type="button" class="hero-nav hero-nav-next" id="heroNext" aria-label="Xem thêm đấu sĩ" aria-controls="heroRoster" hidden>›</button>
+          </div>
+          <p class="roster-caption">9 đấu sĩ · chọn avatar để đổi kỹ năng, bộ Tối Thượng và xem lịch sử đấu</p>
+        </section>
+        <aside class="lobby-side">
+          <div id="selectedHeroSummary" class="lobby-skill-preview" aria-live="polite"></div>
+          <section class="lobby-history" id="lobbyHistory" aria-live="polite"></section>
+        </aside>
       </div>
       <footer class="lobby-footer"><button class="secondary-btn" id="lobbyDeckBtn" data-modal="Bộ bài">🃏 Bộ bài</button><button class="primary-btn" id="playBtn">⚔️ Vào trận</button></footer>
     </section>
@@ -79,12 +85,13 @@
   <script src="assets/js/meme_lp_costs.js?v=20261026-tcg-work1"></script>
   <script src="assets/js/meme_zexal_catalog.js?v=20261029-zexal1"></script>
   <script src="assets/js/meme_supreme_new.js?v=20261030-supreme1"></script>
-  <script src="assets/js/meme_game.js?v=20261030-supreme1"></script>
+  <script src="assets/js/meme_game.js?v=20261030-history1"></script>
+  <script src="assets/js/meme_match_history.js?v=20261030-history2"></script>
   <script src="assets/js/meme_rules.js?v=20261025-polish-v1"></script>
   <script src="assets/js/meme_online.js?v=20261027-invite-quick1"></script>
   <script src="assets/js/meme_fx.js?v=20261025-phase1-v1"></script>
   <script src="assets/js/meme_tcg_equips.js?v=20261026-equip-chain1"></script>
-  <script src="assets/js/meme_anime_rules.js?v=20261030-supreme1"></script>
+  <script src="assets/js/meme_anime_rules.js?v=20261030-rules1"></script>
   <script src="assets/js/meme_battle_guide.js?v=20261026-inline-attack1"></script>
   <script src="assets/js/meme_turn_clock.js?v=20261026-confirm-v1"></script>
   <script src="assets/js/meme_revival_online.js?v=20261025-polish-v1"></script>
