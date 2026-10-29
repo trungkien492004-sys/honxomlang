@@ -47,19 +47,20 @@ const server = http.createServer((req, res) => {
 
     // 1. Verify Total Cards
     const totalCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(totalCount, 270, 'Total cards in builder should be 270');
-    console.log('✓ Total 270 cards present');
+    assert.equal(totalCount, 290, 'Total cards in builder should be 290');
+    console.log('✓ Total 290 cards present');
 
     // 2. Verify 7 Characters + Staples Filter
     const characterCounts = {
-      yugi: 39,
-      kaiba: 28,
+      yugi: 43,
+      kaiba: 29,
       joey: 27,
-      pegasus: 24,
-      jaden: 58,
-      zane: 23,
-      mai: 25,
-      staples: 46
+      pegasus: 26,
+      jaden: 59,
+      zane: 24,
+      mai: 26,
+      yusei: 20,
+      staples: 36
     };
     for (const [hero, expected] of Object.entries(characterCounts)) {
       await page.select('#deckArchetype', hero);
@@ -72,15 +73,15 @@ const server = http.createServer((req, res) => {
     // 3. Verify Card Types (Monster, Spell, Trap)
     await page.evaluate(() => { deckFilter = 'Monster'; renderDeckBuilder(); });
     const monsterCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(monsterCount, 178, `Monster count expected 178, got ${monsterCount}`);
+    assert.equal(monsterCount, 193, `Monster count expected 178, got ${monsterCount}`);
 
     await page.evaluate(() => { deckFilter = 'Spell'; renderDeckBuilder(); });
     const spellCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(spellCount, 70, `Spell count expected 70, got ${spellCount}`);
+    assert.equal(spellCount, 72, `Spell count expected 70, got ${spellCount}`);
 
     await page.evaluate(() => { deckFilter = 'Trap'; renderDeckBuilder(); });
     const trapCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(trapCount, 22, `Trap count expected 22, got ${trapCount}`);
+    assert.equal(trapCount, 25, `Trap count expected 22, got ${trapCount}`);
 
     await page.evaluate(() => { deckFilter = 'All'; renderDeckBuilder(); });
     console.log('✓ Card type filters verified (Monster: 178, Spell: 70, Trap: 22)');
@@ -88,11 +89,11 @@ const server = http.createServer((req, res) => {
     // 4. Verify Limit Filter & Badges
     await page.select('#deckLimitFilter', '1');
     const limit1Count = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(limit1Count, 82, `Limit 1 expected 82 cards, got ${limit1Count}`);
+    assert.equal(limit1Count, 83, `Limit 1 expected 82 cards, got ${limit1Count}`);
 
     // Verify all 82 cards display the red circular limit badge with text "1"
     const limit1Badges = await page.$$eval('#deckGrid .deck-item .limit-badge.limit-1', els => els.length);
-    assert.equal(limit1Badges, 82, 'All 82 limit-1 cards should display limit-1 badge');
+    assert.equal(limit1Badges, 83, 'All 82 limit-1 cards should display limit-1 badge');
 
     // Take screenshot of limit 1 filter
     await page.screenshot({ path: path.join(out, 'builder-limit1-filter.png') });
@@ -100,7 +101,7 @@ const server = http.createServer((req, res) => {
 
     await page.select('#deckLimitFilter', '3');
     const limit3Count = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(limit3Count, 188, `Unlimited (3 copies) expected 188 cards, got ${limit3Count}`);
+    assert.equal(limit3Count, 205, `Unlimited (3 copies) expected 188 cards, got ${limit3Count}`);
     await page.select('#deckLimitFilter', '');
 
     // 5. Verify Badge Layout: Rarity at top-left, Limit badge at top-right

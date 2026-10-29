@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yu-Gi-Oh! DM / GX - Lobby Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/meme_lobby_suggestion.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  font-family: 'Nunito', system-ui, sans-serif;
+  color: #fff5dc;
+  background: #062236;
+  overflow-x: hidden;
+}
+.hero-figure, .hero-portrait {
+  display: block;
+  background-image: url('assets/memecard/anime-duelists-v1.png');
+  background-size: 400% 300%;
+  background-position: var(--hero-x) var(--hero-y);
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+#lobby.lobby {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(6,31,64,.35), transparent 35%, rgba(10,24,40,.6) 80%),
+              url('assets/beach.png') center center / cover no-repeat;
+  position: relative;
+  padding: 12px 18px 20px;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.brand-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: 2px solid #fde68a;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.brand-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+.brand-title span { color: #f59e0b; }
+.brand-title small {
+  display: block;
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #93c5fd;
+  letter-spacing: 1px;
+}
+.top-nav {
+  display: flex;
+  gap: 8px;
+}
+.top-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(15, 35, 55, 0.85);
+  border: 1.5px solid #38bdf8;
+  color: #e0f2fe;
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 35, 55, 0.85);
+  border: 1.5px solid #f59e0b;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fef08a;
+}
+.tier-tag {
+  background: #b45309;
+  color: #fef3c7;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+.lobby-center {
+  width: min(1050px, calc(100% - 20px));
+  margin: 10px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.hero-heading {
+  text-align: center;
+}
+.hero-heading h1 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(26px, 3.2vw, 42px);
+  color: #fff8e0;
+  text-shadow: 0 3px 12px rgba(0,0,0,0.85), 0 0 25px rgba(245, 158, 11, 0.4);
+}
+.hero-heading .subtitle {
+  font-size: 12px;
+  font-weight: 800;
+  color: #cbd5e1;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+.hero-labels {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+}
+.hero-tag {
+  flex: 0 0 calc(25% - 10px) !important;
+  max-width: 230px !important;
+}
+@media (max-width: 860px) {
+  .hero-tag { flex: 0 0 calc(33.333% - 9px) !important; }
+}
+@media (max-width: 580px) {
+  .hero-tag { flex: 0 0 calc(50% - 6px) !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="lobby" class="lobby">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="brand-box">
+      <div class="brand-icon">🃏</div>
+      <div class="brand-title">
+        YU-GI-OH! <span>DM / GX</span>
+        <small>ANIME DUEL · 60 GIÂY / LƯỢT ONLINE</small>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="user-badge">
+        <span>👑 Kiên Trung</span>
+        <span class="tier-tag">Đồng</span>
+        <span>1001 Elo</span>
+      </div>
+      <div class="top-nav">
+        <div class="top-btn">⚙️</div>
+        <div class="top-btn">🎵</div>
+        <div class="top-btn">❓</div>
+        <div class="top-btn">🚪</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center Content -->
+  <div class="lobby-center">
+    <div class="hero-heading">
+      <h1>Chọn huyền thoại của bạn</h1>
+      <div class="subtitle">7 đấu sĩ anime huyền thoại · Kỹ năng độc bản lật ngược thế cờ</div>
+    </div>
+
+    <!-- Hero Roster Grid -->
+    <div class="hero-labels">
+      <!-- 1. Yugi -->
+      <button class="hero-tag selected" style="--hero-color:#cfa7ff; --hero-x:0%; --hero-y:0%;">
+        <span class="hero-figure"></span>
+        <b>Yugi Muto / Atem</b>
+        <small>◈ Trái Tim Lá Bài</small>
+      </button>
+
+      <!-- 2. Kaiba -->
+      <button class="hero-tag" style="--hero-color:#9cd9ff; --hero-x:33.333%; --hero-y:0%;">
+        <span class="hero-figure"></span>
+        <b>Seto Kaiba</b>
+        <small>🐉 Kiêu Hãnh Rồng Trắng</small>
+      </button>
+
+      <!-- 3. Joey -->
+      <button class="hero-tag" style="--hero-color:#ffd28c; --hero-x:66.666%; --hero-y:0%;">
+        <span class="hero-figure"></span>
+        <b>Joey Wheeler</b>
+        <small>🪙 Vòng Quay Thời Gian</small>
+      </button>
+
+      <!-- 4. Pegasus -->
+      <button class="hero-tag" style="--hero-color:#e5abd4; --hero-x:100%; --hero-y:0%;">
+        <span class="hero-figure"></span>
+        <b>Maximillion Pegasus</b>
+        <small>◉ Con Mắt Ngàn Năm</small>
+      </button>
+
+      <!-- 5. Jaden -->
+      <button class="hero-tag" style="--hero-color:#ffae88; --hero-x:66.666%; --hero-y:50%;">
+        <span class="hero-figure"></span>
+        <b>Jaden Yuki / Judai</b>
+        <small>🔥 Bắt Đầu Cuộc Đấu!</small>
+      </button>
+
+      <!-- 6. Zane -->
+      <button class="hero-tag" style="--hero-color:#94d9e9; --hero-x:100%; --hero-y:50%;">
+        <span class="hero-figure"></span>
+        <b>Zane Truesdale / Ryo</b>
+        <small>⚡ Phong Cách Rồng Máy</small>
+      </button>
+
+      <!-- 7. Mai -->
+      <button class="hero-tag" style="--hero-color:#cfa7f5; --hero-x:0%; --hero-y:50%;">
+        <span class="hero-figure"></span>
+        <b>Mai Valentine / Mai Kujaku</b>
+        <small>🪶 Vũ Điệu Yêu Điểu</small>
+      </button>
+    </div>
+
+    <!-- Skill Preview Panel -->
+    <div class="lobby-skill-preview" style="--hero-color:#cfa7ff;">
+      <span class="hero-portrait" style="--hero-x:0%; --hero-y:0%;"></span>
+      <div>
+        <small>Yugi Muto / Atem · Kỹ Năng Đấu Sĩ</small>
+        <strong>◈ Trái Tim Lá Bài</strong>
+        <p>Khi LP ≤2000: xem 5 lá trên cùng của bộ bài, chọn 1 lên tay, rồi xáo lại.</p>
+        <span>✦ Kỹ năng nhân vật · MAIN · 1 lần/trận</span>
+        <button class="anime-deck-shortcut">🃏 Xem bộ mẫu của Yugi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Action Buttons -->
+  <div class="lobby-footer rank-actions">
+    <button id="rankPlayBtn">⚔️ Đấu Rank nhanh</button>
+    <button id="rankBoardBtn">🏆 Bảng Xếp Hạng</button>
+    <button id="playBtn">⚔️ Vào trận</button>
+    <button id="lobbyDeckBtn">🃏 Bộ bài</button>
+  </div>
+</div>
+
+</body>
+</html>

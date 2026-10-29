@@ -1,0 +1,409 @@
+/* ═══════════════════════════════════════════════════════════════
+   LOBBY SUGGESTION / SKILL-PREVIEW — Redesign 2026
+   Thiết kế lại khu vực gợi ý nhân vật & kỹ năng cho đẹp hơn
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. HERO ROSTER: card grid ── */
+#lobby .hero-labels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 0;
+}
+#lobby .hero-tag {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 0 0 10px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(255,220,130,0.28);
+  background: linear-gradient(170deg, rgba(14,42,66,0.96), rgba(6,22,42,0.98));
+  box-shadow:
+    0 6px 22px rgba(0,0,0,0.55),
+    0 1px 0 rgba(255,255,255,0.06) inset;
+  overflow: hidden;
+  transition:
+    transform 0.22s cubic-bezier(.34,1.56,.64,1),
+    border-color 0.22s,
+    box-shadow 0.22s;
+  cursor: pointer;
+}
+
+/* shimmer overlay on hover */
+#lobby .hero-tag::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 0%,
+    rgba(255,220,120,0.07) 40%,
+    transparent 55%
+  );
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+  z-index: 0;
+}
+#lobby .hero-tag:hover::before { opacity: 1; }
+#lobby .hero-tag:hover {
+  transform: translateY(-5px) scale(1.03);
+  border-color: var(--hero-color, #f7d695);
+  box-shadow:
+    0 14px 34px rgba(0,0,0,0.65),
+    0 0 18px color-mix(in srgb, var(--hero-color, #f7d695), transparent 65%);
+}
+
+/* selected state */
+#lobby .hero-tag.selected {
+  border: 2px solid var(--hero-color, #f7d695);
+  background: linear-gradient(170deg, rgba(28,68,100,0.97), rgba(10,32,58,0.99));
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.7),
+    0 0 28px color-mix(in srgb, var(--hero-color, #f7d695), transparent 52%),
+    0 0 55px color-mix(in srgb, var(--hero-color, #f7d695), transparent 78%);
+  transform: translateY(-6px);
+}
+
+/* hero figure (sprite) */
+#lobby .hero-tag .hero-figure {
+  width: 100%;
+  height: clamp(90px, 18dvh, 185px);
+  aspect-ratio: auto;
+  border-radius: 14px 14px 0 0;
+  background-size: 500% 100%;
+  position: relative;
+  z-index: 1;
+}
+/* gradient fade at bottom of figure */
+#lobby .hero-tag .hero-figure::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 38%;
+  background: linear-gradient(to top, rgba(6,22,42,0.9), transparent);
+  border-radius: 0 0 14px 14px;
+}
+
+/* name */
+#lobby .hero-tag b {
+  position: relative;
+  z-index: 2;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(11px, 1.2vw, 15px);
+  font-weight: 800;
+  color: #fff8e8;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+}
+
+/* skill label */
+#lobby .hero-tag small {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(9px, 0.85vw, 11px);
+  font-weight: 800;
+  color: var(--hero-color, #ffd580);
+  letter-spacing: 0.4px;
+  text-align: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--hero-color, #f7d695), transparent 82%);
+  border: 1px solid color-mix(in srgb, var(--hero-color, #f7d695), transparent 65%);
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ── 2. SKILL PREVIEW PANEL ── */
+#lobby .lobby-skill-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(100%, 680px);
+  margin: 0 auto;
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1.5px solid;
+  border-image: none;
+  border-color: rgba(242, 215, 157, 0.55);
+  background:
+    linear-gradient(130deg, rgba(14,38,62,0.96), rgba(8,24,45,0.98));
+  box-shadow:
+    0 8px 28px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 1px 0 rgba(255,255,255,0.07) inset;
+  overflow: hidden;
+}
+
+/* glow accent strip on top */
+#lobby .lobby-skill-preview::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--hero-color, #f2cb71) 40%,
+    var(--hero-color, #f2cb71) 60%,
+    transparent
+  );
+  opacity: 0.75;
+  border-radius: 18px 18px 0 0;
+}
+
+/* subtle diagonal lines background */
+#lobby .lobby-skill-preview::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 22px,
+    rgba(255,255,255,0.013) 22px 23px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* portrait */
+#lobby .lobby-skill-preview .hero-portrait {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid var(--hero-color, #f7d695);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--hero-color, #f7d695), transparent 80%),
+    0 4px 14px rgba(0,0,0,0.5);
+  background-color: #0d2a3e;
+}
+
+/* text container */
+#lobby .lobby-skill-preview > div {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+/* eyebrow label */
+#lobby .lobby-skill-preview small {
+  display: block;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--hero-color, #f2cb71);
+  opacity: 0.85;
+  margin-bottom: 2px;
+}
+
+/* skill name */
+#lobby .lobby-skill-preview strong {
+  display: block;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 900;
+  color: #fff5d2;
+  line-height: 1.15;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+  margin-bottom: 4px;
+}
+
+/* description */
+#lobby .lobby-skill-preview p {
+  margin: 0;
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 700;
+  color: #c8dfe8;
+  line-height: 1.45;
+}
+
+/* footer hint */
+#lobby .lobby-skill-preview > div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--hero-color, #a3e9cc);
+  opacity: 0.8;
+  letter-spacing: 0.3px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--hero-color, #a3e9cc), transparent 88%);
+  border: 1px solid color-mix(in srgb, var(--hero-color, #a3e9cc), transparent 72%);
+}
+
+/* ── 3. FOOTER ACTION BUTTONS (redesign) ── */
+#lobby .lobby-footer.rank-actions {
+  width: min(580px, calc(100% - 24px)) !important;
+  margin: 0 auto !important;
+  gap: 10px !important;
+  padding: 12px 0 max(14px, env(safe-area-inset-bottom)) !important;
+}
+
+#lobby .lobby-footer.rank-actions > button {
+  height: 50px !important;
+  min-height: 50px !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  border-radius: 14px !important;
+  padding: 8px 14px !important;
+  letter-spacing: 0.3px !important;
+  transition: transform 0.18s cubic-bezier(.34,1.56,.64,1), filter 0.18s, box-shadow 0.18s !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+#lobby .lobby-footer.rank-actions > button::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 50% 0;
+  background: rgba(255,255,255,0.06);
+  border-radius: inherit;
+  pointer-events: none;
+}
+#lobby .lobby-footer.rank-actions > button:hover {
+  transform: translateY(-3px) !important;
+  filter: brightness(1.12) !important;
+}
+#lobby .lobby-footer.rank-actions > button:active {
+  transform: translateY(0) scale(0.97) !important;
+  filter: brightness(0.95) !important;
+}
+
+/* Đấu Rank Nhanh */
+#lobby .lobby-footer.rank-actions > #rankPlayBtn {
+  background: linear-gradient(135deg, #f9a825, #e65c00) !important;
+  border: 1.5px solid rgba(255, 220, 100, 0.7) !important;
+  color: #fff !important;
+  box-shadow:
+    0 5px 0 rgba(140,60,0,0.55),
+    0 8px 22px rgba(230,92,0,0.45) !important;
+  text-shadow: 0 1px 3px rgba(100,30,0,0.7) !important;
+}
+
+/* Bảng Xếp Hạng */
+#lobby .lobby-footer.rank-actions > #rankBoardBtn {
+  background: linear-gradient(135deg, #1565c0, #2196f3) !important;
+  border: 1.5px solid rgba(100, 181, 246, 0.65) !important;
+  color: #fff !important;
+  box-shadow:
+    0 5px 0 rgba(10,60,120,0.55),
+    0 8px 22px rgba(33,150,243,0.35) !important;
+  text-shadow: 0 1px 3px rgba(5,30,80,0.7) !important;
+}
+
+/* Vào Trận */
+#lobby .lobby-footer.rank-actions > #playBtn {
+  background: linear-gradient(135deg, #00897b, #00bcd4) !important;
+  border: 1.5px solid rgba(100, 230, 210, 0.6) !important;
+  color: #fff !important;
+  box-shadow:
+    0 5px 0 rgba(0,70,60,0.6),
+    0 8px 22px rgba(0,188,212,0.35) !important;
+  text-shadow: 0 1px 3px rgba(0,50,60,0.7) !important;
+}
+
+/* Bộ Bài */
+#lobby .lobby-footer.rank-actions > #lobbyDeckBtn {
+  background: linear-gradient(135deg, #1e293b, #334155) !important;
+  border: 1.5px solid rgba(100, 130, 160, 0.5) !important;
+  color: #e2e8f0 !important;
+  box-shadow:
+    0 5px 0 rgba(10,20,35,0.6),
+    0 8px 18px rgba(0,0,0,0.4) !important;
+}
+
+/* ── 4. ANIME DECK SHORTCUT LINK ── */
+.anime-deck-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 7px;
+  font-size: 11px !important;
+  padding: 5px 12px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 220, 130, 0.45) !important;
+  background: rgba(30, 70, 100, 0.5) !important;
+  color: #ffe9a8 !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  transition: background 0.18s, transform 0.15s !important;
+}
+.anime-deck-shortcut:hover {
+  background: rgba(50, 100, 140, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── 5. HERO HEADING ── */
+#lobby .hero-heading h1 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(24px, 3.2vw, 40px);
+  color: #fff8e0;
+  -webkit-text-stroke: 1px rgba(200, 130, 50, 0.4);
+  text-shadow:
+    0 3px 10px rgba(20, 70, 110, 0.8),
+    0 0 28px rgba(255, 200, 80, 0.18);
+  margin: 0;
+  line-height: 1.15;
+}
+
+/* ── 6. RESPONSIVE ── */
+@media (max-width: 700px) {
+  #lobby .hero-labels {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+  #lobby .hero-tag { border-radius: 12px; }
+  #lobby .hero-tag .hero-figure { height: clamp(65px, 14dvh, 120px); border-radius: 10px 10px 0 0; }
+  #lobby .hero-tag b { font-size: 10px; min-height: 24px; }
+  #lobby .hero-tag small { display: none; }
+
+  #lobby .lobby-skill-preview {
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 14px;
+  }
+  #lobby .lobby-skill-preview .hero-portrait { width: 44px; height: 44px; }
+  #lobby .lobby-skill-preview strong { font-size: 16px; }
+  #lobby .lobby-skill-preview p { font-size: 11px; }
+
+  #lobby .lobby-footer.rank-actions > button {
+    height: 46px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 700px) and (max-height: 650px) {
+  #lobby .hero-tag .hero-figure { height: clamp(55px, 12dvh, 80px); }
+  #lobby .lobby-skill-preview { padding: 7px 10px; gap: 8px; }
+  #lobby .lobby-skill-preview strong { font-size: 14px; }
+  #lobby .lobby-skill-preview p { font-size: 10px; }
+}
+
+@media (max-height: 500px) and (min-width: 550px) {
+  #lobby .hero-labels { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  #lobby .hero-tag .hero-figure { height: 55px; border-radius: 8px 8px 0 0; }
+  #lobby .hero-tag b { font-size: 8.5px; min-height: 20px; }
+  #lobby .lobby-skill-preview { padding: 6px 10px; gap: 8px; }
+  #lobby .lobby-skill-preview .hero-portrait { width: 36px; height: 36px; }
+  #lobby .lobby-skill-preview strong { font-size: 13px; }
+  #lobby .lobby-skill-preview p { font-size: 10px; margin: 2px 0; }
+  #lobby .lobby-skill-preview > div > span { display: none; }
+  #lobby .lobby-footer.rank-actions > button { height: 36px !important; font-size: 13px !important; }
+}

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview – Lobby Suggestion Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & base ── */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;font-family:'Nunito',system-ui,sans-serif;color:#fff5dc;background:#062236}
+button{font:inherit;cursor:pointer}
+
+/* ── Layout wrapper ── */
+.preview-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 20px 32px;
+  background: linear-gradient(180deg, rgba(6,31,64,.3), transparent 40%, rgba(58,28,4,.15)),
+              url('assets/beach.png') center/cover no-repeat;
+  position: relative;
+}
+.preview-wrap::before {
+  content:'';position:absolute;inset:0;
+  background: linear-gradient(90deg, rgba(0,42,82,.28), transparent 30%, transparent 72%, rgba(0,34,72,.22));
+  pointer-events:none;
+}
+.lobby-center {
+  position:relative;z-index:1;
+  width: min(960px, calc(100% - 24px));
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ── Heading ── */
+.hero-heading { text-align: center; }
+.hero-heading h1 {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: clamp(26px, 3.6vw, 44px);
+  color: #fff8e0;
+  -webkit-text-stroke: 1px rgba(200,130,50,.4);
+  text-shadow: 0 3px 10px rgba(20,70,110,.8), 0 0 28px rgba(255,200,80,.18);
+  line-height: 1.15;
+}
+.eyebrow {
+  display:inline-block;padding:4px 14px;border-radius:20px;
+  background:#08385bae;border:1px solid #9cdaec;
+  font-size:10px;letter-spacing:2px;font-weight:900;color:#ffe6a8;
+  margin-bottom:6px;
+}
+
+/* ── HERO LABELS GRID ── */
+.hero-labels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+}
+.hero-tag {
+  --hero-color: #f7d695;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 0 0 10px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(255,220,130,.28);
+  background: linear-gradient(170deg, rgba(14,42,66,.96), rgba(6,22,42,.98));
+  box-shadow: 0 6px 22px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.06) inset;
+  overflow: hidden;
+  transition: transform .22s cubic-bezier(.34,1.56,.64,1), border-color .22s, box-shadow .22s;
+  cursor: pointer;
+}
+.hero-tag::before {
+  content:'';position:absolute;inset:0;
+  background: linear-gradient(125deg, transparent 0%, rgba(255,220,120,.07) 40%, transparent 55%);
+  opacity:0;transition:opacity .25s;pointer-events:none;z-index:0;
+}
+.hero-tag:hover::before{opacity:1}
+.hero-tag:hover {
+  transform: translateY(-5px) scale(1.03);
+  border-color: var(--hero-color);
+  box-shadow: 0 14px 34px rgba(0,0,0,.65), 0 0 18px color-mix(in srgb, var(--hero-color), transparent 65%);
+}
+.hero-tag.selected {
+  border: 2px solid var(--hero-color);
+  background: linear-gradient(170deg, rgba(28,68,100,.97), rgba(10,32,58,.99));
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.7),
+    0 0 28px color-mix(in srgb, var(--hero-color), transparent 52%),
+    0 0 55px color-mix(in srgb, var(--hero-color), transparent 78%);
+  transform: translateY(-6px);
+}
+/* figure: colored placeholder */
+.hero-figure {
+  width: 100%;
+  height: clamp(90px, 18dvh, 175px);
+  border-radius: 14px 14px 0 0;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: clamp(42px, 6vw, 68px);
+  padding-bottom: 6px;
+}
+.hero-figure::after {
+  content:'';position:absolute;inset:auto 0 0 0;height:38%;
+  background: linear-gradient(to top, rgba(6,22,42,.9), transparent);
+  border-radius:0 0 14px 14px;
+}
+.hero-tag b {
+  position:relative;z-index:2;
+  font-family:'Baloo 2',sans-serif;
+  font-size: clamp(11px,1.2vw,15px);
+  font-weight:800;color:#fff8e8;line-height:1.1;
+  text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);
+  min-height:28px;display:grid;place-items:center;
+  padding: 0 6px;
+}
+.hero-tag small {
+  position:relative;z-index:2;
+  font-size: clamp(9px,.85vw,11px);font-weight:800;
+  color: var(--hero-color);letter-spacing:.4px;
+  text-align:center;padding:2px 8px;border-radius:20px;
+  background: color-mix(in srgb, var(--hero-color), transparent 82%);
+  border: 1px solid color-mix(in srgb, var(--hero-color), transparent 65%);
+  min-height:20px;display:flex;align-items:center;gap:3px;
+}
+
+/* ── SKILL PREVIEW PANEL ── */
+.lobby-skill-preview {
+  --hero-color: #f2cb71;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(100%, 680px);
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(242,215,157,.55);
+  background: linear-gradient(130deg, rgba(14,38,62,.96), rgba(8,24,45,.98));
+  box-shadow:
+    0 8px 28px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.04) inset,
+    0 1px 0 rgba(255,255,255,.07) inset;
+  overflow: hidden;
+}
+.lobby-skill-preview::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background: linear-gradient(90deg, transparent, var(--hero-color) 40%, var(--hero-color) 60%, transparent);
+  opacity:.75;border-radius:18px 18px 0 0;
+}
+.lobby-skill-preview::after {
+  content:'';position:absolute;inset:0;
+  background: repeating-linear-gradient(135deg, transparent 0 22px, rgba(255,255,255,.013) 22px 23px);
+  pointer-events:none;z-index:0;
+}
+.hero-portrait {
+  position:relative;z-index:1;flex:0 0 auto;
+  width:60px;height:60px;border-radius:50%;
+  border: 2px solid var(--hero-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--hero-color), transparent 80%), 0 4px 14px rgba(0,0,0,.5);
+  background:#0d2a3e;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;overflow:hidden;
+}
+.skill-text { position:relative;z-index:1;flex:1;min-width:0;text-align:left; }
+.skill-text > small {
+  display:block;font-size:9px;font-weight:900;letter-spacing:1.5px;
+  text-transform:uppercase;color: var(--hero-color);opacity:.85;margin-bottom:2px;
+}
+.skill-text > strong {
+  display:block;font-family:'Baloo 2',sans-serif;
+  font-size: clamp(16px,2vw,22px);font-weight:900;
+  color:#fff5d2;line-height:1.15;
+  text-shadow:0 1px 6px rgba(0,0,0,.7);margin-bottom:4px;
+}
+.skill-text > p {
+  margin:0;font-size: clamp(11px,1.1vw,13px);font-weight:700;
+  color:#c8dfe8;line-height:1.45;
+}
+.skill-text > span {
+  display:inline-flex;align-items:center;gap:4px;margin-top:7px;
+  font-size:10px;font-weight:800;
+  color: var(--hero-color);opacity:.8;letter-spacing:.3px;
+  padding:2px 8px;border-radius:10px;
+  background: color-mix(in srgb, var(--hero-color), transparent 88%);
+  border: 1px solid color-mix(in srgb, var(--hero-color), transparent 72%);
+}
+
+/* ── FOOTER BUTTONS ── */
+.lobby-footer {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr 1fr;
+  gap: 10px;
+  width: min(600px, 100%);
+}
+.lobby-footer > button {
+  height: 50px;font-size: 15px;font-weight:900;
+  border-radius: 14px;padding: 8px 14px;
+  letter-spacing: .3px;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), filter .18s, box-shadow .18s;
+  position:relative;overflow:hidden;border:none;
+}
+.lobby-footer > button::after {
+  content:'';position:absolute;inset:0 0 50% 0;
+  background:rgba(255,255,255,.06);border-radius:inherit;pointer-events:none;
+}
+.lobby-footer > button:hover { transform:translateY(-3px);filter:brightness(1.12); }
+.lobby-footer > button:active { transform:translateY(0) scale(.97);filter:brightness(.95); }
+.btn-rank {
+  background: linear-gradient(135deg,#f9a825,#e65c00);
+  border: 1.5px solid rgba(255,220,100,.7)!important;color:#fff;
+  box-shadow: 0 5px 0 rgba(140,60,0,.55), 0 8px 22px rgba(230,92,0,.45);
+  text-shadow: 0 1px 3px rgba(100,30,0,.7);
+}
+.btn-leaderboard {
+  background: linear-gradient(135deg,#1565c0,#2196f3);
+  border: 1.5px solid rgba(100,181,246,.65)!important;color:#fff;
+  box-shadow: 0 5px 0 rgba(10,60,120,.55), 0 8px 22px rgba(33,150,243,.35);
+  text-shadow: 0 1px 3px rgba(5,30,80,.7);
+}
+.btn-play {
+  background: linear-gradient(135deg,#00897b,#00bcd4);
+  border: 1.5px solid rgba(100,230,210,.6)!important;color:#fff;
+  box-shadow: 0 5px 0 rgba(0,70,60,.6), 0 8px 22px rgba(0,188,212,.35);
+  text-shadow: 0 1px 3px rgba(0,50,60,.7);
+}
+.btn-deck {
+  background: linear-gradient(135deg,#1e293b,#334155);
+  border: 1.5px solid rgba(100,130,160,.5)!important;color:#e2e8f0;
+  box-shadow: 0 5px 0 rgba(10,20,35,.6), 0 8px 18px rgba(0,0,0,.4);
+}
+
+/* ── label above buttons ── */
+.preview-label {
+  font-size: 11px; font-weight: 800; letter-spacing: 2px;
+  color: rgba(200,225,240,.5); text-transform: uppercase; text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="preview-wrap">
+  <div class="lobby-center">
+
+    <!-- Heading -->
+    <div class="hero-heading">
+      <div class="eyebrow">DM / GX · NHÂN VẬT ANIME</div>
+      <h1>Chọn huyền thoại của bạn</h1>
+    </div>
+
+    <!-- Hero grid (4 DM + 3 GX) -->
+    <div class="hero-labels">
+
+      <!-- Yugi -->
+      <button class="hero-tag selected" style="--hero-color:#c084fc">
+        <div class="hero-figure" style="background:linear-gradient(160deg,#2d1b4e,#0e0520)">🧝</div>
+        <b>Yugi Muto / Atem</b>
+        <small>✦ Trái Tim Lá Bài</small>
+      </button>
+
+      <!-- Kaiba -->
+      <button class="hero-tag" style="--hero-color:#38bdf8">
+        <div class="hero-figure" style="background:linear-gradient(160deg,#0c2a4a,#040f1e)">🐉</div>
+        <b>Seto Kaiba</b>
+        <small>🐉 Kiểu Hình Rồng Trắng</small>
+      </button>
+
+      <!-- Joey -->
+      <button class="hero-tag" style="--hero-color:#fb923c">
+        <div class="hero-figure" style="background:linear-gradient(160deg,#3d1a06,#1a0800)">🗡️</div>
+        <b>Joey Wheeler</b>
+        <small>🎰 Vòng Quay Thời Gian</small>
+      </button>
+
+      <!-- Pegasus -->
+      <button class="hero-tag" style="--hero-color:#f472b6">
+        <div class="hero-figure" style="background:linear-gradient(160deg,#3b1630,#12071c)">👁️</div>
+        <b>Maximillion Pegasus</b>
+        <small>👁 Con Mắt Ngàn Năm</small>
+      </button>
+
+      <!-- Jaden -->
+      <button class="hero-tag" style="--hero-color:#34d399">
+        <div class="hero-figure" style="background:linear-gradient(160deg,#0d3520,#040f09)">⚡</div>
+        <b>Jaden Yuki / Judai</b>
+        <small>⚡ Bắt Đầu Cuộc Đấu!</small>
+      </button>
+
+      <!-- Zane -->
+      <button class="hero-tag" style="--hero-color:#60a5fa">
+        <div class="hero-figure" style="background:linear-gradient(160deg,#0a1e3d,#03070f)">🤖</div>
+        <b>Zane Truesdale / Ryo</b>
+        <small>⚙️ Phong Cách Rồng Máy</small>
+      </button>
+
+      <!-- Mai -->
+      <button class="hero-tag" style="--hero-color:#fbbf24">
+        <div class="hero-figure" style="background:linear-gradient(160deg,#3d2a08,#120c02)">🦅</div>
+        <b>Mai Valentine / Mai Kujaku</b>
+        <small>🪶 Vũ Điệu Yêu Điều</small>
+      </button>
+
+    </div>
+
+    <!-- Skill Preview Panel -->
+    <div class="lobby-skill-preview" style="--hero-color:#c084fc">
+      <div class="hero-portrait">🧝</div>
+      <div class="skill-text">
+        <small>Yugi Muto / Atem · Kỹ Năng Đấu Sĩ</small>
+        <strong>✦ Trái Tim Lá Bài</strong>
+        <p>Khi LP ≤2000: xem 5 lá trên cùng của bộ bài, chọn 1 lên tay, rồi xáo lại.</p>
+        <span>Mọi bộ bài · MAIN của bạn · 1 lần/trận</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="preview-label">Hành động</div>
+    <div class="lobby-footer">
+      <button class="btn-rank">⚔️ Đấu Rank nhanh</button>
+      <button class="btn-leaderboard">🏆 Bảng Xếp Hạng</button>
+      <button class="btn-play">⚔️ Vào trận</button>
+      <button class="btn-deck">🃏 Bộ bài</button>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

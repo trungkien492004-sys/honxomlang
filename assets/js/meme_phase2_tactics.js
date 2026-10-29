@@ -17,6 +17,7 @@
    if(code==='mirror_wall')return event.immune?0:lethal?105000:atk>=(economy?1600:800)?atk+350:0;
    if(code==='amazoness_archers')return v.self.monsters.some(x=>x&&!x.hidden&&/\bAmazoness\b/.test(get(x.id)?.name_en||''))?(lethal?100000:risk+attackers*400):0;
    if(code==='dramatic_rescue')return event.defenderId&&/\bAmazoness\b/.test(get(event.defenderId)?.name_en||'')&&v.self.hand?.some(id=>get(id)?.card_type==='Monster')?risk+600:0;
+   if(code==='scrap_iron_scarecrow')return risk>0?risk+500:1000;
   }
   if(event.kind==='set'&&code==='shadow_of_eyes')return event.atk?event.atk+200:600;
   if(event.kind==='summon'){
