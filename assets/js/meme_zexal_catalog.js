@@ -142,6 +142,11 @@
   ];
 
   const existing = window.MEME_CARDS || [];
+  for (const c of cards) {
+    const full = 'assets/memecard/pictures/' + c.id + '.webp';
+    c.custom_image = full;
+    if (window.MEME_CARD_PICTURES) window.MEME_CARD_PICTURES[c.id] = { full, thumb: 'assets/memecard/pictures/thumbs/' + c.id + '.webp', width: 256, height: 256, fallback: full };
+  }
   const known = new Set(existing.map(c => c.id));
   window.MEME_CARDS = [...existing, ...cards.filter(c => !known.has(c.id))];
 
