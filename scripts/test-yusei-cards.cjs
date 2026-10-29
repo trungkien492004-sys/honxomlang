@@ -148,7 +148,7 @@ const server = http.createServer((req, res) => {
 
       // Scenario 1b: Low LP restriction (< 500 LP)
       reset();
-      duel.player.heroId = 7;
+      duel.player.heroId = yHero ? yHero.id : 8;
       duel.player.lp = 500;
       duel.player.hand = [id('Kuriboh')];
       duel.player.deck = [id('Junk Synchron')];
@@ -156,7 +156,7 @@ const server = http.createServer((req, res) => {
 
       // Scenario 1c: Empty hand restriction
       reset();
-      duel.player.heroId = 7;
+      duel.player.heroId = yHero ? yHero.id : 8;
       duel.player.lp = 4000;
       duel.player.hand = [];
       duel.player.deck = [id('Junk Synchron')];

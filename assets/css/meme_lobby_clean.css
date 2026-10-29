@@ -1,61 +1,419 @@
-/* Keep the lobby focused on choosing a character, editing a deck and playing. */
-#lobby.lobby .topbar{flex:0 0 64px;height:64px;padding:8px 20px}
-#lobby .top-actions{display:flex;gap:8px;align-items:center}
-#lobby .top-actions .round-btn{display:inline-grid;place-items:center;width:40px;height:40px;padding:0;font-size:20px}
-#lobby #p2LobbySettings{margin:0}
-#lobby .lobby-center{width:min(960px,calc(100% - 32px));margin:0 auto;gap:16px;justify-content:center}
-#lobby .hero-heading{padding:0;text-align:center}
-#lobby .hero-heading .eyebrow,#lobby .hero-heading>p{display:none}
-#lobby .hero-heading h1{font-size:clamp(24px,3vw,36px);margin:0;line-height:1.15}
-#lobby .lineup{width:100%;margin:0}
-#lobby .hero-labels{margin:0;gap:10px}#lobby .hero-labels .hero-tag{flex:0 0 calc(25% - 7.5px)}
-#lobby .hero-tag .hero-figure{height:clamp(90px,18dvh,180px)}
-#lobby .hero-tag b{min-height:30px;display:grid;place-items:center;line-height:1.15}
-#lobby .lobby-skill-preview{width:min(100%,650px);margin:0 auto;padding:12px;gap:12px}
-#lobby .lobby-skill-preview>div{min-width:0;flex:1}
-#lobby .lobby-skill-preview>div>small{display:none}
-#lobby .lobby-footer{width:min(600px,calc(100% - 32px));margin:0 auto;min-height:0;flex:0 0 auto;display:grid;grid-template-columns:1fr 1.3fr;gap:12px;padding:14px 0 max(14px,env(safe-area-inset-bottom))}
-#lobby .lobby-footer>button{order:0;width:100%;height:48px;min-height:48px;font-size:18px;padding:8px;border-radius:12px;white-space:nowrap;display:flex;align-items:center;justify-content:center}
-@media(max-width:700px){
- #lobby.lobby .topbar{flex-basis:56px;height:56px;padding:6px 12px}
- #lobby .brand{font-size:19px;gap:6px}#lobby .brand-mark{width:30px;height:30px;font-size:20px}#lobby .brand small{font-size:6px;letter-spacing:.8px}
- #lobby .top-actions{gap:5px}#lobby .top-actions .round-btn{width:34px;height:34px;font-size:17px}
- #lobby .lobby-center{width:calc(100% - 24px);gap:12px}
- #lobby .hero-heading h1{font-size:25px}
- #lobby .hero-labels{gap:8px}#lobby .hero-labels .hero-tag{flex-basis:calc(33.333% - 5.5px)}
- #lobby .hero-tag{padding:5px;border-radius:12px;gap:3px}
- #lobby .hero-tag .hero-figure{height:clamp(62px,14dvh,118px)}
- #lobby .hero-tag b{font-size:11px;min-height:27px;white-space:normal}
- #lobby .hero-tag small{display:none}
- #lobby .lobby-skill-preview{padding:10px;gap:9px}
- #lobby .lobby-skill-preview .hero-portrait{width:40px;height:40px}
- #lobby .lobby-skill-preview strong{font-size:17px}
- #lobby .lobby-skill-preview p{font-size:11px;line-height:1.35;margin:4px 0}
- #lobby .lobby-skill-preview div>span{font-size:9px}
- #lobby .anime-deck-shortcut{font-size:10px;padding:5px 9px;margin-top:5px}
- #lobby .lobby-footer{width:calc(100% - 24px);gap:10px;padding-top:10px}
- #lobby .lobby-footer>button{min-height:46px;font-size:16px}
+/* ═══════════════════════════════════════════════════════════════
+   LOBBY CLEAN & COMPACT REDESIGN (PC & Mobile)
+   Tối ưu toàn diện: 9 nhân vật vừa khít 1 màn hình 100vh, không tràn, không đè nút
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Toàn khung Lobby ── */
+#lobby.lobby:not(.hidden) {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
 }
-@media(max-width:700px) and (max-height:650px){
- #lobby .lobby-center{gap:8px}#lobby .hero-heading h1{font-size:22px}
- #lobby .hero-tag .hero-figure{height:clamp(55px,12dvh,78px)}
- #lobby .lobby-skill-preview{padding:7px 9px}#lobby .lobby-skill-preview p{margin:2px 0;font-size:10px}
- #lobby .lobby-skill-preview strong{font-size:15px}
+#lobby.hidden {
+  display: none !important;
 }
-@media(max-height:500px) and (min-width:550px){
- #lobby.lobby .topbar{flex-basis:40px;height:40px;padding:3px 14px}
- #lobby .brand{font-size:21px}#lobby .brand small{display:none}
- #lobby .top-actions .round-btn{width:32px;height:32px;font-size:16px}
- #lobby .lobby-center{width:min(960px,calc(100% - 28px));gap:7px}
- #lobby .hero-heading h1{font-size:20px}
- #lobby .hero-labels{gap:6px}#lobby .hero-labels .hero-tag{flex-basis:calc(16.666% - 5px)}
- #lobby .hero-tag{padding:4px;gap:2px}#lobby .hero-tag .hero-figure{height:52px;width:52px}
- #lobby .hero-tag b{font-size:9px;min-height:23px}#lobby .hero-tag small{display:none}
- #lobby .lobby-skill-preview{padding:6px 10px;gap:8px;width:min(100%,650px)}
- #lobby .lobby-skill-preview .hero-portrait{width:34px;height:34px}
- #lobby .lobby-skill-preview strong{font-size:14px}#lobby .lobby-skill-preview p{font-size:10px;margin:2px 0}
- #lobby .lobby-skill-preview div>span{display:none}
- #lobby .anime-deck-shortcut{padding:3px 8px;margin-top:3px;font-size:9px}
- #lobby .lobby-footer{padding:6px 0;gap:10px}#lobby .lobby-footer>button{height:36px;min-height:36px;font-size:14px;padding:5px}
+
+#lobby.lobby .topbar {
+  flex: 0 0 48px !important;
+  height: 48px !important;
+  padding: 4px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: rgba(6, 24, 40, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  border-bottom: 1px solid rgba(220, 180, 100, 0.25) !important;
+  z-index: 10 !important;
 }
-@media(max-width:380px){#lobby .brand{font-size:16px;white-space:nowrap}#lobby .brand-mark,#lobby .brand small{display:none}#lobby .top-actions .round-btn{width:32px;height:32px}#lobby .lobby-footer>button{font-size:15px}}
+#lobby .brand {
+  font-size: 17px !important;
+  gap: 8px !important;
+}
+#lobby .brand-mark {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 16px !important;
+}
+#lobby .brand small {
+  font-size: 7.5px !important;
+  letter-spacing: 0.8px !important;
+  opacity: 0.85;
+}
+#lobby .top-actions {
+  display: flex !important;
+  gap: 6px !important;
+  align-items: center !important;
+}
+#lobby .top-actions .round-btn {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  font-size: 16px !important;
+  border-radius: 50% !important;
+}
+
+/* ── 2. Rank Identity Pill ── */
+#rankIdentity {
+  flex: 0 0 auto !important;
+  margin: 3px auto 0 !important;
+  padding: 2px 14px !important;
+  font-size: 11.5px !important;
+  line-height: 1.3 !important;
+  text-align: center !important;
+  color: #c8e8f8 !important;
+  background: rgba(14, 40, 62, 0.7) !important;
+  border: 1px solid rgba(140, 200, 230, 0.25) !important;
+  border-radius: 999px !important;
+  max-width: 90% !important;
+  box-sizing: border-box !important;
+  z-index: 5 !important;
+}
+
+/* ── 3. Khu vực giữa Lobby (.lobby-center) ── */
+#lobby .lobby-center {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: min(1080px, calc(100% - 24px)) !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  padding: 4px 0 !important;
+}
+
+#lobby .hero-heading {
+  padding: 0 !important;
+  margin: 0 !important;
+  text-align: center !important;
+}
+#lobby .hero-heading .eyebrow,
+#lobby .hero-heading > p {
+  display: none !important;
+}
+#lobby .hero-heading h1 {
+  font-size: clamp(17px, 2.2vw, 24px) !important;
+  margin: 0 !important;
+  line-height: 1.15 !important;
+  color: #fff6d6 !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8) !important;
+}
+
+/* ── 4. Danh sách 9 Đấu sĩ (Hero Roster) trên PC ── */
+#lobby .lineup {
+  width: 100% !important;
+  margin: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+#lobby .hero-labels {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  max-width: 990px !important;
+  margin: 0 auto !important;
+}
+#lobby .hero-labels .hero-tag {
+  flex: 0 0 calc(11.11% - 8px) !important;
+  min-width: 90px !important;
+  max-width: 105px !important;
+  padding: 4px 4px 6px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(165deg, rgba(16, 44, 68, 0.95), rgba(7, 24, 42, 0.98)) !important;
+  border: 1.5px solid rgba(160, 200, 220, 0.35) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 3px !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+#lobby .hero-labels .hero-tag:hover {
+  transform: translateY(-3px) scale(1.03) !important;
+  border-color: var(--hero-color, #ffd28c) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.7), 0 0 12px color-mix(in srgb, var(--hero-color, #ffd28c), transparent 60%) !important;
+}
+#lobby .hero-labels .hero-tag.selected {
+  border: 2px solid var(--hero-color, #ffd28c) !important;
+  background: linear-gradient(165deg, rgba(28, 70, 105, 0.98), rgba(12, 36, 62, 0.99)) !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.8), 0 0 18px color-mix(in srgb, var(--hero-color, #ffd28c), transparent 45%) !important;
+  transform: translateY(-4px) !important;
+}
+#lobby .hero-labels .hero-tag .hero-figure {
+  width: 100% !important;
+  height: 68px !important;
+  min-height: 0 !important;
+  border-radius: 8px !important;
+  background-size: 400% 300% !important;
+  background-position: var(--hero-x) var(--hero-y) !important;
+}
+#lobby .hero-labels .hero-tag b {
+  font-family: 'Baloo 2', sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  min-height: 16px !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-align: center !important;
+  color: #fff9e6 !important;
+}
+#lobby .hero-labels .hero-tag small {
+  display: none !important;
+}
+
+/* ── 5. Khung Kỹ năng & Xem bộ mẫu (#selectedHeroSummary) ── */
+#lobby .lobby-skill-preview {
+  flex: 0 0 auto !important;
+  width: min(100%, 620px) !important;
+  margin: 0 auto !important;
+  padding: 8px 14px !important;
+  gap: 12px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, rgba(12, 38, 62, 0.9), rgba(6, 20, 36, 0.95)) !important;
+  border: 1.5px solid rgba(230, 195, 110, 0.45) !important;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.65), 0 0 15px rgba(230, 195, 110, 0.12) inset !important;
+  backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+#lobby .lobby-skill-preview .hero-portrait {
+  width: 44px !important;
+  height: 44px !important;
+  flex: 0 0 44px !important;
+  border-radius: 50% !important;
+  border: 2px solid var(--hero-color, #ffd28c) !important;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
+}
+#lobby .lobby-skill-preview > div {
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+#lobby .lobby-skill-preview strong {
+  font-size: 15px !important;
+  color: #ffe69c !important;
+  line-height: 1.2 !important;
+}
+#lobby .lobby-skill-preview p {
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+  margin: 3px 0 !important;
+  color: #d6ecf7 !important;
+}
+#lobby .lobby-skill-preview div > span {
+  font-size: 9px !important;
+  color: #8ed0ee !important;
+  display: inline-block !important;
+  margin-right: 8px !important;
+}
+#lobby .anime-deck-shortcut {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  padding: 3px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 220, 130, 0.5) !important;
+  background: rgba(45, 90, 130, 0.6) !important;
+  color: #fff4cb !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  margin-top: 3px !important;
+  transition: transform 0.15s, background 0.15s !important;
+}
+#lobby .anime-deck-shortcut:hover {
+  background: rgba(65, 120, 170, 0.8) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── 6. 4 Nút Hành động ở Footer (.lobby-footer.rank-actions) ── */
+#lobby .lobby-footer.rank-actions {
+  flex: 0 0 auto !important;
+  width: min(580px, calc(100% - 24px)) !important;
+  margin: 0 auto !important;
+  padding: 6px 0 max(8px, env(safe-area-inset-bottom)) !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+  z-index: 10 !important;
+}
+#lobby .lobby-footer.rank-actions > button {
+  height: 42px !important;
+  min-height: 42px !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  border-radius: 11px !important;
+  padding: 6px 10px !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+#lobby .lobby-footer.rank-actions > #rankPlayBtn {
+  order: 1 !important;
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  border: 1.5px solid #fde68a !important;
+  color: #fff !important;
+  box-shadow: 0 3px 12px rgba(217, 119, 6, 0.45) !important;
+}
+#lobby .lobby-footer.rank-actions > #rankBoardBtn {
+  order: 2 !important;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  border: 1.5px solid #93c5fd !important;
+  color: #fff !important;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4) !important;
+}
+#lobby .lobby-footer.rank-actions > #playBtn {
+  order: 3 !important;
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  border: 1.5px solid #6ee7b7 !important;
+  color: #fff !important;
+  box-shadow: 0 3px 12px rgba(5, 150, 105, 0.4) !important;
+}
+#lobby .lobby-footer.rank-actions > #lobbyDeckBtn {
+  order: 4 !important;
+  background: linear-gradient(135deg, #1e3a5f, #142842) !important;
+  border: 1.5px solid #7dd3fc !important;
+  color: #f0f9ff !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   7. MOBILE RESPONSIVE (Dưới 768px): Cuộn ngang avatar cực gọn
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #lobby.lobby .topbar {
+    flex-basis: 44px !important;
+    height: 44px !important;
+    padding: 2px 10px !important;
+  }
+  #lobby .brand { font-size: 15px !important; }
+  #lobby .brand-mark { width: 24px !important; height: 24px !important; font-size: 14px !important; }
+  #lobby .brand small { display: none !important; }
+  #lobby .top-actions .round-btn { width: 30px !important; height: 30px !important; font-size: 14px !important; }
+
+  #rankIdentity {
+    margin: 2px auto !important;
+    padding: 1px 10px !important;
+    font-size: 10.5px !important;
+  }
+
+  #lobby .lobby-center {
+    width: 100% !important;
+    padding: 0 8px !important;
+    gap: 6px !important;
+  }
+  #lobby .hero-heading h1 {
+    font-size: 18px !important;
+  }
+
+  /* Chuyển Hero Roster thành thanh cuộn ngang mượt mà, siêu gọn */
+  #lobby .lineup {
+    width: 100% !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 2px 4px 6px !important;
+    scrollbar-width: none !important;
+    display: block !important;
+  }
+  #lobby .lineup::-webkit-scrollbar {
+    display: none !important;
+  }
+  #lobby .hero-labels {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    width: max-content !important;
+    padding: 0 4px !important;
+  }
+  #lobby .hero-labels .hero-tag {
+    flex: 0 0 80px !important;
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+    scroll-snap-align: center !important;
+    padding: 4px 2px 5px !important;
+    border-radius: 11px !important;
+    gap: 2px !important;
+  }
+  #lobby .hero-labels .hero-tag .hero-figure {
+    height: 62px !important;
+    border-radius: 7px !important;
+  }
+  #lobby .hero-labels .hero-tag b {
+    font-size: 9.5px !important;
+    min-height: 14px !important;
+    max-width: 76px !important;
+  }
+
+  #lobby .lobby-skill-preview {
+    width: 100% !important;
+    padding: 7px 10px !important;
+    gap: 9px !important;
+    border-radius: 12px !important;
+  }
+  #lobby .lobby-skill-preview .hero-portrait {
+    width: 38px !important;
+    height: 38px !important;
+    flex: 0 0 38px !important;
+  }
+  #lobby .lobby-skill-preview strong { font-size: 14px !important; }
+  #lobby .lobby-skill-preview p { font-size: 10px !important; margin: 2px 0 !important; }
+  #lobby .lobby-skill-preview div > span { font-size: 8px !important; }
+  #lobby .anime-deck-shortcut { font-size: 9px !important; padding: 2px 7px !important; }
+
+  #lobby .lobby-footer.rank-actions {
+    width: 100% !important;
+    gap: 6px !important;
+    padding: 4px 0 max(6px, env(safe-area-inset-bottom)) !important;
+  }
+  #lobby .lobby-footer.rank-actions > button {
+    height: 38px !important;
+    min-height: 38px !important;
+    font-size: 13px !important;
+    border-radius: 9px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   8. MÀN HÌNH CỰC NGẮN (Chiều cao <= 600px như điện thoại xoay ngang)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-height: 600px) {
+  #lobby.lobby .topbar { flex-basis: 38px !important; height: 38px !important; }
+  #lobby .lobby-center { gap: 4px !important; }
+  #lobby .hero-heading h1 { font-size: 16px !important; }
+  #lobby .hero-labels .hero-tag {
+    flex: 0 0 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+  }
+  #lobby .hero-labels .hero-tag .hero-figure { height: 50px !important; }
+  #lobby .hero-labels .hero-tag b { font-size: 8.5px !important; }
+  #lobby .lobby-skill-preview { padding: 5px 8px !important; }
+  #lobby .lobby-skill-preview .hero-portrait { width: 32px !important; height: 32px !important; flex: 0 0 32px !important; }
+  #lobby .lobby-skill-preview strong { font-size: 13px !important; }
+  #lobby .lobby-skill-preview p { font-size: 9.5px !important; margin: 1px 0 !important; }
+  #lobby .lobby-footer.rank-actions > button { height: 34px !important; min-height: 34px !important; font-size: 12px !important; }
+}

@@ -770,7 +770,7 @@
       </div>
     `;
     const dismiss = () => {
-      try { sessionStorage.setItem('rank-promo-dismissed', '1'); } catch {}
+      try { sessionStorage.setItem('rank-promo-dismissed', '1'); localStorage.setItem('rank-promo-dismissed', '1'); } catch {}
       overlay.remove();
     };
     overlay.onclick = event => { if (event.target === overlay) dismiss(); };
@@ -798,7 +798,7 @@
 
   function tryAutoPromo() {
     try {
-      if (sessionStorage.getItem('rank-promo-dismissed')) return;
+      if (sessionStorage.getItem('rank-promo-dismissed') || localStorage.getItem('rank-promo-dismissed')) return;
       if (document.getElementById('duel') && !document.getElementById('duel').classList.contains('hidden')) return;
       showRankPromo();
     } catch {}
