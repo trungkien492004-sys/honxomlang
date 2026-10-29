@@ -232,7 +232,7 @@ window.attackProblem = function(slot) {
 function log(text){if(!duel)return;duel.logs.unshift(text);duel.logs=duel.logs.slice(0,50);notify(text);}
 function side(name){return duel[name];}
 function other(name){return name==='player'?'enemy':'player';}
-function putGrave(name,slot){if(slot&&!slot.token)side(name).grave.push(slot.id);}
+function putGrave(name,slot){if(!slot)return;const s=side(name);if(slot.xyzSummoned&&slot.materials?.length)s.grave.push(...slot.materials.splice(0));if(!slot.token)s.grave.push(slot.id);}
 function draw(name){const s=side(name);if(!s.deck.length){finish(other(name),`${name==='player'?'Bạn':'Đối thủ'} hết bài để rút.`);return false;}s.hand.push(s.deck.shift());return true;}
 function blankSide(deck,extras=defaultExtraDeck(),heroId=0){return{lp:4000,shield:0,heroId:getHero(heroId).id,skillUsed:false,deck:shuffle(deck.filter(id=>!isExtraCard(id))),extraDeck:[...extras],hand:[],monsters:[null,null,null],spells:[null,null,null],field:null,extra:null,grave:[]};}
 function startGame(options={}){
@@ -865,13 +865,13 @@ function renderZones(name,type,hostId){
     b.classList.toggle('material-chosen',duel.mode==='extra'&&name==='player'&&type==='monster'&&duel.pending?.chosen.includes(index));
     if(!slot)b.innerHTML=type==='monster'?'✧':'◇';
     else if(hidden)b.innerHTML='<span class="slot-emoji">🂠</span>';
-    else b.innerHTML=`${artHTML(slot.id,'zone-art')}<span class="slot-label">${esc(window.arcana200?.displayName(slot)||c.name)}</span>${window.arcana200&&!hidden?`<span class="slot-effect-tag">${slot.effectsNegated||(slot.negatedUntil??-1)>=duel.round?'⛔ ':''}${slot.marks?'◆'+slot.marks+' ':''}${slot.spellCounters?'✦'+slot.spellCounters+' ':''}${slot.banishOnLeave?'↗':''}</span>`:''}${type==='monster'?`<span class="slot-stats">${slot.position==='atk'?'⚔'+effectiveAtk(name,slot):'🛡'+effectiveDef(name,slot)}</span>${(slot.frozenUntil??-1)>=duel.round?'<span class="slot-status">❄ KHÓA</span>':window.memeRules?.trait(slot,'double_attack')?`<span class="slot-status">${Math.max(0,2-(slot.attacksUsed||0))}×</span>`:''}`:''}`;
+    else b.innerHTML=`${artHTML(slot.id,'zone-art')}<span class="slot-label">${esc(window.arcana200?.displayName(slot)||c.name)}</span>${window.arcana200&&!hidden?`<span class="slot-effect-tag">${slot.effectsNegated||(slot.negatedUntil??-1)>=duel.round?'⛔ ':''}${slot.marks?'◆'+slot.marks+' ':''}${slot.spellCounters?'✦'+slot.spellCounters+' ':''}${slot.banishOnLeave?'↗':''}</span>`:''}${type==='monster'?`<span class="slot-stats">${slot.position==='atk'?'⚔'+effectiveAtk(name,slot):'🛡'+effectiveDef(name,slot)}</span>${slot.rank?`<span class="slot-status">R${slot.rank}</span>`:''}${slot.xyzSummoned&&slot.materials?.length?`<span class="slot-status">◆${slot.materials.length}</span>`:''}${(slot.frozenUntil??-1)>=duel.round?'<span class="slot-status">❄ KHÓA</span>':window.memeRules?.trait(slot,'double_attack')?`<span class="slot-status">${Math.max(0,2-(slot.attacksUsed||0))}×</span>`:''}`:''}`;
     b.title=hidden?'Bài úp':slot?`${c.name} · ${c.description}`:'Ô trống';b.addEventListener('click',()=>handleZone(name,type,index));b.addEventListener('keydown',event=>{if(event.target===b&&['Enter',' '].includes(event.key)){event.preventDefault();handleZone(name,type,index);}});host.appendChild(b);
   });
 }
 function renderSpecial(name,type,hostId){
   const host=$(hostId),slot=type==='field'?side(name).field:side(name).extra,c=card(slot?.id),monster=type==='extra'&&slot&&c?.card_type==='Monster';
-  host.classList.toggle('has-card',!!slot);host.innerHTML=slot?`${artHTML(slot.id,'special-art')}<small>${esc(c.name)}</small>${monster?`<b class="special-stats">${slot.position==='atk'?'⚔':'🛡'}${slot.position==='atk'?effectiveAtk(name,slot):effectiveDef(name,slot)}</b>`:''}`:`${type==='field'?'🌍':'✦'}<small>${type==='field'?'Môi trường':'Ô quái Extra'}</small>`;
+  host.classList.toggle('has-card',!!slot);host.innerHTML=slot?`${artHTML(slot.id,'special-art')}<small>${esc(c.name)}</small>${monster?`<b class="special-stats">${slot.position==='atk'?'⚔':'🛡'}${slot.position==='atk'?effectiveAtk(name,slot):effectiveDef(name,slot)}${slot.rank?' · R'+slot.rank:''}${slot.xyzSummoned&&slot.materials?.length?' · ◆'+slot.materials.length:''}</b>`:''}`:`${type==='field'?'🌍':'✦'}<small>${type==='field'?'Môi trường':'Ô quái Extra'}</small>`;
   host.classList.toggle('valid-target',effectTargetValid(name,type,-1)||!!slot&&((name==='enemy'&&type==='extra'&&duel.mode==='attack')||(name==='player'&&type==='extra'&&duel.mode==='extra'&&slot.position!=='def_down')));
   host.classList.toggle('material-chosen',duel.mode==='extra'&&name==='player'&&type==='extra'&&duel.pending?.chosen.includes(-1));
   host.onclick=()=>handleZone(name,type,-1);
@@ -911,18 +911,18 @@ function render(){
 function openPile(name,kind){if(!duel)return;pileView={name,kind};renderPile();}
 function renderPile(){
   if(!duel||!pileView)return;const {name,kind}=pileView,s=side(name),extra=kind==='extra',banished=kind==='banished',hidden=extra&&name==='enemy',list=extra?(s.extraDeck||[]):[...(banished?s.banished||[]:s.grave)].reverse();
-  showModal(`<h2>${extra?'✦ Extra Deck':banished?'↗ Trục xuất':'⚰ Mộ'} · ${name==='player'?'của bạn':'đối thủ'} <small>(${list.length} lá)</small></h2><p class="pile-hint">${hidden?'Extra Deck đối thủ được giữ kín. Chỉ xem được số lá còn lại.':extra?'Dung Hợp: Phép Dung Hợp và đúng nguyên liệu ghi trên lá, lấy từ tay hoặc sân. Không dùng lượt triệu hồi thường.':'Lá mới xuống mộ nằm trước. Bấm một lá để đọc toàn bộ hiệu ứng.'}</p><div id="pileCards" class="pile-cards"></div>`);
+  showModal(`<h2>${extra?'✦ Extra Deck':banished?'↗ Trục xuất':'⚰ Mộ'} · ${name==='player'?'của bạn':'đối thủ'} <small>(${list.length} lá)</small></h2><p class="pile-hint">${hidden?'Extra Deck đối thủ được giữ kín. Chỉ xem được số lá còn lại.':extra?'Dung Hợp: Phép Dung Hợp và đúng nguyên liệu ghi trên lá, lấy từ tay hoặc sân. XYZ: chồng đúng số quái cùng Cấp ngửa trên sân. Không dùng lượt triệu hồi thường.':'Lá mới xuống mộ nằm trước. Bấm một lá để đọc toàn bộ hiệu ứng.'}</p><div id="pileCards" class="pile-cards"></div>`);
   $('modal').querySelector('.modal-card').classList.add('pile-modal');
   if(!extra){const toggle=addAction($('modalContent'),banished?'⚰ Xem Mộ':'↗ Xem bài trục xuất',()=>openPile(name,banished?'grave':'banished'),true);toggle.classList.add('pile-toggle');}
   if(hidden)return;
   if(!list.length){$('pileCards').innerHTML='<p class="pile-empty">Chưa có lá bài.</p>';return;}
   list.forEach((id,index)=>{const c=card(id);if(!c)return;const item=document.createElement('article');item.className='pile-card';item.dataset.cardId=id;
-    item.innerHTML=`<button class="pile-preview">${artHTML(id,'pile-art')}<span><b>${esc(c.name)}</b><small>${extra?'EXTRA · ':''}${c.is_tuner?'TUNER · ':''}${c.card_type==='Monster'?`★${c.stars} · ${c.atk}/${c.def}`:esc(c.spell_category||c.trap_category)}</small></span></button>`;
-    item.querySelector('button').onclick=()=>{showModal(`<h2>${esc(c.name)}</h2><div class="library-detail-art">${artHTML(id,'inspect-art-wrap')}</div><p class="card-meta-line">${esc(c.monster_category||c.spell_category||c.trap_category)}${c.card_type==='Monster'?` · ★${c.stars} · ATK ${c.atk} / DEF ${c.def}`:''}</p><p class="card-desc-line">${esc(c.description)}</p><button id="backToPile" class="secondary-btn">← ${extra?'Extra Deck':'Mộ'}</button>`);$('backToPile').onclick=renderPile;};
+    item.innerHTML=`<button class="pile-preview">${artHTML(id,'pile-art')}<span><b>${esc(c.name)}</b><small>${extra?'EXTRA · ':''}${c.is_tuner?'TUNER · ':''}${c.card_type==='Monster'?`${c.xyz_requirement?'R'+(c.rank||0):'★'+c.stars} · ${c.atk}/${c.def}`:esc(c.spell_category||c.trap_category)}</small></span></button>`;
+    item.querySelector('button').onclick=()=>{showModal(`<h2>${esc(c.name)}</h2><div class="library-detail-art">${artHTML(id,'inspect-art-wrap')}</div><p class="card-meta-line">${esc(c.monster_category||c.spell_category||c.trap_category)}${c.card_type==='Monster'?` · ${c.xyz_requirement?'Rank '+c.rank:'★'+c.stars} · ATK ${c.atk} / DEF ${c.def}`:''}</p><p class="card-desc-line">${esc(c.description)}</p><button id="backToPile" class="secondary-btn">← ${extra?'Extra Deck':'Mộ'}</button>`);$('backToPile').onclick=renderPile;};
     if(extra){
       const prob = typeof window.extraSummonProblem === 'function' ? window.extraSummonProblem('player', id) : (!synchroOptions('player',id).length ? 'Cần đúng nguyên liệu / Phép phù hợp' : null);
       const ready = !prob && mainPhase() && !duel.mode;
-      const label = ready ? (c.summon_type==='transformation'?'◈ Biến Đổi':c.contact?'🌀 Hợp thể từ sân':'🌀 Dung Hợp') : (prob && prob.includes('cấm') ? '⛔ Bị cấm Triệu hồi' : '🌀 Chưa đủ điều kiện ⓘ');
+      const label = ready ? (c.summon_type==='transformation'?'◈ Biến Đổi':c.xyz_requirement?'✦ XYZ':c.contact?'🌀 Hợp thể từ sân':'🌀 Dung Hợp') : (prob && prob.includes('cấm') ? '⛔ Bị cấm Triệu hồi' : '🌀 Chưa đủ điều kiện ⓘ');
       addAction(item, label, ()=>summonExtra(index), !ready);
     }
     $('pileCards').appendChild(item);
@@ -984,7 +984,7 @@ function renderDeckCards(){
     item.classList.toggle('in-deck',n>0);
     item.classList.toggle('preview-selected',deckInspectedId===c.id);
     const limitBadge=(c.max_copies&&c.max_copies<3)?`<span class="limit-badge limit-${c.max_copies}" title="Giới hạn ${c.max_copies} bản">${c.max_copies}</span>`:'';
-    item.innerHTML=`<button class="library-preview" aria-label="Xem ${esc(c.name)}">${artHTML(c.id,'deck-art')}<span class="rarity ${esc(c.rarity)}">${esc(c.rarity)}</span>${limitBadge}</button><b>${esc(c.name)}</b><small>${useExtra?'EXTRA · ':''}${c.id} · ${c.card_type==='Monster'?`★${c.stars} · ${c.atk}/${c.def}`:esc(c.spell_category||c.trap_category)}</small><div class="deck-item-actions"><button class="secondary-btn" data-action="minus" aria-label="Bớt ${esc(c.name)}" ${n?'':'disabled'}>−</button><span class="count">${n}/${deckLimit(c.id)}</span><button class="secondary-btn" data-action="plus" aria-label="Thêm ${esc(c.name)}" ${pool.length>=max||total>=deckLimit(c.id)?'disabled':''}>+</button></div>`;
+    item.innerHTML=`<button class="library-preview" aria-label="Xem ${esc(c.name)}">${artHTML(c.id,'deck-art')}<span class="rarity ${esc(c.rarity)}">${esc(c.rarity)}</span>${limitBadge}</button><b>${esc(c.name)}</b><small>${useExtra?'EXTRA · ':''}${c.id} · ${c.card_type==='Monster'?`${c.xyz_requirement?'R'+(c.rank||0):'★'+c.stars} · ${c.atk}/${c.def}`:esc(c.spell_category||c.trap_category)}</small><div class="deck-item-actions"><button class="secondary-btn" data-action="minus" aria-label="Bớt ${esc(c.name)}" ${n?'':'disabled'}>−</button><span class="count">${n}/${deckLimit(c.id)}</span><button class="secondary-btn" data-action="plus" aria-label="Thêm ${esc(c.name)}" ${pool.length>=max||total>=deckLimit(c.id)?'disabled':''}>+</button></div>`;
     item.querySelector('.library-preview').onclick=()=>showLibraryCard(c);
     const refresh=()=>{const top=document.querySelector('.deck-builder').scrollTop;renderDeckBuilder();document.querySelector('.deck-builder').scrollTop=top;};
     item.querySelector('[data-action="minus"]').addEventListener('click',()=>{const i=pool.indexOf(c.id);if(i>=0){pool.splice(i,1);refresh();}});
