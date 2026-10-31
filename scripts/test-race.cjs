@@ -6,6 +6,11 @@ fs.mkdirSync('outputs/classic-race',{recursive:true});
 const race=await b.newPage();race.on('pageerror',e=>errors.push(e.message));await race.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);await race.goto(url+'/index.html');await race.waitForFunction(()=>window.boardRace&&window.openBoardGame);
 console.log(await race.evaluate(async()=>{const ok=(v,m)=>{if(!v)throw Error(m)},eq=(a,b,m)=>ok(a===b,`${m}: ${a} != ${b}`),passed=[];window.myNetworkId='race-test';player.gold=1000;
  openBoardGame();const first=boardGame;eq(first.players.length,4,'four players');eq(document.querySelectorAll('.board-cell').length,100,'100 cells');ok(first.matchId,'match identity');
+ const descs=RACE_CARDS.map(c=>c.desc||'');ok(descs.every(d=>d.length<=62),'card desc concise');
+ const arts=RACE_CARDS.map(c=>window.boardCardArtUrl(c));ok(arts.every(u=>u.startsWith('data:image/svg+xml,')),'card art svg');eq(new Set(arts).size,RACE_CARDS.length,'unique card art');
+ const toks=[0,1,2,3].map(i=>window.boardPawnTokenSrc(i));ok(toks.every(u=>u.startsWith('data:image/svg+xml,')),'pawn token svg');eq(new Set(toks).size,4,'unique pawn tokens');
+ for(const k of ['forward','back','gold','weapon','shield','heal','damage','trap','monster','swap','portal','sleep','steal','finish','card'])window.boardPlayFx(k,5,'test');ok(document.querySelectorAll('.board-fx-float').length>=15,'fx labels rendered');document.querySelectorAll('.board-fx-float').forEach(n=>n.remove());
+ const face=window.boardCardFaceHtml(RACE_CARDS[0],'test');ok(face.includes('drawn-card-art')&&face.includes('data:image/svg+xml'),'card face art');passed.push('card art, pawn tokens and fx layer');
  // Replace only random events/choices to isolate the turn resolver deterministically.
  const draw=boardDrawRandomCard,notice=boardShowBigNotice,shop=boardHandleShop;window.boardShowBigNotice=(t,d,e,cb)=>cb?.();window.boardDrawRandomCard=(p,z,cb)=>{window.lastLandedZone=z;cb?.();};window.boardHandleShop=(p,z,cb)=>{window.lastLandedZone=z;cb?.();};
  const move=(n)=>new Promise(resolve=>boardProcessTurn(boardGame.players[0],n,resolve));boardGame.trappedCells={};boardGame.cellZones[6]='Chợ Xóm';await move(6);eq(first.players[0].pos,6,'normal movement');eq(window.lastLandedZone,'Chợ Xóm','actual randomized zone');passed.push('one turn resolver uses actual randomized cell zone');

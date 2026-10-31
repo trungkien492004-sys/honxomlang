@@ -178,33 +178,33 @@ const NEIGHBORHOOD_NAMES = [
 
 const RACE_CARDS = [
     // 👾 MONSTER (Quái Vật) - Mất mạng nếu không có vũ khí
-    { id: 'soi', name: "Sói Xám Đột Biến", type: 'monster', rarity: 'common', desc: "Gặp sói xám đột biến chực ăn thịt! Mất 1 mạng nếu tay không bắt giặc.", reward: 30, damage: 1,
+    { id: 'soi', name: "Sói Xám Đột Biến", type: 'monster', rarity: 'common', desc: "Sói xám nhe răng. Không có 🗡️ thì mất 1 ♥.", reward: 30, damage: 1,
       effect: function(p) { return boardFightMonster(p, this); } },
-    { id: 'cuongthi', name: "Cương Thi Làng", type: 'monster', rarity: 'rare', desc: "Cương Thi đói bụng nhảy tưng tưng đòi cắn! Cần 1 Vũ Khí phòng thân.", reward: 50, damage: 1,
+    { id: 'cuongthi', name: "Cương Thi Làng", type: 'monster', rarity: 'rare', desc: "Cương Thi nhảy tưng tưng đòi cắn. Cần 🗡️.", reward: 50, damage: 1,
       effect: function(p) { return boardFightMonster(p, this); } },
-    { id: 'rong', name: "Rồng Lửa Cổ Đại", type: 'monster', rarity: 'epic', desc: "Boss Rồng Lửa khè khói mù mịt! Trừ 2 mạng nếu không có hàng nóng/nắp vung chống đỡ.", reward: 100, damage: 2,
+    { id: 'rong', name: "Rồng Lửa Cổ Đại", type: 'monster', rarity: 'epic', desc: "Rồng khè lửa. Không 🗡️/🛡️ là bay 2 ♥.", reward: 100, damage: 2,
       effect: function(p) { return boardFightMonster(p, this); } },
 
     // 🗡️ EQUIP (Trang bị - chỉ mua ở cửa hàng hoặc nhặt ngẫu nhiên trên ô)
-    { id: 'kiem', name: "Kiếm Sắt Xóm", type: 'equip', rarity: 'common', desc: "Lượm được Đồ Long Đao bằng sắt vụn! Nhận 1 🗡️ Vũ Khí.", value: 1,
-      effect: function(p) { p.weapons += this.value; return `Nhặt được Kiếm! (+${this.value} 🗡️)`; } },
-    { id: 'cung', name: "Cung Gỗ Trắc", type: 'equip', rarity: 'common', desc: "Nhặt được Cung thần tình yêu! Nhận 1 🗡️ Vũ Khí.", value: 1,
-      effect: function(p) { p.weapons += this.value; return `Lượm được Cung! (+${this.value} 🗡️)`; } },
-    { id: 'khien_go', name: "Khiên Gỗ Mộc", type: 'equip', rarity: 'common', desc: "Nhặt được nắp vung nồi cũ làm khiên! Nhận 1 🛡️ Khiên.", value: 1,
-      effect: function(p) { p.shields += this.value; return `Nhặt được Khiên gỗ! (+${this.value} 🛡️)`; } },
-    { id: 'khien_thep', name: "Khiên Thép Đen", type: 'equip', rarity: 'rare', desc: "Nhặt được khiên sắt cực xịn! Nhận 1 🛡️ Khiên.", value: 1,
-      effect: function(p) { p.shields += this.value; return `Nhận Khiên thép! (+${this.value} 🛡️)`; } },
-    { id: 'cuuthuong', name: "Hộp Cứu Thương", type: 'equip', rarity: 'epic', desc: "Hồi 1 ❤️ Mạng (Tối đa 3).", value: 1,
-      effect: function(p) { if(p.lives < 3) { p.lives += this.value; return `Hồi ${this.value} ❤️!`; } return 'Máu đang đầy.'; } },
+    { id: 'kiem', name: "Kiếm Sắt Xóm", type: 'equip', rarity: 'common', desc: "Đồ Long Đao chợ trời. +1 🗡️.", value: 1,
+      effect: function(p) { p.weapons += this.value; return `Vớ được kiếm! (+${this.value} 🗡️)`; } },
+    { id: 'cung', name: "Cung Gỗ Trắc", type: 'equip', rarity: 'common', desc: "Cung tình yêu bắn... trượt. +1 🗡️.", value: 1,
+      effect: function(p) { p.weapons += this.value; return `Vớ được cung! (+${this.value} 🗡️)`; } },
+    { id: 'khien_go', name: "Khiên Gỗ Mộc", type: 'equip', rarity: 'common', desc: "Nắp vung nồi huyền thoại. +1 🛡️.", value: 1,
+      effect: function(p) { p.shields += this.value; return `Nắp vung về tay! (+${this.value} 🛡️)`; } },
+    { id: 'khien_thep', name: "Khiên Thép Đen", type: 'equip', rarity: 'rare', desc: "Khiên sắt xịn, đỡ được cả đời. +1 🛡️.", value: 1,
+      effect: function(p) { p.shields += this.value; return `Khiên xịn về tay! (+${this.value} 🛡️)`; } },
+    { id: 'cuuthuong', name: "Hộp Cứu Thương", type: 'equip', rarity: 'epic', desc: "Hộp cứu thương thơm long não. +1 ❤️.", value: 1,
+      effect: function(p) { if(p.lives < 3) { p.lives += this.value; return `Dán băng! (+${this.value} ❤️)`; } return 'Máu đầy rồi, khỏi uống.'; } },
 
     // 🌪️ FUN SPELL (Bài ma pháp vui nhộn phát trên tay khi bắt đầu game)
-    { id: 'cuongphong', name: "Cuồng Phong", type: 'fun_spell', rarity: 'common', desc: "Gió thổi bay màu! Tiến thẳng 3 ô.", value: 3,
-      effect: function(p) { boardMovePlayer(p.idx, this.value, true); return `Tiến thẳng ${this.value} ô.`; } },
-    { id: 'ruongvang', name: "Rương Vàng", type: 'fun_spell', rarity: 'rare', desc: "+50 Vàng nóng.", value: 50,
-      effect: function(p) { p.gold = (p.gold || 0) + this.value; if(p.isHuman) { boardRefreshHud(); } return `Nhận ${this.value} vàng.`; } },
-    { id: 'dichchuyen', name: "Dịch Chuyển Không Gian", type: 'fun_spell', rarity: 'epic', desc: "Hoán đổi vị trí của bạn với đứa gần nhất.",
+    { id: 'cuongphong', name: "Cuồng Phong", type: 'fun_spell', rarity: 'common', desc: "Gió cuốn bay dép. Tiến 3 ô.", value: 3,
+      effect: function(p) { boardMovePlayer(p.idx, this.value, true); return `Bay như chó thả dây! (+${this.value} ô)`; } },
+    { id: 'ruongvang', name: "Rương Vàng", type: 'fun_spell', rarity: 'rare', desc: "Rương rơi trúng đầu. +50 🪙.", value: 50,
+      effect: function(p) { p.gold = (p.gold || 0) + this.value; if(p.isHuman) { boardRefreshHud(); } return `Rương rơi trúng đầu! (+${this.value} 🪙)`; } },
+    { id: 'dichchuyen', name: "Dịch Chuyển Không Gian", type: 'fun_spell', rarity: 'epic', desc: "Đổi chỗ với đứa gần nhất. Nó ngơ ngác.",
       effect: function(p) { return boardSwapNearest(p); } },
-    { id: 'vochuoi', name: "Vỏ Chuối Trơn Trượt", type: 'fun_spell', rarity: 'common', desc: "Ném vỏ chuối làm đứa đứng gần nhất trượt chân lùi 3 ô.",
+    { id: 'vochuoi', name: "Vỏ Chuối Trơn Trượt", type: 'fun_spell', rarity: 'common', desc: "Vỏ chuối tự nhiên. Đứa gần nhất lùi 3 ô.",
       effect: function(p) {
           let nearest = null; let minDist = Infinity;
           boardGame.players.forEach((pl,i) => {
@@ -215,12 +215,12 @@ const RACE_CARDS = [
           });
           if(nearest) {
               boardMovePlayer(nearest.idx, -3, true);
-              return `Ném vỏ chuối vào chân ${nearest.name}, khiến họ giật lùi 3 ô!`;
+              return `Trượt vỏ chuối! ${nearest.name} lùi 3 ô.`;
           }
-          return 'Không có đối thủ nào gần bên để ném vỏ chuối.';
+          return 'Không có ai gần để ném vỏ chuối.';
       } 
     },
-    { id: 'tromvang', name: "Ăn Trộm Tiền Lẻ", type: 'fun_spell', rarity: 'rare', desc: "Trộm 40 vàng của đối thủ gần nhất.",
+    { id: 'tromvang', name: "Ăn Trộm Tiền Lẻ", type: 'fun_spell', rarity: 'rare', desc: "Móc ví nhẹ tay. Trộm tối đa 40 🪙.",
       effect: function(p) {
           let nearest = null; let minDist = Infinity;
           boardGame.players.forEach((pl,i) => {
@@ -236,12 +236,12 @@ const RACE_CARDS = [
               
               p.gold = (p.gold || 0) + stolen;
               if (p.isHuman) boardRefreshHud();
-              return `Móc túi thành công ${stolen} vàng từ ví của ${nearest.name}!`;
+              return `Móc ví ${nearest.name}: +${stolen} 🪙.`;
           }
-          return 'Không có ai để trộm vàng.';
+          return 'Ví ai cũng rỗng.';
       }
     },
-    { id: 'sieuquay', name: "Bùa Ngủ Gật Troll", type: 'fun_spell', rarity: 'rare', desc: "Dán bùa ngủ gật làm đứa đi kế tiếp mất lượt tiếp theo.",
+    { id: 'sieuquay', name: "Bùa Ngủ Gật Troll", type: 'fun_spell', rarity: 'rare', desc: "Bùa ngủ gật. Đứa kế tiếp ngáp 1 lượt.",
       effect: function(p) {
           let nextIdx = (p.idx + 1) % boardGame.players.length;
           let safety = 0;
@@ -252,60 +252,60 @@ const RACE_CARDS = [
           let target = boardGame.players[nextIdx];
           if (target) {
               target.skipTurn = true;
-              return `Dán bùa ngủ gật lên trán ${target.name}, khiến họ mất lượt tiếp theo!`;
+              return `${target.name} dính bùa, ngáp 1 lượt.`;
           }
-          return 'Không có mục tiêu ngủ gật.';
+          return 'Không ai để dán bùa.';
       }
     },
-    { id: 'giasam', name: "Bão Thổi Ngược", type: 'fun_spell', rarity: 'rare', desc: "Tạo bão xoáy thổi ngược đứa dẫn đầu lùi 4 ô.",
+    { id: 'giasam', name: "Bão Thổi Ngược", type: 'fun_spell', rarity: 'rare', desc: "Bão thổi ngược. Đứa dẫn đầu lùi 4 ô.",
       effect: function(p) {
           const cand = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
           const leading = cand.length > 0 ? cand.reduce((a, b) => (a.pos > b.pos ? a : b)) : null;
           if (leading) {
               boardMovePlayer(leading.idx, -4, true);
-              return `Tạo bão thổi bay ${leading.name} lùi lại 4 ô!`;
+              return `Gió thổi ${leading.name} lùi 4 ô.`;
           }
-          return 'Không có ai dẫn đầu để thổi gió.';
+          return 'Không có ai để thổi.';
       }
     },
-    { id: 'boombip', name: "Bom Khói Hài Hước", type: 'fun_spell', rarity: 'common', desc: "Ném quả bom khói hài hước khiến một đối thủ ngẫu nhiên lùi 2 ô.",
+    { id: 'boombip', name: "Bom Khói Hài Hước", type: 'fun_spell', rarity: 'common', desc: "Bom khói rẻ tiền. Đứa ngẫu nhiên lùi 2 ô.",
       effect: function(p) {
           let targets = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
           if (targets.length > 0) {
               let target = targets[Math.floor(Math.random() * targets.length)];
               boardMovePlayer(target.idx, -2, true);
-              return `Ném bom khói khiến ${target.name} sặc sụa và đi lùi 2 ô!`;
+              return `Bùm! ${target.name} lùi 2 ô.`;
           }
-          return 'Không có ai để ném bom.';
+          return 'Bom nổ suông.';
       }
     },
-    { id: 'tocbientuong', name: "Bùa Tốc Biến Ẩn Danh", type: 'fun_spell', rarity: 'rare', desc: "Sử dụng phép ẩn danh giúp bạn tiến ngẫu nhiên từ 1 đến 5 ô.",
+    { id: 'tocbientuong', name: "Bùa Tốc Biến Ẩn Danh", type: 'fun_spell', rarity: 'rare', desc: "Tốc biến liều mạng. Tiến 1–5 ô.",
       effect: function(p) {
           let steps = 1 + Math.floor(Math.random() * 5);
           boardMovePlayer(p.idx, steps, true);
-          return `Tốc biến kỳ ảo! Tiến thẳng lên ${steps} ô.`;
+          return `Biến mất! Tiến ${steps} ô.`;
       }
     },
-    { id: 'trollportal', name: "Cổng Dịch Chuyển Troll", type: 'fun_spell', rarity: 'epic', desc: "Mở cổng không gian bay thẳng đến đứng chung ô với đứa dẫn đầu.",
+    { id: 'trollportal', name: "Cổng Dịch Chuyển Troll", type: 'fun_spell', rarity: 'epic', desc: "Cổng troll: nhảy tới chỗ đứa dẫn đầu.",
       effect: function(p) {
           const cand = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
           const leading = cand.length > 0 ? cand.reduce((a, b) => (a.pos > b.pos ? a : b)) : null;
           if (leading && leading.pos > p.pos) {
-              p.pos = leading.pos;
-              return `Dịch chuyển bay vèo tới đứng chung ô với ${leading.name} (ô số ${p.pos+1})!`;
+              window.boardTeleportPlayer(p, leading.pos);
+              return `Xuyên không tới ô ${p.pos+1} của ${leading.name}!`;
           }
-          return 'Bạn đang dẫn đầu hoặc không tìm thấy mục tiêu phù hợp.';
+          return 'Bạn đang dẫn đầu, khỏi troll.';
       }
     },
 
     // 🌪️ SPELL (Ma pháp môi trường vẽ trên ô)
-    { id: 'locxoay', name: "Lốc Xoáy", type: 'spell', rarity: 'common', desc: "Lùi cắm đầu 2 ô.", value: -2,
-      effect: function(p) { boardMovePlayer(p.idx, this.value, true); return `Lùi lại ${Math.abs(this.value)} ô.`; } },
+    { id: 'locxoay', name: "Lốc Xoáy", type: 'spell', rarity: 'common', desc: "Lốc xoáy tự dưng. Lùi 2 ô.", value: -2,
+      effect: function(p) { boardMovePlayer(p.idx, this.value, true); return `Lốc cuốn! Lùi ${Math.abs(this.value)} ô.`; } },
 
     // 💣 TRAP (Cạm bẫy)
-    { id: 'trap_ho', name: "Hố Chông Trừng Phạt", type: 'trap', rarity: 'rare', desc: "Mất 1 mạng tại chỗ.", damage: 1,
+    { id: 'trap_ho', name: "Hố Chông Trừng Phạt", type: 'trap', rarity: 'rare', desc: "Hố chông nhà ai đào. -1 ♥.", damage: 1,
       effect: function(p) { return boardTakeDamage(p, this.damage, "lọt hố chông"); } },
-    { id: 'trap_set', name: "Sét Đánh", type: 'trap', rarity: 'epic', desc: "Sét đánh trúng đứa dẫn đầu làm mất 1 mạng.", damage: 1,
+    { id: 'trap_set', name: "Sét Đánh", type: 'trap', rarity: 'epic', desc: "Sét đánh đứa dẫn đầu. -1 ♥.", damage: 1,
       effect: function(p) {
           const candL = boardGame.players.filter(x => !x.eliminated);
           const L = candL.length > 0 ? candL.reduce((a, b) => (a.pos > b.pos ? a : b)) : null; 
@@ -313,16 +313,16 @@ const RACE_CARDS = [
           return 'Sét đánh hụt.';
       } 
     },
-    { id: 'huydebuff', name: "Thanh Lọc Độc Tố", type: 'fun_spell', rarity: 'common', desc: "Xóa trạng thái mất lượt (ngủ gật) của bản thân.",
+    { id: 'huydebuff', name: "Thanh Lọc Độc Tố", type: 'fun_spell', rarity: 'common', desc: "Uống nước chanh, tỉnh ngủ. Hết mất lượt.",
       effect: function(p) {
           if (p.skipTurn) {
               p.skipTurn = false;
-              return "Giải độc thành công! Trạng thái ngủ gật/mất lượt đã bị xóa bỏ.";
+              return "Tỉnh ngủ rồi! Đi tiếp thôi.";
           }
-          return "Bản thân không có trạng thái ngủ gật nào.";
+          return "Đang tỉnh sẵn, khỏi uống.";
       }
     },
-    { id: 'trombai', name: "Bàn Tay Nhanh Nhẹn", type: 'fun_spell', rarity: 'rare', desc: "Trộm 1 lá bài trên tay của đối thủ gần nhất.",
+    { id: 'trombai', name: "Bàn Tay Nhanh Nhẹn", type: 'fun_spell', rarity: 'rare', desc: "Bàn tay nhanh như chớp. Trộm 1 lá.",
       effect: function(p) {
           let nearest = null; let minDist = Infinity;
           boardGame.players.forEach((pl,i) => {
@@ -335,12 +335,12 @@ const RACE_CARDS = [
               let cardIdx = Math.floor(Math.random() * nearest.hand.length);
               let stolenCard = nearest.hand.splice(cardIdx, 1)[0];
               p.hand.push(stolenCard);
-              return `Ăn trộm thành công lá bài [${stolenCard.name}] từ tay ${nearest.name}!`;
+              return `Chôm được [${stolenCard.name}]!`;
           }
-          return 'Đối thủ gần nhất không có bài trên tay.';
+          return 'Hắn ta trắng tay.';
       }
     },
-    { id: 'doidat', name: "Đảo Lộn Cạm Bẫy", type: 'fun_spell', rarity: 'epic', desc: "Gỡ toàn bộ bẫy xung quanh bạn và đặt sang ô của người dẫn đầu.",
+    { id: 'doidat', name: "Đảo Lộn Cạm Bẫy", type: 'fun_spell', rarity: 'epic', desc: "Bê bẫy đi chỗ khác. Tặng đứa dẫn đầu.",
       effect: function(p) {
           const cand = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
           const leading = cand.length > 0 ? cand.reduce((a, b) => (a.pos > b.pos ? a : b)) : null;
@@ -353,19 +353,441 @@ const RACE_CARDS = [
                   }
               }
               boardGame.trappedCells[leading.pos] = true;
-              return `Gỡ bỏ ${trapsRemoved} bẫy quanh bạn và đặt 1 bẫy nổ ngay dưới chân ${leading.name}!`;
+              return `Dời ${trapsRemoved} bẫy, gài 1 quả dưới chân ${leading.name}.`;
           }
-          return 'Không tìm thấy người dẫn đầu.';
+          return 'Không có ai dẫn đầu.';
       }
     },
-    { id: 'baohothanky', name: "Bảo Hộ Thần Kỳ", type: 'fun_spell', rarity: 'common', desc: "Nhận 1 🛡️ Khiên và tiến lên 2 ô.",
+    { id: 'baohothanky', name: "Bảo Hộ Thần Kỳ", type: 'fun_spell', rarity: 'common', desc: "Nồi cơm điện che chắn. +1 🛡️, tiến 2 ô.",
       effect: function(p) {
           p.shields++;
           boardMovePlayer(p.idx, 2, true);
-          return "Nhận 1 Khiên chắn và tiến thêm 2 ô.";
+          return "Có khiên che, tiến 2 ô.";
       }
     }
 ];
+
+// ── Hình minh họa + hiệu ứng kích hoạt thẻ bài ───────────────
+const BOARD_CARD_EMOJI = {
+    soi: '🐺', cuongthi: '🧟', rong: '🐉',
+    kiem: '🗡️', cung: '🏹', khien_go: '🍳', khien_thep: '🛡️', cuuthuong: '🧰',
+    cuongphong: '🌪️', ruongvang: '💰', dichchuyen: '🔀', vochuoi: '🍌', tromvang: '🧤',
+    sieuquay: '😴', giasam: '🌬️', boombip: '💣', tocbientuong: '💨', trollportal: '🌀',
+    locxoay: '🌪️', trap_ho: '🕳️', trap_set: '⚡', huydebuff: '🍋', trombai: '🃏',
+    doidat: '🧨', baohothanky: '🍲'
+};
+
+const BOARD_CARD_CAPTIONS = {
+    soi: 'GRỪ!', cuongthi: 'NHẢY!', rong: 'KHÈ!',
+    kiem: 'CHÉM!', cung: 'TẠCH!', khien_go: 'KENG!', khien_thep: 'KENG!', cuuthuong: 'DÁN!',
+    cuongphong: 'VÙ!', ruongvang: '+50!', dichchuyen: 'TRÁO!', vochuoi: 'TRƯỢT!', tromvang: 'MÓC!',
+    sieuquay: 'NGÁP!', giasam: 'THỔI!', boombip: 'BÙM!', tocbientuong: 'VÈO!', trollportal: 'XUYÊN!',
+    locxoay: 'XOÁY!', trap_ho: 'HỰ!', trap_set: 'ĐOÀNG!', huydebuff: 'TỈNH!', trombai: 'GIẬT!',
+    doidat: 'GÀI!', baohothanky: 'CHE!'
+};
+
+const BOARD_CARD_ACCENT = {
+    soi: '#aab6c4', cuongthi: '#8fe08f', rong: '#ff7b4f',
+    kiem: '#c8d4de', cung: '#d9a066', khien_go: '#c98b45', khien_thep: '#8e9aa8', cuuthuong: '#7ee0a8',
+    cuongphong: '#8ad8ff', ruongvang: '#ffd66b', dichchuyen: '#b49be8', vochuoi: '#ffe36b', tromvang: '#c8f4a0',
+    sieuquay: '#b39ddb', giasam: '#8ec9d8', boombip: '#a8b0bd', tocbientuong: '#8ad8ff', trollportal: '#c08cff',
+    locxoay: '#8ab6f0', trap_ho: '#c98b45', trap_set: '#ffe36b', huydebuff: '#ffe36b', trombai: '#ffb3c6',
+    doidat: '#ff9f43', baohothanky: '#ffd66b'
+};
+
+const BOARD_CARD_TINTS = {
+    monster: ['#ff6b5a', '#4a1410'],
+    equip: ['#59c8ff', '#0d2f3f'],
+    trap: ['#ffb347', '#3a1d07'],
+    fun_spell: ['#b49be8', '#241740'],
+    spell: ['#8ab6f0', '#10233f']
+};
+
+const BOARD_CARD_PROPS = {
+    soi: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M28,44 L30,14 L50,30 Q60,26 70,30 L90,14 L92,44 Q96,70 78,88 Q60,102 42,88 Q24,70 28,44 Z" fill="#9aa7b5"/>
+        <path d="M35,38 L37,24 L48,34 Z M85,38 L83,24 L72,34 Z" fill="#5d6b7a"/>
+        <circle cx="50" cy="56" r="5.5" fill="#ffe36b"/><circle cx="70" cy="56" r="5.5" fill="#ffe36b"/>
+        <circle cx="50" cy="56" r="2" fill="#201827"/><circle cx="70" cy="56" r="2" fill="#201827"/>
+        <path d="M46,76 Q60,86 74,76" stroke="#201827" stroke-width="4" fill="none"/>
+        <path d="M52,78 l3,7 l3,-7 Z M62,78 l3,7 l3,-7 Z" fill="#fff"/>
+        <path d="M28,52 Q33,48 38,52 M82,52 Q87,48 92,52" stroke="#201827" stroke-width="3" fill="none"/>
+    </g>`,
+    cuongthi: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M30,62 L10,72 M90,62 L110,72" stroke="#4f7a5a" stroke-width="9"/>
+        <circle cx="60" cy="52" r="26" fill="#9fce9f"/>
+        <path d="M40,40 Q48,28 60,30 Q72,28 80,40 L78,34 Q60,22 42,34 Z" fill="#2f3a2f"/>
+        <rect x="50" y="20" width="20" height="30" rx="3" fill="#ffe36b" transform="rotate(-10 60 34)"/>
+        <path d="M56,26 v18 M64,26 v18" stroke="#c0392b" stroke-width="2.4"/>
+        <circle cx="51" cy="52" r="4.5" fill="#fff"/><circle cx="69" cy="52" r="4.5" fill="#fff"/>
+        <circle cx="51" cy="53" r="2" fill="#201827"/><circle cx="69" cy="53" r="2" fill="#201827"/>
+        <ellipse cx="60" cy="66" rx="6" ry="7" fill="#3a1a1a"/>
+        <path d="M34,98 Q42,104 50,98 M60,98 Q68,104 76,98" stroke="#8fe08f" stroke-width="3" fill="none"/>
+    </g>`,
+    rong: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M26,44 Q34,18 62,20 Q90,22 96,48 L104,60 L96,64 Q90,88 62,92 Q34,92 26,66 Z" fill="#e86a3a"/>
+        <path d="M34,30 L26,12 L48,24 Z M86,26 L98,10 L92,32 Z" fill="#f6c453"/>
+        <path d="M28,44 L8,52 L26,56 Z" fill="#f6c453"/>
+        <circle cx="48" cy="50" r="6" fill="#ffe36b"/><circle cx="48" cy="50" r="2.4" fill="#201827"/>
+        <path d="M58,64 Q70,56 84,62 L86,72 Q72,80 58,72 Z" fill="#7a1f14"/>
+        <path d="M60,66 l5,7 l5,-7 Z M72,66 l5,7 l4,-7 Z" fill="#fff"/>
+        <path d="M82,30 Q92,36 96,48" stroke="#f6c453" stroke-width="4" fill="none"/>
+        <path d="M18,84 Q8,72 16,64 Q24,74 34,70 Q26,84 18,84 Z" fill="#ffd66b"/>
+    </g>`,
+    kiem: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <g transform="rotate(-30 60 60)">
+            <path d="M52,10 L68,10 L68,70 L60,82 L52,70 Z" fill="#c8d4de"/>
+            <path d="M57,14 L57,72" stroke="#fff" stroke-width="2" opacity=".7"/>
+            <rect x="32" y="70" width="56" height="11" rx="4" fill="#c98b45"/>
+            <rect x="55" y="81" width="10" height="24" rx="4" fill="#7a5230"/>
+            <circle cx="60" cy="108" r="7" fill="#ffd66b"/>
+        </g>
+        <path d="M22,30 l4,8 M32,22 l2,9 M96,26 l-5,8 M90,88 l-6,4" stroke="#ffe36b" stroke-width="3.4"/>
+    </g>`,
+    cung: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M38,14 Q96,60 38,106" fill="none" stroke="#c98b45" stroke-width="10"/>
+        <path d="M38,14 L38,106" stroke="#e8c48a" stroke-width="2.4"/>
+        <path d="M22,62 Q60,48 98,62" fill="none" stroke="#7a5230" stroke-width="4"/>
+        <path d="M98,62 L86,55 L88,69 Z" fill="#7a5230"/>
+        <path d="M106,62 Q112,54 118,60 Q112,66 106,62 Z" fill="#ff8fa3"/>
+        <circle cx="106" cy="58" r="4" fill="#ff8fa3"/><circle cx="112" cy="58" r="4" fill="#ff8fa3"/>
+        <path d="M18,88 q6,-6 12,0" stroke="#ffe36b" stroke-width="3" fill="none"/>
+    </g>`,
+    khien_go: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="60" cy="64" r="38" fill="#9fb7c9"/>
+        <circle cx="60" cy="64" r="28" fill="#c8d4de"/>
+        <circle cx="60" cy="64" r="10" fill="#8e9aa8"/>
+        <rect x="52" y="18" width="16" height="12" rx="5" fill="#7a5230"/>
+        <path d="M36,104 Q60,112 84,104" stroke="#201827" stroke-width="4" fill="none"/>
+        <path d="M24,34 Q18,24 26,18 M96,34 Q102,24 94,18 M28,98 Q22,108 30,112" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/>
+    </g>`,
+    khien_thep: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M60,14 L98,30 V62 Q98,94 60,108 Q22,94 22,62 V30 Z" fill="#3a4250"/>
+        <path d="M60,24 L88,36 V62 Q88,86 60,97 Q32,86 32,62 V36 Z" fill="#5d6b7a"/>
+        <circle cx="34" cy="40" r="4" fill="#c8d4de"/><circle cx="86" cy="40" r="4" fill="#c8d4de"/>
+        <circle cx="34" cy="82" r="4" fill="#c8d4de"/><circle cx="86" cy="82" r="4" fill="#c8d4de"/>
+        <path d="M52,58 L68,58 M60,50 L60,72" stroke="#c8d4de" stroke-width="5"/>
+        <path d="M16,50 l-8,-4 M104,50 l8,-4" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    cuuthuong: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="24" y="38" width="72" height="54" rx="9" fill="#f4f7fa"/>
+        <rect x="48" y="30" width="24" height="12" rx="5" fill="#c8d4de"/>
+        <rect x="56" y="48" width="8" height="34" rx="2" fill="#ff5a4f"/>
+        <rect x="43" y="61" width="34" height="8" rx="2" fill="#ff5a4f"/>
+        <path d="M98,72 q12,0 12,12 q0,12 -12,12 q-12,0 -12,-12 q0,-12 12,-12 Z" fill="#ffe36b"/>
+        <path d="M98,80 l0,16 M92,88 l12,0" stroke="#c98b45" stroke-width="3"/>
+        <path d="M30,24 l4,8 M40,18 l1,8" stroke="#7ee0a8" stroke-width="3"/>
+    </g>`,
+    cuongphong: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M42,16 Q86,20 76,36 Q66,50 40,46 Q18,44 30,58 Q42,72 78,68 Q100,66 88,82 Q78,96 42,100" fill="none" stroke="#c8f4ff" stroke-width="11"/>
+        <ellipse cx="24" cy="30" rx="14" ry="5" fill="#e8c48a" transform="rotate(-20 24 30)"/>
+        <path d="M18,26 L24,12 L30,26 Z" fill="#c98b45"/>
+        <path d="M94,28 q10,0 10,8 q0,8 -10,8 q-10,0 -10,-8 q0,-8 10,-8 Z" fill="#ff8fa3"/>
+        <path d="M70,98 q8,-8 16,0 q-8,-4 -16,0 Z" fill="#fff"/>
+        <path d="M30,76 l-10,4 M38,86 l-10,6" stroke="#8ad8ff" stroke-width="3.4"/>
+    </g>`,
+    ruongvang: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M22,54 Q22,34 60,34 Q98,34 98,54 L98,96 Q98,104 90,104 L30,104 Q22,104 22,96 Z" fill="#c98b45"/>
+        <path d="M22,54 Q22,34 60,34 Q98,34 98,54 L98,64 Q60,76 22,64 Z" fill="#7a5230"/>
+        <rect x="26" y="76" width="68" height="9" rx="3" fill="#ffd66b"/>
+        <rect x="54" y="58" width="12" height="20" rx="4" fill="#ffd66b"/>
+        <circle cx="20" cy="30" r="8" fill="#ffd66b"/><circle cx="20" cy="30" r="3" fill="#c98b45"/>
+        <circle cx="100" cy="24" r="7" fill="#ffd66b"/><circle cx="100" cy="24" r="2.5" fill="#c98b45"/>
+        <circle cx="104" cy="46" r="6" fill="#ffd66b"/><circle cx="104" cy="46" r="2" fill="#c98b45"/>
+        <path d="M34,18 l3,7 M44,10 l1,8 M78,14 l-4,7" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    dichchuyen: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M38,34 A34,34 0 0 1 92,50" fill="none" stroke="#c08cff" stroke-width="9"/>
+        <path d="M92,50 L80,42 L94,38 Z" fill="#c08cff"/>
+        <path d="M82,86 A34,34 0 0 1 28,70" fill="none" stroke="#c08cff" stroke-width="9"/>
+        <path d="M28,70 L40,78 L26,82 Z" fill="#c08cff"/>
+        <ellipse cx="34" cy="62" rx="15" ry="5" fill="#e8c48a"/>
+        <path d="M28,58 L34,44 L40,58 Z" fill="#c98b45"/>
+        <ellipse cx="88" cy="54" rx="15" ry="5" fill="#e8c48a"/>
+        <path d="M82,50 L88,36 L94,50 Z" fill="#c98b45"/>
+        <path d="M20,20 l3,7 M100,92 l3,7 M100,20 l-3,7" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    vochuoi: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M30,86 Q24,62 48,52 Q70,42 88,58 Q100,70 92,86 Q76,74 60,84 Q44,94 30,86 Z" fill="#ffe36b"/>
+        <path d="M40,78 Q48,62 62,58" fill="none" stroke="#e8c48a" stroke-width="3"/>
+        <path d="M66,30 Q82,28 86,44 L78,50 Q72,38 62,40 Z" fill="#ff8fa3"/>
+        <path d="M86,44 Q98,40 104,50" fill="none" stroke="#201827" stroke-width="4"/>
+        <path d="M28,42 q-8,4 -14,0 M24,30 q-8,4 -14,0" stroke="#8ad8ff" stroke-width="3"/>
+        <path d="M98,68 l6,6 M92,76 l8,4" stroke="#201827" stroke-width="3"/>
+    </g>`,
+    tromvang: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M58,58 Q58,42 74,40 Q92,38 96,54 L96,88 Q96,98 84,98 L68,98 Q58,98 58,88 Z" fill="#7a5230"/>
+        <path d="M66,42 Q74,30 84,42" fill="none" stroke="#5c3a20" stroke-width="4"/>
+        <path d="M22,58 Q42,50 58,66 L50,78 Q34,70 20,76 Z" fill="#ffe0bd"/>
+        <path d="M18,56 Q26,50 34,54 L30,74 Q22,74 16,70 Z" fill="#3a4250"/>
+        <path d="M28,52 L44,54 L42,60 L26,58 Z" fill="#201827"/>
+        <circle cx="40" cy="34" r="8" fill="#ffd66b"/><circle cx="40" cy="34" r="3" fill="#c98b45"/>
+        <circle cx="24" cy="32" r="6" fill="#ffd66b"/><circle cx="24" cy="32" r="2" fill="#c98b45"/>
+        <path d="M100,30 l4,8 M108,44 l6,2" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    sieuquay: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="54" cy="64" r="24" fill="#ffe0bd"/>
+        <path d="M30,52 Q38,38 54,40 Q70,38 78,52 L74,46 Q54,32 34,46 Z" fill="#3a2414"/>
+        <path d="M44,62 Q48,58 52,62 M58,62 Q62,58 66,62" fill="none" stroke="#201827" stroke-width="3"/>
+        <ellipse cx="55" cy="74" rx="5" ry="4" fill="#3a1a1a"/>
+        <rect x="62" y="24" width="22" height="34" rx="3" fill="#ffe36b" transform="rotate(12 73 41)"/>
+        <path d="M68,32 l10,2 M68,40 l10,2 M68,48 l8,2" stroke="#c0392b" stroke-width="2.4"/>
+        <text x="96" y="40" font-family="Arial Black,Arial,sans-serif" font-size="22" font-weight="900" fill="#c8f4ff" transform="rotate(-12 96 40)">Z</text>
+        <text x="104" y="62" font-family="Arial Black,Arial,sans-serif" font-size="15" font-weight="900" fill="#c8f4ff" transform="rotate(-12 104 62)">z</text>
+        <path d="M18,90 Q28,84 38,90" stroke="#b39ddb" stroke-width="3" fill="none"/>
+    </g>`,
+    giasam: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M26,62 Q20,38 44,36 Q50,20 70,24 Q90,26 94,46 Q110,48 106,64 Q102,78 84,78 L40,78 Q26,78 26,62 Z" fill="#9fb7c9"/>
+        <circle cx="54" cy="52" r="5" fill="#201827"/><circle cx="76" cy="52" r="5" fill="#201827"/>
+        <path d="M56,66 Q64,60 72,66" fill="none" stroke="#201827" stroke-width="3"/>
+        <path d="M94,64 Q106,58 114,64 M92,72 Q104,68 112,74" stroke="#8ad8ff" stroke-width="4" fill="none"/>
+        <ellipse cx="104" cy="92" rx="13" ry="4" fill="#e8c48a" transform="rotate(-16 104 92)"/>
+        <path d="M98,88 L104,76 L110,88 Z" fill="#c98b45"/>
+        <path d="M30,92 Q40,84 50,92" stroke="#8ad8ff" stroke-width="3" fill="none"/>
+    </g>`,
+    boombip: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="56" cy="72" r="30" fill="#3a4250"/>
+        <circle cx="46" cy="62" r="8" fill="#5d6b7a"/>
+        <rect x="62" y="34" width="16" height="10" rx="4" fill="#201827" transform="rotate(18 70 39)"/>
+        <path d="M76,36 Q90,26 86,14" fill="none" stroke="#c98b45" stroke-width="4"/>
+        <path d="M86,14 l4,-8 l1,10 l8,-4 l-6,8" fill="#ffb347"/>
+        <circle cx="92" cy="52" r="10" fill="#9fb7c9" opacity=".75"/>
+        <circle cx="104" cy="66" r="7" fill="#9fb7c9" opacity=".6"/>
+        <circle cx="98" cy="82" r="5" fill="#9fb7c9" opacity=".5"/>
+        <path d="M20,58 l-8,-4 M22,72 l-10,0 M24,86 l-8,6" stroke="#ffb347" stroke-width="3.4"/>
+    </g>`,
+    tocbientuong: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <g opacity=".35" transform="translate(-30,4)">
+            <circle cx="52" cy="42" r="13" fill="#8ad8ff"/><path d="M40,60 L64,60 L58,98 L46,98 Z" fill="#8ad8ff"/>
+        </g>
+        <g opacity=".6" transform="translate(-14,2)">
+            <circle cx="52" cy="42" r="13" fill="#8ad8ff"/><path d="M40,60 L64,60 L58,98 L46,98 Z" fill="#8ad8ff"/>
+        </g>
+        <circle cx="58" cy="40" r="15" fill="#ffe0bd"/>
+        <path d="M44,36 Q50,22 62,24 Q74,22 78,36 L74,30 Q58,20 42,30 Z" fill="#3a2414"/>
+        <circle cx="53" cy="40" r="2.4" fill="#201827"/><circle cx="64" cy="40" r="2.4" fill="#201827"/>
+        <path d="M55,48 Q59,51 63,48" stroke="#201827" stroke-width="2.4" fill="none"/>
+        <path d="M46,58 L70,58 L66,96 L50,96 Z" fill="#59c8ff"/>
+        <path d="M18,78 L-4,78 M84,84 L108,84 M14,94 L-6,94" stroke="#c8f4ff" stroke-width="5"/>
+        <path d="M86,64 l10,-4 M90,74 l12,0" stroke="#c8f4ff" stroke-width="3.4"/>
+    </g>`,
+    trollportal: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="62" cy="60" r="36" fill="#6b3fa0"/>
+        <circle cx="62" cy="60" r="27" fill="#2a1a44"/>
+        <path d="M44,48 Q62,34 80,48 Q94,62 78,74 Q60,86 46,70" fill="none" stroke="#c08cff" stroke-width="5"/>
+        <path d="M92,88 Q108,92 106,74 L96,70 Q100,82 88,80 Z" fill="#7ee0a8"/>
+        <path d="M98,92 L110,98" stroke="#201827" stroke-width="4"/>
+        <path d="M30,20 l3,8 M100,28 l4,7 M24,70 l-6,4" stroke="#ffe36b" stroke-width="3"/>
+        <circle cx="96" cy="22" r="4" fill="#ffe36b"/><circle cx="18" cy="46" r="3" fill="#ffe36b"/>
+    </g>`,
+    locxoay: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M30,18 Q80,22 72,38 Q62,54 36,50 Q14,48 26,62 Q38,78 82,74 Q102,72 90,88" fill="none" stroke="#8ad8ff" stroke-width="10"/>
+        <circle cx="58" cy="64" r="16" fill="#ffe0bd"/>
+        <circle cx="52" cy="62" r="2.4" fill="#201827"/><circle cx="64" cy="62" r="2.4" fill="#201827"/>
+        <path d="M52,72 Q58,68 64,72 Q58,78 52,72 Z" fill="#3a1a1a"/>
+        <path d="M34,50 l-6,6 M80,56 l8,2" stroke="#c8f4ff" stroke-width="3"/>
+        <path d="M24,84 l-8,4 M96,30 l8,-2" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    trap_ho: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="60" cy="76" rx="44" ry="20" fill="#2a1a14"/>
+        <ellipse cx="60" cy="74" rx="34" ry="14" fill="#0d0906"/>
+        <path d="M30,74 l10,-14 l8,14 Z M50,76 l10,-16 l8,16 Z M70,76 l10,-14 l8,14 Z" fill="#9fb7c9"/>
+        <path d="M22,70 Q40,58 60,62 Q82,58 98,70" fill="none" stroke="#e8c48a" stroke-width="4"/>
+        <path d="M84,22 L86,40 L102,40 Q100,56 84,52 L82,60" fill="none" stroke="#c98b45" stroke-width="4"/>
+        <path d="M86,22 Q80,14 90,12 Q98,14 92,22 Z" fill="#ff8fa3"/>
+        <path d="M20,38 l4,8 M30,28 l2,8" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    trap_set: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M66,8 L40,58 L58,58 L42,104 L86,48 L66,48 L84,8 Z" fill="#ffe36b"/>
+        <path d="M50,72 L36,86 M64,84 L58,100" stroke="#ffb347" stroke-width="3"/>
+        <ellipse cx="72" cy="96" rx="22" ry="7" fill="#e8c48a"/>
+        <path d="M56,92 L72,72 L88,92 Z" fill="#7a5230"/>
+        <path d="M92,22 l4,8 M104,34 l6,2 M24,24 l-6,4" stroke="#c8f4ff" stroke-width="3"/>
+    </g>`,
+    huydebuff: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M34,34 L82,34 L76,100 L40,100 Z" fill="#d9f7ff"/>
+        <path d="M34,34 L82,34 L80,48 L36,48 Z" fill="#8ad8ff"/>
+        <circle cx="58" cy="54" r="15" fill="#ffe36b"/>
+        <path d="M58,40 L58,68 M44,54 L72,54" stroke="#fff" stroke-width="2.4"/>
+        <path d="M64,34 L72,12 L78,14 L70,36" fill="#ff8fa3"/>
+        <path d="M88,64 l4,8 M96,50 l4,8 M92,80 l6,4" stroke="#7ee0a8" stroke-width="3"/>
+        <text x="92" y="38" font-family="Arial Black,Arial,sans-serif" font-size="16" font-weight="900" fill="#c8f4ff">Z</text>
+        <path d="M82,28 L100,44" stroke="#ff5a4f" stroke-width="4"/>
+    </g>`,
+    trombai: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="44" y="30" width="34" height="52" rx="5" fill="#f4f7fa" transform="rotate(-8 61 56)"/>
+        <path d="M50,38 L72,34 M48,48 L70,44 M46,58 L68,54" stroke="#b49be8" stroke-width="3"/>
+        <path d="M14,58 Q28,46 44,54 L40,70 Q26,64 16,72 Z" fill="#ffe0bd"/>
+        <path d="M8,56 Q16,50 24,54 L20,70 Q12,70 6,66 Z" fill="#8a5bb8"/>
+        <path d="M94,44 Q82,44 74,54 L78,70 Q92,62 100,66 Z" fill="#ffe0bd"/>
+        <path d="M102,42 Q94,40 88,46 L92,60 Q100,60 106,56 Z" fill="#ff8fa3"/>
+        <path d="M60,20 l2,8 M70,16 l0,8 M84,90 l6,4" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    doidat: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="56" cy="36" r="14" fill="#ffe0bd"/>
+        <path d="M42,32 Q48,18 60,20 Q72,18 76,32 L72,26 Q56,16 40,26 Z" fill="#3a2414"/>
+        <circle cx="51" cy="36" r="2.2" fill="#201827"/><circle cx="62" cy="36" r="2.2" fill="#201827"/>
+        <path d="M54,44 Q58,47 62,44" stroke="#201827" stroke-width="2.2" fill="none"/>
+        <path d="M46,52 L68,52 L70,82 L48,82 Z" fill="#ff9f43"/>
+        <path d="M44,58 L28,52 M70,58 L86,52" stroke="#ffe0bd" stroke-width="6"/>
+        <circle cx="24" cy="50" r="13" fill="#3a4250"/>
+        <path d="M36,44 Q44,38 42,30" fill="none" stroke="#c98b45" stroke-width="3"/>
+        <path d="M42,30 l4,-6 l1,7 l6,-2" fill="#ffb347"/>
+        <path d="M92,78 q6,4 12,0 M30,92 q6,4 12,0 M94,94 q6,4 12,0" stroke="#9fb7c9" stroke-width="3" fill="none"/>
+    </g>`,
+    baohothanky: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="60" cy="62" r="38" fill="#c8d4de"/>
+        <circle cx="60" cy="62" r="27" fill="#9fb7c9"/>
+        <circle cx="60" cy="62" r="9" fill="#7a5230"/>
+        <rect x="54" y="18" width="12" height="12" rx="4" fill="#5d6b7a"/>
+        <path d="M22,24 l4,8 M96,22 l-2,9 M104,74 l8,2 M18,72 l-6,6" stroke="#ffe36b" stroke-width="3"/>
+        <path d="M34,102 Q60,110 86,102" fill="none" stroke="#201827" stroke-width="4"/>
+        <path d="M40,16 q3,-8 6,0 q3,-8 6,0 M86,44 q3,-8 6,0 q3,-8 6,0" fill="#fff" stroke="#c98b45" stroke-width="1.6"/>
+    </g>`,
+    _default: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="38" y="20" width="44" height="64" rx="6" fill="#f4f7fa" transform="rotate(-6 60 52)"/>
+        <path d="M52,40 Q60,28 68,40 Q60,54 52,40 Z" fill="#ff8fa3"/>
+        <path d="M52,66 Q60,60 68,66" fill="none" stroke="#201827" stroke-width="3"/>
+        <path d="M20,32 l4,8 M96,70 l-4,8" stroke="#ffe36b" stroke-width="3"/>
+    </g>`
+};
+
+function boardCardWitness(type) {
+    const scared = type === 'monster' || type === 'trap';
+    const eyes = scared
+        ? `<ellipse cx="10" cy="12" rx="4.2" ry="5.2" fill="#fff"/><ellipse cx="24" cy="12" rx="4.2" ry="5.2" fill="#fff"/><circle cx="10" cy="13.5" r="1.8" fill="#231a2c"/><circle cx="24" cy="13.5" r="1.8" fill="#231a2c"/>`
+        : `<path d="M5,12 Q9,7 13,12" stroke="#231a2c" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M21,12 Q25,7 29,12" stroke="#231a2c" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+    const mouth = scared
+        ? `<ellipse cx="17" cy="23" rx="3.8" ry="4.6" fill="#3a1a1a"/>`
+        : `<path d="M11,20 Q17,27 23,20" stroke="#231a2c" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+    const extra = scared
+        ? `<path d="M31,6 Q35,12 31,16 Q27,12 31,6 Z" fill="#8ad8ff"/><path d="M2,26 q-4,3 -8,1" stroke="#8ad8ff" stroke-width="2" fill="none"/>`
+        : `<path d="M32,4 l2.5,6 l-2.5,6 l-2.5,-6 Z" fill="#ffe36b"/>`;
+    return `<g transform="translate(18,208) scale(1.12)">
+        <circle cx="17" cy="17" r="16" fill="#ffe0bd" stroke="#231a2c" stroke-width="2.4"/>
+        <path d="M1,15 Q4,-1 17,-1 Q30,-1 33,15 L30,9 Q17,4 4,9 Z" fill="#3a2414" stroke="#231a2c" stroke-width="1.4"/>
+        ${eyes}${mouth}${extra}
+        <ellipse cx="6" cy="19" rx="2.6" ry="1.4" fill="#ff8fa3" opacity=".55"/>
+        <ellipse cx="28" cy="19" rx="2.6" ry="1.4" fill="#ff8fa3" opacity=".55"/>
+    </g>`;
+}
+
+const _boardCardArtCache = {};
+function boardCardArtSvg(card) {
+    const id = (card && card.id) || '_default';
+    if (_boardCardArtCache[id]) return _boardCardArtCache[id];
+    const type = (card && card.type) || 'fun_spell';
+    const tint = BOARD_CARD_ACCENT[id] || (BOARD_CARD_TINTS[type] || BOARD_CARD_TINTS.fun_spell)[0];
+    const dark = (BOARD_CARD_TINTS[type] || BOARD_CARD_TINTS.fun_spell)[1];
+    const prop = BOARD_CARD_PROPS[id] || BOARD_CARD_PROPS._default;
+    const caption = BOARD_CARD_CAPTIONS[id] || 'HẢ?!';
+    const rays = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((a, i) => {
+        if (i % 2) return '';
+        const x = (160 + 230 * Math.cos(a * Math.PI / 180)).toFixed(1);
+        const y = (150 + 230 * Math.sin(a * Math.PI / 180)).toFixed(1);
+        return `<path d="M160,150 L${x},${y}" stroke="${tint}" stroke-opacity=".22" stroke-width="38"/>`;
+    }).join('');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+        <defs>
+            <radialGradient id="bg" cx="50%" cy="36%" r="82%">
+                <stop offset="0" stop-color="${tint}" stop-opacity=".85"/>
+                <stop offset=".52" stop-color="${dark}"/>
+                <stop offset="1" stop-color="#120d1c"/>
+            </radialGradient>
+            <pattern id="dots" width="13" height="13" patternUnits="userSpaceOnUse">
+                <circle cx="3" cy="3" r="1.5" fill="#fff" fill-opacity=".13"/>
+            </pattern>
+        </defs>
+        <rect width="320" height="320" fill="url(#bg)"/>
+        <g>${rays}</g>
+        <rect width="320" height="320" fill="url(#dots)"/>
+        <path d="M0,238 Q54,206 108,232 T214,228 T320,240 L320,320 L0,320 Z" fill="#0b0812" opacity=".55"/>
+        <g fill="#08060e" opacity=".78">
+            <rect x="16" y="222" width="34" height="44"/><path d="M10,222 L33,202 L56,222 Z"/>
+            <rect x="252" y="230" width="40" height="38"/><path d="M245,230 L272,210 L299,230 Z"/>
+            <rect x="214" y="242" width="24" height="28"/><path d="M208,242 L226,228 L244,242 Z"/>
+            <path d="M120,236 q4,-30 10,0 M132,238 q5,-24 11,0 M144,236 q4,-28 10,0"/>
+        </g>
+        <ellipse cx="160" cy="244" rx="100" ry="17" fill="#000" opacity=".38"/>
+        <svg x="52" y="34" width="216" height="216" viewBox="0 0 120 120" overflow="visible">${prop}</svg>
+        ${boardCardWitness(type)}
+        <g transform="translate(252,52)">
+            <polygon points="0,-32 9,-10 32,-9 14,5 20,28 0,15 -20,28 -14,5 -32,-9 -9,-10" fill="${tint}" stroke="#150f1e" stroke-width="3"/>
+            <text x="0" y="6" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" fill="#1a1220" transform="rotate(-8)">${caption}</text>
+        </g>
+        <rect x="4" y="4" width="312" height="312" rx="24" fill="none" stroke="#ffffff2e" stroke-width="3"/>
+    </svg>`;
+    const uri = 'data:image/svg+xml,' + encodeURIComponent(svg);
+    _boardCardArtCache[id] = uri;
+    return uri;
+}
+
+window.boardCardArtUrl = function(card) {
+    return boardCardArtSvg(card);
+};
+
+window.boardCardIcon = function(card) {
+    const id = card && card.id;
+    if (id && BOARD_CARD_EMOJI[id]) return BOARD_CARD_EMOJI[id];
+    return card && card.type === 'monster' ? '👾' : card && card.type === 'equip' ? '🛡️' : card && card.type === 'trap' ? '💣' : '🌪️';
+};
+
+window.boardCardFaceHtml = function(card, result) {
+    const badgeClass = `badge-${card.rarity}`;
+    const art = window.boardCardArtUrl(card);
+    return `<div class="drawn-card card-3d-flip ${card.type}-card">
+        <span class="card-rarity-badge ${badgeClass}">${_boardEsc((card.rarity || '').toUpperCase())}</span>
+        <div class="drawn-card-main">
+            <div class="drawn-card-art" style="background-image:url('${art}')"></div>
+            <div class="drawn-card-info">
+                <div class="drawn-card-name">${window.boardCardIcon(card)} ${_boardEsc(card.name)}</div>
+                <div class="drawn-card-desc">${_boardEsc(card.desc)}</div>
+                <div class="drawn-card-result">👉 ${_boardEsc(result)}</div>
+            </div>
+        </div>
+    </div>`;
+};
+
+function boardPlayCardEventFx(card, p, result) {
+    const pos = p ? p.pos : (boardGame ? boardGame.currentTurn : 0);
+    const text = String(result || '');
+    if (card.type === 'monster') window.boardPlayFx('monster', pos, card.name);
+    else if (card.type === 'trap') window.boardPlayFx('trap', pos, 'BÙM!');
+    else if (/🪙/.test(text)) window.boardPlayFx('gold', pos, (text.match(/\+[\d.]+ 🪙/) || ['🪙'])[0]);
+    else if (/🗡/.test(text)) window.boardPlayFx('weapon', pos, '+🗡️');
+    else if (/🛡/.test(text)) window.boardPlayFx('shield', pos, '+🛡️');
+    else if (/❤/.test(text)) window.boardPlayFx('heal', pos, '+❤️');
+    else if (/lùi/i.test(text)) window.boardPlayFx('back', pos, '');
+    else if (/Xuyên không|Đổi chỗ/i.test(text)) window.boardPlayFx('portal', pos, '🌀');
+    else if (/ngáp|dính bùa/i.test(text)) window.boardPlayFx('sleep', pos, '💤');
+    else window.boardPlayFx('card', pos, '');
+}
+
+window.boardPlayCardCast = function(card, result, done) {
+    const modal = document.getElementById('boardGameModal');
+    if (!modal || !card) {
+        if (done) done();
+        return;
+    }
+    document.querySelectorAll('.board-cast-overlay').forEach(n => n.remove());
+    const el = document.createElement('div');
+    el.className = 'board-cast-overlay cast-' + (card.type || 'spell');
+    el.innerHTML = `<div class="cast-rays"></div>
+        <div class="cast-card">
+            <span class="cast-rarity">${_boardEsc((card.rarity || '').toUpperCase())}</span>
+            <div class="cast-art" style="background-image:url('${window.boardCardArtUrl(card)}')"></div>
+            <div class="cast-name">${window.boardCardIcon(card)} ${_boardEsc(card.name)}</div>
+            <div class="cast-line">${_boardEsc(result)}</div>
+        </div>`;
+    modal.appendChild(el);
+    setTimeout(() => {
+        el.classList.add('is-out');
+        setTimeout(() => el.remove(), 240);
+        if (!boardGame || boardGame.closed) return;
+        if (typeof done === 'function') done();
+    }, boardFxReduced() ? 450 : 950);
+};
+
 
 window.boardShuffleDeck = function() {
     RACE_CARDS.sort(() => Math.random() - 0.5);
@@ -375,11 +797,13 @@ window.boardShuffleDeck = function() {
 function boardFightMonster(p, card) {
     const mName = card.name;
     const damage = card.damage || 1;
+    window.boardPlayFx('monster', p.pos, mName);
     if (p.weapons > 0) {
         p.weapons--;
-        return `Tiêu diệt ${mName} bằng 1 🗡️ Vũ Khí thành công!`;
+        window.boardPlayFx('weapon', p.pos, 'Hạ gục!');
+        return `Kết liễu ${mName} bằng 🗡️!`;
     } else {
-        return boardTakeDamage(p, damage, `bị ${mName} cắn cụt mông`);
+        return boardTakeDamage(p, damage, `bị ${mName} cắn`);
     }
 }
 
@@ -387,16 +811,20 @@ function boardFightMonster(p, card) {
 function boardTakeDamage(p, amount, reason) {
     if (p.shields > 0) {
         p.shields--;
-        return `🛡️ Nắp vung (Khiên) đã chặn thành công đòn chí tử (${reason})!`;
+        window.boardPlayFx('shield', p.pos, 'Đỡ!');
+        return `🛡️ Khiên đỡ đòn (${reason}).`;
     }
     p.lives -= amount;
     if (p.lives <= 0) {
         p.eliminated = true;
-        boardAddLog(`💀 ${p.name} ăn hành quá nhiều và ĐÃ BÊN KIA THẾ GIỚI!`, 'win');
-        return `💀 Hết mạng! BẠN ĐÃ ĐĂNG XUẤT KHỎI TRÁI ĐẤT!`;
+        window.boardPlayFx('damage', p.pos, '💀', { count: 18 });
+        boardAddLog(`💀 ${p.name} hết mạng, về quê!`, 'win');
+        return `💀 Hết mạng! Bạn bị xóa khỏi bản đồ!`;
     }
-    return `💔 Mất ${amount} mạng vì ${reason}! (Còn ${p.lives}❤️)`;
+    window.boardPlayFx('damage', p.pos, `-${amount} ♥`, { count: 13 });
+    return `💔 -${amount} ♥ vì ${reason} (còn ${p.lives}).`;
 }
+
 
 // ── Vẽ thẻ bài 3D ─────────────────────────────────────────────
 window.boardDrawRandomCard = function(p, reason, callback) {
@@ -409,28 +837,32 @@ window.boardDrawRandomCard = function(p, reason, callback) {
     let pool = RACE_CARDS.filter(c => c.rarity === tier);
     if(!pool.length) pool = RACE_CARDS;
     let card = pool[Math.floor(Math.random() * pool.length)];
-    
-    let result = card.effect(p);
-    
-    const badgeClass  = `badge-${card.rarity}`;
-    const typeIcon = card.type === 'monster' ? '👾' : card.type === 'equip' ? '🛡️' : card.type === 'trap' ? '💣' : '🌪️';
 
-    document.getElementById('boardCardDisplay').innerHTML = `
-        <div class="drawn-card card-3d-flip ${card.type}-card">
-            <span class="card-rarity-badge ${badgeClass}">${card.rarity.toUpperCase()}</span>
-            <div style="font-size:1.4rem;margin:8px 0;">${typeIcon} ${card.name}</div>
-            <div style="font-size:0.8rem;color:#cbd5e1;padding:4px;">${card.desc}</div>
-            <div style="font-size:0.75rem;color:#fbbf24;margin-top:6px;font-weight:bold;">👉 ${result}</div>
-        </div>`;
-    boardAddLog(`🃏 ${p.name} lật: [${card.name}] — ${result}`, 'card');
-    
-    window.boardShowBigNotice(
-        `${typeIcon} ${card.name}`, 
-        `Rút thẻ ở <b>${reason}</b><br><br><span style="color:#fcd34d">${card.desc}</span>`, 
-        `👉 ${result}`, 
-        callback
-    );
+    let result;
+    try {
+        result = card.effect(p);
+    } catch (err) {
+        console.error('Card effect failed:', card && card.id, err);
+        result = 'Thẻ bị kẹt, bỏ qua lượt này.';
+    }
+    if (typeof result !== 'string') result = String(result == null ? '' : result);
+    boardPlayCardEventFx(card, p, result);
+
+    const display = document.getElementById('boardCardDisplay');
+    if (display) display.innerHTML = window.boardCardFaceHtml(card, result);
+    boardAddLog(`🃏 ${p.name} lật [${card.name}]: ${result}`, 'card');
+
+    window.boardPlayCardCast(card, result, () => {
+        if (!boardGame || boardGame.closed) return;
+        window.boardShowBigNotice(
+            `${window.boardCardIcon(card)} ${card.name}`,
+            `Rơi ở <b>${reason}</b>.`,
+            `👉 ${result}`,
+            callback
+        );
+    });
 };
+
 
 // ── Hoạt ảnh xúc xắc ──────────────────────────────────────────
 window.boardDoRollAnimation = function(boardPlayer, callback, predefinedRoll) {
@@ -475,8 +907,9 @@ window.boardProcessTurn = function(p, roll, callback) {
     }
     if(p.skipTurn) {
         p.skipTurn = false;
+        window.boardPlayFx('sleep', p.pos, '💤');
         boardAddLog(`😴 ${p.name} mất lượt!`);
-        window.boardShowBigNotice("😴 Ngủ gật", `${p.name} bị mất lượt này!`, "", () => {
+        window.boardShowBigNotice("😴 Ngủ gật", `${p.name} ngáp một cái, mất lượt.`, "", () => {
             if(callback) callback();
         });
         return;
@@ -492,7 +925,7 @@ window.boardProcessTurn = function(p, roll, callback) {
         // Chạy lập tức không trễ nếu tab đang bị ẩn
         if (!p.eliminated && steps > 0) {
             boardMovePlayer(p.idx, steps, false);
-            boardAddLog(`🎲 ${p.name} di chuyển nhanh ${steps} bước (ẩn tab).`);
+            boardAddLog(`🎲 ${p.name} đi ${steps} bước (tab ẩn).`);
         }
         
         let cellName = NEIGHBORHOOD_NAMES[p.pos % NEIGHBORHOOD_NAMES.length];
@@ -502,7 +935,7 @@ window.boardProcessTurn = function(p, roll, callback) {
             if (alive.length === 1 && boardGame.players.length > 1) {
                 boardGame.gameOver = true;
                 let prize = 200 + (boardGame.betPool||0);
-                boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
+                boardAddLog(`🏆 ${alive[0].name} sống sót cuối cùng!`, 'win');
                 if (alive[0].networkId === getMyNetworkId() || alive[0].isHuman) {
                     player.gold += prize;
                     boardRefreshHud();
@@ -528,7 +961,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                     player.gold += (200 + prize);
                     boardRefreshHud();
                 }
-                boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
+                boardAddLog(`🏆 ${p.name} cán đích đầu tiên!`, 'win');
                 finalizeTurn();
             } else {
                 if (p.pos >= 20 && typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
@@ -570,7 +1003,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                 if (alive.length === 1 && boardGame.players.length > 1) {
                     boardGame.gameOver = true;
                     let prize = 200 + (boardGame.betPool||0);
-                    boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
+                    boardAddLog(`🏆 ${alive[0].name} sống sót cuối cùng!`, 'win');
                     if (alive[0].networkId === getMyNetworkId() || alive[0].isHuman) {
                         player.gold += prize;
                         boardRefreshHud();
@@ -596,7 +1029,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                         player.gold += (200 + prize);
                         boardRefreshHud();
                     }
-                    boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
+                    boardAddLog(`🏆 ${p.name} cán đích đầu tiên!`, 'win');
                     finalizeTurn();
                 } else {
                     if (p.pos >= 20 && typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
@@ -647,12 +1080,12 @@ window.boardProcessTurn = function(p, roll, callback) {
                     if(alive.length === 1 && boardGame.players.length > 1) {
                         boardGame.gameOver = true;
                         let prize = 200 + (boardGame.betPool||0);
-                        boardAddLog(`🏆 Tất cả đối thủ đã chết! ${alive[0].name} SỐNG SÓT VÀ CHIẾN THẮNG!`, 'win');
+                        boardAddLog(`🏆 ${alive[0].name} sống sót cuối cùng!`, 'win');
                         if(alive[0].networkId === getMyNetworkId() || alive[0].isHuman) {
                             player.gold += prize;
                             boardRefreshHud();
                         }
-                        window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${alive[0].name} là người sống sót cuối cùng!`, `Thưởng: ${prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, () => {}, true);
+                        window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${alive[0].name} sống sót cuối cùng!`, `Thưởng ${prize} 🪙 · chạm để tiếp tục`, () => {}, true);
                     }
                     if (typeof window.boardSyncView === 'function') window.boardSyncView();
                 else { boardRenderGrid(); boardRenderPlayers(); }
@@ -667,8 +1100,8 @@ window.boardProcessTurn = function(p, roll, callback) {
                             player.gold += (200 + prize);
                             boardRefreshHud();
                         }
-                        boardAddLog(`🏆 ${p.name} đã cán ĐÍCH ĐẦU TIÊN!`, 'win');
-                        window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} đã cán đích an toàn!`, `Thưởng: ${200 + prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, finalizeTurn, true);
+                        boardAddLog(`🏆 ${p.name} cán đích đầu tiên!`, 'win');
+                        window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${p.name} cán đích! Cả xóm nhìn theo.`, `Thưởng ${200 + prize} 🪙 · chạm để tiếp tục`, finalizeTurn, true);
                         try { audio.play('levelup'); } catch(e){}
                     } else {
                         if (p.pos >= 20 && typeof SHOP_ZONES !== 'undefined' && SHOP_ZONES.includes(cellName)) {
@@ -682,7 +1115,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                 const handleCombat = () => {
                     boardHandleCombat(p, (combatLog) => {
                         if(combatLog) {
-                            window.boardShowBigNotice("⚔️ ĐỤNG ĐỘ", combatLog, `Khu vực: ${cellName}`, handleWinOrCard);
+                            window.boardShowBigNotice("⚔️ ĐỤNG ĐỘ", combatLog, `Ở ${cellName}`, handleWinOrCard);
                         } else {
                             handleWinOrCard();
                         }
@@ -693,7 +1126,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                     delete boardGame.trappedCells[p.pos];
                     boardAddLog(`💣 ${p.name} dẫm bẫy! Lùi 3 ô!`, 'special');
                     boardMovePlayer(p.idx, -3, true);
-                    window.boardShowBigNotice("💣 DẪM BẪY!", `${p.name} dẫm phải bẫy ở ${cellName} và bị lùi 3 ô!`, "", handleCombat);
+                    window.boardShowBigNotice("💣 DẪM BẪY!", `${p.name} dẫm bẫy ở ${cellName}, lùi 3 ô.`, "", handleCombat);
                 } else {
                     handleCombat();
                 }
@@ -707,7 +1140,7 @@ window.boardProcessTurn = function(p, roll, callback) {
         currentStep++;
         
         if (currentStep === 1) {
-            boardAddLog(`🎲 ${p.name} bắt đầu di chuyển ${steps} bước.`);
+            boardAddLog(`🎲 ${p.name} lăn được ${steps}.`);
         }
     }, 250);
 };
@@ -884,6 +1317,10 @@ window.boardMovePlayer = function(idx, steps, animate) {
         window.boardHopPawn(idx);
         window._cameraFollowIdx = idx;
         window.boardFocusPawn(idx);
+        if (steps > 1) window.boardPlayFx('forward', p.pos, `+${steps} ô`, { count: 10 });
+        else if (steps > 0) window.boardPlayFx('forward', p.pos, '', { count: 3, ring: false, lift: 3 });
+        else if (steps < 0) window.boardPlayFx('back', p.pos, `${steps} ô`, { count: 10 });
+        if (steps >= 3) window.boardPlayFx('gold', p.pos, `+${steps * 3}🪙`, { count: 5, ring: false, z: -1 });
     }
 };
 
@@ -905,35 +1342,40 @@ window.boardOpenHandPanel = function() {
 
     let modal = document.createElement('div');
     modal.className = 'board-hand-modal';
-    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:100025; display:flex; align-items:center; justify-content:center;';
 
     let box = document.createElement('div');
-    box.style.cssText = 'background:#1c1a26; border:2px solid #ff9eb5; border-radius:14px; width:min(94vw,480px); max-height:80vh; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px;';
-    box.innerHTML = `<div style="font-weight:800; color:#ffb3c6;">🎴 Bài Trên Tay (${human.hand.length}) — dùng trong lượt của bạn, trước khi tung xúc xắc</div>`;
+    box.className = 'board-hand-box';
+    box.innerHTML = `<div class="hand-head"><span>🎴 Bài Trên Tay (${human.hand.length})</span><small>Dùng trước khi lắc xúc xắc</small></div>`;
 
     if (human.hand.length === 0) {
         let empty = document.createElement('div');
-        empty.style.cssText = 'color:#94a3b8; font-size:0.85rem; text-align:center; padding:12px;';
-        empty.textContent = 'Bạn đã dùng hết bài trên tay.';
+        empty.className = 'hand-empty';
+        empty.textContent = 'Hết bài rồi. Tự thân vận động đi!';
         box.appendChild(empty);
     }
 
+    const grid = document.createElement('div');
+    grid.className = 'hand-grid';
     human.hand.forEach((card, i) => {
-        const typeIcon = card.type === 'monster' ? '👾' : card.type === 'equip' ? '🛡️' : card.type === 'trap' ? '💣' : card.type === 'fun_spell' ? '✨' : '🌪️';
-        let row = document.createElement('div');
-        row.style.cssText = 'background:#2c2840; border:1px solid #4d4566; border-radius:8px; padding:10px; cursor:pointer;';
-        row.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.9rem; color:#fff;"><span>${typeIcon} ${card.name}</span><span style="color:#ffb3c6; font-size:0.7rem; text-transform:uppercase;">${card.rarity}</span></div>
-            <div style="font-size:0.75rem; color:#cbd5e1; margin-top:4px;">${card.desc}</div>`;
-        row.onclick = () => {
+        let tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = `hand-card rarity-${card.rarity || 'common'}`;
+        tile.innerHTML = `
+            <span class="hand-card-art" style="background-image:url('${window.boardCardArtUrl(card)}')"></span>
+            <span class="hand-card-top">${window.boardCardIcon(card)} ${_boardEsc(card.name)}</span>
+            <span class="hand-card-desc">${_boardEsc(card.desc)}</span>
+            <span class="hand-card-use">Dùng ngay</span>`;
+        tile.onclick = () => {
             modal.remove();
             window.boardUseHandCard(human.idx, i);
         };
-        box.appendChild(row);
+        grid.appendChild(tile);
     });
+    box.appendChild(grid);
 
     let closeBtn = document.createElement('button');
+    closeBtn.className = 'hand-close';
     closeBtn.textContent = 'Đóng';
-    closeBtn.style.cssText = 'padding:8px; background:#4b5563; border:none; border-radius:6px; color:#fff; cursor:pointer; margin-top:4px;';
     closeBtn.onclick = () => modal.remove();
     box.appendChild(closeBtn);
 
@@ -955,13 +1397,19 @@ window.boardUseHandCard = function(playerIdx, handIndex) {
     }
 
     let result = origCard.effect(p);
-    const typeIcon = card.type === 'monster' ? '👾' : card.type === 'equip' ? '🛡️' : card.type === 'trap' ? '💣' : card.type === 'fun_spell' ? '✨' : '🌪️';
-    boardAddLog(`🎴 ${p.name} dùng bài tay [${card.name}] — ${result}`, 'card');
-    window.boardShowBigNotice(`${typeIcon} ${card.name}`, card.desc, `👉 ${result}`, () => {
-        if (typeof window.boardSyncView === 'function') window.boardSyncView();
-        else { boardRenderGrid(); boardRenderPlayers(); }
+    if (typeof result !== 'string') result = String(result == null ? '' : result);
+    boardPlayCardEventFx(origCard, p, result);
+    boardAddLog(`🎴 ${p.name} dùng [${card.name}]: ${result}`, 'card');
+
+    window.boardPlayCardCast(origCard, result, () => {
+        if (!boardGame || boardGame.closed) return;
+        window.boardShowBigNotice(`${window.boardCardIcon(origCard)} ${card.name}`, origCard.desc, `👉 ${result}`, () => {
+            if (typeof window.boardSyncView === 'function') window.boardSyncView();
+            else { boardRenderGrid(); boardRenderPlayers(); }
+        });
     });
 };
+
 
 // ── Hàm phụ trợ tính tọa độ vòng quanh ──────────────────────────
 // Preview icon shown on each track cell before anyone lands on it — purely
@@ -1332,6 +1780,12 @@ window.boardRenderGrid = function() {
     pawnLayer.id = 'boardPawnLayer';
     canvas.appendChild(pawnLayer);
 
+    // Hiệu ứng bám đúng hệ toạ độ của canvas nên luôn nổ đúng ô.
+    const fxLayer = document.createElement('div');
+    fxLayer.className = 'board-fx-layer';
+    fxLayer.id = 'boardFxLayer';
+    canvas.appendChild(fxLayer);
+
     shell.appendChild(canvas);
     grid.appendChild(shell);
 
@@ -1375,6 +1829,117 @@ window.boardFitViewport = function() {
     window._boardPadY = padY;
 };
 
+// ── Quân cờ: chân dung SVG vẽ tay, sắc nét ở mọi mức zoom ────
+const BOARD_PAWN_LOOKS = {
+    trau: { skin: '#ffd3a1', shade: '#e8ac72', hair: '#2b1b12', shirt: '#d94b3d', rim: '#ff6b5a' },
+    mam: { skin: '#ffe0bd', shade: '#f0b98c', hair: '#3c2143', shirt: '#b06ab8', rim: '#e084fc' },
+    kien: { skin: '#f7cf9e', shade: '#ddaa72', hair: '#1e2a1c', shirt: '#1f6b3a', rim: '#22c55e' },
+    ut: { skin: '#ffd7a8', shade: '#eab378', hair: '#2b1b12', shirt: '#3b82f6', rim: '#60a5fa' }
+};
+
+function boardPawnHair(id, c) {
+    if (id === 'mam') return `
+        <path d="M25,44 Q21,16 48,12 Q75,16 71,44 L76,70 Q68,60 65,45 Q48,28 31,45 Q28,60 20,70 Z" fill="${c.hair}" stroke="#201827" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M33,20 Q48,13 63,20" stroke="#ffffff" stroke-opacity=".22" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <g transform="translate(70,22) rotate(18)">
+            <circle cx="0" cy="0" r="3.4" fill="#ff9ecb"/>
+            <circle cx="6" cy="2" r="3.4" fill="#ffb3d9"/>
+            <circle cx="3" cy="7" r="3.4" fill="#ff9ecb"/>
+            <circle cx="2.6" cy="3" r="1.8" fill="#ffe36b"/>
+        </g>`;
+    if (id === 'kien') return `
+        <path d="M27,34 Q28,13 48,13 Q68,13 69,34 Z" fill="#2f8f4e" stroke="#201827" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M25,33 Q48,26 71,33 L71,38 Q48,32 25,38 Z" fill="#1f6b3a" stroke="#201827" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle cx="48" cy="24" r="4.6" fill="#ffe36b" stroke="#201827" stroke-width="1.8"/>
+        <path d="M48,23 l1.6,3 l3.4,.3 l-2.6,2.2 l.8,3.3 l-3.2,-1.8 l-3.2,1.8 l.8,-3.3 l-2.6,-2.2 l3.4,-.3 Z" fill="#c9831f"/>
+        <path d="M32,15 L27,5 M64,15 L69,5" stroke="#201827" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="27" cy="4.5" r="2.6" fill="#22c55e" stroke="#201827" stroke-width="1.4"/>
+        <circle cx="69" cy="4.5" r="2.6" fill="#22c55e" stroke="#201827" stroke-width="1.4"/>`;
+    if (id === 'ut') return `
+        <path d="M16,33 L48,8 L80,33 Z" fill="#e7c777" stroke="#201827" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M30,25 Q48,19 66,25 L66,31 Q48,25 30,31 Z" fill="#d94b3d" stroke="#201827" stroke-width="2"/>
+        <path d="M16,33 Q48,27 80,33 Q48,39 16,33 Z" fill="#d8b061" stroke="#201827" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M38,13 L44,6 M52,12 L54,4" stroke="#a8853c" stroke-width="1.8" stroke-linecap="round"/>`;
+    return `
+        <path d="M27,40 L21,18 L33,28 L32,10 L42,27 L48,8 L55,27 L65,10 L63,28 L75,18 L69,40 Q48,26 27,40 Z" fill="${c.hair}" stroke="#201827" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M28,32 Q48,24 68,32 L68,38 Q48,30 28,38 Z" fill="#d94b3d" stroke="#201827" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M68,33 L79,27 L76,38 Z" fill="#d94b3d" stroke="#201827" stroke-width="2" stroke-linejoin="round"/>`;
+}
+
+function boardPawnFace(id) {
+    if (id === 'trau') return `
+        <path d="M36,41 Q40,38 44,41" stroke="#201827" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M52,41 Q56,38 60,41" stroke="#201827" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <circle cx="40" cy="45" r="2.6" fill="#201827"/><circle cx="56" cy="45" r="2.6" fill="#201827"/>
+        <path d="M38,53 Q48,61 58,52" stroke="#201827" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M44,55 l3,2 l3,-2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M59,50 l7,3" stroke="#e8c48a" stroke-width="2.6" stroke-linecap="round"/>
+        <rect x="28" y="49" width="8" height="4" rx="1.6" fill="#ffd9a8" stroke="#201827" stroke-width="1.6" transform="rotate(-18 32 51)"/>`;
+    if (id === 'mam') return `
+        <ellipse cx="40" cy="45" rx="5.4" ry="6.2" fill="#fff" stroke="#201827" stroke-width="1.6"/>
+        <ellipse cx="56" cy="45" rx="5.4" ry="6.2" fill="#fff" stroke="#201827" stroke-width="1.6"/>
+        <circle cx="40.6" cy="46" r="3" fill="#3a2440"/><circle cx="56.6" cy="46" r="3" fill="#3a2440"/>
+        <circle cx="42" cy="44" r="1.1" fill="#fff"/><circle cx="58" cy="44" r="1.1" fill="#fff"/>
+        <path d="M36,38 Q40,35 44,38" stroke="#3a2440" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M52,38 Q56,35 60,38" stroke="#3a2440" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M44,55 Q48,58 52,55" stroke="#c0392b" stroke-width="2.2" fill="#e86a6a" stroke-linejoin="round"/>
+        <ellipse cx="33" cy="51" rx="3.4" ry="2" fill="#ff8fa3" opacity=".5"/>
+        <ellipse cx="63" cy="51" rx="3.4" ry="2" fill="#ff8fa3" opacity=".5"/>`;
+    if (id === 'kien') return `
+        <path d="M35,40 L44,43 M61,40 L52,43" stroke="#201827" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="41" cy="46" r="2.6" fill="#201827"/><circle cx="55" cy="46" r="2.6" fill="#201827"/>
+        <path d="M42,55 L54,55" stroke="#201827" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M28,49 L36,50 M68,49 L60,50" stroke="#201827" stroke-width="2" stroke-linecap="round" opacity=".5"/>`;
+    return `
+        <ellipse cx="40" cy="45" rx="5" ry="5.8" fill="#fff" stroke="#201827" stroke-width="1.6"/>
+        <ellipse cx="56" cy="45" rx="5" ry="5.8" fill="#fff" stroke="#201827" stroke-width="1.6"/>
+        <circle cx="40.4" cy="46" r="2.8" fill="#2b1b12"/><circle cx="56.4" cy="46" r="2.8" fill="#2b1b12"/>
+        <circle cx="41.6" cy="44.2" r="1" fill="#fff"/><circle cx="57.6" cy="44.2" r="1" fill="#fff"/>
+        <path d="M36,39 Q40,36 44,39" stroke="#201827" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M52,39 Q56,36 60,39" stroke="#201827" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M41,54 Q48,61 55,54 Z" fill="#3a1a1a" stroke="#201827" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M44,57 l2,3 l2,-3" fill="#fff"/>
+        <circle cx="32" cy="51" r="1.2" fill="#c98b45"/><circle cx="37" cy="53" r="1.2" fill="#c98b45"/>
+        <circle cx="59" cy="53" r="1.2" fill="#c98b45"/><circle cx="64" cy="51" r="1.2" fill="#c98b45"/>`;
+}
+
+const _boardPawnTokenCache = {};
+window.boardPawnTokenSrc = function(idx) {
+    const char = BOARD_CHARACTERS[idx] || BOARD_CHARACTERS[0] || {};
+    const id = char.id || 'trau';
+    if (_boardPawnTokenCache[id]) return _boardPawnTokenCache[id];
+    const c = BOARD_PAWN_LOOKS[id] || { skin: '#ffe0bd', shade: '#eab378', hair: '#2b1b12', shirt: char.color || '#f4c766', rim: char.color || '#f4c766' };
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+        <defs>
+            <radialGradient id="bg" cx="42%" cy="26%" r="82%">
+                <stop offset="0" stop-color="#ffffff" stop-opacity=".38"/>
+                <stop offset=".45" stop-color="${c.rim}" stop-opacity=".55"/>
+                <stop offset="1" stop-color="#0c1a22"/>
+            </radialGradient>
+            <clipPath id="clip"><circle cx="48" cy="48" r="45"/></clipPath>
+        </defs>
+        <circle cx="48" cy="48" r="46" fill="url(#bg)"/>
+        <g clip-path="url(#clip)">
+            <path d="M8,98 Q12,70 48,66 Q84,70 88,98 Z" fill="${c.shirt}" stroke="#201827" stroke-width="2.8" stroke-linejoin="round"/>
+            <path d="M40,60 L56,60 L54,72 L42,72 Z" fill="${c.shade}" stroke="#201827" stroke-width="2.2"/>
+            <path d="M36,68 Q48,76 60,68" stroke="#201827" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+            <circle cx="26" cy="43" r="4.6" fill="${c.skin}" stroke="#201827" stroke-width="2"/>
+            <circle cx="70" cy="43" r="4.6" fill="${c.skin}" stroke="#201827" stroke-width="2"/>
+            <circle cx="48" cy="42" r="21.5" fill="${c.skin}" stroke="#201827" stroke-width="2.8"/>
+            <path d="M30,30 Q34,20 48,19 Q62,20 66,30" fill="none" stroke="${c.shade}" stroke-width="3" opacity=".35"/>
+            ${boardPawnFace(id)}
+            ${boardPawnHair(id, c)}
+            <ellipse cx="48" cy="25" rx="26" ry="10" fill="#fff" opacity=".1"/>
+        </g>
+        <circle cx="48" cy="48" r="45" fill="none" stroke="${c.rim}" stroke-width="3.4"/>
+        <circle cx="48" cy="48" r="42.4" fill="none" stroke="#0c1a22" stroke-width="1.6" opacity=".55"/>
+        <path d="M28,16 Q48,6 68,15" stroke="#fff" stroke-opacity=".3" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>`;
+    const uri = 'data:image/svg+xml,' + encodeURIComponent(svg);
+    _boardPawnTokenCache[id] = uri;
+    return uri;
+};
+
 window.boardRenderPawns = function(instant) {
     if (!boardGame) return;
     const layer = document.querySelector('#boardGrid .board-pawn-layer');
@@ -1396,7 +1961,8 @@ window.boardRenderPawns = function(instant) {
         }
         const char = BOARD_CHARACTERS[p.idx] || BOARD_CHARACTERS[0];
         const img = el.querySelector('.pawn-avatar img');
-        if (img.getAttribute('src') !== char.img) img.src = char.img;
+        const tokenSrc = window.boardPawnTokenSrc(i);
+        if (img.getAttribute('src') !== tokenSrc) img.src = tokenSrc;
         img.alt = p.name || char.name;
         el.style.setProperty('--pc', p.color || char.color);
         el.classList.toggle('is-active', !boardGame.gameOver && boardGame.currentTurn === p.idx);
@@ -1422,13 +1988,13 @@ window.boardRenderPawns = function(instant) {
         el.style.setProperty('--pscale', stacked ? '0.78' : '1');
         let dx = 0, dy = 0;
         if (group.length === 2) {
-            dx = j === 0 ? -13 : 13;
+            dx = j === 0 ? -14 : 14;
         } else if (group.length === 3) {
-            dx = (j - 1) * 15;
-            dy = j === 1 ? -18 : 8;
+            dx = (j - 1) * 16;
+            dy = j === 1 ? -19 : 9;
         } else if (group.length > 3) {
-            dx = j % 2 === 0 ? -15 : 15;
-            dy = j < 2 ? -20 : 9;
+            dx = j % 2 === 0 ? -16 : 16;
+            dy = j < 2 ? -21 : 10;
         }
         el.style.left = (pos.x + dx) + 'px';
         el.style.top = (pos.y + dy) + 'px';
@@ -1448,6 +2014,124 @@ window.boardHopPawn = function(idx) {
     void body.offsetWidth;
     body.classList.add('pawn-hop');
 };
+
+// ── Hiệu ứng sân đấu (bám theo ô cờ) ─────────────────────────
+const BOARD_FX_GLYPHS = {
+    forward: ['💨', '✨'],
+    back: ['😵', '💨', '💥'],
+    gold: ['🪙', '💰', '✨'],
+    weapon: ['🗡️', '⚔️', '✨'],
+    shield: ['🛡️', '✨', '💫'],
+    heal: ['❤️', '💖', '✨'],
+    damage: ['💔', '💥', '😱'],
+    trap: ['💥', '🔥', '💣'],
+    monster: ['👹', '💥', '😱'],
+    swap: ['🌀', '✨', '🔁'],
+    portal: ['🌀', '🪐', '✨'],
+    sleep: ['💤', '😴'],
+    steal: ['🤑', '🪙', '✨'],
+    finish: ['🎉', '🎊', '⭐', '🏆'],
+    card: ['🃏', '✨', '💫']
+};
+const BOARD_FX_COUNT = { forward: 8, back: 10, gold: 12, finish: 26, trap: 16, damage: 12, monster: 14 };
+
+function boardFxReduced() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+window.boardFxFlash = function(kind) {
+    const modal = document.getElementById('boardGameModal');
+    if (!modal) return;
+    const flash = document.createElement('div');
+    flash.className = 'board-fx-flash fx-' + kind;
+    modal.appendChild(flash);
+    setTimeout(() => flash.remove(), 640);
+};
+
+window.boardFxShake = function() {
+    if (boardFxReduced()) return;
+    const canvas = document.querySelector('#boardGrid .board-canvas');
+    if (!canvas) return;
+    canvas.classList.remove('board-fx-shake');
+    void canvas.offsetWidth;
+    canvas.classList.add('board-fx-shake');
+    setTimeout(() => canvas.classList.remove('board-fx-shake'), 480);
+};
+
+window.boardPlayFx = function(kind, cell, text, opts) {
+    try {
+        if (!boardGame || !document.getElementById('boardGrid')) return;
+        const layer = document.getElementById('boardFxLayer');
+        const canvas = document.querySelector('#boardGrid .board-canvas');
+        if (!layer || !canvas) return;
+        opts = opts || {};
+        const pos = _getCellPixelPos(typeof cell === 'number' ? cell : (boardGame.currentTurn || 0));
+        const reduced = boardFxReduced();
+
+        if (text) {
+            const float = document.createElement('div');
+            float.className = 'board-fx-float fx-' + kind;
+            float.textContent = text;
+            float.style.left = pos.x + 'px';
+            float.style.top = (pos.y - 16) + 'px';
+            float.style.zIndex = String(72 + (opts.z || 0));
+            layer.appendChild(float);
+            setTimeout(() => float.remove(), reduced ? 700 : 1300);
+        }
+        if (reduced) return;
+
+        const glyphs = BOARD_FX_GLYPHS[kind] || ['✨'];
+        const count = opts.count || BOARD_FX_COUNT[kind] || 9;
+        for (let i = 0; i < count; i++) {
+            const spark = document.createElement('span');
+            spark.className = 'board-fx-spark';
+            spark.textContent = glyphs[i % glyphs.length];
+            const ang = (Math.PI * 2 * i) / count + Math.random() * 0.7;
+            const dist = 24 + Math.random() * (kind === 'finish' ? 150 : 46);
+            spark.style.left = pos.x + 'px';
+            spark.style.top = pos.y + 'px';
+            spark.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(1) + 'px');
+            spark.style.setProperty('--dy', (Math.sin(ang) * dist - (opts.lift || 10)).toFixed(1) + 'px');
+            spark.style.setProperty('--rot', Math.round(Math.random() * 240 - 120) + 'deg');
+            spark.style.setProperty('--dur', (0.65 + Math.random() * 0.45).toFixed(2) + 's');
+            spark.style.fontSize = (kind === 'finish' ? 16 : 11 + Math.random() * 6).toFixed(0) + 'px';
+            layer.appendChild(spark);
+            setTimeout(() => spark.remove(), 1250);
+        }
+        if (opts.ring !== false) {
+            const ring = document.createElement('span');
+            ring.className = 'board-fx-ring fx-' + kind;
+            ring.style.left = pos.x + 'px';
+            ring.style.top = pos.y + 'px';
+            layer.appendChild(ring);
+            setTimeout(() => ring.remove(), 720);
+        }
+
+        if (kind === 'damage' || kind === 'monster') { window.boardFxFlash('damage'); window.boardFxShake(); }
+        else if (kind === 'trap') { window.boardFxFlash('trap'); window.boardFxShake(); }
+        else if (kind === 'heal') window.boardFxFlash('heal');
+        else if (kind === 'gold') window.boardFxFlash('gold');
+        else if (kind === 'finish') { window.boardFxFlash('win'); boardFxConfetti(); }
+    } catch (e) {}
+};
+
+function boardFxConfetti() {
+    const modal = document.getElementById('boardGameModal');
+    if (!modal || boardFxReduced()) return;
+    const colors = ['#ffd27b', '#ff8fa3', '#7ee0a8', '#8ab6f0', '#f4c766'];
+    for (let i = 0; i < 40; i++) {
+        const bit = document.createElement('span');
+        bit.className = 'board-fx-confetti';
+        bit.style.left = Math.random() * 100 + '%';
+        bit.style.background = colors[i % colors.length];
+        bit.style.animationDelay = (Math.random() * 0.5).toFixed(2) + 's';
+        bit.style.animationDuration = (1.3 + Math.random() * 0.9).toFixed(2) + 's';
+        bit.style.setProperty('--rot', Math.round(Math.random() * 720 - 360) + 'deg');
+        modal.appendChild(bit);
+        setTimeout(() => bit.remove(), 2700);
+    }
+}
+
 
 // Camera target: pawn centre in viewport space, clamped to the padded scroll area.
 window.boardFocusPawn = function(idx) {
@@ -2194,20 +2878,48 @@ window.boardSwapNearest = function(p) {
     if(!boardGame) return 'Lỗi game';
     let nearest = null; let minDist = Infinity;
     boardGame.players.forEach((pl,i) => {
-        if(i !== p.idx && !pl.eliminated) { 
-            let d = Math.abs((pl.pos || 0) - (p.pos || 0)); 
-            if(d < minDist) { minDist = d; nearest = pl; } 
+        if(i !== p.idx && !pl.eliminated) {
+            let d = Math.abs((pl.pos || 0) - (p.pos || 0));
+            if(d < minDist) { minDist = d; nearest = pl; }
         }
     });
     if(nearest) {
-        let tmp = p.pos;
-        p.pos = nearest.pos;
-        nearest.pos = tmp;
-        window.boardRenderGrid();
-        return `Đổi vị trí với ${nearest.name}.`;
+        const mine = p.pos, theirs = nearest.pos;
+        window.boardPlayFx('swap', mine, '🔀');
+        window.boardPlayFx('portal', theirs, '🔀');
+        p.pos = theirs;
+        nearest.pos = mine;
+        if (boardGame.revealedCells) {
+            boardGame.revealedCells[p.pos] = true;
+            boardGame.revealedCells[nearest.pos] = true;
+        }
+        window.boardRefreshCell(mine);
+        window.boardRefreshCell(theirs);
+        window.boardRenderPawns();
+        window.boardRenderPlayers();
+        window.boardPlayFx('portal', p.pos, '');
+        window.boardFocusPawn(p.idx);
+        return `Đổi chỗ với ${nearest.name}! Nó đang ngơ ngác.`;
     }
-    return 'Không có ai để đổi.';
+    return 'Không ai gần để đổi.';
 };
+
+window.boardTeleportPlayer = function(p, targetPos) {
+    if (!boardGame || !p || p.eliminated) return;
+    const from = p.pos;
+    const to = Math.max(0, Math.min(BOARD_TOTAL_CELLS - 1, targetPos));
+    window.boardPlayFx('portal', from, '🌀');
+    p.pos = to;
+    if (boardGame.revealedCells) boardGame.revealedCells[to] = true;
+    window.boardRefreshCell(from);
+    window.boardRefreshCell(to);
+    window.boardRenderPawns();
+    window.boardRenderPlayers();
+    window.boardUpdateCharPanel();
+    window.boardPlayFx('portal', to, 'Xuyên không!');
+    window.boardFocusPawn(p.idx);
+};
+
 
 // ── Hàm Khởi Động PvP phía Chủ Phòng (Host) ──────────────────
 window.boardStartPvpAsHost = function(guestId, guestName) {
@@ -2413,7 +3125,7 @@ window.boardHandleShop = function(p, shopName, callback) {
         const welcome = document.getElementById('shopWelcomeText');
         const goldEl = document.getElementById('shopPlayerGold');
         if (modal && welcome && goldEl) {
-            welcome.textContent = `Bạn vừa ghé qua [${shopName}]. Hãy dùng Vàng để mua trang bị hỗ trợ sinh tồn!`;
+            welcome.textContent = `Ghé [${shopName}]. Mua gì thì mua, đừng chần chừ!`;
             goldEl.textContent = p.gold || 0;
             modal.style.display = 'flex';
         } else {
@@ -2428,26 +3140,32 @@ window.boardHandleShop = function(p, shopName, callback) {
         if (p.lives < 3 && botGold >= 60) {
             botGold -= 60;
             p.lives++;
-            boardAddLog(`🛒 CỬA HÀNG: ${p.name} ghé mua 1 Hộp Cứu Thương (-60 Vàng, +1 ❤️)`);
+            boardAddLog(`🛒 ${p.name} mua hộp cứu thương (-60 🪙, +1 ❤️)`);
+            window.boardPlayFx('heal', p.pos, '+1 ❤️');
+            window.boardPlayFx('gold', p.pos, '-60🪙', { count: 4, ring: false, z: -1 });
             boughtSomething = true;
         }
         // Ưu tiên 2: Mua vũ khí nếu có 0 vũ khí và đủ 50 vàng
         else if (p.weapons === 0 && botGold >= 50) {
             botGold -= 50;
             p.weapons++;
-            boardAddLog(`🛒 CỬA HÀNG: ${p.name} ghé mua 1 Kiếm Sắt (-50 Vàng, +1 🗡️)`);
+            boardAddLog(`🛒 ${p.name} mua kiếm sắt (-50 🪙, +1 🗡️)`);
+            window.boardPlayFx('weapon', p.pos, '+1 🗡️');
+            window.boardPlayFx('gold', p.pos, '-50🪙', { count: 4, ring: false, z: -1 });
             boughtSomething = true;
         }
         // Ưu tiên 3: Mua khiên nếu có 0 khiên và đủ 50 vàng
         else if (p.shields === 0 && botGold >= 50) {
             botGold -= 50;
             p.shields++;
-            boardAddLog(`🛒 CỬA HÀNG: ${p.name} ghé mua 1 Khiên Gỗ (-50 Vàng, +1 🛡️)`);
+            boardAddLog(`🛒 ${p.name} mua khiên gỗ (-50 🪙, +1 🛡️)`);
+            window.boardPlayFx('shield', p.pos, '+1 🛡️');
+            window.boardPlayFx('gold', p.pos, '-50🪙', { count: 4, ring: false, z: -1 });
             boughtSomething = true;
         }
         
         if (!boughtSomething) {
-            boardAddLog(`🛒 CỬA HÀNG: ${p.name} lướt nhanh qua ${shopName} nhưng không mua gì.`);
+            boardAddLog(`🛒 ${p.name} lượn qua ${shopName}, không mua gì.`);
         }
         
         p.gold = botGold;
@@ -2472,16 +3190,20 @@ window.boardShopBuyItem = function(itemType, cost) {
     // Trừ vàng của người chơi
     p.gold = (p.gold || 0) - cost;
     try { audio.play('levelup'); } catch(e){}
-    
+    window.boardPlayFx('gold', p.pos, `-${cost}🪙`, { count: 5, ring: false });
+
     if (itemType === 'weapon') {
         p.weapons++;
-        boardAddLog(`🛒 CỬA HÀNG: Bạn đã mua 1 Kiếm Sắt (-${cost} Vàng, +1 🗡️)`);
+        window.boardPlayFx('weapon', p.pos, '+1 🗡️');
+        boardAddLog(`🛒 Mua kiếm sắt (-${cost} 🪙, +1 🗡️)`);
     } else if (itemType === 'shield') {
         p.shields++;
-        boardAddLog(`🛒 CỬA HÀNG: Bạn đã mua 1 Khiên Gỗ (-${cost} Vàng, +1 🛡️)`);
+        window.boardPlayFx('shield', p.pos, '+1 🛡️');
+        boardAddLog(`🛒 Mua khiên gỗ (-${cost} 🪙, +1 🛡️)`);
     } else if (itemType === 'health') {
         p.lives++;
-        boardAddLog(`🛒 CỬA HÀNG: Bạn đã mua 1 Hộp Cứu Thương (-${cost} Vàng, +1 ❤️)`);
+        window.boardPlayFx('heal', p.pos, '+1 ❤️');
+        boardAddLog(`🛒 Mua hộp cứu thương (-${cost} 🪙, +1 ❤️)`);
     }
     
     boardRefreshHud();
@@ -2491,7 +3213,7 @@ window.boardShopBuyItem = function(itemType, cost) {
     const goldEl = document.getElementById('shopPlayerGold');
     if (goldEl) goldEl.textContent = p.gold || 0;
     
-    showToast('🛒 Mua sắm thành công!');
+    showToast('🛒 Xong! Đồ về tay.');
 };
 
 window.boardCloseShop = function() {
