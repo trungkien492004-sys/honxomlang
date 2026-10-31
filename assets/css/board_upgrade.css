@@ -1,21 +1,705 @@
-#boardGameModal.active{display:grid!important;grid-template-columns:minmax(0,1fr) 280px;grid-template-rows:58px minmax(0,1fr) 168px;gap:12px;padding:14px;background:radial-gradient(ellipse at 30% 20%,#235a61,#0b263b 65%);height:100dvh;inset:0;overflow:hidden;color:#e7f2ec;font-family:'Nunito',sans-serif}
-#boardGameModal .board-title-banner{position:static!important;transform:none!important;grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:15px;max-width:none;width:auto;height:auto;padding:0 8px;border-bottom:1px solid #719c9d88;z-index:2}
-#boardGameModal .board-title-banner>img{height:52px;width:230px;object-fit:contain}
-#raceProgress{display:grid;grid-template-columns:1fr auto;gap:4px 14px;min-width:220px;max-width:500px;flex:1;font-size:12px;text-align:left}#raceProgress b{color:#ffe1a2}#raceProgress progress{grid-column:1/-1;width:100%;height:7px;accent-color:#ffd27b;border:0}
-#boardGameModal #boardGrid{grid-column:1;grid-row:2;position:relative!important;inset:auto!important;height:100%!important;width:100%!important;padding:8px!important;min-height:0;min-width:0;overflow:auto!important;scroll-behavior:auto!important;border:1px solid #729e9a88;border-radius:16px;background:#102d37;touch-action:pan-x pan-y;scrollbar-width:thin;scrollbar-color:#a6c1aa #132e3a}
-#boardGameModal .board-canvas{border:2px solid #759a73!important;box-shadow:0 10px 30px #0006!important;border-radius:14px!important}
-#boardGameModal .board-overlays-container{position:static!important;grid-column:2;grid-row:2;inset:auto!important;width:auto!important;max-height:none!important;min-height:0;display:flex;flex-direction:column;gap:9px;padding:0;pointer-events:auto}
-#boardGameModal .board-overlay-panel{border:1px solid #759da288!important;border-radius:14px!important;background:linear-gradient(150deg,#204858f2,#102d40f5)!important;box-shadow:0 5px 15px #03121a55!important;padding:12px!important;min-height:0}
-#boardGameModal .dice-panel{display:grid;grid-template-columns:54px 1fr;gap:5px 10px;align-items:center}.dice-panel .dice-face{font-size:46px!important;line-height:1;margin:0!important;grid-row:1/3}.dice-panel .dice-result-text{font-size:11px!important;margin:0!important}.dice-panel .roll-btn{font-size:13px!important;padding:9px!important;margin:0!important}
-#boardGameModal .card-panel{flex-shrink:0;max-height:175px;overflow:auto}#boardGameModal .board-card-display{padding:4px!important;min-height:36px!important}#boardGameModal .drawn-card{padding:6px!important;min-height:0!important;box-shadow:none!important}#boardGameModal .log-panel{flex:1;display:flex;flex-direction:column;min-height:65px}#boardGameModal .board-log{flex:1;min-height:0;max-height:none!important;font-size:11px;overflow:auto}.overlay-panel-title{font-size:11px!important;letter-spacing:.8px;color:#ffe0a6}
-#boardGameModal .board-bottom-dashboard{position:static!important;grid-column:1/-1;grid-row:3;transform:none!important;width:auto!important;max-height:none!important;height:auto!important;min-height:0;padding:8px 12px!important;display:grid;grid-template-columns:minmax(0,1fr) 290px;grid-template-rows:20px minmax(0,1fr);gap:6px 14px;border:1px solid #658b92!important;border-radius:16px;background:linear-gradient(140deg,#254e5e,#102c40)!important;box-shadow:0 5px 20px #0004!important}
-#boardGameModal .board-status-strip{grid-column:1/-1;padding:0!important;margin:0!important;display:flex;gap:12px;overflow:auto;white-space:nowrap;background:none!important;border:0!important}.status-strip-item{font-size:10px!important}.status-strip-item .icon{font-size:12px!important}
-#boardGameModal .board-dashboard-main{display:flex!important;gap:14px;align-items:stretch;min-height:0;padding:0!important}#boardGameModal .characters-section{flex:1;min-width:0;display:flex!important;gap:6px}#boardGameModal .char-card{width:25%!important;height:auto!important;min-width:0;max-width:115px;border-radius:10px!important;overflow:hidden;background:#173849!important;box-shadow:none!important;padding:3px!important}#boardGameModal .char-card img{height:65px!important;width:100%;object-fit:contain}.char-card .turn-indicator{font-size:8px!important}#boardGameModal .info-section{width:155px!important;min-width:140px;padding:4px!important}#boardGameModal .info-title{font-size:10px!important;margin:0 0 3px!important}#boardGameModal .info-row{font-size:11px!important;line-height:1.5!important;margin:0!important}#boardGameModal .bet-pot-section{width:100px!important;min-width:70px}#boardGameModal .bet-pot-section img{height:40px!important;width:auto}
-#boardGameModal .board-action-buttons-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-content:center;margin:0!important;min-width:0}#boardGameModal .board-action-btn{border-radius:9px!important;border:1px solid #7eacb4;box-shadow:0 3px 0 #071c2a;font-size:11px;padding:8px 10px;min-height:34px}#boardGameModal .roll-btn{background:linear-gradient(#ffe0a0,#d7a855)!important;color:#243445!important;font-weight:900}#boardGameModal .board-action-btn:disabled{opacity:.55;box-shadow:none}#boardGameModal #boardCameraRecenterBtn{width:36px!important;height:36px!important;bottom:194px!important;left:30px!important;z-index:8!important;font-size:17px!important}
-#boardGameModal .board-cell{border:2px solid #c6b27a!important;box-shadow:0 3px 0 #173c2c,0 4px 7px #061c1f88!important;border-radius:12px!important;background:linear-gradient(#b0c794,#73977a)!important;color:#123236!important}.cell-num-center{font-size:12px!important;font-weight:900;text-shadow:none!important}.board-cell.hidden-cell{filter:none!important;opacity:.9!important}.board-cell.start{background:linear-gradient(#fff2ba,#d9b66c)!important}.board-cell.finish{background:repeating-conic-gradient(#fff7df 0 25%,#214650 0 50%) 50%/12px 12px!important}.board-cell.current-racer{outline:3px solid #ffe3a0;outline-offset:5px;z-index:10!important}.board-cell.has-racer .cell-num-center{transform:translateY(-9px);font-size:9px!important}.board-token-large{background:#e8e9c9!important;border:2px solid!important;width:30px!important;height:30px!important;filter:drop-shadow(0 4px 2px #061d2a66)}.board-token-large svg{width:27px;height:27px}.board-canvas .map-loc-label{background:#113f42cc!important;border:1px solid #b9c9a577!important;border-radius:8px!important;color:#f7edc5!important;font-size:12px!important}
-@media(max-width:750px){#boardGameModal.active{grid-template-columns:minmax(0,1fr) 145px;grid-template-rows:43px minmax(0,1fr) 186px;gap:7px;padding:7px}#boardGameModal .board-title-banner{padding:0;gap:8px}#boardGameModal .board-title-banner>img{width:140px;height:38px}#raceProgress{font-size:9px;min-width:0;gap:3px 5px}#boardGameModal .board-overlays-container{gap:6px}#boardGameModal .board-overlay-panel{padding:7px!important;border-radius:10px!important}#boardGameModal .dice-panel{display:flex;flex-direction:column;gap:3px}.dice-panel .dice-face{font-size:37px!important}.dice-panel .dice-result-text{font-size:9px!important}.dice-panel .roll-btn{font-size:10px!important;width:100%}#boardGameModal .card-panel{max-height:130px}.drawn-card>div{font-size:10px!important;margin:3px 0!important}.overlay-panel-title{font-size:9px!important}#boardGameModal .board-log p{font-size:9px!important}#boardGameModal .board-bottom-dashboard{grid-template-columns:1fr;grid-template-rows:16px minmax(0,1fr) 34px;padding:6px!important;gap:4px}#boardGameModal .board-dashboard-main{gap:7px}#boardGameModal .info-section{width:110px!important;min-width:110px}#boardGameModal .info-row{font-size:10px!important}#boardGameModal .board-action-buttons-row{grid-template-columns:1fr 1fr 1fr;gap:5px}#boardGameModal .board-action-btn{font-size:10px;padding:5px;min-height:31px}#boardGameModal .char-card img{height:62px!important}#boardGameModal .board-status-strip{gap:9px}.status-strip-item{font-size:8px!important}#boardGameModal .bet-pot-section{display:none!important}#boardGameModal #boardCameraRecenterBtn{bottom:209px!important;left:17px!important}.char-card span{font-size:8px!important}}
-@media(max-height:500px) and (min-width:550px){#boardGameModal.active{grid-template-columns:minmax(0,1fr) 200px;grid-template-rows:32px minmax(0,1fr) 104px;gap:6px;padding:6px}#boardGameModal .board-title-banner>img{height:29px;width:150px}#boardGameModal .board-bottom-dashboard{grid-template-columns:1fr 180px;grid-template-rows:12px minmax(0,1fr);padding:4px 8px!important}#boardGameModal .char-card img{height:38px!important}#boardGameModal .board-status-strip{gap:10px}.status-strip-item{font-size:8px!important}#boardGameModal .card-panel{display:none}#boardGameModal .dice-panel{display:grid;grid-template-columns:40px 1fr;gap:3px}.dice-panel .dice-face{font-size:36px!important}#boardGameModal .log-panel{min-height:30px}#boardGameModal .board-overlay-panel{padding:6px!important}#boardGameModal .board-action-btn{min-height:26px;padding:4px;font-size:9px}#boardGameModal #boardCameraRecenterBtn{bottom:124px!important}#boardGameModal .info-row{font-size:9px!important}#boardGameModal .info-title{font-size:8px!important}}
-@media(prefers-reduced-motion:reduce){#boardGameModal *{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
-#boardGameModal .char-card-container{flex:1;min-width:0;max-width:120px;margin-top:7px!important}#boardGameModal .char-card-container .char-card{width:100%!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:82px!important}#boardGameModal .char-card svg{width:51px;height:51px}#boardGameModal .char-card small{font-size:9px;white-space:nowrap;color:#f5e8b9}#boardGameModal .user-card-tag{font-size:7px!important;top:-7px!important}#boardGameModal .char-card-container>div:last-child{font-size:10px!important;color:#e2eada!important;max-width:100%;text-shadow:none!important;margin-top:2px!important}.race-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px 4px;font-size:12px;padding:7px 0}.info-section>small{font-size:10px;color:#abcbd1}
-@media(max-width:550px){#boardGameModal.active{grid-template-columns:minmax(0,1fr);grid-template-rows:40px minmax(0,1fr) 138px 166px}#boardGameModal #boardGrid{grid-column:1;grid-row:2}#boardGameModal .board-overlays-container{grid-column:1;grid-row:3;display:grid;grid-template-columns:116px minmax(0,1fr);grid-template-rows:60px minmax(0,1fr);gap:6px}#boardGameModal .dice-panel{grid-column:1;grid-row:1/3;justify-content:center}#boardGameModal .card-panel{grid-column:2;grid-row:1;max-height:none;padding:5px!important}#boardGameModal .log-panel{grid-column:2;grid-row:2;min-height:0}#boardGameModal .card-panel .overlay-panel-title{display:none}#boardGameModal .drawn-card>div{font-size:9px!important;margin:1px!important;padding:0!important}#boardGameModal .board-log p{font-size:8px!important;margin:2px 0}#boardGameModal .board-bottom-dashboard{grid-row:4}#boardGameModal .char-card-container .char-card{height:66px!important}#boardGameModal .char-card svg{width:38px;height:38px}#boardGameModal .char-card small{font-size:8px}#boardGameModal .char-card-container>div:last-child{font-size:8px!important}#boardGameModal .race-stats{font-size:10px;gap:4px;padding:5px 0}#boardGameModal #boardCameraRecenterBtn{bottom:327px!important}}
-@media(max-height:500px) and (min-width:550px){#boardGameModal .char-card-container{margin-top:3px!important}#boardGameModal .char-card-container .char-card{height:45px!important;flex-direction:row}#boardGameModal .char-card svg{width:30px;height:30px}#boardGameModal .char-card small{font-size:7px}#boardGameModal .char-card-container>div:last-child{font-size:8px!important}#boardGameModal .race-stats{font-size:10px;padding:2px 0;gap:2px}}
+/* Board visual overhaul: stable layout, portrait pawns, readable panels. */
+#boardGameModal.active{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 280px;
+  grid-template-rows:58px minmax(0,1fr) 168px;
+  gap:12px;
+  padding:14px;
+  background:
+    radial-gradient(ellipse at 18% 0%,#2a6a70 0%,transparent 55%),
+    radial-gradient(ellipse at 92% 100%,#173f52 0%,transparent 60%),
+    linear-gradient(160deg,#0e2a36,#081a24 70%);
+  height:100dvh;
+  inset:0;
+  overflow:hidden;
+  color:#e7f2ec;
+  font-family:'Nunito',sans-serif;
+}
+#boardGameModal .board-title-banner{
+  position:static!important;
+  transform:none!important;
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  max-width:none;
+  width:auto;
+  height:auto;
+  padding:0 8px;
+  border-bottom:1px solid #7aa5a166;
+  z-index:2;
+}
+#boardGameModal .board-title-banner>img{height:52px;width:230px;object-fit:contain;filter:drop-shadow(0 4px 6px #0007)}
+#raceProgress{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:3px 14px;
+  min-width:220px;
+  max-width:520px;
+  flex:1;
+  font-size:12px;
+  text-align:left;
+}
+#raceProgress span{color:#dff0e8;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#raceProgress b{color:#ffe1a2;font-size:12px;white-space:nowrap}
+#raceProgress progress{
+  grid-column:1/-1;
+  width:100%;
+  height:8px;
+  border:0;
+  border-radius:6px;
+  overflow:hidden;
+  background:#0b2029;
+  accent-color:#ffd27b;
+}
+#raceProgress.is-over span{color:#ffe1a2}
+
+/* ── Map viewport ─────────────────────────────────────────── */
+#boardGameModal #boardGrid{
+  grid-column:1;
+  grid-row:2;
+  position:relative!important;
+  inset:auto!important;
+  height:100%!important;
+  width:100%!important;
+  min-height:0;
+  min-width:0;
+  padding:0!important;
+  overflow:auto!important;
+  scroll-behavior:auto!important;
+  border:1px solid #5b8b8c88;
+  border-radius:16px;
+  background:
+    radial-gradient(ellipse at 50% 38%,#ffffff10 0%,transparent 42%),
+    linear-gradient(#061620b3,#061620cf),
+    url(../img/board/race-map.svg) center/cover no-repeat,
+    #071722;
+  box-shadow:inset 0 0 70px #000000a8;
+  cursor:grab;
+  touch-action:pan-x pan-y;
+  scrollbar-width:thin;
+  scrollbar-color:#8fb0a5 #0e2530;
+}
+#boardGameModal #boardGrid::-webkit-scrollbar{width:10px;height:10px}
+#boardGameModal #boardGrid::-webkit-scrollbar-thumb{background:#7fa79b;border-radius:6px;border:2px solid #0e2530}
+#boardGameModal #boardGrid::-webkit-scrollbar-track{background:#0e2530}
+#boardGameModal .board-map-shell{position:relative;display:inline-block;box-sizing:content-box}
+#boardGameModal .board-canvas{
+  position:relative;
+  border-radius:18px!important;
+  border:3px solid #b9925a!important;
+  box-shadow:0 18px 44px #000a,0 0 0 7px #0b2830aa,inset 0 0 0 2px #f1d9a344!important;
+  background:url(../img/board/race-map.svg) center/cover no-repeat,#122e36;
+  overflow:visible;
+  flex-shrink:0;
+}
+#boardGameModal .board-road-svg{position:absolute;top:0;left:0;pointer-events:none;z-index:2}
+#boardGameModal .board-location-tag{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  background:linear-gradient(180deg,#4a3418,#251a0c);
+  border:2px solid #c9a45a;
+  color:#ffe9b3;
+  font-size:11px;
+  font-weight:800;
+  padding:3px 9px;
+  border-radius:8px;
+  box-shadow:0 3px 0 #120c06,0 7px 14px #0008;
+  z-index:3;
+  white-space:nowrap;
+  letter-spacing:.3px;
+  pointer-events:none;
+}
+#boardGameModal .board-location-tag::after{
+  content:'';
+  position:absolute;
+  left:50%;
+  top:100%;
+  transform:translateX(-50%);
+  border:5px solid transparent;
+  border-top-color:#c9a45a;
+}
+
+/* ── Track cells ──────────────────────────────────────────── */
+#boardGameModal .board-cell{
+  position:absolute;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:13px!important;
+  border:2px solid #d8bf86!important;
+  box-shadow:0 3px 0 #0a242c,0 6px 12px #02141a99,inset 0 1px 0 #fff8!important;
+  color:#0f2c33;
+  z-index:5;
+  transition:transform .15s ease,box-shadow .2s ease,filter .2s ease;
+  overflow:visible!important;
+}
+#boardGameModal .board-cell::before{
+  content:'';
+  position:absolute;
+  inset:2px;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,.4);
+  box-shadow:inset 0 -6px 10px rgba(0,0,0,.18);
+  pointer-events:none;
+}
+#boardGameModal .board-cell:hover{transform:scale(1.12);z-index:8}
+#boardGameModal .cell-num-center{
+  position:absolute;
+  left:4px;
+  bottom:2px;
+  font-size:11px!important;
+  font-weight:900;
+  line-height:1.1;
+  color:#0e2b32;
+  background:#fff6d3e6;
+  border-radius:5px;
+  padding:0 4px;
+  box-shadow:0 1px 2px #0004;
+  text-shadow:none!important;
+}
+#boardGameModal .cell-badge{
+  position:absolute!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transform:translateY(-2px);
+  filter:drop-shadow(0 2px 2px #0005);
+  background:none!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+#boardGameModal .cell-badge svg{width:20px!important;height:20px!important}
+#boardGameModal .cell-q{
+  font-size:16px;
+  font-weight:900;
+  color:#d6e3e7;
+  text-shadow:0 1px 2px #0008;
+}
+#boardGameModal .cell-zone{
+  position:absolute;
+  bottom:-17px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:8px;
+  font-weight:800;
+  background:#08222bee;
+  border:1px solid #7fa79b;
+  padding:1px 5px;
+  border-radius:5px;
+  color:#f6ecd0;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .15s ease;
+  z-index:2;
+}
+#boardGameModal .board-cell:hover .cell-zone,
+#boardGameModal .board-cell.current-racer .cell-zone{opacity:1}
+#boardGameModal .board-cell.hidden-cell{filter:saturate(.45) brightness(.84)}
+#boardGameModal .board-cell.current-racer{
+  box-shadow:0 0 0 3px #ffe1a2,0 0 18px #ffd27b88!important;
+  z-index:7!important;
+}
+#boardGameModal .board-cell.start{border-color:#ffe9a8!important}
+#boardGameModal .board-cell.finish{border-color:#a9f0c2!important}
+#boardGameModal .board-cell.finish .cell-badge{animation:finishGlow 2.2s ease-in-out infinite}
+
+/* ── Pawns ────────────────────────────────────────────────── */
+#boardGameModal .board-pawn-layer{position:absolute;inset:0;z-index:40;pointer-events:none}
+#boardGameModal .board-pawn{
+  position:absolute;
+  transform:translate(-50%,-100%);
+  transition:left .22s cubic-bezier(.2,.9,.25,1),top .22s cubic-bezier(.2,.9,.25,1);
+  will-change:left,top;
+  pointer-events:none;
+}
+#boardGameModal .board-pawn.no-move{transition:none!important}
+#boardGameModal .board-pawn.is-stacked{transform:translate(-50%,-100%) scale(var(--pscale,.76));transform-origin:50% 100%;z-index:50}
+#boardGameModal .board-pawn.is-stacked .pawn-body{filter:drop-shadow(0 3px 2px #04161ccc)}
+#boardGameModal .board-pawn.is-stacked .pawn-name,
+#boardGameModal .board-pawn.is-stacked .pawn-lives,
+#boardGameModal .board-pawn.is-stacked .pawn-gear{display:none!important}
+#boardGameModal .board-pawn.is-stacked.is-active{--pscale:.92!important}
+#boardGameModal .board-pawn.is-stacked.is-active .pawn-avatar{box-shadow:0 0 0 2px #0c2530,0 0 0 4px rgba(255,224,150,.5),0 0 18px var(--pc)}
+#boardGameModal .board-pawn.is-out{display:none!important}
+#boardGameModal .pawn-body{
+  position:relative;
+  width:40px;
+  height:46px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  filter:drop-shadow(0 4px 3px #04161c99);
+}
+#boardGameModal .pawn-avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  border:2px solid var(--pc,#f4c766);
+  background:radial-gradient(circle at 35% 25%,#fdf6dc,#b9a26a);
+  overflow:hidden;
+  box-shadow:0 0 0 2px #0c2530,0 0 10px var(--pc);
+}
+#boardGameModal .pawn-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+#boardGameModal .pawn-lives{
+  position:absolute;
+  top:-7px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:9px;
+  line-height:1;
+  letter-spacing:-1px;
+  white-space:nowrap;
+  color:#ff8fa3;
+  text-shadow:0 1px 2px #000,0 0 4px #000;
+}
+#boardGameModal .pawn-gear{
+  position:absolute;
+  right:-8px;
+  bottom:6px;
+  font-size:7px;
+  white-space:nowrap;
+  color:#ffe6a8;
+  text-shadow:0 1px 2px #000;
+}
+#boardGameModal .pawn-name{
+  position:absolute;
+  left:50%;
+  top:100%;
+  transform:translateX(-50%);
+  margin-top:1px;
+  padding:1px 6px;
+  border-radius:6px;
+  background:#08222be6;
+  border:1px solid #6f9a91;
+  color:#eaf3e6;
+  font-size:8px;
+  font-weight:700;
+  white-space:nowrap;
+  opacity:0;
+  transition:opacity .2s ease;
+}
+#boardGameModal .board-pawn.is-active .pawn-name,
+#boardGameModal .board-pawn:hover .pawn-name{opacity:1}
+#boardGameModal .board-pawn.is-me .pawn-name{opacity:1;border-color:#ffd27b}
+#boardGameModal .board-pawn.is-active .pawn-avatar{
+  box-shadow:0 0 0 2px #0c2530,0 0 0 5px rgba(255,224,150,.32),0 0 16px var(--pc);
+  animation:pawnIdle 1.8s ease-in-out infinite;
+}
+#boardGameModal .board-pawn.is-active::after{
+  content:'';
+  position:absolute;
+  left:50%;
+  top:-13px;
+  transform:translateX(-50%);
+  border:6px solid transparent;
+  border-bottom-color:#ffe1a2;
+  filter:drop-shadow(0 2px 0 #3c2a12);
+  animation:pawnArrow 1.2s ease-in-out infinite;
+}
+#boardGameModal .pawn-hop{animation:pawnHop .26s ease}
+@keyframes pawnHop{0%,100%{transform:translateY(0)}35%{transform:translateY(-9px) scale(1.04)}70%{transform:translateY(0) scale(.97)}}
+@keyframes pawnIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes pawnArrow{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,3px)}}
+@keyframes finishGlow{0%,100%{filter:drop-shadow(0 2px 2px #0005)}50%{filter:drop-shadow(0 0 6px #b6ffd4)}}
+
+/* ── Right panels ─────────────────────────────────────────── */
+#boardGameModal .board-overlays-container{
+  position:static!important;
+  grid-column:2;
+  grid-row:2;
+  inset:auto!important;
+  width:auto!important;
+  max-height:none!important;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  padding:0;
+  pointer-events:auto;
+}
+#boardGameModal .board-overlay-panel{
+  border:1px solid #6f9a9f88!important;
+  border-radius:14px!important;
+  background:linear-gradient(155deg,#1d4656f2,#0d2635f7)!important;
+  box-shadow:0 6px 16px #03121a66,inset 0 1px 0 #ffffff12!important;
+  padding:12px!important;
+  min-height:0;
+}
+#boardGameModal .overlay-panel-title{
+  font-size:11px!important;
+  letter-spacing:.8px;
+  color:#ffe0a6;
+  font-weight:800;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+#boardGameModal .dice-panel{display:grid;grid-template-columns:56px 1fr;gap:5px 10px;align-items:center}
+#boardGameModal .dice-panel .dice-face{
+  font-size:50px!important;
+  line-height:1;
+  margin:0!important;
+  grid-row:1/3;
+  text-shadow:0 6px 8px #0007;
+  filter:drop-shadow(0 3px 2px #0008);
+}
+#boardGameModal .dice-panel .dice-result-text{font-size:11px!important;margin:0!important;color:#d7e9e4}
+#boardGameModal .dice-panel .roll-btn{font-size:13px!important;padding:9px!important;margin:0!important}
+#boardGameModal .roll-btn{
+  background:linear-gradient(180deg,#ffeab0,#d9a34e)!important;
+  border:2px solid #fff1c4!important;
+  color:#2b2110!important;
+  font-weight:900!important;
+  text-shadow:0 1px 0 #fff8;
+  box-shadow:0 3px 0 #7a5312,0 6px 10px #0006!important;
+}
+#boardGameModal .roll-btn:disabled{
+  background:linear-gradient(180deg,#5d6d72,#39464b)!important;
+  border-color:#6d8085!important;
+  color:#c3d2d4!important;
+  box-shadow:0 2px 0 #17262b!important;
+  text-shadow:none;
+}
+#boardGameModal .card-panel{flex-shrink:0;max-height:178px;overflow:auto}
+#boardGameModal .board-card-display{padding:2px!important;min-height:36px!important}
+#boardGameModal .drawn-card{
+  background:linear-gradient(160deg,#fff8e2,#e1ca97)!important;
+  border:2px solid #b28d4e!important;
+  border-radius:11px!important;
+  padding:7px!important;
+  box-shadow:0 4px 12px #0008!important;
+  color:#22343a!important;
+}
+#boardGameModal .drawn-card div{color:#2a3a3c!important}
+#boardGameModal .drawn-card div:last-child{color:#7a5100!important;font-weight:800}
+#boardGameModal .log-panel{flex:1;display:flex;flex-direction:column;min-height:65px}
+#boardGameModal .board-log{
+  flex:1;
+  min-height:0;
+  max-height:none!important;
+  overflow:auto;
+  font-size:11px;
+  padding-right:4px;
+  scrollbar-width:thin;
+  scrollbar-color:#7fa79b #0d2635;
+}
+#boardGameModal .board-log p{
+  margin:0 0 5px;
+  padding:4px 8px;
+  border-radius:7px;
+  background:#081f2ab8;
+  border-left:3px solid #6d9a95;
+  color:#d9e8e4;
+  line-height:1.4;
+}
+#boardGameModal .board-log p.card{border-left-color:#b49be8;color:#e7ddff}
+#boardGameModal .board-log p.special{border-left-color:#ffb86b;color:#ffe7c7}
+#boardGameModal .board-log p.win{border-left-color:#ffd84d;background:#3a2b08b8;color:#ffefae;font-weight:800}
+
+/* ── Bottom dashboard ─────────────────────────────────────── */
+#boardGameModal .board-bottom-dashboard{
+  position:static!important;
+  grid-column:1/-1;
+  grid-row:3;
+  transform:none!important;
+  width:auto!important;
+  max-height:none!important;
+  height:auto!important;
+  min-height:0;
+  padding:8px 12px!important;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 290px;
+  grid-template-rows:20px minmax(0,1fr);
+  gap:6px 14px;
+  border:1px solid #6d939b!important;
+  border-radius:16px!important;
+  background:linear-gradient(155deg,#24505e,#0e2a3b)!important;
+  box-shadow:0 8px 22px #0007,inset 0 1px 0 #ffffff14!important;
+}
+#boardGameModal .board-status-strip{
+  grid-column:1/-1;
+  padding:0!important;
+  margin:0!important;
+  display:flex;
+  gap:10px;
+  overflow:auto;
+  white-space:nowrap;
+  background:none!important;
+  border:0!important;
+  scrollbar-width:none;
+}
+#boardGameModal .status-strip-item{
+  font-size:10px!important;
+  color:#c8ded8;
+  background:#08222b99;
+  border:1px solid #4f747a;
+  border-radius:7px;
+  padding:1px 7px;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+#boardGameModal .status-strip-item .icon{font-size:12px!important}
+#boardGameModal .board-dashboard-main{display:flex!important;gap:14px;align-items:stretch;min-height:0;padding:0!important}
+#boardGameModal .characters-section{flex:1;min-width:0;display:flex!important;gap:9px;align-items:stretch;justify-content:center}
+#boardGameModal .char-card-container{
+  flex:1;
+  min-width:0;
+  max-width:138px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+  transition:transform .18s ease;
+}
+#boardGameModal .char-card-container.is-me:hover{transform:translateY(-2px)}
+#boardGameModal .user-card-tag{
+  display:none;
+  position:absolute;
+  top:-8px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#e11d48;
+  color:#fff;
+  font-size:7px;
+  font-weight:900;
+  padding:1px 6px;
+  border-radius:5px;
+  border:1px solid #fda4af;
+  white-space:nowrap;
+  z-index:10;
+  box-shadow:0 2px 4px #0007;
+}
+#boardGameModal .char-card-container.is-me .user-card-tag{display:block}
+#boardGameModal .char-card{
+  position:relative;
+  width:100%!important;
+  height:88px!important;
+  max-width:130px;
+  padding:0!important;
+  border-radius:11px!important;
+  border:2px solid #6f8f8c!important;
+  background:radial-gradient(circle at 50% 15%,#2a5a5f,#12303c)!important;
+  overflow:hidden;
+  cursor:pointer;
+  box-shadow:0 3px 0 #071c26,0 5px 10px #0005!important;
+  transition:border-color .2s,box-shadow .2s,transform .18s;
+  display:block;
+}
+#boardGameModal .char-card img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center 42%;
+  display:block;
+  padding:0!important;
+}
+#boardGameModal .char-card-container.is-me .char-card{border-color:#ffcf7b!important}
+#boardGameModal .char-card.active{border-color:#fff1c4!important;box-shadow:0 0 0 2px #ffd27b,0 0 14px #ffd27b66!important}
+#boardGameModal .char-card.active-turn{animation:tabPulse 1.7s ease-in-out infinite}
+#boardGameModal .char-card.eliminated{filter:grayscale(1) brightness(.58);opacity:.75}
+#boardGameModal .char-card-lives{
+  position:absolute;
+  left:4px;
+  bottom:4px;
+  background:#04161ce6;
+  border:1px solid #7fa79b;
+  border-radius:6px;
+  padding:0 5px;
+  font-size:10px;
+  letter-spacing:-1px;
+  color:#ff8fa3;
+  line-height:1.5;
+}
+#boardGameModal .char-card-name{
+  font-size:10px;
+  font-weight:800;
+  color:#eef4e3;
+  margin-top:3px;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  text-shadow:0 1px 2px #000;
+}
+@keyframes tabPulse{0%,100%{box-shadow:0 0 0 2px #ffd27b55,0 0 8px #ffd27b44}50%{box-shadow:0 0 0 3px #ffe9b3,0 0 18px #ffd27b99}}
+
+#boardGameModal .info-section{
+  width:158px!important;
+  min-width:146px;
+  padding:5px 8px!important;
+  border-left:3px solid var(--pc,#f4c766);
+  background:linear-gradient(90deg,#102e3b99,transparent)!important;
+  border-radius:8px!important;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+#boardGameModal .info-title{
+  font-size:10px!important;
+  margin:0 0 4px!important;
+  color:var(--pc,#ffe0a6);
+  font-weight:900;
+  letter-spacing:.4px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#boardGameModal .info-body{display:flex;flex-direction:column;gap:1px}
+#boardGameModal .info-row{font-size:11px!important;line-height:1.45!important;margin:0!important;color:#c9ded9;display:flex;justify-content:space-between;gap:6px}
+#boardGameModal .info-row .label{color:#a9c7c3}
+#boardGameModal .info-row .val{color:#ffe6a8;font-weight:800}
+#boardGameModal .info-body small,#boardGameModal .info-section small{font-size:10px;color:#abcbd1}
+#boardGameModal #boardInfoLives{color:#ff8fa3;letter-spacing:-1px}
+#boardGameModal .bet-pot-section{width:100px!important;min-width:76px;display:none}
+#boardGameModal .bet-pot-section img{height:42px!important;width:auto}
+#boardGameModal .board-action-buttons-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  align-content:center;
+  margin:0!important;
+  min-width:0;
+}
+#boardGameModal .board-action-btn{
+  border-radius:9px!important;
+  border:1px solid #7eacb4!important;
+  box-shadow:0 3px 0 #071c2a!important;
+  font-size:11px;
+  padding:8px 10px;
+  min-height:34px;
+  background:linear-gradient(180deg,#2d6470,#1a414e)!important;
+  color:#eaf4ee!important;
+  font-weight:800;
+  cursor:pointer;
+  transition:transform .12s,filter .12s;
+}
+#boardGameModal .board-action-btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+#boardGameModal .board-action-btn:active{transform:translateY(1px);box-shadow:0 1px 0 #071c2a!important}
+#boardGameModal .board-action-btn:disabled{opacity:.55;box-shadow:none!important}
+#boardGameModal .hand-btn{background:linear-gradient(180deg,#8a5bb8,#5b2f86)!important;border-color:#b08be0!important}
+#boardGameModal .invite-btn{background:linear-gradient(180deg,#2f7f8f,#1a5567)!important;border-color:#6fb7c4!important}
+#boardGameModal .admin-btn{background:linear-gradient(135deg,#a78bfa,#7c3aed)!important;border-color:#8b5cf6!important}
+#boardGameModal .close-btn{background:linear-gradient(180deg,#9a3f44,#6c2228)!important;border-color:#d78a8f!important}
+#boardGameModal #boardCameraRecenterBtn{
+  width:38px!important;
+  height:38px!important;
+  bottom:196px!important;
+  left:24px!important;
+  z-index:8!important;
+  font-size:16px!important;
+  border-width:2px!important;
+  background:#0b2731e6!important;
+  border-color:#ffd27b!important;
+  color:#ffe6a8!important;
+  box-shadow:0 4px 12px #0008!important;
+}
+#boardGameModal #boardCameraRecenterBtn:hover{background:#ffd27b!important;color:#243445!important}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media(max-width:900px){
+  #boardGameModal.active{grid-template-columns:minmax(0,1fr) 236px;grid-template-rows:52px minmax(0,1fr) 164px;gap:10px;padding:10px}
+  #boardGameModal .board-title-banner>img{width:190px;height:46px}
+  #raceProgress{min-width:0;font-size:10px}
+  #boardGameModal .board-bottom-dashboard{grid-template-columns:minmax(0,1fr) 240px}
+  #boardGameModal .info-section{width:136px!important;min-width:0!important}
+  #boardGameModal .bet-pot-section{display:none!important}
+  #boardGameModal .char-card{height:70px!important}
+  #boardGameModal .board-action-btn{font-size:10px;padding:7px;min-height:31px}
+}
+@media(max-width:750px){
+  #boardGameModal.active{grid-template-columns:minmax(0,1fr) 150px;grid-template-rows:44px minmax(0,1fr) 186px;gap:7px;padding:7px}
+  #boardGameModal .board-title-banner{padding:0;gap:8px}
+  #boardGameModal .board-title-banner>img{width:140px;height:38px}
+  #raceProgress{font-size:9px;gap:2px 6px}
+  #raceProgress b{font-size:9px}
+  #raceProgress progress{height:6px}
+  #boardGameModal .board-overlays-container{gap:6px}
+  #boardGameModal .board-overlay-panel{padding:7px!important;border-radius:10px!important}
+  #boardGameModal .overlay-panel-title{font-size:9px!important;margin-bottom:2px}
+  #boardGameModal .dice-panel{display:flex;flex-direction:column;gap:3px}
+  #boardGameModal .dice-panel .dice-face{font-size:34px!important}
+  #boardGameModal .dice-panel .dice-result-text{font-size:9px!important;text-align:center}
+  #boardGameModal .dice-panel .roll-btn{font-size:10px!important;width:100%;padding:6px!important}
+  #boardGameModal .card-panel{max-height:132px}
+  #boardGameModal .drawn-card>div{font-size:10px!important;margin:2px 0!important}
+  #boardGameModal .board-log{font-size:9px}
+  #boardGameModal .board-log p{padding:3px 5px;margin-bottom:3px}
+  #boardGameModal .board-bottom-dashboard{
+    grid-template-columns:1fr;
+    grid-template-rows:16px minmax(0,1fr) 34px;
+    padding:6px!important;
+    gap:4px;
+  }
+  #boardGameModal .board-dashboard-main{gap:7px}
+  #boardGameModal .info-section{width:118px!important;min-width:0!important;padding:3px 5px!important;overflow:hidden}
+  #boardGameModal .info-row{font-size:9px!important;line-height:1.4!important}
+  #boardGameModal .info-title{font-size:8px!important}
+  #boardGameModal .board-action-buttons-row{grid-template-columns:1fr 1fr 1fr;gap:5px}
+  #boardGameModal .board-action-btn{font-size:10px;padding:5px;min-height:31px}
+  #boardGameModal .char-card{height:64px!important}
+  #boardGameModal .char-card-name{font-size:8px}
+  #boardGameModal .char-card-lives{font-size:8px}
+  #boardGameModal .board-status-strip{gap:8px}
+  #boardGameModal .status-strip-item{font-size:8px!important;padding:0 5px}
+  #boardGameModal #boardCameraRecenterBtn{bottom:204px!important;left:15px!important;width:34px!important;height:34px!important}
+  #boardGameModal .board-location-tag{font-size:9px;padding:2px 6px}
+}
+@media(max-width:550px){
+  #boardGameModal.active{grid-template-columns:minmax(0,1fr);grid-template-rows:36px minmax(0,1fr) 136px 164px;gap:5px;padding:5px}
+  #boardGameModal #boardGrid{grid-column:1;grid-row:2}
+  #boardGameModal .board-overlays-container{
+    grid-column:1;
+    grid-row:3;
+    display:grid;
+    grid-template-columns:112px minmax(0,1fr);
+    grid-template-rows:58px minmax(0,1fr);
+    gap:6px;
+  }
+  #boardGameModal .dice-panel{grid-column:1;grid-row:1/3;justify-content:center}
+  #boardGameModal .dice-panel .dice-face{font-size:30px!important}
+  #boardGameModal .card-panel{grid-column:2;grid-row:1;max-height:none;padding:5px!important}
+  #boardGameModal .log-panel{grid-column:2;grid-row:2;min-height:0}
+  #boardGameModal .card-panel .overlay-panel-title{display:none}
+  #boardGameModal .drawn-card>div{font-size:9px!important;margin:1px!important;padding:0!important}
+  #boardGameModal .board-log p{font-size:8px!important;margin:2px 0}
+  #boardGameModal .board-bottom-dashboard{grid-row:4}
+  #boardGameModal .char-card{height:62px!important}
+  #boardGameModal .char-card-name{font-size:8px!important}
+  #boardGameModal .info-section{width:108px!important;min-width:0!important;overflow:hidden}
+  #boardGameModal .board-dashboard-main{min-width:0}
+  #boardGameModal .board-action-btn{font-size:9px!important;padding:4px 2px!important;white-space:nowrap}
+  #boardGameModal #boardCameraRecenterBtn{bottom:315px!important}
+  #boardGameModal .board-location-tag{display:none}
+  #raceProgress{max-width:58%}
+  #raceProgress progress{display:none}
+}
+@media(max-height:500px) and (min-width:550px){
+  #boardGameModal.active{grid-template-columns:minmax(0,1fr) 200px;grid-template-rows:32px minmax(0,1fr) 104px;gap:6px;padding:6px}
+  #boardGameModal .board-title-banner>img{height:29px;width:150px}
+  #boardGameModal .board-bottom-dashboard{grid-template-columns:1fr 180px;grid-template-rows:12px minmax(0,1fr);padding:4px 8px!important}
+  #boardGameModal .char-card{height:44px!important}
+  #boardGameModal .board-status-strip{gap:8px}
+  #boardGameModal .status-strip-item{font-size:8px!important}
+  #boardGameModal .card-panel{display:none}
+  #boardGameModal .dice-panel{display:grid;grid-template-columns:40px 1fr;gap:3px}
+  #boardGameModal .dice-panel .dice-face{font-size:32px!important}
+  #boardGameModal .log-panel{min-height:30px}
+  #boardGameModal .board-overlay-panel{padding:6px!important}
+  #boardGameModal .board-action-btn{min-height:26px;padding:4px;font-size:9px}
+  #boardGameModal #boardCameraRecenterBtn{bottom:124px!important;width:30px!important;height:30px!important}
+  #boardGameModal .info-row{font-size:9px!important}
+  #boardGameModal .info-title{font-size:8px!important}
+  #boardGameModal .char-card-name{font-size:8px!important}
+  #raceProgress{font-size:9px;min-width:150px}
+  #boardGameModal .board-location-tag{font-size:9px;padding:2px 5px}
+}
+@media(prefers-reduced-motion:reduce){
+  #boardGameModal *{animation:none!important;scroll-behavior:auto!important;transition:none!important}
+}

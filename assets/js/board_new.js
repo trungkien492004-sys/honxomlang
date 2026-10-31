@@ -127,35 +127,31 @@ window.boardSelectedCharDisplayIdx = 0;
 window.boardSelectCharacterDisplay = function(idx) {
     try { audio.play('click'); } catch(e){}
     window.boardSelectedCharDisplayIdx = idx;
-    
-    // Highlight selected card
-    document.querySelectorAll('.char-card').forEach((card, i) => {
-        if (i === idx) {
-            card.classList.add('active');
-        } else {
-            card.classList.remove('active');
-        }
+    document.querySelectorAll('#boardGameModal .char-card').forEach(card => {
+        card.classList.toggle('active', card.id === 'charCard_' + idx);
     });
-    
     window.boardUpdateCharPanel();
 };
 
 window.boardUpdateCharPanel = function() {
     if (!boardGame || !boardGame.players) return;
-    let p = boardGame.players[window.boardSelectedCharDisplayIdx];
+    const p = boardGame.players[window.boardSelectedCharDisplayIdx];
     if (!p) return;
-    
+
+    const section = document.querySelector('#boardGameModal .info-section');
+    if (section) section.style.setProperty('--pc', p.color || '#f4c766');
+    const title = section && section.querySelector('.info-title');
+    if (title) title.textContent = p.eliminated ? `${p.name} · Đã gục` : `${p.name} · Ô ${p.pos + 1}`;
+
     const livesEl = document.getElementById('boardInfoLives');
     const weaponsEl = document.getElementById('boardInfoWeapons');
     const shieldsEl = document.getElementById('boardInfoShields');
     const goldEl = document.getElementById('boardInfoGold');
-    
-    if (livesEl) livesEl.innerHTML = p.eliminated ? '<span style="color:#ef4444;font-weight:bold;font-size:0.75rem;">ĐÃ CHẾT</span>' : '❤️'.repeat(p.lives);
+
+    if (livesEl) livesEl.textContent = p.eliminated ? '💀' : '♥'.repeat(Math.max(0, p.lives || 0));
     if (weaponsEl) weaponsEl.textContent = p.weapons;
     if (shieldsEl) shieldsEl.textContent = p.shields;
-    if (goldEl) {
-        goldEl.textContent = p.gold !== undefined ? p.gold : 0;
-    }
+    if (goldEl) goldEl.textContent = p.gold !== undefined ? p.gold : 0;
 };
 
 const BOARD_TOTAL_CELLS = 100;
@@ -512,8 +508,8 @@ window.boardProcessTurn = function(p, roll, callback) {
                     boardRefreshHud();
                 }
             }
-            boardRenderGrid(); 
-            boardRenderPlayers();
+            if (typeof window.boardSyncView === 'function') window.boardSyncView();
+                else { boardRenderGrid(); boardRenderPlayers(); }
             if(callback) callback();
         };
 
@@ -580,8 +576,8 @@ window.boardProcessTurn = function(p, roll, callback) {
                         boardRefreshHud();
                     }
                 }
-                boardRenderGrid(); 
-                boardRenderPlayers();
+                if (typeof window.boardSyncView === 'function') window.boardSyncView();
+                else { boardRenderGrid(); boardRenderPlayers(); }
                 if(callback) callback();
             };
             
@@ -638,8 +634,8 @@ window.boardProcessTurn = function(p, roll, callback) {
                 // PVP Check: Only Host calculates cell land rules on normal interval finalize
                 const isHost = !boardGame.pvp || boardGame.hostId === getMyNetworkId();
                 if (!isHost) {
-                    boardRenderGrid();
-                    boardRenderPlayers();
+                    if (typeof window.boardSyncView === 'function') window.boardSyncView();
+                else { boardRenderGrid(); boardRenderPlayers(); }
                     if(callback) callback();
                     return;
                 }
@@ -658,8 +654,8 @@ window.boardProcessTurn = function(p, roll, callback) {
                         }
                         window.boardShowBigNotice("🏆 CHIẾN THẮNG", `${alive[0].name} là người sống sót cuối cùng!`, `Thưởng: ${prize} 🪙<br><br><span style="color:#22c55e;font-size:0.9rem;">(Chạm để tiếp tục)</span>`, () => {}, true);
                     }
-                    boardRenderGrid(); 
-                    boardRenderPlayers();
+                    if (typeof window.boardSyncView === 'function') window.boardSyncView();
+                else { boardRenderGrid(); boardRenderPlayers(); }
                     if(callback) callback();
                 };
 
@@ -867,22 +863,27 @@ window.closeBigEvent = function() {
 // ── Di chuyển ─────────────────────────────────────────────────
 window.boardMovePlayer = function(idx, steps, animate) {
     let p = boardGame.players[idx];
-    if(!p || p.eliminated) return;
+    if (!p || p.eliminated) return;
     if (steps > 0) {
         p.gold = (p.gold || 0) + (steps * 3);
         if (p.isHuman) {
             boardRefreshHud();
         }
     }
+    const prevPos = p.pos;
     let next = p.pos + steps;
     p.pos = Math.max(0, Math.min(BOARD_TOTAL_CELLS - 1, next));
     boardGame.revealedCells[p.pos] = true; // ô chỉ lộ hình khi thật sự có người đi tới
-    if(animate) { 
-        boardRenderGrid(); 
-        boardRenderPlayers(); 
-        if (window.boardScrollToCurrentPlayer) {
-            window.boardScrollToCurrentPlayer(idx);
-        }
+
+    window.boardRefreshCell(prevPos);
+    window.boardRefreshCell(p.pos);
+    window.boardRenderPawns();
+    window.boardRenderPlayers();
+    window.boardUpdateCharPanel();
+    if (animate) {
+        window.boardHopPawn(idx);
+        window._cameraFollowIdx = idx;
+        window.boardFocusPawn(idx);
     }
 };
 
@@ -957,8 +958,8 @@ window.boardUseHandCard = function(playerIdx, handIndex) {
     const typeIcon = card.type === 'monster' ? '👾' : card.type === 'equip' ? '🛡️' : card.type === 'trap' ? '💣' : card.type === 'fun_spell' ? '✨' : '🌪️';
     boardAddLog(`🎴 ${p.name} dùng bài tay [${card.name}] — ${result}`, 'card');
     window.boardShowBigNotice(`${typeIcon} ${card.name}`, card.desc, `👉 ${result}`, () => {
-        boardRenderGrid();
-        boardRenderPlayers();
+        if (typeof window.boardSyncView === 'function') window.boardSyncView();
+        else { boardRenderGrid(); boardRenderPlayers(); }
     });
 };
 
@@ -1218,50 +1219,83 @@ function _getBoardSmoothPath() {
 }
 
 // ── Render Track ──────────────────────────────────────────────
+const BOARD_CELL_SIZE = 42;
+
+function _boardEsc(text) {
+    return String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function boardCellType(i) {
+    return i === 0 ? 'start' : i === BOARD_TOTAL_CELLS - 1 ? 'finish' : '';
+}
+function boardCellZone(i) {
+    return (boardGame && boardGame.cellZones && boardGame.cellZones[i]) || NEIGHBORHOOD_NAMES[i % NEIGHBORHOOD_NAMES.length];
+}
+function boardCellArt(i, revealed, type, trapped) {
+    if (!revealed) return '<span class="cell-q">?</span>';
+    if (type === 'start') {
+        return `<svg viewBox="0 0 40 40" width="22" height="22"><rect x="7" y="8" width="3" height="26" rx="1" fill="#3a2a14"/><path d="M10,8 L33,12 L10,22 Z" fill="#ef5b3f" stroke="#7a2216" stroke-width="1.4"/><circle cx="18" cy="14" r="2" fill="#ffe6a8"/></svg>`;
+    }
+    if (type === 'finish') {
+        return `<svg viewBox="0 0 40 40" width="22" height="22"><path d="M11,6 L11,35" stroke="#4a3216" stroke-width="3.5" stroke-linecap="round"/><path d="M13,7 L33,12 L13,17 Z" fill="#3fbf74" stroke="#1c6d42" stroke-width="1.3"/><path d="M13,20 L28,24 L13,28 Z" fill="#f5c451" stroke="#8f6512" stroke-width="1.3"/></svg>`;
+    }
+    if (trapped) {
+        return `<svg viewBox="0 0 40 40" width="21" height="21"><circle cx="20" cy="22" r="12" fill="#2a1a14" stroke="#0d0906" stroke-width="2"/><path d="M24,11 Q31,7 29,3" fill="none" stroke="#c98b45" stroke-width="2"/><circle cx="29" cy="4" r="2.4" fill="#ffb74d"><animate attributeName="opacity" values="1;.25;1" dur="1s" repeatCount="indefinite"/></circle><path d="M20,15 L20,25 M20,29 L20,30" stroke="#fff3cf" stroke-width="3" stroke-linecap="round"/></svg>`;
+    }
+    return boardGetZoneArtSVG(boardCellZone(i));
+}
+function boardCellBackground(i, revealed, type, trapped) {
+    if (!revealed) return 'linear-gradient(155deg,#4d616e 0%,#1d2c36 100%)';
+    if (type === 'start') return 'radial-gradient(circle at 32% 24%,#fff2bd 0%,#e0a94a 55%,#a8702c 100%)';
+    if (type === 'finish') return 'radial-gradient(circle at 32% 24%,#dcffe9 0%,#4ec07d 55%,#1f7c4c 100%)';
+    if (trapped) return 'radial-gradient(circle at 32% 24%,#ffb39a 0%,#d2543f 55%,#8f2622 100%)';
+    const tint = boardGetZoneColor(boardCellZone(i));
+    return `radial-gradient(circle at 32% 24%, ${tint} 0%, rgba(20,46,55,.96) 68%, rgba(11,30,38,1) 100%)`;
+}
+function _paintCell(div, i) {
+    const type = boardCellType(i);
+    const zoneName = boardCellZone(i);
+    const revealed = !!boardGame.revealedCells[i];
+    const trapped = !!boardGame.trappedCells[i];
+    div.className = 'board-cell' + (type ? ' ' + type : '') + (revealed ? ' revealed' : ' hidden-cell');
+    div.title = revealed ? zoneName : 'Ô bí ẩn — đi tới để mở';
+    div.style.setProperty('background', boardCellBackground(i, revealed, type, trapped), 'important');
+    div.innerHTML = `<span class="cell-num-center">${i + 1}</span>` +
+        `<span class="cell-badge">${boardCellArt(i, revealed, type, trapped)}</span>` +
+        `<span class="cell-zone">${_boardEsc(zoneName)}</span>`;
+}
+
 window.boardRenderGrid = function() {
+    if (!boardGame) return;
     const grid = document.getElementById('boardGrid');
-    if(!grid) return;
+    if (!grid) return;
+
+    grid.classList.add('board-map-viewport');
     grid.innerHTML = '';
+    grid.style.cssText = 'position:relative;width:100%;height:100%;overflow:auto;display:block;';
 
-    const canvasW = 1024;
-    const canvasH = 782;
-
-    // Scrollable track wrapper
-    grid.style.cssText = [
-        'position:relative',
-        'width:100%',
-        'height:100%',
-        'overflow:auto',
-        'scroll-behavior:smooth',
-        'display:flex',
-        'align-items:flex-start',
-        'justify-content:flex-start',
-        'padding:10px 600px 350px 10px'
-    ].join(';');
+    const shell = document.createElement('div');
+    shell.className = 'board-map-shell';
 
     const canvas = document.createElement('div');
     canvas.className = 'board-canvas';
-    canvas.style.cssText = `position:relative; width:${canvasW}px; height:${canvasH}px; background: radial-gradient(circle, #274217 0%, #15270c 100%); border: 4px solid #4a2e1b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.85); flex-shrink: 0; zoom: 1.35;`;
+    canvas.style.width = BOARD_MAP_W + 'px';
+    canvas.style.height = BOARD_MAP_H + 'px';
 
-    // Glow path svg overlay (Multi-layered dirt path style)
+    // Dirt road following the village track.
     const roadSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    roadSvg.setAttribute('viewBox', `0 0 ${canvasW} ${canvasH}`);
-    roadSvg.setAttribute('width', canvasW);
-    roadSvg.setAttribute('height', canvasH);
-    roadSvg.style.cssText = 'position:absolute; top:0; left:0; pointer-events:none; z-index: 2;';
+    roadSvg.setAttribute('viewBox', `0 0 ${BOARD_MAP_W} ${BOARD_MAP_H}`);
+    roadSvg.setAttribute('width', BOARD_MAP_W);
+    roadSvg.setAttribute('height', BOARD_MAP_H);
+    roadSvg.setAttribute('class', 'board-road-svg');
     roadSvg.innerHTML = `
-        <!-- Soil Bed Border -->
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#3d2210" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
-        <!-- Sand Road -->
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#704423" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- Cobblestone Inner Path -->
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#a1754f" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- Glowing Guide Line -->
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#ecd5b0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 16" opacity="0.6"/>
+        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#2a3a24" stroke-width="64" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#5c4227" stroke-width="50" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#9a7046" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#e6c795" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 20" opacity="0.6"/>
     `;
     canvas.appendChild(roadSvg);
 
-    // Village locations tag overlay
+    // Village location signs.
     const locations = [
         { name: "🌾 Khu Ruộng", x: 25, y: 78 },
         { name: "🛍️ Khu Chợ", x: 82, y: 60 },
@@ -1275,78 +1309,189 @@ window.boardRenderGrid = function() {
         { name: "👮 Chốt Bảo Vệ", x: 48, y: 64 },
         { name: "🌳 Gốc Đa Làng", x: 50, y: 36 }
     ];
-
     locations.forEach(loc => {
         const tag = document.createElement('div');
         tag.className = 'board-location-tag';
-        tag.style.left = `${loc.x * 10.24}px`;
-        tag.style.top = `${loc.y * 7.82}px`;
+        tag.style.left = `${(loc.x / 100) * BOARD_MAP_W}px`;
+        tag.style.top = `${(loc.y / 100) * BOARD_MAP_H}px`;
         tag.textContent = loc.name;
         canvas.appendChild(tag);
     });
 
-    for(let i = 0; i < BOARD_TOTAL_CELLS; i++) {
+    for (let i = 0; i < BOARD_TOTAL_CELLS; i++) {
         const px = _getCellPixelPos(i);
-        const type = i === 0 ? 'start' : i === BOARD_TOTAL_CELLS - 1 ? 'finish' : '';
-        const zoneName = boardGame.cellZones[i] || NEIGHBORHOOD_NAMES[i % NEIGHBORHOOD_NAMES.length];
-        const revealed = !!boardGame.revealedCells[i];
-
-        // 3D stone button background gradients based on cell category
-        let cellBg = '';
-        if (!revealed) {
-            cellBg = 'radial-gradient(circle, #4b5563 0%, #1f2937 100%)';
-        } else if (type === 'start') {
-            cellBg = 'radial-gradient(circle, #60a5fa 0%, #1d4ed8 100%)';
-        } else if (type === 'finish') {
-            cellBg = 'radial-gradient(circle, #6ee7b7 0%, #065f46 100%)';
-        } else if (boardGame.trappedCells[i]) {
-            cellBg = 'radial-gradient(circle, #f87171 0%, #b91c1c 100%)';
-        } else {
-            const baseColor = boardGetZoneColor(zoneName);
-            cellBg = `radial-gradient(circle, ${baseColor}dd 0%, ${baseColor} 100%)`;
-        }
-
-        const art = !revealed
-            ? `<svg viewBox="0 0 40 40" width="14" height="14"><circle cx="20" cy="20" r="4" fill="#a78bfa" opacity="0.6"/></svg>`
-            : i === 0
-            ? `<svg viewBox="0 0 40 40" width="22" height="22"><rect x="6" y="6" width="4" height="28" fill="#333"/><rect x="10" y="6" width="18" height="10" fill="#ef4444"/><rect x="10" y="6" width="9" height="5" fill="#fff"/><rect x="19" y="11" width="9" height="5" fill="#fff"/></svg>`
-            : i === BOARD_TOTAL_CELLS - 1
-            ? `<svg viewBox="0 0 40 40" width="22" height="22"><path d="M12,4 L12,36" stroke="#fbbf24" stroke-width="3"/><path d="M12,6 L30,10 L12,18 Z" fill="#22c55e"/></svg>`
-            : boardGame.trappedCells[i]
-            ? `<svg viewBox="0 0 40 40" width="20" height="20"><circle cx="20" cy="20" r="14" fill="#ef4444"/><path d="M20,10 L20,22 M20,27 L20,29" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`
-            : boardGetZoneArtSVG(zoneName);
-
-        const cellPlayers = boardGame.players.filter(p => p.pos === i && !p.eliminated);
-        const tokens = cellPlayers.map(p =>
-            `<div class="board-token-large" style="border-color:${p.color};box-shadow:0 0 8px ${p.color};" title="${p.name} (${p.lives}❤️)">${boardPlayerTokenSVG(p, 24)}</div>`
-        ).join('');
-
         const div = document.createElement('div');
-        div.className = 'board-cell' + (type ? ' ' + type : '') + (revealed ? ' revealed' : ' hidden-cell');
         div.id = `bcell_${i}`;
-        div.title = revealed ? zoneName : '???';
-        
-        const cellSize = 38;
-        div.style.cssText = `position:absolute; left:${px.x - cellSize / 2}px; top:${px.y - cellSize / 2}px; width:${cellSize}px; height:${cellSize}px; background:${cellBg}; z-index: 5;`;
-        
-        // Circular cell layout: number in center, event badge in top-right if revealed
-        div.innerHTML = `<span class="cell-num-center">${i+1}</span>` + 
-                        (revealed && type !== 'start' && type !== 'finish' ? `<span class="cell-badge">${art}</span>` : '') + 
-                        `<div class="cell-tokens-wrap">${tokens}</div>`;
+        _paintCell(div, i);
+        div.style.cssText += `position:absolute;left:${px.x - BOARD_CELL_SIZE / 2}px;top:${px.y - BOARD_CELL_SIZE / 2}px;width:${BOARD_CELL_SIZE}px;height:${BOARD_CELL_SIZE}px;`;
         canvas.appendChild(div);
     }
 
-    grid.appendChild(canvas);
+    const pawnLayer = document.createElement('div');
+    pawnLayer.className = 'board-pawn-layer';
+    pawnLayer.id = 'boardPawnLayer';
+    canvas.appendChild(pawnLayer);
 
-    // Initialize drag-to-scroll camera and LERP scroll loop
-    if (typeof window.boardInitCameraDrag === 'function') {
-        window.boardInitCameraDrag();
-    }
-    if (typeof window.boardStartCameraLoop === 'function') {
-        window.boardStartCameraLoop();
-    }
+    shell.appendChild(canvas);
+    grid.appendChild(shell);
 
-    window.boardScrollToCurrentPlayer();
+    if (typeof window.boardInitCameraDrag === 'function') window.boardInitCameraDrag();
+    if (typeof window.boardStartCameraLoop === 'function') window.boardStartCameraLoop();
+
+    window.boardFitViewport();
+    window.boardRenderPawns(true);
+
+    const idx = boardGame.currentTurn || 0;
+    window._cameraFollowIdx = idx;
+    window._cameraCurrentX = null;
+    window._cameraCurrentY = null;
+    window.boardScrollToCurrentPlayer(idx);
+
+    // Snap to the active pawn on first paint so the board does not fly in from a corner.
+    grid.scrollLeft = window._cameraTargetX || 0;
+    grid.scrollTop = window._cameraTargetY || 0;
+    window._cameraCurrentX = grid.scrollLeft;
+    window._cameraCurrentY = grid.scrollTop;
+};
+
+window.boardFitViewport = function() {
+    const grid = document.getElementById('boardGrid');
+    if (!grid) return;
+    const shell = grid.querySelector('.board-map-shell');
+    const canvas = grid.querySelector('.board-canvas');
+    if (!shell || !canvas) return;
+    const w = grid.clientWidth || 900;
+    const h = grid.clientHeight || 600;
+    // Keep the map large enough to read on phones; camera-follow handles the rest.
+    const zoom = Math.max(0.62, Math.min(1.22, (w - 28) / BOARD_MAP_W));
+    canvas.style.zoom = String(zoom);
+    // A slim frame only: the camera centres pawns while there is room to scroll and
+    // otherwise lets the map edge sit at the frame, so no empty strip ever shows.
+    const padX = 24;
+    const padY = Math.max(64, Math.min(220, Math.round(h * 0.18)));
+    shell.style.padding = `${padY}px ${padX}px`;
+    window._boardZoom = zoom;
+    window._boardPadX = padX;
+    window._boardPadY = padY;
+};
+
+window.boardRenderPawns = function(instant) {
+    if (!boardGame) return;
+    const layer = document.querySelector('#boardGrid .board-pawn-layer');
+    if (!layer) return;
+
+    const byCell = {};
+    boardGame.players.forEach(p => {
+        if (!p.eliminated) (byCell[p.pos] = byCell[p.pos] || []).push(p.idx);
+    });
+
+    boardGame.players.forEach((p, i) => {
+        let el = document.getElementById('boardPawn_' + i);
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'boardPawn_' + i;
+            el.className = 'board-pawn';
+            el.innerHTML = '<div class="pawn-body"><div class="pawn-avatar"><img alt=""></div><span class="pawn-lives"></span><span class="pawn-gear"></span></div><span class="pawn-name"></span>';
+            layer.appendChild(el);
+        }
+        const char = BOARD_CHARACTERS[p.idx] || BOARD_CHARACTERS[0];
+        const img = el.querySelector('.pawn-avatar img');
+        if (img.getAttribute('src') !== char.img) img.src = char.img;
+        img.alt = p.name || char.name;
+        el.style.setProperty('--pc', p.color || char.color);
+        el.classList.toggle('is-active', !boardGame.gameOver && boardGame.currentTurn === p.idx);
+        el.classList.toggle('is-out', !!p.eliminated);
+        el.classList.toggle('is-me', !!(p.isHuman || (p.networkId && p.networkId === getMyNetworkId())));
+        el.classList.toggle('no-move', !!instant);
+        el.querySelector('.pawn-name').textContent = p.name || char.name;
+        el.querySelector('.pawn-lives').textContent = p.eliminated ? '💀' : '♥'.repeat(Math.max(0, p.lives || 0));
+        const gear = [];
+        if (p.weapons > 0) gear.push('⚔' + p.weapons);
+        if (p.shields > 0) gear.push('🛡' + p.shields);
+        el.querySelector('.pawn-gear').textContent = gear.join(' ');
+        if (p.eliminated) {
+            el.style.display = 'none';
+            return;
+        }
+        el.style.display = '';
+        const pos = _getCellPixelPos(p.pos);
+        const group = byCell[p.pos] || [i];
+        const j = Math.max(0, group.indexOf(i));
+        const stacked = group.length > 1;
+        el.classList.toggle('is-stacked', stacked);
+        el.style.setProperty('--pscale', stacked ? '0.78' : '1');
+        let dx = 0, dy = 0;
+        if (group.length === 2) {
+            dx = j === 0 ? -13 : 13;
+        } else if (group.length === 3) {
+            dx = (j - 1) * 15;
+            dy = j === 1 ? -18 : 8;
+        } else if (group.length > 3) {
+            dx = j % 2 === 0 ? -15 : 15;
+            dy = j < 2 ? -20 : 9;
+        }
+        el.style.left = (pos.x + dx) + 'px';
+        el.style.top = (pos.y + dy) + 'px';
+        el.style.zIndex = String(30 + (boardGame.currentTurn === p.idx ? 20 : 0) + i);
+    });
+
+    if (instant) {
+        requestAnimationFrame(() => layer.querySelectorAll('.board-pawn.no-move').forEach(n => n.classList.remove('no-move')));
+    }
+};
+
+window.boardHopPawn = function(idx) {
+    const body = document.querySelector('#boardPawn_' + idx + ' .pawn-body');
+    if (!body) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    body.classList.remove('pawn-hop');
+    void body.offsetWidth;
+    body.classList.add('pawn-hop');
+};
+
+// Camera target: pawn centre in viewport space, clamped to the padded scroll area.
+window.boardFocusPawn = function(idx) {
+    if (!boardGame) return;
+    if (typeof idx !== 'number') idx = boardGame.currentTurn;
+    const p = boardGame.players[idx];
+    if (!p) return;
+    window._cameraFollowIdx = idx;
+    const grid = document.getElementById('boardGrid');
+    const canvas = grid && grid.querySelector('.board-canvas');
+    if (!grid || !canvas) return;
+
+    const gr = grid.getBoundingClientRect();
+    const cr = canvas.getBoundingClientRect();
+    const cell = _getCellPixelPos(p.pos);
+    const screenX = cr.left + (cell.x / BOARD_MAP_W) * cr.width;
+    const screenY = cr.top + (cell.y / BOARD_MAP_H) * cr.height;
+    const maxX = Math.max(0, grid.scrollWidth - grid.clientWidth);
+    const maxY = Math.max(0, grid.scrollHeight - grid.clientHeight);
+    const tx = grid.scrollLeft + screenX - (gr.left + gr.width / 2);
+    const ty = grid.scrollTop + screenY - (gr.top + gr.height / 2);
+    window._cameraTargetX = Math.max(0, Math.min(maxX, tx));
+    window._cameraTargetY = Math.max(0, Math.min(maxY, ty));
+};
+
+window.boardRefreshCell = function(i) {
+    const div = document.getElementById('bcell_' + i);
+    if (div) _paintCell(div, i);
+};
+
+// Repaint every board surface without rebuilding the DOM (used after cards / network sync).
+window.boardSyncView = function() {
+    if (!boardGame) return;
+    const grid = document.getElementById('boardGrid');
+    if (!grid || !grid.querySelector('.board-canvas')) {
+        window.boardRenderGrid();
+        return;
+    }
+    for (let i = 0; i < BOARD_TOTAL_CELLS; i++) window.boardRefreshCell(i);
+    window.boardRenderPawns();
+    window.boardRenderPlayers();
+    window.boardRenderLog();
+    window.boardUpdateRollBtn();
+    window.boardUpdateCharPanel();
 };
 
 // --- CAMERA SYSTEM (World Board vs Viewport) ---
@@ -1355,39 +1500,10 @@ window._cameraTargetX = 0;
 window._cameraTargetY = 0;
 window._boardCameraLoopId = null;
 
-// Calculates proper target position centering player within USABLE viewport area (excluding UI panels)
+// Camera target is the active pawn itself (computed by boardFocusPawn).
 window.boardScrollToCurrentPlayer = function(targetIdx) {
-    if (!boardGame || !boardGame.players.length) return;
-    let idx = (typeof targetIdx === 'number') ? targetIdx : boardGame.currentTurn;
-    let cur = boardGame.players[idx];
-    if (!cur) return;
-    let cellEl = document.getElementById(`bcell_${cur.pos}`);
-    let grid = document.getElementById('boardGrid');
-    if (!cellEl || !grid) return;
-    
-    const zoomFactor = 1.35;
-    
-    // 1. Calculate usable viewport size by subtracting right panel (330px) and bottom HUD (230px)
-    const rightPanelWidth = 330;
-    const bottomPanelHeight = 230;
-    
-    const usableWidth = Math.max(300, grid.clientWidth - rightPanelWidth);
-    const usableHeight = Math.max(300, grid.clientHeight - bottomPanelHeight);
-    
-    // 2. Compute absolute player center coordinates on the canvas
-    let playerX = (cellEl.offsetLeft * zoomFactor) + (cellEl.clientWidth * zoomFactor / 2);
-    let playerY = (cellEl.offsetTop * zoomFactor) + (cellEl.clientHeight * zoomFactor / 2);
-    
-    // 3. Center the player within the USABLE area
-    let targetLeft = playerX - (usableWidth / 2);
-    let targetTop = playerY - (usableHeight / 2);
-    
-    // 4. Boundary constraints clamping (to keep camera inside the map bounds)
-    const maxScrollLeft = grid.scrollWidth - grid.clientWidth;
-    const maxScrollTop = grid.scrollHeight - grid.clientHeight;
-    
-    window._cameraTargetX = Math.max(0, Math.min(maxScrollLeft, targetLeft));
-    window._cameraTargetY = Math.max(0, Math.min(maxScrollTop, targetTop));
+    const idx = (typeof targetIdx === 'number') ? targetIdx : (boardGame ? boardGame.currentTurn : 0);
+    window.boardFocusPawn(idx);
 };
 
 // Desktop click-drag to scroll & Mobile touch-drag to scroll
@@ -1476,34 +1592,33 @@ window.boardInitCameraDrag = function() {
 // Starts requestAnimationFrame rendering loop for smooth camera transitions (LERP)
 window.boardStartCameraLoop = function() {
     if (window._boardCameraLoopId) return;
-    
-    // Float coordinates to decouple math from browser integer rounding jitter
     window._cameraCurrentX = null;
     window._cameraCurrentY = null;
-    
+
     const loop = () => {
         const grid = document.getElementById('boardGrid');
         if (grid) {
             if (window._cameraCurrentX === null) window._cameraCurrentX = grid.scrollLeft;
             if (window._cameraCurrentY === null) window._cameraCurrentY = grid.scrollTop;
-            
+
             if (window.boardCameraAutoFollow) {
-                let dx = window._cameraTargetX - window._cameraCurrentX;
-                let dy = window._cameraTargetY - window._cameraCurrentY;
-                
-                // Snap directly if within sub-pixel range to prevent infinite wobble/shaking
-                if (Math.abs(dx) < 1.5 && Math.abs(dy) < 1.5) {
-                    window._cameraCurrentX = window._cameraTargetX;
-                    window._cameraCurrentY = window._cameraTargetY;
+                const maxX = Math.max(0, grid.scrollWidth - grid.clientWidth);
+                const maxY = Math.max(0, grid.scrollHeight - grid.clientHeight);
+                const targetX = Math.max(0, Math.min(maxX, window._cameraTargetX || 0));
+                const targetY = Math.max(0, Math.min(maxY, window._cameraTargetY || 0));
+                const dx = targetX - window._cameraCurrentX;
+                const dy = targetY - window._cameraCurrentY;
+
+                if (Math.abs(dx) < 0.8 && Math.abs(dy) < 0.8) {
+                    window._cameraCurrentX = targetX;
+                    window._cameraCurrentY = targetY;
                 } else {
-                    window._cameraCurrentX += dx * 0.08;
-                    window._cameraCurrentY += dy * 0.08;
+                    window._cameraCurrentX += dx * 0.18;
+                    window._cameraCurrentY += dy * 0.18;
                 }
-                
                 grid.scrollLeft = Math.round(window._cameraCurrentX);
                 grid.scrollTop = Math.round(window._cameraCurrentY);
             } else {
-                // Keep float values updated with user drag panned positions
                 window._cameraCurrentX = grid.scrollLeft;
                 window._cameraCurrentY = grid.scrollTop;
             }
@@ -1523,58 +1638,97 @@ window.boardRecenterCamera = function() {
 window.boardRenderPlayers = function() {
     if (!boardGame || !boardGame.players) return;
 
-    // Dynamically reorder display list: human player first, then others
-    let displayOrder = [...boardGame.players];
-    displayOrder.sort((a, b) => {
-        let aIsUs = (a.networkId === getMyNetworkId() || a.isHuman);
-        let bIsUs = (b.networkId === getMyNetworkId() || b.isHuman);
-        if (aIsUs && !bIsUs) return -1;
-        if (!aIsUs && bIsUs) return 1;
-        return a.idx - b.idx;
-    });
-
     const charSection = document.querySelector('.characters-section');
     if (charSection) {
-        charSection.innerHTML = displayOrder.map(p => {
-            const charImages = [
-                'assets/img/board/char_trau.png',
-                'assets/img/board/char_mam.png',
-                'assets/img/board/char_kien.png',
-                'assets/img/board/char_ut.png'
-            ];
-            const isUs = (p.networkId === getMyNetworkId() || p.isHuman);
-            const userTag = isUs ? `<div class="user-card-tag" style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:#e11d48; color:#fff; font-size:0.62rem; padding:1px 6px; border-radius:4px; border:1px solid #fda4af; font-weight:bold; white-space:nowrap; z-index:10; box-shadow:0 2px 4px rgba(0,0,0,0.5);">BẠN (Nhân Vật)</div>` : '';
-            const displayName = p.name || 'Người chơi';
+        // Drop the static cards from index.html on first render.
+        charSection.querySelectorAll(':scope > .char-card').forEach(card => card.remove());
 
-            const img = charImages[p.idx] || charImages[0];
-            const isSelected = p.idx === window.boardSelectedCharDisplayIdx;
-            const activeClass = isSelected ? 'active' : '';
-            
-            let cardStyles = '';
-            let turnClasses = '';
-            if (p.idx === boardGame.currentTurn && !boardGame.gameOver) {
-                turnClasses = ' active-turn';
-                cardStyles = `border-color: ${p.color}; box-shadow: 0 0 15px ${p.color};`;
-            }
-            if (p.eliminated) {
-                turnClasses += ' eliminated';
+        const displayOrder = [...boardGame.players].sort((a, b) => {
+            const aUs = (a.networkId === getMyNetworkId() || a.isHuman) ? 0 : 1;
+            const bUs = (b.networkId === getMyNetworkId() || b.isHuman) ? 0 : 1;
+            return aUs - bUs || a.idx - b.idx;
+        });
+
+        displayOrder.forEach((p, order) => {
+            let wrap = document.getElementById('charWrap_' + p.idx);
+            if (!wrap) {
+                wrap = document.createElement('div');
+                wrap.className = 'char-card-container';
+                wrap.id = 'charWrap_' + p.idx;
+                wrap.innerHTML = `
+                    <div class="user-card-tag">BẠN</div>
+                    <div class="char-card" id="charCard_${p.idx}" role="button" tabindex="0">
+                        <img alt="">
+                        <span class="char-card-lives"></span>
+                    </div>
+                    <div class="char-card-name"></div>`;
+                const card = wrap.querySelector('.char-card');
+                card.addEventListener('click', () => window.boardSelectCharacterDisplay(p.idx));
+                card.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        window.boardSelectCharacterDisplay(p.idx);
+                    }
+                });
+                charSection.appendChild(wrap);
             }
 
-            return `
-                <div class="char-card-container" style="display:flex; flex-direction:column; align-items:center; position:relative; margin-top:12px;">
-                    ${userTag}
-                    <div class="char-card ${activeClass}${turnClasses}" onclick="window.boardSelectCharacterDisplay(${p.idx})" id="charCard_${p.idx}" style="${cardStyles}">
-                        <img src="${img}" alt="${displayName}">
-                    </div>
-                    <div style="font-size:0.75rem; font-weight:bold; color:${p.color}; margin-top:4px; text-shadow:1px 1px 2px #000; text-align:center; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${displayName}">
-                        ${displayName}
-                    </div>
-                </div>
-            `;
-        }).join('');
+            const char = BOARD_CHARACTERS[p.idx] || BOARD_CHARACTERS[0];
+            const img = wrap.querySelector('img');
+            if (img.getAttribute('src') !== char.img) {
+                img.src = char.img;
+                img.alt = p.name || char.name;
+            }
+            const isMe = !!(p.isHuman || (p.networkId && p.networkId === getMyNetworkId()));
+            wrap.classList.toggle('is-me', isMe);
+            wrap.style.order = String(order);
+            wrap.style.setProperty('--pc', p.color || char.color);
+            wrap.title = `${p.name || char.name} · Ô ${p.pos + 1}`;
+
+            const card = wrap.querySelector('.char-card');
+            card.classList.toggle('active', window.boardSelectedCharDisplayIdx === p.idx);
+            card.classList.toggle('active-turn', !boardGame.gameOver && boardGame.currentTurn === p.idx);
+            card.classList.toggle('eliminated', !!p.eliminated);
+            wrap.querySelector('.char-card-lives').textContent = p.eliminated ? '💀' : '♥'.repeat(Math.max(0, p.lives || 0));
+            wrap.querySelector('.char-card-name').textContent = p.name || char.name;
+        });
+
+        charSection.querySelectorAll('.char-card-container').forEach(w => {
+            const idx = Number(w.id.replace('charWrap_', ''));
+            if (!boardGame.players[idx]) w.remove();
+        });
     }
 
-    // Update selected character info
+    // Turn / race progress banner (created once, updated in place).
+    const banner = document.querySelector('.board-title-banner');
+    let bar = document.getElementById('raceProgress');
+    if (bar && bar.parentElement !== banner) {
+        bar.remove();
+        bar = null;
+    }
+    if (!bar && banner) {
+        bar = document.createElement('div');
+        bar.id = 'raceProgress';
+        bar.innerHTML = '<span id="raceTurnName"></span><b id="racePosText"></b><progress id="raceBar" max="99" value="0"></progress>';
+        banner.appendChild(bar);
+    }
+    const cur = boardGame.players[boardGame.currentTurn];
+    if (bar && cur) {
+        const turnEl = document.getElementById('raceTurnName');
+        const posEl = document.getElementById('racePosText');
+        if (turnEl) turnEl.textContent = boardGame.gameOver ? '🏆 Kết thúc' : `Lượt: ${cur.name}`;
+        if (posEl) posEl.textContent = `Ô ${Math.min(cur.pos + 1, BOARD_TOTAL_CELLS)} / ${BOARD_TOTAL_CELLS}`;
+        const prog = document.getElementById('raceBar');
+        if (prog) prog.value = cur.pos;
+        bar.classList.toggle('is-over', !!boardGame.gameOver);
+    }
+
+    document.querySelectorAll('.board-cell.current-racer').forEach(el => el.classList.remove('current-racer'));
+    if (cur && !boardGame.gameOver) {
+        const activeCell = document.getElementById('bcell_' + cur.pos);
+        if (activeCell) activeCell.classList.add('current-racer');
+    }
+
     window.boardUpdateCharPanel();
 };
 
@@ -1655,11 +1809,11 @@ function openBoardGame(pvpMode = false) {
     // Default selected character display to human (0)
     window.boardSelectedCharDisplayIdx = 0;
 
+    const bgModal = document.getElementById('boardGameModal');
+    if (bgModal) bgModal.classList.add('active');
     boardRenderGrid();
     boardRenderPlayers();
     boardUpdateRollBtn();
-    const bgModal = document.getElementById('boardGameModal');
-    if (bgModal) bgModal.classList.add('active');
     boardAddLog(`🏁 ĐẤU TRƯỜNG BẮT ĐẦU! Ai hết 3 ❤️ sẽ chết. Đi tới ô ${BOARD_TOTAL_CELLS} (Quảng Trường) để thắng!`, 'special');
 }
 window.openBoardGame = openBoardGame;
@@ -1881,12 +2035,29 @@ window.startBoardGameNoBet = function() {
 };
 
 window.boardAddLog = function(text, type) {
-    if(!boardGame) return;
+    if (!boardGame) return;
     boardGame.log.push({ text, type });
-    if(boardGame.log.length > 24) boardGame.log.shift();
-    let logEl = document.getElementById('boardLog');
-    if(!logEl) return;
-    logEl.innerHTML = boardGame.log.map(l => `<p class="${l.type||''}">${l.text}</p>`).join('');
+    if (boardGame.log.length > 24) boardGame.log.shift();
+    const logEl = document.getElementById('boardLog');
+    if (!logEl) return;
+    const p = document.createElement('p');
+    p.className = type || '';
+    p.textContent = text;
+    logEl.appendChild(p);
+    while (logEl.children.length > 24) logEl.removeChild(logEl.firstChild);
+    logEl.scrollTop = logEl.scrollHeight;
+};
+
+window.boardRenderLog = function() {
+    const logEl = document.getElementById('boardLog');
+    if (!logEl || !boardGame) return;
+    logEl.textContent = '';
+    boardGame.log.forEach(entry => {
+        const p = document.createElement('p');
+        p.className = entry.type || '';
+        p.textContent = entry.text;
+        logEl.appendChild(p);
+    });
     logEl.scrollTop = logEl.scrollHeight;
 };
 
@@ -1988,9 +2159,8 @@ window.boardApplyNetworkState = function(msg) {
     document.getElementById('boardGameModal').classList.add('active');
     if(msg.cardHtml) document.getElementById('boardCardDisplay').innerHTML = msg.cardHtml;
     if(msg.diceText) document.getElementById('diceResultText').textContent = msg.diceText;
-    window.boardRenderGrid();
-    window.boardRenderPlayers();
-    window.boardUpdateRollBtn();
+    if (typeof window.boardSyncView === 'function') window.boardSyncView();
+    else { window.boardRenderGrid(); window.boardRenderPlayers(); window.boardUpdateRollBtn(); }
     
     // Thiết lập vòng lặp đếm giờ phía khách để kiểm tra Chủ phòng mất kết nối
     if(window.boardPvpTimerInterval) clearInterval(window.boardPvpTimerInterval);
@@ -2919,10 +3089,9 @@ window.boardSyncOnlineState = function(room) {
     if (room.diceEmoji) document.getElementById('diceDisplay').textContent = room.diceEmoji;
     if (room.cardHtml) document.getElementById('boardCardDisplay').innerHTML = room.cardHtml;
 
-    boardRenderGrid();
-    boardRenderPlayers();
-    boardUpdateRollBtn();
-    boardUpdateCharPanel();
+    if (typeof window.boardSyncView === 'function') window.boardSyncView();
+    else { boardRenderGrid(); boardRenderPlayers(); boardUpdateRollBtn(); }
+    window.boardFocusPawn(boardGame.currentTurn);
 };
 
 // Wrap boardRenderPlayers to trigger state push automatically
