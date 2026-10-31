@@ -320,6 +320,8 @@ function finish(winner,reason=''){
   if(!duel||duel.finished)return;duel.finished=true;duel.winner=winner;duel.finishReason=reason;clearTimeout(aiTimer);
   render();const won=winner==='player',match=duel;
   match.reward=window.memePacks?.onDuelFinished?.(won)||null;
+  match.journeyArgs=window.memeJourney?.pending||null;
+  match.journey=window.memeJourney?.onDuelFinished?.(won)||null;
   const historyId=window.memeMatchHistory?.record?.(match);
   const rankPromise = window.memeIdDuel?.recordResult?.(match)?.catch(e => {
     console.warn('Rank record error:', e);
@@ -348,7 +350,9 @@ function showMatchResult(won,reason,match=duel){
   }
   const reward=match?.reward;
   const rewardText=reward?`<p class="match-reward">🪙 +${reward.xu} Xu · ⭐ +${reward.xp} XP${reward.levels?` · 🎉 Lên cấp ${reward.level}!${reward.tickets?` +${reward.tickets} vé Pack Tân Binh`:''}`:''}</p>`:'';
-  showModal(`<span class="result-icon">${won?'🏆':'💀'}</span><h2>${won?'Chiến thắng!':'Thất bại!'}</h2><p>${esc(reason||'Trận đấu đã kết thúc.')}</p>${rewardText}${rankText}<div class="result-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"><button class="primary-btn" id="againBtn">⚔️ Đấu lại</button><button class="secondary-btn" id="resultLobbyBtn">🏠 Về sảnh</button></div>`);
+  const journey=match?.journey;
+  const journeyText=journey?`<div class="match-journey"><b>${esc(journey.title)}</b>${journey.lines?.length?`<span>${journey.lines.map(esc).join(' · ')}</span>`:''}</div>`:'';
+  showModal(`<span class="result-icon">${won?'🏆':'💀'}</span><h2>${won?'Chiến thắng!':'Thất bại!'}</h2><p>${esc(reason||'Trận đấu đã kết thúc.')}</p>${rewardText}${journeyText}${rankText}<div class="result-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"><button class="primary-btn" id="againBtn">⚔️ Đấu lại</button><button class="secondary-btn" id="resultLobbyBtn">🏠 Về sảnh</button></div>`);
   const retryBtn = document.getElementById('retrySyncEloBtn');
   if (retryBtn) {
     retryBtn.onclick = async () => {
@@ -384,6 +388,7 @@ function showMatchResult(won,reason,match=duel){
       notify('Phòng này chưa hỗ trợ đấu lại. Hãy về sảnh để tạo phòng mới.');
       return;
     }
+    if(match?.journeyArgs&&window.memeJourney?.relaunch?.(match.journeyArgs))return;
     if(match?.ghostOpponent){
       startGame({ghost:match.ghostOpponent});
     }else startGame();
