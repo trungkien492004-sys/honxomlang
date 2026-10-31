@@ -128,6 +128,7 @@
     }
     const cards = rollCards(kind, def);
     st.stats.packOpens += 1;
+    window.memeQuests?.track?.('pack');
     P.save();
     refresh();
     return { ok: true, kind, def, cards, paid };
@@ -147,6 +148,8 @@
     }
     st.stats.duels += 1;
     if (won) st.stats.wins += 1;
+    window.memeQuests?.track?.('duel');
+    if (won) window.memeQuests?.track?.('win');
     P.save();
     refresh();
     lastReward = { won, xu: xu + bonusXu, xp, level: level.level, levels: level.levels, tickets: bonusTickets };
@@ -201,6 +204,7 @@
       if (n) P.addTicket(kind, n);
     }
     P.setLogin(streak, today);
+    window.memeQuests?.track?.('login');
     refresh();
     return { ok: true, streak, day: (streak - 1) % 7 + 1, login: reward, rank };
   }
@@ -351,6 +355,7 @@
       const badge = pack.querySelector('.ticket-badge');
       if (badge) { badge.textContent = total; badge.hidden = total === 0; }
     }
+    window.memeQuests?.refreshBadge?.();
   }
 
   function ensureHud() {
