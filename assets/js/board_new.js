@@ -1663,7 +1663,7 @@ function boardCellArt(i, revealed, type, trapped) {
     return boardGetZoneArtSVG(boardCellZone(i));
 }
 function boardCellBackground(i, revealed, type, trapped) {
-    if (!revealed) return 'linear-gradient(155deg,#4d616e 0%,#1d2c36 100%)';
+    if (!revealed) return 'radial-gradient(circle at 34% 22%,#fff3cf 0%,#e6c184 52%,#a5783c 100%)';
     if (type === 'start') return 'radial-gradient(circle at 32% 24%,#fff2bd 0%,#e0a94a 55%,#a8702c 100%)';
     if (type === 'finish') return 'radial-gradient(circle at 32% 24%,#dcffe9 0%,#4ec07d 55%,#1f7c4c 100%)';
     if (trapped) return 'radial-gradient(circle at 32% 24%,#ffb39a 0%,#d2543f 55%,#8f2622 100%)';
@@ -1710,7 +1710,9 @@ window.boardRenderGrid = function() {
         <path d="${_getBoardSmoothPath()}" fill="none" stroke="#2a3a24" stroke-width="64" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
         <path d="${_getBoardSmoothPath()}" fill="none" stroke="#5c4227" stroke-width="50" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
         <path d="${_getBoardSmoothPath()}" fill="none" stroke="#9a7046" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#b58655" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
         <path d="${_getBoardSmoothPath()}" fill="none" stroke="#e6c795" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 20" opacity="0.6"/>
+        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#fbeecb" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 46" opacity="0.32"/>
     `;
     canvas.appendChild(roadSvg);
 
@@ -1728,14 +1730,29 @@ window.boardRenderGrid = function() {
         { name: "👮 Chốt Bảo Vệ", x: 48, y: 64 },
         { name: "🌳 Gốc Đa Làng", x: 50, y: 36 }
     ];
-    locations.forEach(loc => {
+    locations.forEach((loc, i) => {
         const tag = document.createElement('div');
         tag.className = 'board-location-tag';
         tag.style.left = `${(loc.x / 100) * BOARD_MAP_W}px`;
         tag.style.top = `${(loc.y / 100) * BOARD_MAP_H}px`;
+        tag.style.transform = `translate(-50%,-50%) rotate(${(i % 2 ? 1 : -1) * (0.6 + (i % 3) * 0.45)}deg)`;
         tag.textContent = loc.name;
         canvas.appendChild(tag);
     });
+
+    // Đom đóm lơ lửng cho khung cảnh làng quê sống động hơn.
+    const ambient = document.createElement('div');
+    ambient.className = 'board-ambient';
+    [[120, 120], [240, 520], [420, 150], [560, 300], [700, 120], [820, 420], [930, 250], [160, 380], [360, 640], [610, 560], [880, 640], [500, 430]].forEach((spot, i) => {
+        const bug = document.createElement('span');
+        bug.className = 'board-bug';
+        bug.style.left = spot[0] + 'px';
+        bug.style.top = spot[1] + 'px';
+        bug.style.setProperty('--dur', (6 + (i % 5) * 1.4).toFixed(1) + 's');
+        bug.style.animationDelay = (i * 0.42).toFixed(2) + 's';
+        ambient.appendChild(bug);
+    });
+    canvas.appendChild(ambient);
 
     for (let i = 0; i < BOARD_TOTAL_CELLS; i++) {
         const px = _getCellPixelPos(i);
@@ -1911,6 +1928,13 @@ window.boardPawnTokenSrc = function(idx) {
     return uri;
 };
 
+// Vị trí quân khi trùng ô: 2 quân đứng cạnh, 3-4 quân xếp thành lưới 2x2 gọn gàng.
+const BOARD_PAWN_CLUSTER = {
+    2: { scale: 0.8, slots: [[-9, 0], [9, 0]] },
+    3: { scale: 0.62, slots: [[-9, -11], [9, -11], [0, 10]] },
+    4: { scale: 0.54, slots: [[-8, -12], [8, -12], [-8, 10], [8, 10]] }
+};
+
 window.boardRenderPawns = function(instant) {
     if (!boardGame) return;
     const layer = document.querySelector('#boardGrid .board-pawn-layer');
@@ -1956,20 +1980,41 @@ window.boardRenderPawns = function(instant) {
         const j = Math.max(0, group.indexOf(i));
         const stacked = group.length > 1;
         el.classList.toggle('is-stacked', stacked);
-        el.style.setProperty('--pscale', stacked ? '0.78' : '1');
-        let dx = 0, dy = 0;
-        if (group.length === 2) {
-            dx = j === 0 ? -14 : 14;
-        } else if (group.length === 3) {
-            dx = (j - 1) * 16;
-            dy = j === 1 ? -19 : 9;
-        } else if (group.length > 3) {
-            dx = j % 2 === 0 ? -16 : 16;
-            dy = j < 2 ? -21 : 10;
+        const cluster = BOARD_PAWN_CLUSTER[group.length];
+        const slot = cluster ? cluster.slots[j % cluster.slots.length] : [0, 0];
+        el.style.setProperty('--pscale', cluster ? String(cluster.scale) : '1');
+        el.style.left = (pos.x + slot[0]) + 'px';
+        el.style.top = (pos.y + slot[1]) + 'px';
+        el.style.zIndex = String(30 + (boardGame.currentTurn === p.idx ? 30 : 0) + i);
+    });
+
+    // Cụm trùng ô: một nhãn chung liệt kê tên để biết ai đang đứng ở ô nào.
+    const labelled = new Set();
+    Object.keys(byCell).forEach(key => {
+        const group = byCell[key];
+        if (group.length < 2) return;
+        labelled.add(String(key));
+        const pos = _getCellPixelPos(Number(key));
+        let tag = layer.querySelector('.pawn-roster[data-cell="' + key + '"]');
+        if (!tag) {
+            tag = document.createElement('div');
+            tag.className = 'pawn-roster';
+            tag.dataset.cell = String(key);
+            layer.appendChild(tag);
         }
-        el.style.left = (pos.x + dx) + 'px';
-        el.style.top = (pos.y + dy) + 'px';
-        el.style.zIndex = String(30 + (boardGame.currentTurn === p.idx ? 20 : 0) + i);
+        tag.style.left = pos.x + 'px';
+        tag.style.top = (pos.y + 25) + 'px';
+        // Bù zoom để tên luôn đọc được trên điện thoại.
+        tag.style.setProperty('--rk', Math.max(1, Math.min(1.6, 1 / (window._boardZoom || 1))).toFixed(3));
+        tag.innerHTML = group.map(idx => {
+            const gp = boardGame.players[idx];
+            const ch = BOARD_CHARACTERS[gp.idx] || BOARD_CHARACTERS[0];
+            const short = String(ch.name || gp.name || '').split(' ')[0];
+            return `<span style="--pc:${gp.color || ch.color}">${_boardEsc(short)}</span>`;
+        }).join('');
+    });
+    layer.querySelectorAll('.pawn-roster').forEach(tag => {
+        if (!labelled.has(tag.dataset.cell)) tag.remove();
     });
 
     if (instant) {
@@ -2038,11 +2083,14 @@ window.boardPlayFx = function(kind, cell, text, opts) {
         opts = opts || {};
         const pos = _getCellPixelPos(typeof cell === 'number' ? cell : (boardGame.currentTurn || 0));
         const reduced = boardFxReduced();
+        // Bù zoom: chữ/hiệu ứng giữ nguyên cỡ trên màn hình dù map bị thu nhỏ.
+        const fxScale = Math.max(1, Math.min(1.7, 1 / (window._boardZoom || 1)));
 
         if (text) {
             const float = document.createElement('div');
             float.className = 'board-fx-float fx-' + kind;
             float.textContent = text;
+            float.style.setProperty('--fxk', fxScale.toFixed(3));
             float.style.left = pos.x + 'px';
             float.style.top = (pos.y - 16) + 'px';
             float.style.zIndex = String(72 + (opts.z || 0));
@@ -2051,37 +2099,53 @@ window.boardPlayFx = function(kind, cell, text, opts) {
         }
         if (reduced) return;
 
+        const burst = document.createElement('span');
+        burst.className = 'board-fx-burst fx-' + kind;
+        const burstSize = Math.round((kind === 'finish' || kind === 'monster' || kind === 'damage' ? 46 : 34) * fxScale);
+        burst.style.width = burst.style.height = burstSize + 'px';
+        burst.style.margin = (-burstSize / 2) + 'px 0 0 ' + (-burstSize / 2) + 'px';
+        burst.style.left = pos.x + 'px';
+        burst.style.top = pos.y + 'px';
+        if (kind === 'finish' || kind === 'monster' || kind === 'damage') burst.classList.add('is-big');
+        layer.appendChild(burst);
+        setTimeout(() => burst.remove(), 760);
+
         const glyphs = BOARD_FX_GLYPHS[kind] || ['✨'];
-        const count = opts.count || BOARD_FX_COUNT[kind] || 9;
+        const count = Math.round((opts.count || BOARD_FX_COUNT[kind] || 10) * 1.4);
         for (let i = 0; i < count; i++) {
             const spark = document.createElement('span');
             spark.className = 'board-fx-spark';
             spark.textContent = glyphs[i % glyphs.length];
             const ang = (Math.PI * 2 * i) / count + Math.random() * 0.7;
-            const dist = 24 + Math.random() * (kind === 'finish' ? 150 : 46);
+            const dist = 34 + Math.random() * (kind === 'finish' ? 180 : 68);
             spark.style.left = pos.x + 'px';
             spark.style.top = pos.y + 'px';
             spark.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(1) + 'px');
-            spark.style.setProperty('--dy', (Math.sin(ang) * dist - (opts.lift || 10)).toFixed(1) + 'px');
-            spark.style.setProperty('--rot', Math.round(Math.random() * 240 - 120) + 'deg');
-            spark.style.setProperty('--dur', (0.65 + Math.random() * 0.45).toFixed(2) + 's');
-            spark.style.fontSize = (kind === 'finish' ? 16 : 11 + Math.random() * 6).toFixed(0) + 'px';
+            spark.style.setProperty('--dy', (Math.sin(ang) * dist - (opts.lift || 12)).toFixed(1) + 'px');
+            spark.style.setProperty('--rot', Math.round(Math.random() * 300 - 150) + 'deg');
+            spark.style.setProperty('--dur', (0.7 + Math.random() * 0.5).toFixed(2) + 's');
+            spark.style.fontSize = ((kind === 'finish' ? 19 + Math.random() * 9 : 14 + Math.random() * 10) * fxScale).toFixed(0) + 'px';
             layer.appendChild(spark);
-            setTimeout(() => spark.remove(), 1250);
+            setTimeout(() => spark.remove(), 1400);
         }
         if (opts.ring !== false) {
-            const ring = document.createElement('span');
-            ring.className = 'board-fx-ring fx-' + kind;
-            ring.style.left = pos.x + 'px';
-            ring.style.top = pos.y + 'px';
-            layer.appendChild(ring);
-            setTimeout(() => ring.remove(), 720);
+            for (let r = 0; r < 2; r++) {
+                const ring = document.createElement('span');
+                ring.className = 'board-fx-ring fx-' + kind + (r ? ' ring-delayed' : '');
+                ring.style.width = ring.style.height = Math.round(18 * fxScale) + 'px';
+                ring.style.margin = (-9 * fxScale) + 'px 0 0 ' + (-9 * fxScale) + 'px';
+                ring.style.left = pos.x + 'px';
+                ring.style.top = pos.y + 'px';
+                layer.appendChild(ring);
+                setTimeout(() => ring.remove(), 900);
+            }
         }
 
         if (kind === 'damage' || kind === 'monster') { window.boardFxFlash('damage'); window.boardFxShake(); }
         else if (kind === 'trap') { window.boardFxFlash('trap'); window.boardFxShake(); }
         else if (kind === 'heal') window.boardFxFlash('heal');
         else if (kind === 'gold') window.boardFxFlash('gold');
+        else if (kind === 'forward' || kind === 'back') window.boardFxFlash(kind);
         else if (kind === 'finish') { window.boardFxFlash('win'); boardFxConfetti(); }
     } catch (e) {}
 };
@@ -2638,6 +2702,7 @@ window.openBoardGameWithBet = function() {
     try { if (window.audio) window.audio.play('click'); } catch(e){}
     const modal = document.getElementById('boardBetModal');
     if(modal) modal.classList.add('active');
+    if (typeof window.boardRenderActiveRoomsList === 'function') window.boardRenderActiveRoomsList();
     window._selectedBetAmount = 0;
     const opts = document.querySelectorAll('.bet-option');
     if(opts.length > 0) {
@@ -3218,20 +3283,24 @@ window.boardRenderActiveRoomsList = function() {
     
     const rooms = Object.values(window.boardActiveRooms);
     if (rooms.length === 0) {
-        listEl.innerHTML = '<div style="font-size:0.75rem; color:#666; text-align:center; padding: 4px 0;">Chưa phát hiện phòng online nào đang chờ...</div>';
+        listEl.innerHTML = '<div class="board-rooms-empty">Chưa có phòng nào đang chờ. Tạo phòng để rủ bạn bè!</div>';
         return;
     }
-    
+
     rooms.forEach(room => {
         const row = document.createElement('div');
-        row.style.cssText = 'background:#242230; border:1px solid #4d4566; border-radius:8px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center;';
-        row.innerHTML = `
-            <div style="text-align:left;">
-                <div style="font-weight:bold; font-size:0.8rem; color:#ffb3c6;">🎮 Phòng: ${room.roomId}</div>
-                <div style="font-size:0.7rem; color:#aaa;">Chủ: ${room.hostName} | Cược: ${room.betAmount}💰</div>
-            </div>
-            <button class="btn-sm" style="background:#10b981; border:none; padding:4px 8px; font-size:0.75rem; color:#fff; border-radius:4px; cursor:pointer;" onclick="window.boardQuickJoinRoom('${room.roomId}')">Vào chơi</button>
-        `;
+        row.className = 'board-room-row';
+        const info = document.createElement('div');
+        const title = document.createElement('b');
+        title.textContent = '🎮 ' + room.roomId;
+        const sub = document.createElement('small');
+        sub.textContent = `Chủ: ${room.hostName || '?'} · Cược ${room.betAmount || 0} 💰`;
+        info.append(title, sub);
+        const join = document.createElement('button');
+        join.className = 'board-room-join';
+        join.textContent = 'Vào chơi';
+        join.addEventListener('click', () => window.boardQuickJoinRoom(room.roomId));
+        row.append(info, join);
         listEl.appendChild(row);
     });
 };
@@ -3263,62 +3332,60 @@ window.boardShowLobbyUI = function(roomId, role, data) {
     el.style.display = 'flex';
 
     const isHost = (role === 'host');
-    const guestLabel = window.boardLobbyData.guestName ? `🟢 Khách: ${window.boardLobbyData.guestName}` : `⏳ Chờ người chơi tham gia...`;
-    
-    // Host can select bot count
-    let botSelectorHTML = '';
+    const d = window.boardLobbyData;
+    const hostName = d.hostName || 'Chủ phòng';
+    const guestName = d.guestName || '';
+    const bet = d.betAmount || 0;
+    const botCount = d.botCount || 0;
+    const hostToken = window.boardPawnTokenSrc(0);
+    const guestToken = window.boardPawnTokenSrc(1);
+
+    let botsHTML = `<div class="board-lobby-bots is-readonly">
+        <span class="lobby-bots-label">🤖 Bot cùng đấu</span>
+        <b>${botCount} bot · ${botCount + 2} người chơi</b>
+    </div>`;
     if (isHost) {
-        botSelectorHTML = `
-            <div style="margin: 15px 0; text-align:left; width:100%;">
-                <label style="font-size:0.85rem; color:#aaa; display:block; margin-bottom:5px;">🤖 Số lượng BOT thêm vào:</label>
-                <select id="boardLobbyBotSelect" style="background:#242230; color:#fff; border:1px solid #4d4566; padding:6px 12px; border-radius:6px; width:100%; font-family:inherit; cursor:pointer;" onchange="window.boardLobbyChangeBot(this.value)">
-                    <option value="0" ${window.boardLobbyData.botCount === 0 ? 'selected' : ''}>0 Bot (Đấu đôi)</option>
-                    <option value="1" ${window.boardLobbyData.botCount === 1 ? 'selected' : ''}>1 Bot (3 người)</option>
-                    <option value="2" ${window.boardLobbyData.botCount === 2 ? 'selected' : ''}>2 Bot (Đủ 4 người)</option>
-                </select>
+        botsHTML = `<div class="board-lobby-bots">
+            <span class="lobby-bots-label">🤖 Bot cùng đấu</span>
+            <div class="lobby-bot-pills">
+                ${[0, 1, 2].map(n => `<button class="lobby-bot-pill${botCount === n ? ' active' : ''}" onclick="window.boardLobbyChangeBot(${n})">${n === 0 ? '2 người' : n === 1 ? '3 người' : '4 người'}<small>${n} bot</small></button>`).join('')}
             </div>
-        `;
-    } else {
-        botSelectorHTML = `
-            <div style="margin: 15px 0; text-align:left; width:100%; background:#242230; padding:8px 12px; border-radius:6px; border:1px solid #4d4566; box-sizing:border-box;">
-                <span style="font-size:0.85rem; color:#aaa;">🤖 Số lượng BOT thêm vào:</span>
-                <strong style="color:#ffb3c6; font-size:0.9rem; float:right;">${window.boardLobbyData.botCount} Bots</strong>
-            </div>
-        `;
+        </div>`;
     }
 
-    let actionButtonHTML = '';
+    let actionsHTML = `<div class="lobby-waiting">⏳ Chờ chủ phòng bắt đầu trận...</div>`;
     if (isHost) {
-        const canStart = !!window.boardLobbyData.guestName;
-        actionButtonHTML = `
-            <button class="btn" id="boardLobbyStartBtn" style="background:#10b981; border:none; padding:10px 20px; font-size:0.95rem; color:#fff; border-radius:8px; cursor:pointer; width:100%; font-weight:bold; ${canStart ? '' : 'background:#4b5563; cursor:not-allowed;'}" ${canStart ? '' : 'disabled'} onclick="window.boardLobbyStartMatch()">🚀 BẮT ĐẦU TRẬN ĐẤU</button>
-        `;
-    } else {
-        actionButtonHTML = `
-            <div style="text-align:center; font-size:0.85rem; color:#cbd5e1; font-style:italic; padding:10px 0;">⏳ Chờ chủ phòng bắt đầu trận đấu...</div>
-        `;
+        actionsHTML = `<button id="boardLobbyStartBtn" class="lobby-start-btn" ${guestName ? '' : 'disabled'} onclick="window.boardLobbyStartMatch()">🚀 BẮT ĐẦU TRẬN ĐẤU</button>`;
     }
 
     el.innerHTML = `
-        <div style="background:linear-gradient(135deg, #1b162b, #0f0b18); border:2px solid #6366f1; border-radius:16px; padding:28px; text-align:center; width:340px; box-shadow:0 0 30px rgba(99,102,241,0.4);">
-            <div style="font-size:2.8rem; margin-bottom:10px;">🎮</div>
-            <div style="font-weight:bold; font-size:1.3rem; color:#a5b4fc; margin-bottom:4px;">PHÒNG CHỜ TRẬN ĐẤU</div>
-            <div style="font-size:0.8rem; color:#818cf8; margin-bottom:20px; background:rgba(99,102,241,0.1); padding:4px 8px; border-radius:6px; display:inline-block;">Mã phòng: ${roomId}</div>
-            
-            <div style="background:rgba(255,255,255,0.03); border-radius:10px; padding:12px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.05); text-align:left;">
-                <div style="font-size:0.85rem; font-weight:bold; color:#a5b4fc; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px; margin-bottom:8px;">👥 Danh sách thành viên:</div>
-                <div style="font-size:0.9rem; margin-bottom:6px; color:#22c55e;">👑 Chủ phòng: ${window.boardLobbyData.hostName}</div>
-                <div style="font-size:0.9rem; color:${window.boardLobbyData.guestName ? '#38bdf8' : '#aaa'};">${guestLabel}</div>
+        <div class="board-lobby-card">
+            <div class="board-lobby-head">
+                <span class="board-lobby-flag">🏁</span>
+                <div>
+                    <div class="board-lobby-title">PHÒNG CHỜ TRẬN ĐẤU</div>
+                    <div class="board-lobby-code">Mã phòng <b>${_boardEsc(roomId)}</b>${bet ? ` · Cược <b>${_boardEsc(bet)} 💰</b>` : ''}</div>
+                </div>
             </div>
-            
-            ${botSelectorHTML}
-            
-            <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-                ${actionButtonHTML}
-                <button class="btn" style="background:#ef4444; border:none; padding:8px 16px; font-size:0.85rem; color:#fff; border-radius:8px; cursor:pointer;" onclick="window.boardLobbyCancel()">❌ Thoát phòng</button>
+            ${guestName ? '' : `<div class="lobby-hint">📨 Gửi mã <b>${_boardEsc(roomId)}</b> cho bạn bè để cùng vào phòng.</div>`}
+            <div class="board-lobby-slots">
+                <div class="board-lobby-slot is-host">
+                    <img src="${hostToken}" alt="">
+                    <div class="lobby-slot-info"><span class="lobby-role">👑 Chủ phòng</span><b>${_boardEsc(hostName)}</b></div>
+                    <span class="lobby-ready">Sẵn sàng</span>
+                </div>
+                <div class="board-lobby-slot ${guestName ? 'is-ready' : 'is-empty'}">
+                    ${guestName ? `<img src="${guestToken}" alt="">` : '<span class="lobby-empty-avatar">?</span>'}
+                    <div class="lobby-slot-info"><span class="lobby-role">${guestName ? '🤝 Khách' : '⏳ Đang chờ'}</span><b>${guestName ? _boardEsc(guestName) : 'Chưa có người chơi'}</b></div>
+                    <span class="lobby-ready">${guestName ? 'Đã vào' : 'Trống'}</span>
+                </div>
             </div>
-        </div>
-    `;
+            ${botsHTML}
+            <div class="board-lobby-actions">
+                ${actionsHTML}
+                <button class="lobby-leave-btn" onclick="window.boardLobbyCancel()">❌ Thoát phòng</button>
+            </div>
+        </div>`;
 };
 
 window.boardLobbyChangeBot = function(val) {
@@ -3335,6 +3402,7 @@ window.boardLobbyChangeBot = function(val) {
             botCount: count
         });
     }
+    if (window.boardOnlineRoomId) window.boardShowLobbyUI(window.boardOnlineRoomId, window.boardOnlineRole || 'host');
 };
 
 window.boardLobbyCancel = function() {
@@ -3439,6 +3507,55 @@ window.boardQuickJoinRoom = function(roomId) {
     }
 };
 
+// Nhập mã phòng bằng overlay riêng thay cho hộp thoại prompt của trình duyệt.
+window.boardRoomCodeModal = function(mode) {
+    return new Promise(resolve => {
+        const old = document.getElementById('boardRoomCodeModal');
+        if (old) old.remove();
+        const isHost = mode === 'host';
+        const suggested = isHost ? 'HX' + Math.random().toString(36).slice(2, 6).toUpperCase() : '';
+        const el = document.createElement('div');
+        el.id = 'boardRoomCodeModal';
+        el.className = 'room-code-overlay';
+        el.innerHTML = `
+            <div class="room-code-card">
+                <div class="room-code-head">
+                    <span class="room-code-flag">${isHost ? '📡' : '🔑'}</span>
+                    <div>
+                        <div class="room-code-title">${isHost ? 'TẠO PHÒNG ONLINE' : 'VÀO PHÒNG ONLINE'}</div>
+                        <div class="room-code-sub">${isHost ? 'Đặt mã phòng ngắn, dễ đọc rồi gửi cho bạn bè.' : 'Nhập đúng mã phòng bạn nhận được từ chủ phòng.'}</div>
+                    </div>
+                </div>
+                <label class="room-code-label" for="boardRoomCodeInput">Mã phòng</label>
+                <input id="boardRoomCodeInput" class="room-code-input" maxlength="16" autocomplete="off" spellcheck="false" placeholder="VD: HX7K2" value="${_boardEsc(suggested)}">
+                <div class="room-code-error" id="boardRoomCodeError"></div>
+                <div class="room-code-actions">
+                    <button type="button" class="room-code-primary" id="boardRoomCodeOk">${isHost ? '🚀 Tạo phòng' : '🎮 Vào phòng'}</button>
+                    <button type="button" class="room-code-cancel" id="boardRoomCodeCancel">Huỷ</button>
+                </div>
+            </div>`;
+        document.body.appendChild(el);
+        const input = el.querySelector('#boardRoomCodeInput');
+        const err = el.querySelector('#boardRoomCodeError');
+        const close = (val) => { document.removeEventListener('keydown', onKey); el.remove(); resolve(val); };
+        const submit = () => {
+            const code = input.value.trim().replace(/\s+/g, '-').toUpperCase();
+            if (!code) { err.textContent = 'Nhập mã phòng trước đã!'; input.focus(); return; }
+            if (code.length < 3) { err.textContent = 'Mã phòng cần ít nhất 3 ký tự.'; input.focus(); return; }
+            close(code);
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') close(null);
+            else if (e.key === 'Enter') submit();
+        };
+        document.addEventListener('keydown', onKey);
+        el.addEventListener('click', e => { if (e.target === el) close(null); });
+        el.querySelector('#boardRoomCodeOk').addEventListener('click', submit);
+        el.querySelector('#boardRoomCodeCancel').addEventListener('click', () => close(null));
+        setTimeout(() => { input.focus(); input.select(); }, 30);
+    });
+};
+
 window.boardHostOnlineRoom = async function() {
     try {
         let betAmt = window._selectedBetAmount || 0;
@@ -3454,9 +3571,9 @@ window.boardHostOnlineRoom = async function() {
         }
 
         const playerName = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
-        const defaultRoomName = 'board_' + playerName;
-        const roomId = prompt('🔑 Nhập mã phòng Cờ Đua của bạn:', defaultRoomName);
-        if (!roomId) return;
+        const code = await window.boardRoomCodeModal('host');
+        if (!code) return;
+        const roomId = code;
 
         // Deduct bet amount upfront
         if (window.player) window.player.gold -= betAmt;
@@ -3500,7 +3617,7 @@ window.boardHostOnlineRoom = async function() {
 
 window.boardJoinOnlineRoom = async function() {
     try {
-        const roomId = prompt('🔑 Nhập mã phòng cờ bạn muốn tham gia:');
+        const roomId = await window.boardRoomCodeModal('guest');
         if (!roomId) return;
 
         window.boardQuickJoinRoom(roomId);

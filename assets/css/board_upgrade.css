@@ -89,27 +89,41 @@
   position:relative;
   border-radius:18px!important;
   border:3px solid #b9925a!important;
-  box-shadow:0 18px 44px #000a,0 0 0 7px #0b2830aa,inset 0 0 0 2px #f1d9a344!important;
+  box-shadow:0 18px 44px #000a,0 0 0 7px #0b2830aa,inset 0 0 0 2px #f1d9a344,inset 0 0 90px #04212b66!important;
   background:url(../img/board/race-map.svg) center/cover no-repeat,#122e36;
   overflow:visible;
   flex-shrink:0;
+}
+/* Ánh nắng chéo + vignette nhẹ để bản đồ có chiều sâu. */
+#boardGameModal .board-canvas::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:15px;
+  z-index:1;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 14% 3%,#fff4c04a,transparent 42%),
+    radial-gradient(ellipse at 86% 92%,#04212f59,transparent 58%),
+    linear-gradient(180deg,#ffffff10,transparent 20% 80%,#02141c4d);
 }
 #boardGameModal .board-road-svg{position:absolute;top:0;left:0;pointer-events:none;z-index:2}
 #boardGameModal .board-location-tag{
   position:absolute;
   transform:translate(-50%,-50%);
-  background:linear-gradient(180deg,#4a3418,#251a0c);
-  border:2px solid #c9a45a;
-  color:#ffe9b3;
-  font-size:11px;
-  font-weight:800;
-  padding:3px 9px;
-  border-radius:8px;
-  box-shadow:0 3px 0 #120c06,0 7px 14px #0008;
-  z-index:3;
+  background:linear-gradient(180deg,#7d5426,#3a2410 72%,#2a1a0b);
+  border:2px solid #ecc476;
+  color:#ffeec2;
+  font-size:10.5px;
+  font-weight:900;
+  padding:3px 10px;
+  border-radius:9px;
+  box-shadow:0 3px 0 #180f06,0 7px 14px #0009,inset 0 1px 0 #ffe7b355,inset 0 -4px 8px #00000040;
+  z-index:4;
   white-space:nowrap;
   letter-spacing:.3px;
   pointer-events:none;
+  text-shadow:0 1px 0 #2a1808;
 }
 #boardGameModal .board-location-tag::after{
   content:'';
@@ -118,8 +132,20 @@
   top:100%;
   transform:translateX(-50%);
   border:5px solid transparent;
-  border-top-color:#c9a45a;
+  border-top-color:#ecc476;
 }
+#boardGameModal .board-ambient{position:absolute;inset:0;z-index:6;pointer-events:none}
+#boardGameModal .board-bug{
+  position:absolute;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:#ffe9a2;
+  box-shadow:0 0 9px 2px #ffd86b99;
+  animation:boardBugDrift var(--dur,8s) ease-in-out infinite alternate,boardBugBlink 2.8s ease-in-out infinite;
+}
+@keyframes boardBugDrift{0%{transform:translate(0,0)}50%{transform:translate(14px,-12px)}100%{transform:translate(-10px,-20px)}}
+@keyframes boardBugBlink{0%,100%{opacity:.18}50%{opacity:.95}}
 
 /* ── Track cells ──────────────────────────────────────────── */
 #boardGameModal .board-cell{
@@ -127,9 +153,9 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  border-radius:13px!important;
-  border:2px solid #d8bf86!important;
-  box-shadow:0 3px 0 #0a242c,0 6px 12px #02141a99,inset 0 1px 0 #fff8!important;
+  border-radius:50%!important;
+  border:2px solid #f0d79c!important;
+  box-shadow:0 4px 0 #05202a,0 7px 14px #02141a9e,inset 0 2px 2px #fff9,inset 0 -5px 8px #00000030!important;
   color:#0f2c33;
   z-index:5;
   transition:transform .15s ease,box-shadow .2s ease,filter .2s ease;
@@ -138,26 +164,46 @@
 #boardGameModal .board-cell::before{
   content:'';
   position:absolute;
-  inset:2px;
-  border-radius:9px;
-  border:1px solid rgba(255,255,255,.4);
-  box-shadow:inset 0 -6px 10px rgba(0,0,0,.18);
+  inset:3px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.42);
+  box-shadow:inset 0 -7px 10px rgba(0,0,0,.22),inset 0 3px 5px rgba(255,255,255,.28);
   pointer-events:none;
 }
-#boardGameModal .board-cell:hover{transform:scale(1.12);z-index:8}
+/* Vệt bóng loáng trên mặt ô để nhìn như đồng xu / bia đá. */
+#boardGameModal .board-cell::after{
+  content:'';
+  position:absolute;
+  left:16%;
+  top:9%;
+  width:44%;
+  height:28%;
+  border-radius:50%;
+  background:radial-gradient(ellipse at 50% 50%,#ffffffad,transparent 72%);
+  pointer-events:none;
+  z-index:1;
+}
+#boardGameModal .board-cell:hover{transform:scale(1.1);z-index:8}
 #boardGameModal .cell-num-center{
   position:absolute;
-  left:4px;
-  bottom:2px;
-  font-size:11px!important;
+  right:-5px;
+  bottom:-5px;
+  width:16px;
+  height:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:9px!important;
   font-weight:900;
-  line-height:1.1;
-  color:#0e2b32;
-  background:#fff6d3e6;
-  border-radius:5px;
-  padding:0 4px;
-  box-shadow:0 1px 2px #0004;
+  line-height:1;
+  color:#4a3413;
+  background:#fff6d3f2;
+  border:1.5px solid #b9925a;
+  border-radius:50%;
+  padding:0;
+  box-shadow:0 2px 3px #0006;
   text-shadow:none!important;
+  z-index:3;
 }
 #boardGameModal .cell-badge{
   position:absolute!important;
@@ -167,19 +213,29 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  transform:translateY(-2px);
+  transform:translateY(-1px);
   filter:drop-shadow(0 2px 2px #0005);
   background:none!important;
   border:0!important;
   border-radius:0!important;
   box-shadow:none!important;
+  z-index:2;
 }
 #boardGameModal .cell-badge svg{width:20px!important;height:20px!important}
+#boardGameModal .board-cell.hidden-cell{border-color:#b9884a!important;filter:saturate(.82) brightness(.99)}
+#boardGameModal .board-cell.hidden-cell .cell-num-center{
+  background:#3b2710f0;
+  color:#ffe9b8;
+  border-color:#d7ab63;
+  box-shadow:0 2px 4px #0007;
+}
+#boardGameModal .board-cell.hidden-cell::before{border:1px dashed rgba(112,74,30,.42)}
 #boardGameModal .cell-q{
-  font-size:16px;
+  font-size:17px;
   font-weight:900;
-  color:#d6e3e7;
-  text-shadow:0 1px 2px #0008;
+  color:#6b4a1c;
+  text-shadow:0 1px 0 #fff6,0 0 6px #ffcf7a55;
+  animation:cellMystery 2.4s ease-in-out infinite;
 }
 #boardGameModal .cell-zone{
   position:absolute;
@@ -203,12 +259,17 @@
 #boardGameModal .board-cell.current-racer .cell-zone{opacity:1}
 #boardGameModal .board-cell.hidden-cell{filter:saturate(.45) brightness(.84)}
 #boardGameModal .board-cell.current-racer{
-  box-shadow:0 0 0 3px #ffe1a2,0 0 18px #ffd27b88!important;
   z-index:7!important;
+  animation:cellCurrentPulse 1.6s ease-in-out infinite;
 }
-#boardGameModal .board-cell.start{border-color:#ffe9a8!important}
-#boardGameModal .board-cell.finish{border-color:#a9f0c2!important}
+#boardGameModal .board-cell.start{border-color:#ffe9a8!important;box-shadow:0 0 0 3px #ffe9a844,0 0 22px #ffd27b77,0 6px 12px #02141a99!important}
+#boardGameModal .board-cell.finish{border-color:#a9f0c2!important;box-shadow:0 0 0 3px #a9f0c244,0 0 22px #4ec07d88,0 6px 12px #02141a99!important}
 #boardGameModal .board-cell.finish .cell-badge{animation:finishGlow 2.2s ease-in-out infinite}
+@keyframes cellCurrentPulse{
+  0%,100%{box-shadow:0 0 0 3px #ffe1a2,0 0 16px #ffd27b77,0 6px 12px #02141a99!important;transform:scale(1)}
+  50%{box-shadow:0 0 0 4px #fff0c2,0 0 26px #ffd27bcc,0 6px 14px #02141a99!important;transform:scale(1.05)}
+}
+@keyframes cellMystery{0%,100%{opacity:.72;transform:scale(.94)}50%{opacity:1;transform:scale(1.06)}}
 
 /* ── Pawns ────────────────────────────────────────────────── */
 #boardGameModal .board-pawn-layer{position:absolute;inset:0;z-index:40;pointer-events:none}
@@ -220,13 +281,43 @@
   pointer-events:none;
 }
 #boardGameModal .board-pawn.no-move{transition:none!important}
-#boardGameModal .board-pawn.is-stacked{transform:translate(-50%,-100%) scale(var(--pscale,.76));transform-origin:50% 100%;z-index:50}
+#boardGameModal .board-pawn.is-stacked{transform:translate(-50%,-100%) scale(var(--pscale,.7));transform-origin:50% 100%;z-index:50}
 #boardGameModal .board-pawn.is-stacked .pawn-body{filter:drop-shadow(0 3px 2px #04161ccc)}
 #boardGameModal .board-pawn.is-stacked .pawn-name,
 #boardGameModal .board-pawn.is-stacked .pawn-lives,
 #boardGameModal .board-pawn.is-stacked .pawn-gear{display:none!important}
-#boardGameModal .board-pawn.is-stacked.is-active{--pscale:.92!important}
-#boardGameModal .board-pawn.is-stacked.is-active .pawn-avatar{box-shadow:0 0 0 2px #0c2530,0 0 0 4px rgba(255,224,150,.5),0 0 18px var(--pc)}
+#boardGameModal .board-pawn.is-stacked.is-active .pawn-avatar{box-shadow:0 0 0 2px #0c2530,0 0 0 4px rgba(255,224,150,.6),0 0 18px var(--pc)}
+#boardGameModal .pawn-roster{
+  position:absolute;
+  transform:translate(-50%,0);
+  display:flex;
+  gap:4px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:#071b24ee;
+  border:1px solid #7fa79b;
+  box-shadow:0 3px 8px #000a;
+  white-space:nowrap;
+  z-index:60;
+  pointer-events:none;
+}
+#boardGameModal .pawn-roster span{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+  font-size:calc(8px * var(--rk,1));
+  font-weight:900;
+  color:#f2f7ea;
+  letter-spacing:.2px;
+}
+#boardGameModal .pawn-roster span::before{
+  content:'';
+  width:calc(6px * var(--rk,1));
+  height:calc(6px * var(--rk,1));
+  border-radius:50%;
+  background:var(--pc,#ffd27b);
+  box-shadow:0 0 3px var(--pc,#ffd27b);
+}
 #boardGameModal .board-pawn.is-out{display:none!important}
 #boardGameModal .pawn-body{
   position:relative;
@@ -282,12 +373,12 @@
   font-size:8px;
   font-weight:700;
   white-space:nowrap;
-  opacity:0;
-  transition:opacity .2s ease;
+  opacity:.94;
+  transition:opacity .2s ease,transform .2s ease;
 }
 #boardGameModal .board-pawn.is-active .pawn-name,
-#boardGameModal .board-pawn:hover .pawn-name{opacity:1}
-#boardGameModal .board-pawn.is-me .pawn-name{opacity:1;border-color:#ffd27b}
+#boardGameModal .board-pawn:hover .pawn-name{opacity:1;transform:translateX(-50%) scale(1.06)}
+#boardGameModal .board-pawn.is-me .pawn-name{opacity:1;border-color:#ffd27b;background:#0b2a33f2}
 #boardGameModal .board-pawn.is-active .pawn-avatar{
   box-shadow:0 0 0 2px #0c2530,0 0 0 5px rgba(255,224,150,.32),0 0 16px var(--pc);
   animation:pawnIdle 1.8s ease-in-out infinite;
@@ -303,8 +394,8 @@
   filter:drop-shadow(0 2px 0 #3c2a12);
   animation:pawnArrow 1.2s ease-in-out infinite;
 }
-#boardGameModal .pawn-hop{animation:pawnHop .26s ease}
-@keyframes pawnHop{0%,100%{transform:translateY(0)}35%{transform:translateY(-9px) scale(1.04)}70%{transform:translateY(0) scale(.97)}}
+#boardGameModal .pawn-hop{animation:pawnHop .36s cubic-bezier(.3,.9,.3,1.4)}
+@keyframes pawnHop{0%,100%{transform:translateY(0) scale(1,1)}26%{transform:translateY(-3px) scale(1.14,.88)}56%{transform:translateY(-15px) scale(.94,1.1)}82%{transform:translateY(2px) scale(1.08,.92)}}
 @keyframes pawnIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
 @keyframes pawnArrow{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,3px)}}
 @keyframes finishGlow{0%,100%{filter:drop-shadow(0 2px 2px #0005)}50%{filter:drop-shadow(0 0 6px #b6ffd4)}}
@@ -697,20 +788,22 @@
 #boardGameModal .board-fx-float{
   position:absolute;
   transform:translate(-50%,-50%);
-  font-size:15px;
+  font-size:calc(17px * var(--fxk,1));
   font-weight:900;
   color:#fff;
-  text-shadow:0 2px 0 #071722,0 0 8px #000;
+  -webkit-text-stroke:2px #06131a99;
+  paint-order:stroke fill;
+  text-shadow:0 3px 0 #06131a,0 0 12px #0009,0 0 22px #fffa;
   white-space:nowrap;
   pointer-events:none;
-  animation:boardFloatUp 1.25s ease-out forwards;
+  animation:boardFloatUp 1.35s cubic-bezier(.2,1.4,.35,1) forwards;
 }
-#boardGameModal .board-fx-float.fx-gold{color:#ffd66b}
-#boardGameModal .board-fx-float.fx-damage{color:#ff8fa3;font-size:19px}
-#boardGameModal .board-fx-float.fx-heal{color:#7ee0a8}
-#boardGameModal .board-fx-float.fx-back{color:#ffb86b}
-#boardGameModal .board-fx-float.fx-forward{color:#d9f7ff}
-#boardGameModal .board-fx-float.fx-finish{color:#ffe9a8;font-size:22px}
+#boardGameModal .board-fx-float.fx-gold{color:#ffd66b;text-shadow:0 3px 0 #3a2604,0 0 14px #ffd66bcc,0 0 26px #ffd66b66}
+#boardGameModal .board-fx-float.fx-damage{color:#ff9baa;font-size:calc(26px * var(--fxk,1));text-shadow:0 3px 0 #3a0810,0 0 16px #ff5a6fcc,0 0 30px #ff5a6f66}
+#boardGameModal .board-fx-float.fx-heal{color:#8ef7b8;text-shadow:0 3px 0 #06301a,0 0 14px #7ee0a8cc}
+#boardGameModal .board-fx-float.fx-back{color:#ffc183;text-shadow:0 3px 0 #3a1d04,0 0 14px #ffb86bcc}
+#boardGameModal .board-fx-float.fx-forward{color:#e6fbff;text-shadow:0 3px 0 #062a33,0 0 14px #9fefffcc}
+#boardGameModal .board-fx-float.fx-finish{color:#ffe9a8;font-size:calc(30px * var(--fxk,1));text-shadow:0 3px 0 #4a2f04,0 0 18px #ffe9a8dd,0 0 36px #ffd27b88}
 #boardGameModal .board-fx-spark{
   position:absolute;
   transform:translate(-50%,-50%);
@@ -721,16 +814,39 @@
 }
 #boardGameModal .board-fx-ring{
   position:absolute;
-  width:16px;
-  height:16px;
-  margin:-8px 0 0 -8px;
+  width:18px;
+  height:18px;
+  margin:-9px 0 0 -9px;
   border-radius:50%;
-  border:3px solid #ffe9b3;
-  box-shadow:0 0 12px #ffd27b;
-  animation:boardRingPop .65s ease-out forwards;
+  border:4px solid #ffe9b3;
+  box-shadow:0 0 18px #ffd27b,inset 0 0 10px #fff5;
+  animation:boardRingPop .7s ease-out forwards;
   pointer-events:none;
   z-index:69;
 }
+#boardGameModal .board-fx-ring.ring-delayed{animation-delay:.13s;border-width:2px}
+#boardGameModal .board-fx-burst{
+  position:absolute;
+  width:34px;
+  height:34px;
+  margin:-17px 0 0 -17px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:68;
+  background:radial-gradient(circle,#fff9 0%,#ffd27baa 34%,#ffd27b22 58%,transparent 72%);
+  mix-blend-mode:screen;
+  animation:boardBurstPop .66s ease-out forwards;
+}
+#boardGameModal .board-fx-burst.is-big{width:46px;height:46px;margin:-23px 0 0 -23px}
+#boardGameModal .board-fx-burst.fx-damage,
+#boardGameModal .board-fx-burst.fx-trap,
+#boardGameModal .board-fx-burst.fx-monster{background:radial-gradient(circle,#fff5 0%,#ff7b6bcc 34%,#ff4b3a22 58%,transparent 72%)}
+#boardGameModal .board-fx-burst.fx-heal{background:radial-gradient(circle,#f8fffa 0%,#7ee0a8cc 34%,#7ee0a822 58%,transparent 72%)}
+#boardGameModal .board-fx-burst.fx-swap,
+#boardGameModal .board-fx-burst.fx-portal{background:radial-gradient(circle,#fff6 0%,#c4a9ffcc 34%,#b49be822 58%,transparent 72%)}
+#boardGameModal .board-fx-burst.fx-forward,
+#boardGameModal .board-fx-burst.fx-back{background:radial-gradient(circle,#fff8 0%,#cfefffaa 34%,#a7e4ff22 58%,transparent 72%)}
+@keyframes boardBurstPop{0%{opacity:0;transform:scale(.3)}18%{opacity:1}100%{opacity:0;transform:scale(4.6)}}
 #boardGameModal .board-fx-ring.fx-damage,
 #boardGameModal .board-fx-ring.fx-trap,
 #boardGameModal .board-fx-ring.fx-monster{border-color:#ff7b6b;box-shadow:0 0 14px #ff5a4f}
@@ -738,17 +854,19 @@
 #boardGameModal .board-fx-ring.fx-heal{border-color:#7ee0a8;box-shadow:0 0 14px #7ee0a8}
 #boardGameModal .board-fx-ring.fx-swap,
 #boardGameModal .board-fx-ring.fx-portal{border-color:#b49be8;box-shadow:0 0 14px #b49be8}
-@keyframes boardFloatUp{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}18%{opacity:1;transform:translate(-50%,-60%) scale(1.08)}100%{opacity:0;transform:translate(-50%,-210%) scale(.95)}}
-@keyframes boardSparkFly{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.2) rotate(var(--rot))}}
-@keyframes boardRingPop{0%{opacity:.95;transform:scale(.3)}100%{opacity:0;transform:scale(4.2)}}
-#boardGameModal .board-fx-shake{animation:boardCanvasShake .42s cubic-bezier(.36,.07,.19,.97)}
-@keyframes boardCanvasShake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}30%,50%,70%{transform:translate(-6px,2px)}40%,60%{transform:translate(6px,-1px)}}
-#boardGameModal .board-fx-flash{position:fixed;inset:0;pointer-events:none;z-index:100004;animation:boardFlashFade .62s ease-out forwards}
-#boardGameModal .board-fx-flash.fx-damage{background:radial-gradient(ellipse at 50% 50%,transparent 46%,#ff2d2d66 100%);box-shadow:inset 0 0 90px #ff2d2d99}
-#boardGameModal .board-fx-flash.fx-trap{background:radial-gradient(ellipse at 50% 50%,#ffb34755,transparent 62%);box-shadow:inset 0 0 90px #ff7b1f88}
-#boardGameModal .board-fx-flash.fx-heal{background:radial-gradient(ellipse at 50% 50%,#5dffa533,transparent 62%)}
-#boardGameModal .board-fx-flash.fx-gold{background:radial-gradient(ellipse at 50% 50%,#ffd66b33,transparent 62%)}
-#boardGameModal .board-fx-flash.fx-win{background:radial-gradient(ellipse at 50% 50%,#ffe9a844,transparent 70%)}
+@keyframes boardFloatUp{0%{opacity:0;transform:translate(-50%,-24%) scale(.45)}16%{opacity:1;transform:translate(-50%,-64%) scale(1.22)}30%{transform:translate(-50%,-74%) scale(1)}100%{opacity:0;transform:translate(-50%,-235%) scale(1.05)}}
+@keyframes boardSparkFly{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.35) rotate(var(--rot))}}
+@keyframes boardRingPop{0%{opacity:.95;transform:scale(.25)}100%{opacity:0;transform:scale(5.2)}}
+#boardGameModal .board-fx-shake{animation:boardCanvasShake .46s cubic-bezier(.36,.07,.19,.97)}
+@keyframes boardCanvasShake{10%,90%{transform:translate(-3px,1px)}20%,80%{transform:translate(6px,-3px)}30%,50%,70%{transform:translate(-8px,3px)}40%,60%{transform:translate(8px,-2px)}}
+#boardGameModal .board-fx-flash{position:fixed;inset:0;pointer-events:none;z-index:100004;animation:boardFlashFade .78s ease-out forwards}
+#boardGameModal .board-fx-flash.fx-damage{background:radial-gradient(ellipse at 50% 50%,transparent 38%,#ff2d2d80 100%);box-shadow:inset 0 0 120px #ff2d2dc2}
+#boardGameModal .board-fx-flash.fx-trap{background:radial-gradient(ellipse at 50% 50%,#ffb34766,transparent 66%);box-shadow:inset 0 0 120px #ff7b1fa8}
+#boardGameModal .board-fx-flash.fx-heal{background:radial-gradient(ellipse at 50% 50%,#5dffa544,transparent 66%)}
+#boardGameModal .board-fx-flash.fx-gold{background:radial-gradient(ellipse at 50% 50%,#ffd66b4d,transparent 66%)}
+#boardGameModal .board-fx-flash.fx-forward{background:radial-gradient(ellipse at 50% 80%,#d9f7ff2e,transparent 60%)}
+#boardGameModal .board-fx-flash.fx-back{background:radial-gradient(ellipse at 50% 80%,#ffb86b2e,transparent 60%)}
+#boardGameModal .board-fx-flash.fx-win{background:radial-gradient(ellipse at 50% 50%,#ffe9a855,transparent 74%)}
 @keyframes boardFlashFade{0%{opacity:1}100%{opacity:0}}
 #boardGameModal .board-fx-confetti{position:fixed;top:-14px;width:9px;height:14px;border-radius:2px;z-index:100004;pointer-events:none;animation:boardConfettiFall linear forwards}
 @keyframes boardConfettiFall{0%{opacity:0;transform:translateY(0) rotate(0)}10%{opacity:1}100%{opacity:.9;transform:translateY(102vh) rotate(var(--rot))}}
@@ -847,4 +965,458 @@
 @media(max-width:550px){
   #boardGameModal .hand-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   #boardGameModal .hand-card-art{height:64px}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Sảnh ghép trận · phòng chờ · phòng online
+   ═══════════════════════════════════════════════════════════ */
+
+#boardBetModal{
+  background:radial-gradient(ellipse at 50% 18%,#0d3240c9,#020a0ff2 72%)!important;
+  backdrop-filter:blur(6px);
+}
+#boardBetModal .bet-modal-box{
+  position:relative;
+  overflow:hidden;
+  width:min(92vw,430px)!important;
+  padding:26px 22px 18px!important;
+  border-radius:22px!important;
+  border:2px solid #e3bd75!important;
+  background:linear-gradient(165deg,#123d4cf7,#07222cfd 62%,#051a22)!important;
+  box-shadow:0 26px 64px #000c,inset 0 1px 0 #ffe7b344,0 0 0 6px #08222b88!important;
+}
+#boardBetModal .bet-modal-box::before{
+  content:'🏁';
+  position:absolute;
+  top:-30px;
+  right:-8px;
+  font-size:112px;
+  opacity:.055;
+  transform:rotate(-14deg);
+  pointer-events:none;
+}
+#boardBetModal .bet-modal-box::after{
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:4px;
+  background:linear-gradient(90deg,transparent,#ffd27b,#ff8fa3,#ffd27b,transparent);
+  opacity:.85;
+  pointer-events:none;
+}
+#boardBetModal .bet-modal-title{
+  font-size:1.18rem!important;
+  letter-spacing:.4px;
+  color:#ffd884!important;
+  text-shadow:0 2px 0 #3a2604,0 0 22px #ffd27b55!important;
+}
+#boardBetModal .bet-modal-desc{color:#a9c7c3!important;margin-bottom:14px!important}
+#boardBetModal .bet-options{grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin-bottom:12px!important}
+#boardBetModal .bet-option{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:50px;
+  line-height:1.12;
+  padding:8px 5px!important;
+  border-radius:12px!important;
+  border:2px solid #fff0c2!important;
+  background:linear-gradient(180deg,#ffedb8,#e8b95d 55%,#c08b34)!important;
+  color:#3a2604!important;
+  font-size:.84rem!important;
+  font-weight:900!important;
+  box-shadow:0 3px 0 #7a5312,0 6px 12px #0007!important;
+  text-shadow:0 1px 0 #fff8;
+}
+#boardBetModal .bet-option:hover{transform:translateY(-2px)!important;box-shadow:0 5px 0 #7a5312,0 10px 18px #0008!important}
+#boardBetModal .bet-option.selected{
+  background:linear-gradient(180deg,#fff7d6,#ffd66b 55%,#e2a63d)!important;
+  box-shadow:0 0 0 3px #fff4c5,0 0 24px #ffd66bcc,0 4px 0 #7a5312!important;
+}
+#boardBetModal .bet-custom-row{margin-bottom:12px!important}
+#boardBetModal .bet-custom-row input{
+  padding:11px!important;
+  border-radius:12px!important;
+  border:2px solid #6f9a9f88!important;
+  background:#08202a!important;
+  color:#ffeec2!important;
+  font-weight:800;
+}
+#boardBetModal .board-btn{
+  min-height:44px;
+  padding:8px 6px!important;
+  border-radius:12px!important;
+  border:2px solid #ffffff33!important;
+  font-family:inherit!important;
+  font-size:.86rem!important;
+  font-weight:900!important;
+  letter-spacing:.2px;
+  cursor:pointer;
+  box-shadow:0 4px 0 #00000055,0 8px 16px #0008!important;
+  transition:transform .15s ease,box-shadow .15s ease!important;
+}
+#boardBetModal .board-btn:hover{transform:translateY(-2px)!important}
+#boardBetModal .place-bet-btn{
+  background:linear-gradient(180deg,#ffe08a,#e2a63d 60%,#b47a1f)!important;
+  border-color:#fff1c4!important;
+  color:#3a2604!important;
+  text-shadow:0 1px 0 #fff8!important;
+}
+#boardBetModal .board-btn[onclick*="boardHostOnlineRoom"]{
+  background:linear-gradient(180deg,#7ef0b1,#2ba86a 60%,#14784a)!important;
+  border-color:#c7ffe0!important;
+  color:#04241a!important;
+}
+#boardBetModal .board-btn[onclick*="boardJoinOnlineRoom"]{
+  background:linear-gradient(180deg,#a8c5ff,#5b86e5 60%,#3a5cb8)!important;
+  border-color:#e0ecff!important;
+  color:#081530!important;
+}
+#boardBetModal .close-board{
+  background:linear-gradient(180deg,#5d6d72,#33464d)!important;
+  border-color:#84999d!important;
+  color:#e6f1f0!important;
+  box-shadow:0 3px 0 #17262b!important;
+}
+#boardActiveRoomsList{
+  background:#061a22!important;
+  border:1px solid #6f9a9f66!important;
+  border-radius:12px!important;
+  padding:8px!important;
+}
+.board-rooms-empty{font-size:.74rem;color:#8fa9a5;text-align:center;padding:6px 0}
+.board-room-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:10px;
+  text-align:left;
+  background:linear-gradient(120deg,#113543,#0a2733);
+  border:1px solid #6f9a9f55;
+}
+.board-room-row b{display:block;color:#ffd884;font-size:.82rem}
+.board-room-row small{color:#a9c7c3;font-size:.68rem}
+.board-room-join{
+  padding:5px 11px;
+  border-radius:9px;
+  border:1px solid #c7ffe0;
+  background:linear-gradient(180deg,#7ef0b1,#2ba86a);
+  color:#04241a;
+  font-weight:900;
+  font-family:inherit;
+  cursor:pointer;
+}
+.board-room-join:hover{filter:brightness(1.06)}
+
+/* Invite modal */
+#boardInviteModal{
+  background:radial-gradient(ellipse at 50% 18%,#132a4ac9,#020a0ff2 72%)!important;
+  backdrop-filter:blur(6px);
+}
+#boardInviteModal .invite-modal-box{
+  border-radius:22px!important;
+  border:2px solid #8ab6f0!important;
+  background:linear-gradient(165deg,#17304fa8,#0a1828)!important;
+  box-shadow:0 26px 64px #000c,inset 0 1px 0 #cfe4ff33!important;
+}
+.invite-modal-title{color:#bcd6ff!important;font-size:1.25rem!important;letter-spacing:.4px}
+.invite-player-item{
+  background:linear-gradient(120deg,#102a44,#0a1c30)!important;
+  border:1px solid #4d6f9955!important;
+  border-radius:12px!important;
+}
+
+/* ── Phòng chờ ────────────────────────────────────────────── */
+#boardLobbyOverlay{
+  background:radial-gradient(ellipse at 50% 18%,#0d3441e6,#030d13f7 72%)!important;
+  backdrop-filter:blur(7px);
+  padding:18px;
+}
+.board-lobby-card{
+  position:relative;
+  width:min(92vw,404px);
+  max-height:92vh;
+  overflow:auto;
+  border-radius:22px;
+  border:2px solid #e3bd75;
+  background:linear-gradient(170deg,#12404ff7,#07212bfd 60%,#05171e);
+  box-shadow:0 28px 72px #000d,inset 0 1px 0 #ffe7b344,0 0 0 6px #08222b88;
+  padding:18px 18px 16px;
+  color:#eef6f2;
+  text-align:left;
+}
+.board-lobby-card::after{
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:4px;
+  border-radius:22px 22px 0 0;
+  background:linear-gradient(90deg,#ffd27b,#ff8fa3,#8ab6f0,#7ee0a8,#ffd27b);
+  opacity:.8;
+  pointer-events:none;
+}
+.board-lobby-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.board-lobby-flag{
+  display:grid;
+  place-items:center;
+  width:54px;
+  height:54px;
+  border-radius:17px;
+  background:linear-gradient(160deg,#ffe08a,#d99a3a);
+  font-size:27px;
+  box-shadow:0 4px 0 #7a5312,0 9px 18px #0009,inset 0 1px 0 #fff8;
+}
+.board-lobby-title{
+  font-family:'Baloo 2',sans-serif;
+  font-size:1.18rem;
+  font-weight:900;
+  letter-spacing:.5px;
+  color:#ffd884;
+  text-shadow:0 2px 0 #3a2604,0 0 18px #ffd27b44;
+  line-height:1.1;
+}
+.board-lobby-code{font-size:.72rem;color:#9fc3bf;margin-top:4px}
+.lobby-hint{
+  margin:-4px 0 12px;
+  padding:8px 10px;
+  border-radius:10px;
+  font-size:.72rem;
+  color:#ffeab8;
+  background:#08222b;
+  border:1px dashed #e3bd7588;
+  text-align:center;
+}
+.lobby-hint b{color:#fff6d9;letter-spacing:.4px}
+.board-lobby-code b{
+  color:#ffeab8;
+  letter-spacing:.6px;
+  background:#08222b;
+  border:1px solid #6f9a9f77;
+  border-radius:7px;
+  padding:1px 7px;
+  margin-left:2px;
+}
+.board-lobby-slots{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.board-lobby-slot{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 11px;
+  border-radius:14px;
+  background:linear-gradient(120deg,#0f3441,#0a2430);
+  border:1px solid #6f9a9f55;
+}
+.board-lobby-slot img{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:2px solid #ffd884;
+  background:#0a2430;
+  box-shadow:0 0 12px #ffd27b55;
+  flex-shrink:0;
+}
+.board-lobby-slot.is-empty{border-style:dashed;opacity:.9}
+.lobby-empty-avatar{
+  width:42px;
+  height:42px;
+  flex-shrink:0;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  border:2px dashed #6f9a9f;
+  color:#9fc3bf;
+  font-weight:900;
+  font-size:18px;
+}
+.lobby-slot-info{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.lobby-slot-info b{
+  font-size:.9rem;
+  color:#f2faf6;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:196px;
+}
+.lobby-role{font-size:.68rem;color:#9fc3bf;font-weight:700}
+.lobby-ready{
+  margin-left:auto;
+  font-size:.64rem;
+  font-weight:900;
+  color:#8ef7b8;
+  background:#0b3a24;
+  border:1px solid #2ba86a;
+  border-radius:999px;
+  padding:2px 8px;
+  white-space:nowrap;
+}
+.board-lobby-slot.is-empty .lobby-ready{color:#c9d6d3;background:#1a2a2e;border-color:#4a5f63}
+.board-lobby-bots{
+  background:#081f28;
+  border:1px solid #6f9a9f66;
+  border-radius:14px;
+  padding:9px 11px;
+  margin-bottom:12px;
+}
+.board-lobby-bots.is-readonly{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.board-lobby-bots.is-readonly .lobby-bots-label{margin:0}
+.board-lobby-bots.is-readonly b{font-size:.84rem;color:#ffeab8}
+.lobby-bots-label{display:block;font-size:.72rem;color:#9fc3bf;font-weight:800;margin-bottom:6px}
+.lobby-bot-pills{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.lobby-bot-pill{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:1px;
+  padding:6px 4px;
+  border-radius:10px;
+  border:1px solid #6f9a9f55;
+  background:#0c2a35;
+  color:#cfe4df;
+  font-family:inherit;
+  font-weight:800;
+  font-size:.72rem;
+  cursor:pointer;
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.lobby-bot-pill small{font-size:.6rem;color:#8fa9a5;font-weight:700}
+.lobby-bot-pill:hover{transform:translateY(-1px)}
+.lobby-bot-pill.active{
+  background:linear-gradient(180deg,#ffe08a,#d99a3a);
+  color:#3a2604;
+  border-color:#fff1c4;
+  box-shadow:0 3px 0 #7a5312;
+}
+.lobby-bot-pill.active small{color:#5a4110}
+.board-lobby-actions{display:flex;flex-direction:column;gap:8px}
+.lobby-start-btn{
+  padding:13px;
+  border-radius:14px;
+  border:2px solid #c7ffe0;
+  background:linear-gradient(180deg,#7ef0b1,#2ba86a 60%,#14784a);
+  color:#04241a;
+  font-family:inherit;
+  font-weight:900;
+  font-size:1rem;
+  letter-spacing:.4px;
+  cursor:pointer;
+  box-shadow:0 4px 0 #0b5537,0 10px 20px #0008;
+}
+.lobby-start-btn:hover:not(:disabled){filter:brightness(1.06);transform:translateY(-1px)}
+.lobby-start-btn:disabled{
+  background:linear-gradient(180deg,#5d6d72,#39464b);
+  border-color:#6d8085;
+  color:#c3d2d4;
+  box-shadow:0 3px 0 #17262b;
+  cursor:not-allowed;
+}
+.lobby-leave-btn{
+  padding:9px;
+  border-radius:12px;
+  border:2px solid #ff9baa66;
+  background:#3a1620;
+  color:#ffc7d2;
+  font-family:inherit;
+  font-weight:800;
+  font-size:.82rem;
+  cursor:pointer;
+}
+.lobby-leave-btn:hover{background:#4a1b28}
+.lobby-waiting{
+  text-align:center;
+  font-size:.85rem;
+  color:#cbd5e1;
+  font-style:italic;
+  padding:11px 0;
+  background:#08202a99;
+  border-radius:12px;
+  border:1px dashed #6f9a9f66;
+}
+
+/* ── Nhập mã phòng ────────────────────────────────────────── */
+.room-code-overlay{
+  position:fixed;
+  inset:0;
+  z-index:100070;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:radial-gradient(ellipse at 50% 18%,#0d3441e6,#030d13f7 72%);
+  backdrop-filter:blur(7px);
+  font-family:'Baloo 2','Quicksand',sans-serif;
+}
+.room-code-card{
+  width:min(92vw,380px);
+  border-radius:20px;
+  border:2px solid #e3bd75;
+  background:linear-gradient(170deg,#12404ff7,#07212bfd 60%,#05171e);
+  box-shadow:0 26px 64px #000d,inset 0 1px 0 #ffe7b344,0 0 0 6px #08222b88;
+  padding:18px;
+  color:#eef6f2;
+  animation:roomCodePop .22s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes roomCodePop{0%{opacity:0;transform:scale(.9) translateY(8px)}100%{opacity:1;transform:none}}
+.room-code-head{display:flex;gap:11px;align-items:center;margin-bottom:14px}
+.room-code-flag{
+  display:grid;
+  place-items:center;
+  width:48px;
+  height:48px;
+  border-radius:15px;
+  background:linear-gradient(160deg,#ffe08a,#d99a3a);
+  font-size:24px;
+  box-shadow:0 4px 0 #7a5312,0 9px 18px #0009;
+}
+.room-code-title{font-size:1.08rem;font-weight:900;letter-spacing:.5px;color:#ffd884;text-shadow:0 2px 0 #3a2604}
+.room-code-sub{font-size:.72rem;color:#9fc3bf;line-height:1.35;margin-top:2px}
+.room-code-label{display:block;font-size:.7rem;font-weight:800;color:#9fc3bf;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.room-code-input{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px 14px;
+  border-radius:12px;
+  border:2px solid #e3bd7599;
+  background:#08222b;
+  color:#ffeec2;
+  font-family:inherit;
+  font-size:1.1rem;
+  font-weight:900;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  outline:none;
+}
+.room-code-input:focus{border-color:#ffd884;box-shadow:0 0 0 3px #ffd27b44}
+.room-code-error{min-height:16px;font-size:.7rem;color:#ff9baa;font-weight:700;margin:4px 0 6px}
+.room-code-actions{display:flex;gap:8px}
+.room-code-primary{
+  flex:1;
+  padding:12px;
+  border-radius:12px;
+  border:2px solid #c7ffe0;
+  background:linear-gradient(180deg,#7ef0b1,#2ba86a 60%,#14784a);
+  color:#04241a;
+  font-family:inherit;
+  font-weight:900;
+  font-size:.95rem;
+  cursor:pointer;
+  box-shadow:0 4px 0 #0b5537,0 8px 16px #0008;
+}
+.room-code-primary:hover{filter:brightness(1.06)}
+.room-code-cancel{
+  padding:12px 16px;
+  border-radius:12px;
+  border:2px solid #84999d;
+  background:linear-gradient(180deg,#5d6d72,#33464d);
+  color:#e6f1f0;
+  font-family:inherit;
+  font-weight:800;
+  font-size:.85rem;
+  cursor:pointer;
+  box-shadow:0 3px 0 #17262b;
 }
