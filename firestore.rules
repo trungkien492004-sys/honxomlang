@@ -162,6 +162,18 @@ service cloud.firestore {
         (!request.resource.data.keys().hasAny(['lastSeen']) || request.resource.data.lastSeen == request.time);
       allow delete: if signedIn() && request.auth.uid == userId;
     }
+    // Collection, wallet and quest progress is private to its owner; newest write wins.
+    match /player_progress/{userId} {
+      allow get: if signedIn() && request.auth.uid == userId;
+      allow list: if false;
+      allow create, update: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.keys().hasOnly(['v','uid','savedAt','state','syncedAt']) &&
+        request.resource.data.v == 1 && request.resource.data.uid == userId &&
+        request.resource.data.savedAt is number && request.resource.data.savedAt >= 0 &&
+        request.resource.data.state is map &&
+        (request.resource.data.syncedAt == request.time || request.resource.data.syncedAt is timestamp);
+      allow delete: if false;
+    }
     // Canonical state is server-only; each member reads one redacted view.
     match /duel_private/{roomCode} {
       allow read, write: if false;

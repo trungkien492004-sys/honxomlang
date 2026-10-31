@@ -1,4 +1,4 @@
-// Local-first collection and progression store. Cloud sync arrives in a later phase.
+// Local-first collection and progression store. Cloud sync (meme_cloud.js) pushes this state.
 (function () {
   'use strict';
 
@@ -75,10 +75,25 @@
     state.updatedAt = Date.now();
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
+      window.memeCloud?.onLocalSave?.(state);
       return true;
     } catch {
       return false;
     }
+  }
+
+  // Cloud pull keeps the same state object so every module's `P.state` view stays live,
+  // and keeps the cloud timestamp so adopting a copy does not look like a new local edit.
+  function adoptCloud(raw) {
+    Object.assign(state, normalize(raw));
+    state.updatedAt = Math.max(Number(raw?.updatedAt) || 0, state.createdAt);
+    ensureStarter();
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch {
+      return false;
+    }
+    return true;
   }
 
   function raise(id, copies) {
@@ -280,6 +295,8 @@
     addXu, spendXu, addDust, spendDust, addTicket, useTicket, addXp,
     setLogin, ownedUnique, totalCollectible,
     save,
+    snapshot() { return JSON.parse(JSON.stringify(state)); },
+    adoptCloud,
     reset() {
       state = emptyState();
       ensureStarter();
