@@ -748,6 +748,15 @@ window.boardCardFaceHtml = function(card, result) {
     </div>`;
 };
 
+window.boardCardNoticeBody = function(card, reason) {
+    const art = window.boardCardArtUrl(card);
+    return `<div class="notice-card">
+        <div class="notice-card-frame"><div class="notice-card-art" style="background-image:url('${art}')"></div></div>
+        <div class="notice-card-desc">${_boardEsc(card.desc || '')}</div>
+        ${reason ? `<div class="notice-card-where">Rơi ở <b>${reason}</b>.</div>` : ''}
+    </div>`;
+};
+
 function boardPlayCardEventFx(card, p, result) {
     const pos = p ? p.pos : (boardGame ? boardGame.currentTurn : 0);
     const text = String(result || '');
@@ -762,32 +771,6 @@ function boardPlayCardEventFx(card, p, result) {
     else if (/ngáp|dính bùa/i.test(text)) window.boardPlayFx('sleep', pos, '💤');
     else window.boardPlayFx('card', pos, '');
 }
-
-window.boardPlayCardCast = function(card, result, done) {
-    const modal = document.getElementById('boardGameModal');
-    if (!modal || !card) {
-        if (done) done();
-        return;
-    }
-    document.querySelectorAll('.board-cast-overlay').forEach(n => n.remove());
-    const el = document.createElement('div');
-    el.className = 'board-cast-overlay cast-' + (card.type || 'spell');
-    el.innerHTML = `<div class="cast-rays"></div>
-        <div class="cast-card">
-            <span class="cast-rarity">${_boardEsc((card.rarity || '').toUpperCase())}</span>
-            <div class="cast-art" style="background-image:url('${window.boardCardArtUrl(card)}')"></div>
-            <div class="cast-name">${window.boardCardIcon(card)} ${_boardEsc(card.name)}</div>
-            <div class="cast-line">${_boardEsc(result)}</div>
-        </div>`;
-    modal.appendChild(el);
-    setTimeout(() => {
-        el.classList.add('is-out');
-        setTimeout(() => el.remove(), 240);
-        if (!boardGame || boardGame.closed) return;
-        if (typeof done === 'function') done();
-    }, boardFxReduced() ? 450 : 950);
-};
-
 
 window.boardShuffleDeck = function() {
     RACE_CARDS.sort(() => Math.random() - 0.5);
@@ -827,6 +810,23 @@ function boardTakeDamage(p, amount, reason) {
 
 
 // ── Vẽ thẻ bài 3D ─────────────────────────────────────────────
+// FX do chính effect của thẻ phát ra; lớp thẻ chỉ vẽ bù khi effect chưa có hiệu ứng riêng.
+function boardRunCardEffect(card, p) {
+    const raw = window.boardPlayFx;
+    let fx = 0;
+    window.boardPlayFx = function () { fx++; return raw.apply(this, arguments); };
+    let result;
+    try {
+        result = card.effect(p);
+    } catch (err) {
+        console.error('Card effect failed:', card && card.id, err);
+        result = 'Thẻ bị kẹt, bỏ qua lượt này.';
+    } finally {
+        window.boardPlayFx = raw;
+    }
+    return { result: typeof result === 'string' ? result : String(result == null ? '' : result), fx };
+}
+
 window.boardDrawRandomCard = function(p, reason, callback) {
     if(boardGame.gameOver || p.eliminated) {
         if(callback) callback();
@@ -838,29 +838,20 @@ window.boardDrawRandomCard = function(p, reason, callback) {
     if(!pool.length) pool = RACE_CARDS;
     let card = pool[Math.floor(Math.random() * pool.length)];
 
-    let result;
-    try {
-        result = card.effect(p);
-    } catch (err) {
-        console.error('Card effect failed:', card && card.id, err);
-        result = 'Thẻ bị kẹt, bỏ qua lượt này.';
-    }
-    if (typeof result !== 'string') result = String(result == null ? '' : result);
-    boardPlayCardEventFx(card, p, result);
+    const applied = boardRunCardEffect(card, p);
+    const result = applied.result;
+    if (!applied.fx) boardPlayCardEventFx(card, p, result);
 
     const display = document.getElementById('boardCardDisplay');
     if (display) display.innerHTML = window.boardCardFaceHtml(card, result);
     boardAddLog(`🃏 ${p.name} lật [${card.name}]: ${result}`, 'card');
 
-    window.boardPlayCardCast(card, result, () => {
-        if (!boardGame || boardGame.closed) return;
-        window.boardShowBigNotice(
-            `${window.boardCardIcon(card)} ${card.name}`,
-            `Rơi ở <b>${reason}</b>.`,
-            `👉 ${result}`,
-            callback
-        );
-    });
+    window.boardShowBigNotice(
+        `${window.boardCardIcon(card)} ${card.name}`,
+        window.boardCardNoticeBody(card, reason),
+        `👉 ${result}`,
+        callback
+    );
 };
 
 
@@ -1396,17 +1387,15 @@ window.boardUseHandCard = function(playerIdx, handIndex) {
         return;
     }
 
-    let result = origCard.effect(p);
-    if (typeof result !== 'string') result = String(result == null ? '' : result);
-    boardPlayCardEventFx(origCard, p, result);
+    const applied = boardRunCardEffect(origCard, p);
+    const result = applied.result;
+    if (!applied.fx) boardPlayCardEventFx(origCard, p, result);
     boardAddLog(`🎴 ${p.name} dùng [${card.name}]: ${result}`, 'card');
 
-    window.boardPlayCardCast(origCard, result, () => {
+    window.boardShowBigNotice(`${window.boardCardIcon(origCard)} ${card.name}`, window.boardCardNoticeBody(origCard, ''), `👉 ${result}`, () => {
         if (!boardGame || boardGame.closed) return;
-        window.boardShowBigNotice(`${window.boardCardIcon(origCard)} ${card.name}`, origCard.desc, `👉 ${result}`, () => {
-            if (typeof window.boardSyncView === 'function') window.boardSyncView();
-            else { boardRenderGrid(); boardRenderPlayers(); }
-        });
+        if (typeof window.boardSyncView === 'function') window.boardSyncView();
+        else { boardRenderGrid(); boardRenderPlayers(); }
     });
 };
 
