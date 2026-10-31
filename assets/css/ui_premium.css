@@ -275,11 +275,14 @@ html.auth-pending body::after {
 }
 .mode-grid {
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   justify-content: center;
-  gap: clamp(12px, 1.8vw, 24px);
-  width: min(100%, 1040px);
+  gap: clamp(12px, 1.6vw, 22px);
+  width: min(100%, 1320px);
+}
+@media (max-width: 1180px) {
+  .mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 720px); }
 }
 .mode-card {
   --tone: #a273ff;
@@ -287,7 +290,8 @@ html.auth-pending body::after {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(330px, 100%);
+  width: auto;
+  min-width: 0;
   border-radius: 22px;
   overflow: hidden;
   cursor: pointer;
@@ -479,6 +483,51 @@ html.auth-pending body::after {
 @keyframes tutienSpin {
   to { transform: rotate(360deg); }
 }
+.mode-card--vanphap { --tone: #f2b02a; --tone-deep: #7a3f06; }
+.mode-card--vanphap .mode-cta {
+  color: #2b1503;
+  background: linear-gradient(180deg, #ffdf9e, #e0951f);
+}
+.mode-art--vanphap {
+  background:
+    radial-gradient(circle at 22% 22%, rgba(255, 236, 190, .5) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 78% 30%, rgba(255, 214, 140, .45) 0 1px, transparent 2px),
+    radial-gradient(ellipse at 50% 120%, rgba(242, 176, 42, .34) 0%, transparent 62%),
+    radial-gradient(ellipse at 50% 40%, rgba(28, 78, 84, .7) 0%, transparent 70%),
+    linear-gradient(168deg, #0d2b33, #061419 78%);
+  background-size: 120px 120px, 88px 88px, 100% 100%, 100% 100%, 100% 100%;
+}
+.vanphap-sigil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+}
+.vanphap-sigil > span {
+  font-size: 66px;
+  line-height: 1;
+  filter: drop-shadow(0 0 24px rgba(242, 176, 42, .8));
+  animation: tutienFloat 5.5s ease-in-out infinite;
+}
+.vanphap-sigil::before {
+  content: "";
+  position: absolute;
+  width: 168px;
+  height: 168px;
+  border: 1px solid rgba(242, 176, 42, .38);
+  border-radius: 50%;
+  box-shadow: inset 0 0 46px rgba(154, 90, 10, .5);
+}
+.vanphap-sigil::after {
+  content: "";
+  position: absolute;
+  width: 212px;
+  height: 212px;
+  border: 1px dashed rgba(242, 176, 42, .3);
+  border-radius: 50%;
+  animation: tutienSpin 26s linear infinite;
+}
 .mode-cta b { font-size: 17px; line-height: 1; }
 .mode-footer {
   position: relative;
@@ -487,7 +536,7 @@ html.auth-pending body::after {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px 16px;
-  width: min(100%, 1040px);
+  width: min(100%, 1320px);
   font-size: 12.5px;
   color: #7f9daf;
 }
@@ -530,7 +579,7 @@ html.auth-pending body::after {
   .mode-kicker { margin-bottom: 8px; font-size: 9.5px; }
   .mode-hero h1 { font-size: clamp(24px, 7vw, 32px); }
   .mode-hero p { font-size: 12.5px; }
-  .mode-grid { flex-direction: column; align-items: stretch; gap: 12px; }
+  .mode-grid { grid-template-columns: 1fr; gap: 12px; }
   .mode-card { width: 100%; }
   .mode-art { height: 128px; }
   .mode-portrait { width: 96px; height: 112px; }
@@ -539,6 +588,9 @@ html.auth-pending body::after {
   .tutien-sigil > span { font-size: 54px; }
   .tutien-sigil::before { width: 120px; height: 120px; }
   .tutien-sigil::after { width: 150px; height: 150px; }
+  .vanphap-sigil > span { font-size: 50px; }
+  .vanphap-sigil::before { width: 116px; height: 116px; }
+  .vanphap-sigil::after { width: 146px; height: 146px; }
   .mode-body { padding: 12px 14px 14px; gap: 8px; }
   .mode-body h2 { font-size: 19px; }
   .mode-body p { font-size: 12.5px; }

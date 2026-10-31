@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vạn Pháp Đạo Tràng — Game Idle Tu Hành & Quản Lý Tự Viện</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Cinzel:wght@700;800;900&family=Noto+Serif:ital,wght@0,600;0,700;1,600&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/vanphap/css/vanphap.css?v=20261031-vanphap1">
+    <style>
+        /* Shared Xóm Làng chrome — sits inside the sticky temple header */
+        .top-exit-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(8, 20, 28, 0.92);
+            border: 1.5px solid rgba(79, 201, 168, 0.42);
+            border-radius: 30px;
+            padding: 4px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 15px rgba(79, 201, 168, 0.18);
+            backdrop-filter: blur(10px);
+        }
+        .top-exit-label {
+            font-size: 13px;
+            font-weight: 800;
+            color: #fbbf24;
+            letter-spacing: .04em;
+        }
+        .top-exit-btn {
+            background: linear-gradient(135deg, #0e7490, #155e75);
+            color: #fff;
+            border: 1px solid #4fc9a8;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .top-exit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(79, 201, 168, 0.6);
+        }
+        @media (max-width: 560px) {
+            .top-exit-bar { gap: 8px; padding: 4px 10px; }
+            .top-exit-label { display: none; }
+        }
+        @media (max-width: 720px) {
+            .vp-header { flex-wrap: wrap; gap: 8px 10px; padding: 8px 12px; }
+            .vp-brand { flex: 1 1 auto; min-width: 0; }
+            .vp-brand-title { font-size: 17px; line-height: 1.1; }
+            .vp-brand-sub { display: none; }
+            .top-exit-bar { order: 3; width: 100%; justify-content: center; }
+            .top-exit-label { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="zen-mist-bg"></div>
+    <div id="vp-toast-box"></div>
+
+    <!-- HEADER SƠN MÔN -->
+    <header class="vp-header">
+        <div class="vp-brand">
+            <div class="vp-brand-icon">🏯</div>
+            <div>
+                <div class="vp-brand-title" id="monastery-name-display">VẠN PHÁP ĐẠO TRÀNG</div>
+                <div class="vp-brand-sub">Game Idle Tu Hành & Quản Lý Tự Viện</div>
+            </div>
+        </div>
+
+        <!-- Nút trở về sảnh Hồn Xóm Làng -->
+        <div class="top-exit-bar">
+            <span class="top-exit-label">🪷 VẠN PHÁP ĐẠO TRÀNG</span>
+            <button class="top-exit-btn" id="btn-exit-lobby">
+                <span>🏘️</span> Sảnh Xóm Làng
+            </button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="abbot-header-badge">
+                <span>🧘 <strong id="abbot-name-header">Trụ Trì</strong></span>
+                <span class="abbot-realm-tag" id="abbot-realm-tag">Sơ Học</span>
+            </div>
+            <button class="btn-secondary" id="btn-audio-toggle" style="padding:6px 14px; font-size:12px;">
+                🔊 Âm Thiền: Bật
+            </button>
+        </div>
+    </header>
+
+    <!-- THANH TÀI NGUYÊN TỰ VIỆN -->
+    <div class="resources-bar">
+        <div class="res-item" title="Gỗ rừng Bồ Đề - Xây dựng công trình">
+            <span class="res-icon">🪵</span>
+            <span>Gỗ: <strong id="res-wood" style="color:var(--text-primary);">0</strong></span>
+        </div>
+        <div class="res-item" title="Đá Thạch Phong - Dựng tháp và tạc bia">
+            <span class="res-icon">🪨</span>
+            <span>Đá: <strong id="res-stone" style="color:var(--text-primary);">0</strong></span>
+        </div>
+        <div class="res-item" title="Dược liệu Nam Dược - Dưỡng sinh và an thần">
+            <span class="res-icon">🌿</span>
+            <span>Dược Liệu: <strong id="res-herbs" style="color:var(--jade-bright);">0</strong></span>
+        </div>
+        <div class="res-item" title="Lương thực Trai Đường - Nuôi dưỡng đệ tử">
+            <span class="res-icon">🍲</span>
+            <span>Lương Thực: <strong id="res-food" style="color:var(--gold-bright);">0</strong></span>
+        </div>
+        <div class="res-item" title="Trầm hương - Dâng Phật và thanh tịnh tâm thần">
+            <span class="res-icon">🪔</span>
+            <span>Trầm Hương: <strong id="res-incense" style="color:var(--incense-purple);">0</strong></span>
+        </div>
+        <div class="res-item" title="Ngân lượng thập phương cúng dường">
+            <span class="res-icon">🪙</span>
+            <span>Cúng Dường: <strong id="res-coins" style="color:var(--gold-bright);">0</strong></span>
+        </div>
+        <div class="res-item" title="Điểm Công Đức tích lũy từ thiện nguyện">
+            <span class="res-icon">🪷</span>
+            <span>Công Đức: <strong id="res-merit" style="color:var(--lotus-pink);">0</strong></span>
+        </div>
+        <div class="res-item" title="Danh vọng sơn môn - Thu hút thiện tín">
+            <span class="res-icon">🌟</span>
+            <span>Danh Vọng: <strong id="res-reputation" style="color:var(--gold-bright);">0</strong></span>
+        </div>
+    </div>
+
+    <!-- THANH MENU CHÍNH -->
+    <nav class="vp-tabs">
+        <button class="vp-tab-btn active" data-tab="chanting">🪷 Thiền Điện (Gõ Mõ)</button>
+        <button class="vp-tab-btn" data-tab="campus">🏯 Sơn Môn</button>
+        <button class="vp-tab-btn" data-tab="cultivate">🧘 Tu Hành</button>
+        <button class="vp-tab-btn" data-tab="disciples">👥 Đệ Tử</button>
+        <button class="vp-tab-btn" data-tab="canons">📜 Tàng Kinh Các</button>
+        <button class="vp-tab-btn" data-tab="buildings">🔨 Kiến Thiết</button>
+        <button class="vp-tab-btn" data-tab="leaderboard">🌐 Bảng Vàng & Đạo Hữu</button>
+    </nav>
+
+    <!-- ======================================================================
+         TAB 1: THIỀN ĐIỆN — GÕ MÕ TỤNG KINH (CENTERPIECE IDLE CHANTING)
+         ====================================================================== -->
+    <section class="tab-pane active" id="tab-chanting">
+        <div class="chanting-hall-layout">
+            <!-- Left: Grand Wooden Fish Chanting Altar -->
+            <div class="wooden-fish-altar">
+                <div class="altar-banner-top"></div>
+
+                <div class="altar-title-banner">
+                    <h2 class="altar-title-main">🪷 THIỀN ĐIỆN VẠN PHÁP 🪷</h2>
+                    <p class="altar-title-sub">Nhất thanh thanh tịnh diệt trừ vạn phiền não — Nhất niệm bồ đề tăng trưởng vô lượng công đức</p>
+                </div>
+
+                <div class="altar-incense-burner">
+                    <span class="incense-sticks">🪔</span>
+                    <span>Hương Trầm Đàn Hương đang tỏa ngát — Thanh Tịnh Giới Đức</span>
+                </div>
+
+                <!-- 108 Mala Beads Counter Bar -->
+                <div class="mala-counter-bar">
+                    <div class="mala-counter-header">
+                        <span>📿 Chuỗi Tràng: Hạt <strong id="bead-count" style="color:var(--gold-light);">0</strong> / 108</span>
+                        <span>Tràng đã tụng: <strong id="mala-cycle-count" style="color:var(--lotus-pink);">0</strong></span>
+                    </div>
+                    <div class="mala-bead-track">
+                        <div class="mala-bead-progress-fill" id="mala-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Combo Streak & Mind State -->
+                <div class="chant-combo-box">
+                    <span class="combo-flame">🔥</span>
+                    <div>
+                        <div class="combo-text-title" id="combo-title">Thanh Tịnh Tâm</div>
+                        <div class="combo-text-sub">
+                            Chuỗi gõ liên tiếp: <strong id="combo-count" style="color:var(--gold-bright);">0</strong> 
+                            (<span id="combo-mult" style="color:var(--jade-bright);">+0% Exp</span>)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center: Interactive Wooden Fish & Animated Mallet Stage -->
+                <div class="wooden-fish-stage" id="woodenFishStage" title="Nhấp liên tục để thỉnh mõ tụng kinh nhận Đạo Hạnh!">
+                    <div class="mala-beads-circle"></div>
+                    <div class="mo-ripple-container" id="moRippleContainer"></div>
+                    <div class="floating-text-container" id="floatingTextContainer"></div>
+
+                    <!-- Lotus Silk Cushion -->
+                    <div class="fish-lotus-cushion">
+                        <div class="cushion-tassels">
+                            <span>⚜️</span>
+                            <span>🪷</span>
+                            <span>⚜️</span>
+                        </div>
+                    </div>
+
+                    <!-- 3D Sandalwood Wooden Fish (SVG) -->
+                    <div class="wooden-fish-body" id="woodenFishBody">
+                        <svg viewBox="0 0 240 180" class="wooden-fish-svg" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <radialGradient id="fishWoodGrad" cx="45%" cy="35%" r="65%">
+                                    <stop offset="0%" stop-color="#ea580c" />
+                                    <stop offset="35%" stop-color="#b45309" />
+                                    <stop offset="70%" stop-color="#78350f" />
+                                    <stop offset="100%" stop-color="#451a03" />
+                                </radialGradient>
+                                <linearGradient id="goldCarve" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#fef08a" />
+                                    <stop offset="50%" stop-color="#fbbf24" />
+                                    <stop offset="100%" stop-color="#d97706" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Fish Base Body -->
+                            <path d="M 40 100 C 40 45, 90 20, 150 25 C 205 30, 225 70, 220 115 C 215 155, 175 165, 120 162 C 65 160, 40 145, 40 100 Z" fill="url(#fishWoodGrad)" stroke="#c59b27" stroke-width="3.5" />
+                            <!-- Resonant Hollow Mouth / Slit -->
+                            <path d="M 60 115 C 90 125, 130 125, 160 115 C 165 110, 155 105, 130 108 C 100 110, 75 108, 60 115 Z" fill="#180c09" stroke="#fbbf24" stroke-width="1.8" />
+                            <!-- Golden Lotus Carving on the back -->
+                            <path d="M 120 40 C 130 55, 130 75, 120 85 C 110 75, 110 55, 120 40 Z" fill="url(#goldCarve)" opacity="0.9" />
+                            <path d="M 100 48 C 115 60, 120 75, 115 85 C 105 78, 95 65, 100 48 Z" fill="url(#goldCarve)" opacity="0.75" />
+                            <path d="M 140 48 C 125 60, 120 75, 125 85 C 135 78, 145 65, 140 48 Z" fill="url(#goldCarve)" opacity="0.75" />
+                            <!-- Auspicious Scales Filigree -->
+                            <path d="M 160 65 Q 175 80 160 95" fill="none" stroke="url(#goldCarve)" stroke-width="2.5" />
+                            <path d="M 175 60 Q 190 75 175 90" fill="none" stroke="url(#goldCarve)" stroke-width="2.5" />
+                            <path d="M 150 85 Q 165 100 150 115" fill="none" stroke="url(#goldCarve)" stroke-width="2.5" />
+                            <!-- Fish Eye -->
+                            <circle cx="65" cy="65" r="14" fill="#180c09" stroke="#fbbf24" stroke-width="2.5" />
+                            <circle cx="65" cy="65" r="7" fill="#fbbf24" />
+                            <circle cx="63" cy="63" r="2.5" fill="#ffffff" />
+                            <!-- Tail fin roll / handle loop -->
+                            <path d="M 45 90 C 25 85, 15 105, 25 125 C 35 140, 50 135, 45 120 C 40 110, 35 100, 45 90 Z" fill="url(#fishWoodGrad)" stroke="#c59b27" stroke-width="2.5" />
+                        </svg>
+                    </div>
+
+                    <!-- Striker Mallet (Dùi Mõ) -->
+                    <div class="wooden-mallet" id="woodenMallet">
+                        <svg viewBox="0 0 60 140" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="malletHandle" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stop-color="#78350f" />
+                                    <stop offset="50%" stop-color="#b45309" />
+                                    <stop offset="100%" stop-color="#451a03" />
+                                </linearGradient>
+                                <radialGradient id="malletHead" cx="40%" cy="40%" r="60%">
+                                    <stop offset="0%" stop-color="#fef08a" />
+                                    <stop offset="40%" stop-color="#d97706" />
+                                    <stop offset="100%" stop-color="#991b1b" />
+                                </radialGradient>
+                            </defs>
+                            <rect x="25" y="10" width="8" height="110" rx="4" fill="url(#malletHandle)" stroke="#c59b27" stroke-width="1.5" />
+                            <ellipse cx="29" cy="115" rx="20" ry="16" fill="url(#malletHead)" stroke="#fbbf24" stroke-width="2" />
+                            <line x1="12" y1="113" x2="46" y2="113" stroke="#fef08a" stroke-width="1.5" />
+                            <line x1="14" y1="117" x2="44" y2="117" stroke="#fef08a" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Bottom Altar Controls: Auto-Chant Switch & Scripture Selector -->
+                <div class="altar-controls-row">
+                    <!-- Auto Chant Switch -->
+                    <div class="auto-chant-toggle-wrap" id="toggleAutoChant" title="Bật/Tắt tự động thỉnh mõ đều đặn">
+                        <div class="auto-chant-switch"></div>
+                        <span style="font-size:13px; font-weight:800; color:var(--gold-bright);">📿 Tự Động Thỉnh Mõ</span>
+                    </div>
+
+                    <!-- Scripture Selector -->
+                    <div class="scripture-select-wrap">
+                        <span style="font-size:12px; color:var(--text-dim);">Kinh Niệm:</span>
+                        <select class="scripture-select-input" id="scriptureSelect">
+                            <option value="daohanh">📿 Niệm Phật A Di Đà (+Đạo Hạnh)</option>
+                            <option value="tritue">📜 Tụng Bát Nhã Tâm Kinh (+Trí Tuệ)</option>
+                            <option value="congduc">🪷 Trì Chú Đại Bi (+Công Đức)</option>
+                            <option value="tamcanh">🧘 Chỉ Quán Tĩnh Tâm (+Tâm Cảnh)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Abbot Progress & Breakthrough Panel -->
+            <div style="display:flex; flex-direction:column; gap:18px;">
+                <div class="realm-progress-card">
+                    <div class="abbot-altar-portrait">
+                        <div class="abbot-altar-halo">🧘</div>
+                        <div>
+                            <div style="font-size:11px; color:var(--text-dim);">Trụ Trì Sơn Môn</div>
+                            <h3 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:18px;" id="chant-abbot-name">Thiền Sư Pháp Trí</h3>
+                            <span class="abbot-realm-tag" id="chant-abbot-realm">Sơ Học</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;">
+                            <span>Đạo Hạnh Tiến Độ:</span>
+                            <strong id="chant-dao-text" style="color:var(--gold-bright);">0 / 100</strong>
+                        </div>
+                        <div class="vp-progress-wrap">
+                            <div class="vp-progress-fill" id="chant-dao-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Breakthrough button appears when 100% -->
+                    <button class="btn-breakthrough-glow" id="btnBreakthroughAltar" style="display:none;" onclick="window.vpApp.handleBreakthrough()">
+                        ✨ ĐỘT PHÁ CẢNH GIỚI MỚI ✨
+                    </button>
+
+                    <div style="font-size:11px; color:var(--text-dim); line-height:1.5; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                        💡 <strong>Mẹo Tu Hành:</strong> Mỗi tiếng mõ mang lại Đạo Hạnh và Công Đức. Đạt đủ 108 hạt tràng sẽ nhận được đại khai ngộ với lượng thưởng khổng lồ!
+                    </div>
+                </div>
+
+                <div class="side-card">
+                    <h3 class="side-title">👥 Đệ Tử Trực Điện Gõ Mõ</h3>
+                    <div id="chanting-disciples-list" style="font-size:12px; color:var(--text-secondary); line-height:1.6;">
+                        <!-- Populated by JS -->
+                    </div>
+                    <button class="btn-secondary" style="width:100%; margin-top:10px;" onclick="window.vpApp.switchTab('disciples')">
+                        Phân Công Thêm Đệ Tử
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         TAB 2: SƠN MÔN (CAMPUS CANVAS & MONASTERY GROUNDS)
+         ====================================================================== -->
+    <section class="tab-pane" id="tab-campus">
+        <div class="campus-layout">
+            <div class="campus-visual-box">
+                <div class="campus-canvas-wrap">
+                    <canvas id="campusCanvas"></canvas>
+                </div>
+                <div class="campus-control-bar">
+                    <span style="color:var(--text-dim); font-size:12px;">💡 Nhấp vào từng công trình trên sân chùa để xem thông tin trùng tu.</span>
+                    <button class="btn-zen" id="btn-meditate-abbot" style="padding:7px 16px; font-size:12px;">
+                        🧘 Tọa Thiền Tịnh Tâm (+Đạo Hạnh)
+                    </button>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div class="side-card">
+                    <h3 class="side-title">🏛️ Công Trình Đang Chọn</h3>
+                    <div id="campus-selected-building">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="side-card">
+                    <h3 class="side-title">⚡ Hoạt Động Nhanh</h3>
+                    <button class="btn-zen" style="width:100%; margin-bottom:8px;" onclick="window.vpApp.handleRecruitDisciple()">
+                        📿 Chiêu Mộ Đệ Tử Mới
+                    </button>
+                    <button class="btn-secondary" style="width:100%; margin-bottom:8px;" onclick="window.vpApp.switchTab('canons')">
+                        📖 Nghiên Cứu Tàng Kinh
+                    </button>
+                    <button class="btn-secondary" style="width:100%;" onclick="window.vpApp.switchTab('leaderboard')">
+                        🏆 Xem Bảng Xếp Hạng Online
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         TAB 3: TU HÀNH & TRỤ TRÌ
+         ====================================================================== -->
+    <section class="tab-pane" id="tab-cultivate">
+        <div class="meditate-screen">
+            <div class="abbot-card-showcase">
+                <div class="abbot-avatar-ring">🧘</div>
+                <div>
+                    <h3 class="abbot-name-text" id="abbot-name-card" style="font-family:var(--font-heading); color:var(--gold-bright); font-size:20px;">Thiền Sư Pháp Trí</h3>
+                    <div class="abbot-realm-tag" id="abbot-realm-card" style="margin-top:6px; display:inline-block;">Sơ Học</div>
+                </div>
+                <p class="abbot-motto-text" id="abbot-motto-card" style="font-style:italic; font-size:12px; color:var(--text-dim);">"Vạn Pháp Quy Tâm - Bồ Đề Thường Tịch"</p>
+
+                <div style="width:100%; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                        <span>Đạo Hạnh Tu Vi:</span>
+                        <strong id="stat-dao-hanh" style="color:var(--gold-bright);">0 / 100</strong>
+                    </div>
+                    <div class="vp-progress-wrap">
+                        <div class="vp-progress-fill" id="abbot-dao-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="stat-grid-2col">
+                    <div class="stat-box-small">
+                        <label>Tâm Cảnh</label>
+                        <span id="stat-tam-canh">30</span>
+                    </div>
+                    <div class="stat-box-small">
+                        <label>Trí Tuệ</label>
+                        <span id="stat-tri-tue">25</span>
+                    </div>
+                    <div class="stat-box-small">
+                        <label>Công Đức</label>
+                        <span id="stat-cong-duc">50</span>
+                    </div>
+                    <div class="stat-box-small">
+                        <label>Định Lực</label>
+                        <span style="color:var(--jade-bright);">Kiên Cố</span>
+                    </div>
+                </div>
+
+                <button class="btn-zen" style="width:100%; padding:12px; font-size:14px;" onclick="window.vpApp.handleAbbotMeditate()">
+                    🧘 Đả Tọa Tịnh Tâm (+Đạo Hạnh)
+                </button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div class="side-card">
+                    <h3 class="side-title">☸️ 9 Bậc Cảnh Giới Tu Hành</h3>
+                    <p style="font-size:12px; color:var(--text-dim); margin-bottom:14px;">
+                        Hành trình từ khi sơ khai bước vào cửa thiền đến khi công đức vô lượng viên mãn:
+                    </p>
+                    <div class="realm-tier-grid" id="realmTierGrid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="side-card">
+                    <h3 class="side-title">📿 Lợi Ích Tĩnh Tọa Tự Động (Offline Idle Progress)</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); line-height:1.6;">
+                        Khi bạn không online, đạo tràng vẫn tự động vận hành. Đệ tử tiếp tục thỉnh mõ tụng kinh, tàng kinh các tiếp tục thu thập tri thức, vườn thuốc tự sinh trưởng và tín chúng thập phương tiếp tục cúng dường. Khi quay lại, toàn bộ thành quả sẽ được kết toán tự động.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         TAB 4: ĐỆ TỬ SƠN MÔN
+         ====================================================================== -->
+    <section class="tab-pane" id="tab-disciples">
+        <div class="disciples-header">
+            <div>
+                <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px;">👥 Đệ Tử Sơn Môn</h2>
+                <p style="font-size:12px; color:var(--text-dim);">Quản lý, bồi dưỡng và phân bổ công việc tu học cho đệ tử</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span class="abbot-realm-tag" id="disciple-count-badge">0 Đệ Tử</span>
+                <button class="btn-zen" id="btn-recruit-disciple">
+                    📿 Tuyển Nhận Đệ Tử Cơ Duyên
+                </button>
+            </div>
+        </div>
+
+        <div class="disciple-grid" id="disciple-grid">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         TAB 5: TÀNG KINH CÁC
+         ====================================================================== -->
+    <section class="tab-pane" id="tab-canons">
+        <div style="margin-bottom:14px;">
+            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px;">📜 Tàng Kinh Các</h2>
+            <p style="font-size:12px; color:var(--text-dim);">10 Nhánh nghiên cứu kinh sách, thiền học, dưỡng sinh và triết lý</p>
+        </div>
+
+        <div class="canon-categories-bar">
+            <button class="canon-cat-chip active" data-cat="kinh_sach">📖 Kinh Sách</button>
+            <button class="canon-cat-chip" data-cat="thien_hoc">🧘 Thiền Học</button>
+            <button class="canon-cat-chip" data-cat="dao_hoc">☯️ Đạo Học & Dưỡng Sinh</button>
+            <button class="canon-cat-chip" data-cat="gioi_luat">⚖️ Giới Luật Thanh Quy</button>
+            <button class="canon-cat-chip" data-cat="triet_hoc">💡 Triết Học Phương Đông</button>
+            <button class="canon-cat-chip" data-cat="duoc_hoc">🌿 Nam Dược Cổ Truyền</button>
+            <button class="canon-cat-chip" data-cat="tinh_tam">🔔 Tĩnh Tâm Hộ Trì</button>
+            <button class="canon-cat-chip" data-cat="co_thu">📚 Lịch Sử & Cổ Thư</button>
+            <button class="canon-cat-chip" data-cat="kien_truc">🏛️ Doanh Tạo Sơn Môn</button>
+            <button class="canon-cat-chip" data-cat="hu_cau">✨ Pháp Môn Thế Giới Game</button>
+        </div>
+
+        <div class="canon-grid" id="canon-grid">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         TAB 6: KIẾN THIẾT
+         ====================================================================== -->
+    <section class="tab-pane" id="tab-buildings">
+        <div style="margin-bottom:16px;">
+            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px;">🔨 Kiến Thiết & Trùng Tu Tự Viện</h2>
+            <p style="font-size:12px; color:var(--text-dim);">Nâng cấp các công trình để mở rộng sức chứa, gia tăng sản lượng và tốc độ tu tập</p>
+        </div>
+
+        <div class="buildings-grid" id="buildings-grid">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         TAB 7: ONLINE & BẢNG VÀNG
+         ====================================================================== -->
+    <section class="tab-pane" id="tab-leaderboard">
+        <div style="margin-bottom:16px;">
+            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px;">🌐 Đạo Hữu Thập Phương & Bảng Vàng</h2>
+            <p style="font-size:12px; color:var(--text-dim);">Khám phá và viếng thăm các đạo tràng, so tài tu tập trên 5 bảng xếp hạng trực tuyến</p>
+        </div>
+
+        <div class="lb-tabs">
+            <button class="lb-tab-chip canon-cat-chip active" data-type="reputation">🏆 Top Đạo Tràng Hưng Thịnh</button>
+            <button class="lb-tab-chip canon-cat-chip" data-type="dao_hanh">🧘 Top Trụ Trì Đạo Hạnh</button>
+            <button class="lb-tab-chip canon-cat-chip" data-type="research">📜 Top Tàng Kinh Các</button>
+            <button class="lb-tab-chip canon-cat-chip" data-type="disciples">👥 Top Đệ Tử Xuất Chúng</button>
+            <button class="lb-tab-chip canon-cat-chip" data-type="merit">🪷 Top Công Đức & Thiện Nguyện</button>
+        </div>
+
+        <table class="lb-table">
+            <thead>
+                <tr>
+                    <th style="width:70px;">Hạng</th>
+                    <th>Đạo Tràng & Trụ Trì</th>
+                    <th>Cảnh Giới</th>
+                    <th>Điểm Số</th>
+                    <th style="width:120px;">Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="lb-table-body">
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+    </section>
+
+    <!-- MODAL: BÁO CÁO TIẾN TRÌNH NGOẠI TUYẾN -->
+    <div class="vp-modal-backdrop" id="offlineReportModal">
+        <div class="vp-modal-box">
+            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px; text-align:center; margin-bottom:12px;">
+                🪷 BẢN GHI TIẾN TRÌNH NGOẠI TUYẾN
+            </h2>
+            <p style="text-align:center; font-size:12px; color:var(--text-dim); margin-bottom:16px;">
+                Trong lúc quý đạo hữu vắng mặt, đạo tràng vẫn không ngừng tinh tấn vận hành.
+            </p>
+            <ul id="offlineReportList" style="list-style:none; font-size:13px; color:var(--text-secondary); background:rgba(0,0,0,0.4); padding:16px; border-radius:12px; margin-bottom:20px;">
+                <!-- Populated by JS -->
+            </ul>
+            <button class="btn-zen" style="width:100%; padding:14px; font-size:15px;" onclick="window.vpApp.closeOfflineModal()">
+                🙏 Tiếp Nhận Vạn Pháp Vào Sơn Môn
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: VIẾNG THĂM ĐẠO TRÀNG -->
+    <div class="vp-modal-backdrop" id="visitMonasteryModal">
+        <div class="vp-modal-box">
+            <button class="vp-modal-close-btn" onclick="window.vpApp.closeVisitModal()">✕</button>
+            <div id="visitMonasteryContent">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/vanphap/js/vanphap_engine.js"></script>
+    <script>
+        // Exit to Hon Xom Lang lobby
+        document.getElementById('btn-exit-lobby').onclick = function() {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'CLOSE_VANPHAP' }, '*');
+            } else {
+                window.location.href = 'index.html';
+            }
+        };
+    </script>
+</body>
+</html>

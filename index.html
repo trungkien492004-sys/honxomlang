@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="assets/css/style.css?v=7">
     <style>html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending body>#mobileCardActions{visibility:hidden;pointer-events:none}html.auth-pending body{min-height:100vh;background:#062236}html.auth-pending body::before{content:"Đang khôi phục đăng nhập…";position:fixed;inset:0;z-index:249999;display:grid;place-items:center;background:linear-gradient(145deg,#062236,#10283d);color:#d0e6f3;font:700 16px system-ui,sans-serif}</style>
     <link rel="stylesheet" href="assets/css/mobile.css?v=7">
-    <link rel="stylesheet" href="assets/css/board_upgrade.css?v=20261031-board-v2">
+    <link rel="stylesheet" href="assets/css/board_upgrade.css?v=20261031-board-v3">
     <link rel="stylesheet" href="assets/css/game_menu_clean.css?v=20261026-confirm-v1">
     <link rel="stylesheet" href="assets/css/meme_lobby_suggestion.css?v=20261029-v1">
     <script>
@@ -47,7 +47,20 @@
         };
         window.addEventListener('message', function(e) {
             if (e && e.data && e.data.type === 'CLOSE_TUTIEN') window.closeTuTienGame();
+            if (e && e.data && e.data.type === 'CLOSE_VANPHAP') window.closeVanPhapGame();
         });
+        window.openVanPhapGame = function() {
+            var modal = document.getElementById('vanphapGameModal');
+            var frame = document.getElementById('vanphapFrame');
+            if (!modal || !frame) { window.location.href = 'vanphap.html'; return; }
+            modal.style.display = 'block';
+            if (!frame.src || !frame.src.includes('vanphap.html')) frame.src = 'vanphap.html?v=' + Date.now();
+        };
+        window.closeVanPhapGame = function() {
+            var modal = document.getElementById('vanphapGameModal');
+            if (modal) modal.style.display = 'none';
+            if (typeof window.switchScreen === 'function') window.switchScreen('gameModeScreen');
+        };
         window.onunhandledrejection = function(event) {
             var reason = event.reason ? (event.reason.message || event.reason) : 'Promise Error';
             window.onerror(reason, 'async', 0, 0, event.reason);
@@ -74,9 +87,9 @@
     <!-- ===== MÀN HÌNH CHỌN TRÒ CHƠI ===== -->
     <div id="gameModeScreen" class="screen">
         <div class="title-container mode-hero">
-            <span class="mode-kicker">ANIME DUEL · 60 GIÂY MỖI LƯỢT</span>
+            <span class="mode-kicker">4 ĐẤU TRƯỜNG · CHỌN MỘT ĐỂ VÀO</span>
             <h1>Chọn Đấu Trường</h1>
-            <p>Đấu bài, cờ đua sinh tồn hoặc tu tiên thế giới mở</p>
+            <p>Đấu bài anime, cờ đua sinh tồn, tu tiên thế giới mở hoặc idle quản lý đạo tràng</p>
         </div>
         <div class="mode-grid">
             <article class="mode-card mode-card--duel" role="button" tabindex="0" aria-label="Vào đấu bài Yu-Gi-Oh DM / GX"
@@ -135,6 +148,24 @@
                         <li>PVE &amp; PVP ELO</li>
                     </ul>
                     <span class="mode-cta">Vào Tu Tiên <b aria-hidden="true">🌌</b></span>
+                </div>
+            </article>
+            <article class="mode-card mode-card--vanphap" role="button" tabindex="0" aria-label="Vào Vạn Pháp Đạo Tràng"
+                onclick="window.openVanPhapGame()"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openVanPhapGame()}">
+                <div class="mode-art mode-art--vanphap">
+                    <span class="mode-chip">IDLE</span>
+                    <span class="vanphap-sigil" aria-hidden="true"><span>🪷</span></span>
+                </div>
+                <div class="mode-body">
+                    <h2>Vạn Pháp Đạo Tràng</h2>
+                    <p>Xây chùa, độ đệ tử, nghiên cứu pháp môn và tích lũy công đức kể cả khi offline.</p>
+                    <ul class="mode-tags">
+                        <li>QUẢN LÝ TỰ VIỆN</li>
+                        <li>CHIÊU MỘ ĐỆ TỬ</li>
+                        <li>BẢNG VÀNG ONLINE</li>
+                    </ul>
+                    <span class="mode-cta">Vào Đạo Tràng <b aria-hidden="true">🪷</b></span>
                 </div>
             </article>
         </div>
@@ -475,6 +506,8 @@
             <!-- Title Sign overlay -->
             <div class="board-title-banner">
                 <img src="assets/img/board/title_sign.png" alt="Hỗn Xóm Làng - Cờ Đua Sinh Tồn">
+                <div class="board-lives-hud" id="boardLivesHud" aria-label="Mạng người chơi"></div>
+                <div class="board-theme-picker" id="boardThemePicker" role="group" aria-label="Kiểu bản đồ"></div>
             </div>
 
             <!-- Main Scrollable Track Area -->
@@ -1420,6 +1453,12 @@
         </div>
         <!-- ===== END TU TIÊN MODAL ===== -->
 
+        <!-- ===== 🪷 VẠN PHÁP ĐẠO TRÀNG MODAL ===== -->
+        <div id="vanphapGameModal" style="display:none; position:fixed; inset:0; background:#0d1217; z-index:100000; width:100%; height:100dvh; overflow:hidden;">
+            <iframe id="vanphapFrame" src="about:blank" title="Vạn Pháp Đạo Tràng" style="width:100%; height:100%; border:none; display:block;"></iframe>
+        </div>
+        <!-- ===== END VẠN PHÁP MODAL ===== -->
+
         <!-- ===== FULLSCREEN MENU POPUP ===== -->
         <div id="mainMenuPopup" style="display:none; position:fixed; inset:0; background:rgba(26,15,10,0.95); z-index:99998; justify-content:center; align-items:center; flex-direction:column; padding:20px; font-family:'Baloo 2', sans-serif;">
             <div style="background:#2d1810; border:4px solid #d4af37; border-radius:16px; width:min(90vw, 400px); max-height:85vh; display:flex; flex-direction:column; box-shadow:0 0 30px rgba(0,0,0,0.9); padding:20px;" class="rpg-popup-box">
@@ -1439,6 +1478,7 @@
                     <button class="menu-popup-btn" onclick="window.menuAction('yugioh')" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); border-color:#d4af37;">🃏 Bài Ma Thuật</button>
                     <button class="menu-popup-btn" onclick="window.menuAction('memecard')" style="background:linear-gradient(135deg, #15803d, #14532d); border-color:#4ade80;">🐸 Yu-Gi-Oh!</button>
                     <button class="menu-popup-btn" onclick="window.toggleMainMenu(); window.openTuTienGame()" style="background:linear-gradient(135deg, #7c3aed, #4c1d95); border-color:#c084fc;">🌌 Tu Tiên</button>
+                    <button class="menu-popup-btn" onclick="window.toggleMainMenu(); window.openVanPhapGame()" style="background:linear-gradient(135deg, #d97706, #92400e); border-color:#fbbf24;">🪷 Vạn Pháp</button>
                     <button class="menu-popup-btn" onclick="window.menuAction('bet')">🏟️ Cược Bóng</button>
                 </div>
                 
@@ -1479,8 +1519,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js" crossorigin="anonymous"></script>
     <script src="assets/js/firebase.js?v=20261026-auth-presence1"></script>
     
-    <script src="assets/js/board_new.js?v=20261031-board-v2"></script>
-    <script src="assets/js/board_upgrade.js?v=20261031-board-v2"></script>
+    <script src="assets/js/board_new.js?v=20261031-board-v3"></script>
+    <script src="assets/js/board_upgrade.js?v=20261031-board-v3"></script>
     <script src="assets/js/vfx.js?v=10"></script>
     <script src="assets/js/sprites_data.js?v=10"></script>
     <script src="assets/js/sprites_renderer.js?v=10"></script>
@@ -1492,7 +1532,7 @@
     <script src="assets/js/memecard.js?v=20261027-silent-fix3"></script>
     <script src="assets/js/game.js?v=16"></script>
     <link rel="stylesheet" href="assets/css/site_rank.css?v=20261031-boot1">
-    <link rel="stylesheet" href="assets/css/ui_premium.css?v=20261031-tutien1">
+    <link rel="stylesheet" href="assets/css/ui_premium.css?v=20261031-vanphap1">
     <script src="assets/js/site_rank_config.js?v=20261026-access-rank1"></script>
     <script src="assets/js/site_identity.js?v=20261026-rank-presence1"></script>
     <script src="assets/js/site_access.js?v=20261031-ui1"></script>

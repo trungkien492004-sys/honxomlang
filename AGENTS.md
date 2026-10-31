@@ -72,6 +72,28 @@ Build rule: `scripts/build-public.js` wipes `dist/` and copies a **fixed
 list** of root HTML files plus `assets/`. If another root page is added to the
 site, add it to that list; never let a page live only in `dist/`.
 
+## VAN PHAP GAME — DO NOT DELETE
+
+`Vạn Pháp Đạo Tràng` (idle temple management) is the **fourth** game mode. It
+used to exist only inside another agent's `dist/`, so every deploy from this
+repo wiped it from the live site.
+
+Owned files:
+
+- `vanphap.html`
+- `assets/vanphap/css/vanphap.css`, `assets/vanphap/js/vanphap_engine.js`
+
+Entry points:
+
+- Mode card `Vạn Pháp Đạo Tràng` in `#gameModeScreen` (4-card grid).
+- `window.openVanPhapGame()` / `window.closeVanPhapGame()` + `#vanphapGameModal`
+  iframe; the page posts `{type:'CLOSE_VANPHAP'}` to return to the lobby.
+- `🪷 Vạn Pháp` button in `#mainMenuPopup`.
+
+All four games (duel, race, tu tiên, vạn pháp) share the same lobby card design
+and the same teal/gold "Sảnh Xóm Làng" pill in their header. Keep it that way —
+when adding a fifth game, copy the `.mode-card` block and the header pill.
+
 ## Concurrent sessions
 
 Multiple agents/sessions share this checkout. Before staging or committing:
@@ -82,6 +104,11 @@ Multiple agents/sessions share this checkout. Before staging or committing:
 - Never commit secrets: `.env`, `firebase-config.js`, service-account JSON.
 - Do not edit auth/rank files (`assets/js/auth*.js`, `site_rank.css`,
   rank/progression modules) unless the task is explicitly about them.
+- **Deploys are repo-wide.** A second checkout (an agent scratch copy) that still
+  has the pre-polish board assets will overwrite the live site with the old UI
+  the moment it runs `firebase deploy --only hosting`. Deploy from this checkout
+  at `HEAD`, or rebuild the other copy from `origin/main` first. This already
+  happened twice (board UI reverted, `vanphap.html` lost).
 
 ## Project basics
 
