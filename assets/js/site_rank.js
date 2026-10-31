@@ -325,7 +325,7 @@
     const pMain = typeof deckList !== 'undefined' ? deckList : [];
     const pExtra = typeof extraDeckList !== 'undefined' ? extraDeckList : [];
     if (typeof deckProblem === 'function') {
-      const prob = deckProblem(pMain, pExtra);
+      const prob = deckProblem(pMain, pExtra) || (typeof ownedProblem === 'function' ? ownedProblem(pMain, pExtra) : '');
       if (prob) {
         quickPlayBtn?.classList.remove('rank-btn-searching');
         showRankError(new Error('Bộ bài đang dùng chưa hợp lệ: ' + prob), 'Xác thực bộ bài leo Rank');

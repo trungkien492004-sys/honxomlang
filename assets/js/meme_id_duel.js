@@ -312,7 +312,7 @@
     const saved=(await store.doc('duel_players/'+uid).get()).data();
     if(token!==generation)return;
     if(valid(saved)&&localStorage.getItem('duel-profile-owner')!==uid){
-      deckList=[...saved.main];extraDeckList=[...saved.extra];chosenHero=saved.heroId;saveDeck();
+      deckList=[...saved.main];extraDeckList=[...saved.extra];chosenHero=saved.heroId;saveDeck();window.memeProgress?.grantDeck(saved.main,saved.extra);
       localStorage.setItem(HERO_KEY,JSON.stringify(chosenHero));
       const active=deckLibrary.decks.find(d=>d.id===deckLibrary.activeId);
       if(active){active.cards=[...deckList];active.extra=[...extraDeckList];localStorage.setItem(DECK_LIBRARY_KEY,JSON.stringify(deckLibrary));}

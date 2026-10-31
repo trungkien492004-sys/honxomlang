@@ -1,0 +1,6 @@
+.phase1-builder .deck-item.locked{border-color:#3d4c58;background:#16242f}
+.phase1-builder .deck-item.locked .deck-art{filter:grayscale(.8) brightness(.55)}
+.phase1-builder .deck-item.locked .library-preview{border:1px dashed #40515c}
+.phase1-builder .deck-item.locked>b{color:#9fb0b8}
+.phase1-builder .deck-lock{position:absolute;left:50%;bottom:5px;transform:translateX(-50%);z-index:4;padding:2px 5px;border:1px solid #5b6d78;border-radius:3px;background:#0b151ee6;color:#d6e0e4;font-size:8px;font-weight:800;white-space:nowrap;pointer-events:none}
+.phase1-builder .deck-lock-note{color:#ffd0a1}

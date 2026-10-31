@@ -45,8 +45,10 @@ function chooseHero(id){
   const equipBtn=$('equipHeroSupremeBtn');
   if(equipBtn&&supremeDeckName&&window.MEME_DECK_PRESETS?.[supremeDeckName]){
     equipBtn.onclick=()=>{
-      deckList=[...window.MEME_DECK_PRESETS[supremeDeckName]];
-      extraDeckList=[...(window.MEME_EXTRA_PRESETS?.[supremeDeckName]||defaultExtraDeck())];
+      const next=[...window.MEME_DECK_PRESETS[supremeDeckName]],nextExtra=[...(window.MEME_EXTRA_PRESETS?.[supremeDeckName]||defaultExtraDeck())];
+      const missing=ownedProblem(next,nextExtra);
+      if(missing)return window.showActionNotice(missing,'Chưa sở hữu thẻ');
+      deckList=next;extraDeckList=nextExtra;
       saveDeck();
       notify(`Đã trang bị bộ bài: ${supremeDeckName}!`);
     };
@@ -167,6 +169,7 @@ function deckProblem(cards,extra=[]){
   const counts=new Map();for(const id of [...cards,...extra]){counts.set(id,(counts.get(id)||0)+1);if(counts.get(id)>deckLimit(id))return `${card(id).name}: tối đa ${deckLimit(id)} bản.`;}
   return '';
 }
+function ownedProblem(cards,extra=[]){return window.memeProgress?.ownedProblem?.(cards,extra)||'';}
 function loadDeck(){try{const saved=migrateDeck(JSON.parse(localStorage.getItem(DECK_KEY)),JSON.parse(localStorage.getItem(EXTRA_KEY)));if(saved&&!deckProblem(saved.cards,saved.extra)){extraDeckList=saved.extra;return saved.cards;}}catch{}return defaultDeck();}
 function loadDeckLibrary(){
   try{const saved=JSON.parse(localStorage.getItem(DECK_LIBRARY_KEY));if(Array.isArray(saved?.decks)){
@@ -954,7 +957,7 @@ function openDeckBuilder(){
 }
 function freshDeckId(){return 'deck-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);}
 function commitDeckDraft(){
-  const problem=deckProblem(deckDraft.cards,deckDraft.extra);if(problem)return;
+  const problem=deckProblem(deckDraft.cards,deckDraft.extra)||ownedProblem(deckDraft.cards,deckDraft.extra);if(problem)return;
   const name=deckDraft.name.trim().slice(0,40);if(!name){$('deckStatus').textContent='Hãy đặt tên cho bộ bài.';$('deckNameInput').focus();return;}
   const saved={id:deckDraft.id,name,cards:[...deckDraft.cards],extra:[...deckDraft.extra]};
   const library={activeId:saved.id,decks:[...deckLibrary.decks.filter(d=>d.id!==saved.id),saved]};

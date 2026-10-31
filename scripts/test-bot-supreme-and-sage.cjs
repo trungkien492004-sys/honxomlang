@@ -37,6 +37,7 @@ const server = http.createServer((req, res) => {
     await page.evaluateOnNewDocument(() => { window._testAllowed = true; });
     await page.goto(base + '/memecard.html', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.memeAnime && window.MEME_DUEL_LINKS_GROUP);
+    await page.evaluate(() => { memeProgress.grant(CARDS.map(c => c.id), 3); });
 
     const testResults = await page.evaluate(async () => {
       const results = [];
