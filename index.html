@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="assets/css/style.css?v=7">
     <style>html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending body>#mobileCardActions{visibility:hidden;pointer-events:none}html.auth-pending body{min-height:100vh;background:#062236}html.auth-pending body::before{content:"Đang khôi phục đăng nhập…";position:fixed;inset:0;z-index:249999;display:grid;place-items:center;background:linear-gradient(145deg,#062236,#10283d);color:#d0e6f3;font:700 16px system-ui,sans-serif}</style>
     <link rel="stylesheet" href="assets/css/mobile.css?v=7">
-    <link rel="stylesheet" href="assets/css/board_upgrade.css?v=20261031-board-v3">
+    <link rel="stylesheet" href="assets/css/board_upgrade.css?v=20261101-perf-v1">
     <link rel="stylesheet" href="assets/css/game_menu_clean.css?v=20261026-confirm-v1">
     <link rel="stylesheet" href="assets/css/meme_lobby_suggestion.css?v=20261029-v1">
     <script>
@@ -137,7 +137,41 @@
                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openTuTienGame()}">
                 <div class="mode-art mode-art--tutien">
                     <span class="mode-chip">THẾ GIỚI MỞ</span>
-                    <span class="tutien-sigil" aria-hidden="true"><span>🌌</span></span>
+                    <svg class="mode-scene" viewBox="0 0 320 208" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="ttSky" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0" stop-color="#43206f"/><stop offset="42%" stop-color="#1a1440"/><stop offset="100%" stop-color="#060b18"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="320" height="208" fill="url(#ttSky)"/>
+                        <g fill="#f0e2ff" opacity=".9"><circle cx="28" cy="20" r="1.5"/><circle cx="74" cy="38" r="1"/><circle cx="126" cy="14" r="1.3"/><circle cx="176" cy="44" r="1"/><circle cx="300" cy="24" r="1.2"/><circle cx="52" cy="56" r="1"/><circle cx="212" cy="12" r="1.4"/></g>
+                        <circle cx="256" cy="40" r="32" fill="#f2c86e" opacity=".16"/>
+                        <circle cx="256" cy="40" r="17" fill="#fdf1d2"/>
+                        <g fill="#1a2450">
+                            <rect x="0" y="76" width="34" height="132"/><rect x="40" y="60" width="26" height="148"/><rect x="70" y="86" width="30" height="122"/>
+                            <rect x="104" y="66" width="22" height="142"/><rect x="196" y="72" width="26" height="136"/><rect x="228" y="56" width="30" height="152"/><rect x="262" y="82" width="26" height="126"/><rect x="292" y="64" width="28" height="144"/>
+                        </g>
+                        <g fill="#0a1226">
+                            <rect x="12" y="94" width="40" height="114"/><rect x="58" y="82" width="34" height="126"/><rect x="132" y="90" width="30" height="118"/>
+                            <rect x="168" y="100" width="36" height="108"/><rect x="210" y="84" width="34" height="124"/><rect x="250" y="96" width="40" height="112"/>
+                        </g>
+                        <g fill="#f2c86e" opacity=".95">
+                            <rect x="18" y="102" width="6" height="8"/><rect x="30" y="118" width="6" height="8"/><rect x="40" y="102" width="6" height="8"/><rect x="66" y="92" width="6" height="8"/><rect x="78" y="108" width="6" height="8"/>
+                            <rect x="140" y="100" width="6" height="8"/><rect x="150" y="116" width="6" height="8"/><rect x="176" y="110" width="6" height="8"/><rect x="218" y="94" width="6" height="8"/><rect x="230" y="110" width="6" height="8"/>
+                            <rect x="258" y="106" width="6" height="8"/><rect x="272" y="122" width="6" height="8"/>
+                        </g>
+                        <g fill="#3ee6ff" opacity=".85">
+                            <rect x="24" y="134" width="6" height="8"/><rect x="72" y="130" width="6" height="8"/><rect x="146" y="138" width="6" height="8"/><rect x="186" y="124" width="6" height="8"/><rect x="224" y="132" width="6" height="8"/><rect x="266" y="142" width="6" height="8"/>
+                        </g>
+                        <g fill="#060c18" stroke="#f2c86e" stroke-opacity=".5" stroke-width="1.2">
+                            <path d="M92 122h44v-26h-44z"/>
+                            <path d="M80 96 L114 72 L148 96 Q114 86 80 96 Z"/>
+                            <path d="M99 74h30v-16h-30z"/>
+                            <path d="M88 58 L114 38 L140 58 Q114 49 88 58 Z"/>
+                        </g>
+                        <rect y="150" width="320" height="58" fill="#12b8a0" opacity=".1"/>
+                    </svg>
+                    <span class="tutien-sigil" aria-hidden="true"><span>🧙‍♂️</span></span>
                 </div>
                 <div class="mode-body">
                     <h2>Tu Tiên Kỷ Nguyên</h2>
@@ -155,7 +189,31 @@
                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openVanPhapGame()}">
                 <div class="mode-art mode-art--vanphap">
                     <span class="mode-chip">IDLE</span>
-                    <span class="vanphap-sigil" aria-hidden="true"><span>🪷</span></span>
+                    <svg class="mode-scene" viewBox="0 0 320 208" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="vpSky" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0" stop-color="#0f3138"/><stop offset="48%" stop-color="#1d4a44"/><stop offset="100%" stop-color="#5a3a12"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="320" height="208" fill="url(#vpSky)"/>
+                        <g fill="#ffe9b8" opacity=".85"><circle cx="36" cy="22" r="1.3"/><circle cx="92" cy="14" r="1"/><circle cx="150" cy="30" r="1.2"/><circle cx="286" cy="18" r="1.4"/><circle cx="222" cy="10" r="1"/></g>
+                        <circle cx="70" cy="44" r="30" fill="#ffd79a" opacity=".22"/>
+                        <circle cx="70" cy="44" r="15" fill="#fff2d0"/>
+                        <g fill="#0b2830" opacity=".9"><path d="M0 96 L44 52 L92 96z"/><path d="M58 100 L116 46 L176 100z"/><path d="M168 98 L226 56 L286 98z"/><path d="M244 102 L298 58 L320 84 L320 102z"/></g>
+                        <g fill="#07181f">
+                            <path d="M118 132v-32h84v32z"/>
+                            <path d="M102 100q58-32 116 0 -58-12 -116 0z"/>
+                            <path d="M134 76v-18h52v18z"/>
+                            <path d="M122 58q38-24 76 0 -38-10 -76 0z"/>
+                        </g>
+                        <g fill="#f2b02a"><rect x="128" y="108" width="8" height="12"/><rect x="146" y="108" width="8" height="12"/><rect x="166" y="108" width="8" height="12"/><rect x="184" y="108" width="8" height="12"/><rect x="146" y="62" width="8" height="9"/><rect x="166" y="62" width="8" height="9"/></g>
+                        <g fill="#0a1f27"><rect x="238" y="86" width="44" height="46" rx="4"/><path d="M232 86q28-22 56 0 -28-8 -56 0z"/></g>
+                        <g fill="#c98a1f"><path d="M246 126v-24a14 14 0 0 1 28 0v24z"/><rect x="242" y="126" width="36" height="5" rx="2"/></g>
+                        <circle cx="260" cy="104" r="4" fill="#ffe9b8"/>
+                        <g fill="#0d3038"><ellipse cx="58" cy="150" rx="52" ry="13"/><ellipse cx="196" cy="158" rx="76" ry="14"/></g>
+                        <g fill="#f0a6c4" opacity=".95"><ellipse cx="36" cy="146" rx="9" ry="4"/><ellipse cx="76" cy="154" rx="8" ry="3.5"/><ellipse cx="168" cy="156" rx="9" ry="4"/><ellipse cx="226" cy="150" rx="7" ry="3"/></g>
+                    </svg>
+                    <span class="vanphap-sigil" aria-hidden="true"><span>🧘</span></span>
                 </div>
                 <div class="mode-body">
                     <h2>Vạn Pháp Đạo Tràng</h2>
@@ -1520,7 +1578,7 @@
     <script src="assets/js/firebase.js?v=20261026-auth-presence1"></script>
     
     <script src="assets/js/board_new.js?v=20261031-board-v3"></script>
-    <script src="assets/js/board_upgrade.js?v=20261031-board-v3"></script>
+    <script src="assets/js/board_upgrade.js?v=20261101-perf-v1"></script>
     <script src="assets/js/vfx.js?v=10"></script>
     <script src="assets/js/sprites_data.js?v=10"></script>
     <script src="assets/js/sprites_renderer.js?v=10"></script>
@@ -1532,7 +1590,7 @@
     <script src="assets/js/memecard.js?v=20261027-silent-fix3"></script>
     <script src="assets/js/game.js?v=16"></script>
     <link rel="stylesheet" href="assets/css/site_rank.css?v=20261031-boot1">
-    <link rel="stylesheet" href="assets/css/ui_premium.css?v=20261031-vanphap1">
+    <link rel="stylesheet" href="assets/css/ui_premium.css?v=20261101-lobbyart-v1">
     <script src="assets/js/site_rank_config.js?v=20261026-access-rank1"></script>
     <script src="assets/js/site_identity.js?v=20261026-rank-presence1"></script>
     <script src="assets/js/site_access.js?v=20261031-ui1"></script>

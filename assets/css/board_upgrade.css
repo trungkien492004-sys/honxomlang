@@ -341,6 +341,9 @@
   z-index:2;
 }
 #boardGameModal .cell-badge svg{width:18px!important;height:18px!important}
+/* A filter on the mystery glyph's parent blocks compositing, so all ~98 unrevealed
+   cells repaint every frame (~77% main-thread busy). text-shadow keeps the same look. */
+#boardGameModal .cell-badge:has(.cell-q){filter:none;text-shadow:0 2px 2px #0008}
 #boardGameModal .board-cell.hidden-cell{border-color:#b9884a!important;filter:saturate(.82) brightness(.99)}
 #boardGameModal .board-cell.hidden-cell .cell-num-center{
   background:#3b2710f0;

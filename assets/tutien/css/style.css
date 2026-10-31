@@ -47,19 +47,51 @@ body {
 
 /* AUTH & CHARACTER CREATION SCREEN */
 #auth-screen {
-    background: radial-gradient(circle at center, #131d36 0%, #07090f 100%);
+    background:
+        radial-gradient(circle at 22% 18%, rgba(255, 255, 255, .8) 0 1.5px, transparent 2px),
+        radial-gradient(circle at 74% 12%, rgba(216, 180, 254, .8) 0 1px, transparent 2px),
+        radial-gradient(circle at 46% 68%, rgba(255, 255, 255, .55) 0 1px, transparent 2px),
+        radial-gradient(ellipse at 18% 8%, rgba(124, 58, 237, .38), transparent 55%),
+        radial-gradient(ellipse at 84% 92%, rgba(16, 92, 120, .48), transparent 60%),
+        linear-gradient(158deg, #04141f, #0a2333 58%, #061a26);
+    background-size: 190px 190px, 140px 140px, 110px 110px, 100% 100%, 100% 100%, 100% 100%;
     z-index: 100;
 }
 
 .auth-card {
-    background: var(--bg-panel);
-    border: 1px solid var(--bg-panel-border);
-    box-shadow: 0 0 35px rgba(0, 229, 255, 0.15);
+    position: relative;
+    background: linear-gradient(168deg, rgba(14, 35, 50, .94), rgba(4, 16, 26, .96));
+    border: 1px solid rgba(242, 200, 110, .38);
+    box-shadow: 0 26px 60px rgba(0, 8, 16, .6), 0 0 42px rgba(0, 229, 255, .16), inset 0 1px 0 rgba(255, 255, 255, .07);
     backdrop-filter: blur(16px);
-    border-radius: var(--radius-lg);
+    border-radius: 22px;
     width: 440px;
-    padding: 32px;
+    padding: 0 32px 32px;
     text-align: center;
+    overflow: hidden;
+}
+.auth-card > *:not(.auth-banner) {
+    position: relative;
+    z-index: 2;
+}
+.auth-banner {
+    position: relative;
+    height: 132px;
+    margin: 0 -32px 20px;
+    overflow: hidden;
+    background: linear-gradient(165deg, #1d0b46, #071020 82%);
+}
+.auth-banner svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.auth-banner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 58%, rgba(9, 24, 38, .92));
 }
 
 .auth-title {
@@ -110,21 +142,21 @@ body {
 .btn-primary {
     width: 100%;
     padding: 13px;
-    background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+    background: linear-gradient(180deg, #f8e0ac, #d9a64a);
     border: none;
-    border-radius: var(--radius-sm);
-    color: #fff;
-    font-weight: 700;
+    border-radius: 12px;
+    color: #08161f;
+    font-weight: 900;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform .18s cubic-bezier(.2, .8, .25, 1), box-shadow .18s;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(0, 180, 216, 0.35);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .55);
 }
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.5);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, .45), 0 0 24px rgba(242, 200, 110, .38);
 }
 .btn-secondary {
     background: rgba(255, 255, 255, 0.08);
@@ -160,22 +192,44 @@ body {
     margin-bottom: 20px;
 }
 .school-card {
-    background: rgba(12, 17, 30, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-sm);
+    position: relative;
+    background: linear-gradient(168deg, rgba(18, 40, 56, .9), rgba(6, 18, 28, .92));
+    border: 1px solid rgba(148, 203, 225, .22);
+    border-radius: 14px;
     padding: 12px 6px;
     cursor: pointer;
     text-align: center;
-    transition: all 0.2s;
+    transition: transform .18s cubic-bezier(.2, .8, .25, 1), border-color .18s, box-shadow .18s;
+    overflow: hidden;
+}
+.school-card::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 3px;
+    background: var(--school-tone, #00e5ff);
+    opacity: .55;
+}
+.school-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(242, 200, 110, .5);
 }
 .school-card.selected {
-    border-color: var(--accent-gold);
-    background: rgba(255, 215, 0, 0.12);
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+    border-color: rgba(242, 200, 110, .85);
+    background: linear-gradient(168deg, rgba(46, 38, 16, .92), rgba(10, 22, 30, .94));
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .45), 0 0 22px rgba(242, 200, 110, .28);
 }
+.school-card.selected::before { opacity: 1; }
+.school-card[data-school="sword"] { --school-tone: #38bdf8; }
+.school-card[data-school="body"] { --school-tone: #f97316; }
+.school-card[data-school="spell"] { --school-tone: #ef4444; }
+.school-card[data-school="array"] { --school-tone: #a855f7; }
+.school-card[data-school="demonic"] { --school-tone: #db2777; }
+.school-card[data-school="medicine"] { --school-tone: #34d399; }
 .school-icon {
     font-size: 26px;
     margin-bottom: 4px;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .55));
 }
 .school-name {
     font-size: 12px;

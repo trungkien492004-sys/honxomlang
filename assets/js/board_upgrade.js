@@ -68,6 +68,52 @@
  
  window.boardRenderPlayers=function(){if(!boardGame)return;renderPlayers();};
  function escText(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+ // Camera loop: the old version touched grid.scrollLeft/scrollWidth every frame, which flushes
+ // layout for the whole map (~12% of main-thread time even when parked). It now only touches the
+ // DOM while the camera is actually moving; external scrolls (drag/wheel/clamp) arrive as events.
+ window.boardStartCameraLoop=function(){
+  if(window._boardCameraLoopId)return;
+  const grid=document.getElementById('boardGrid');if(!grid)return;
+  if(!grid.dataset.camLoopBound){grid.dataset.camLoopBound='1';
+   grid.addEventListener('scroll',()=>{
+    if(window.boardCameraAutoFollow&&window._cameraWrittenX!=null&&(Math.abs(grid.scrollLeft-window._cameraWrittenX)>1||Math.abs(grid.scrollTop-window._cameraWrittenY)>1)){window._cameraCurrentX=grid.scrollLeft;window._cameraCurrentY=grid.scrollTop;window._cameraWrittenTargetX=null;}
+    else if(!window.boardCameraAutoFollow){window._cameraCurrentX=grid.scrollLeft;window._cameraCurrentY=grid.scrollTop;window._cameraWrittenX=grid.scrollLeft;window._cameraWrittenY=grid.scrollTop;window._cameraWrittenTargetX=null;}
+   },{passive:true});
+  }
+  window._cameraCurrentX=null;window._cameraCurrentY=null;window._cameraWrittenX=null;window._cameraWrittenY=null;window._cameraWrittenTargetX=null;
+  const loop=()=>{
+   if(window.boardCameraAutoFollow){
+    const tx=window._cameraTargetX||0,ty=window._cameraTargetY||0;
+    if(Math.abs(tx-(window._cameraCurrentX??0))>0.8||Math.abs(ty-(window._cameraCurrentY??0))>0.8||tx!==window._cameraWrittenTargetX||ty!==window._cameraWrittenTargetY){
+     const maxX=Math.max(0,grid.scrollWidth-grid.clientWidth),maxY=Math.max(0,grid.scrollHeight-grid.clientHeight);
+     const targetX=Math.max(0,Math.min(maxX,tx)),targetY=Math.max(0,Math.min(maxY,ty));
+     const curX=window._cameraCurrentX??grid.scrollLeft,curY=window._cameraCurrentY??grid.scrollTop;
+     const dx=targetX-curX,dy=targetY-curY;
+     window._cameraCurrentX=Math.abs(dx)<0.8?targetX:curX+dx*0.18;
+     window._cameraCurrentY=Math.abs(dy)<0.8?targetY:curY+dy*0.18;
+     const nx=Math.round(window._cameraCurrentX),ny=Math.round(window._cameraCurrentY);
+     if(nx!==window._cameraWrittenX||ny!==window._cameraWrittenY){grid.scrollLeft=nx;grid.scrollTop=ny;window._cameraWrittenX=nx;window._cameraWrittenY=ny;}
+     window._cameraWrittenTargetX=tx;window._cameraWrittenTargetY=ty;
+    }
+   }else if(window._cameraCurrentX===null){window._cameraCurrentX=grid.scrollLeft;window._cameraCurrentY=grid.scrollTop;}
+   window._boardCameraLoopId=requestAnimationFrame(loop);};
+  window._boardCameraLoopId=requestAnimationFrame(loop);
+ };
+ // Hop without `void offsetWidth`: the forced reflow cost ~6ms per step. Same keyframes, WAAPI.
+ window.boardHopPawn=function(idx){const body=document.querySelector('#boardPawn_'+idx+' .pawn-body');
+  if(!body||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+  body.animate([{transform:'translateY(0) scale(1,1)'},{transform:'translateY(-3px) scale(1.14,.88)',offset:.26},{transform:'translateY(-15px) scale(.94,1.1)',offset:.56},{transform:'translateY(2px) scale(1.08,.92)',offset:.82},{transform:'translateY(0) scale(1,1)'}],{duration:360,easing:'cubic-bezier(.3,.9,.3,1.4)'});
+ };
+ // boardSyncView repaints all 100 cells at every turn end and _paintCell rewrites innerHTML
+ // (~42ms per pass). Only cells whose art/background inputs changed still need a repaint.
+ const refreshCell=window.boardRefreshCell,paintedCell=new Map();
+ window.boardRefreshCell=function(i){
+  const b=boardGame;const el=Number.isInteger(i)&&document.getElementById('bcell_'+i);
+  if(!b||!el)return refreshCell(i);
+  const s=b.matchId+'|'+(b.revealedCells[i]?1:0)+'|'+(b.trappedCells[i]?1:0)+'|'+((b.cellZones&&b.cellZones[i])||'')+'|'+window._boardTheme;
+  if(paintedCell.get(i)===s)return;
+  paintedCell.set(i,s);return refreshCell(i);
+ };
  window.boardRace={cleanup,checkWinner,pay,zone,get pendingTimers(){return timers.size;},get session(){return session;}};
  window.addEventListener('resize',()=>{if(document.getElementById('boardGameModal').classList.contains('active')){window.boardFitViewport?.();window.boardRenderPawns?.(true);window.boardFocusPawn?.(boardGame?.currentTurn);}});
 })();

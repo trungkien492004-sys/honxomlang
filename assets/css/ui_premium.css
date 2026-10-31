@@ -446,34 +446,41 @@ html.auth-pending body::after {
     linear-gradient(165deg, #1d0b46, #070512 82%);
   background-size: 130px 130px, 96px 96px, 74px 74px, 100% 100%, 100% 100%;
 }
-.tutien-sigil {
+.mode-scene {
   position: absolute;
   inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+.tutien-sigil {
+  position: absolute;
+  inset: 34% 0 -12% 0;
   z-index: 2;
   display: grid;
   place-items: center;
 }
 .tutien-sigil > span {
-  font-size: 72px;
+  font-size: 78px;
   line-height: 1;
-  filter: drop-shadow(0 0 26px rgba(168, 85, 247, .85));
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .6)) drop-shadow(0 0 22px rgba(168, 85, 247, .8));
   animation: tutienFloat 5.5s ease-in-out infinite;
 }
 .tutien-sigil::before {
   content: "";
   position: absolute;
-  width: 176px;
-  height: 176px;
-  border: 1px solid rgba(192, 132, 252, .35);
+  width: 126px;
+  height: 126px;
+  border: 1px solid rgba(192, 132, 252, .4);
   border-radius: 50%;
-  box-shadow: inset 0 0 50px rgba(109, 40, 217, .5);
+  box-shadow: inset 0 0 40px rgba(109, 40, 217, .55);
 }
 .tutien-sigil::after {
   content: "";
   position: absolute;
-  width: 222px;
-  height: 222px;
-  border: 1px dashed rgba(192, 132, 252, .3);
+  width: 164px;
+  height: 164px;
+  border: 1px dashed rgba(192, 132, 252, .34);
   border-radius: 50%;
   animation: tutienSpin 20s linear infinite;
 }
@@ -499,32 +506,32 @@ html.auth-pending body::after {
 }
 .vanphap-sigil {
   position: absolute;
-  inset: 0;
+  inset: 34% 0 -12% 0;
   z-index: 2;
   display: grid;
   place-items: center;
 }
 .vanphap-sigil > span {
-  font-size: 66px;
+  font-size: 74px;
   line-height: 1;
-  filter: drop-shadow(0 0 24px rgba(242, 176, 42, .8));
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .6)) drop-shadow(0 0 22px rgba(242, 176, 42, .8));
   animation: tutienFloat 5.5s ease-in-out infinite;
 }
 .vanphap-sigil::before {
   content: "";
   position: absolute;
-  width: 168px;
-  height: 168px;
-  border: 1px solid rgba(242, 176, 42, .38);
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(242, 176, 42, .45);
   border-radius: 50%;
-  box-shadow: inset 0 0 46px rgba(154, 90, 10, .5);
+  box-shadow: inset 0 0 38px rgba(154, 90, 10, .55);
 }
 .vanphap-sigil::after {
   content: "";
   position: absolute;
-  width: 212px;
-  height: 212px;
-  border: 1px dashed rgba(242, 176, 42, .3);
+  width: 156px;
+  height: 156px;
+  border: 1px dashed rgba(242, 176, 42, .34);
   border-radius: 50%;
   animation: tutienSpin 26s linear infinite;
 }
@@ -585,12 +592,12 @@ html.auth-pending body::after {
   .mode-portrait { width: 96px; height: 112px; }
   .mode-char { width: 86px; height: 108px; }
   .mode-char:nth-of-type(2) { height: 118px; }
-  .tutien-sigil > span { font-size: 54px; }
-  .tutien-sigil::before { width: 120px; height: 120px; }
-  .tutien-sigil::after { width: 150px; height: 150px; }
-  .vanphap-sigil > span { font-size: 50px; }
-  .vanphap-sigil::before { width: 116px; height: 116px; }
-  .vanphap-sigil::after { width: 146px; height: 146px; }
+  .tutien-sigil > span { font-size: 46px; }
+  .tutien-sigil::before { width: 76px; height: 76px; }
+  .tutien-sigil::after { width: 96px; height: 96px; }
+  .vanphap-sigil > span { font-size: 44px; }
+  .vanphap-sigil::before { width: 72px; height: 72px; }
+  .vanphap-sigil::after { width: 92px; height: 92px; }
   .mode-body { padding: 12px 14px 14px; gap: 8px; }
   .mode-body h2 { font-size: 19px; }
   .mode-body p { font-size: 12.5px; }

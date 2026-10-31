@@ -49,6 +49,30 @@ How to change the board:
 5. If a request seems to require the old appearance, confirm with the user
    first — do not silently revert.
 
+## BOARD FRAME RATE — PERF INVARIANTS
+
+Measured on 2026-11-01: the board ran at ~27 fps while idle (77% of the main
+thread busy) purely because of these two things. Do not reintroduce them.
+
+- Never put a `filter` (e.g. `drop-shadow`) on an ancestor of an element that
+  has a running CSS animation. That disables compositing and repaints the whole
+  subtree every frame. The 98 animated `.cell-q` mystery glyphs did exactly this
+  through `.cell-badge { filter: drop-shadow(...) }`; the shadow now lives in a
+  `text-shadow` on `.cell-badge:has(.cell-q)` in `board_upgrade.css`.
+- The camera rAF loop (`window.boardStartCameraLoop`, overridden in
+  `board_upgrade.js`) must not read or write `grid.scrollLeft/scrollTop/scrollWidth`
+  on frames where the camera is parked. Reading flushes layout for the whole map;
+  it currently writes only while panning and learns about user drags from `scroll`
+  events. Do not turn it back into an unconditional per-frame scroll write, and do
+  not restore `void offsetWidth` reflows (`boardHopPawn`, `boardFxShake`).
+- `window.boardRefreshCell` is memoised in `board_upgrade.js`: it skips repaints
+  when a cell's revealed/trapped/zone/theme inputs are unchanged. If you add
+  anything that changes a cell's appearance, add it to that signature or the board
+  will render stale art.
+
+Check with `node scripts/test-race.cjs` plus a frame sample (rAF deltas over an
+idle 3s window: p50 should stay near 16 ms, not 35 ms).
+
 ## TUTIEN GAME — DO NOT DELETE
 
 `Tu Tiên Kỷ Nguyên` is a playable game mode of this site, not scratch work.
@@ -71,6 +95,48 @@ Entry points:
 Build rule: `scripts/build-public.js` wipes `dist/` and copies a **fixed
 list** of root HTML files plus `assets/`. If another root page is added to the
 site, add it to that list; never let a page live only in `dist/`.
+
+Mirror rule: `tutien.html` executes `assets/tutien/js/tutien_bundle.js`, not
+`renderer.js`. These 15 `GameRenderer` methods — `updateCamera`, `render`,
+`renderMap`, `_hash`, `_mapTheme`, `_drawRoads`, `_drawCityLot`,
+`_drawForestLot`, `_drawArenaLot`, `_drawTower`, `_drawPagoda`, `_drawPond`,
+`_drawSpiritTree`, `_drawArenaRing`, `_vis` — are a line-for-line mirror in both
+files (identical code; only comments/blank lines differ). Editing only
+`renderer.js` changes nothing on the live page. If you change the world
+renderer, change both and re-compare the method bodies.
+
+World-render invariants (`renderer.js` / `tutien_bundle.js` `GameRenderer`):
+
+- Decor must stay deterministic: positions come from `_hash()` (`Math.imul`),
+  never `Math.random()` — random decor shimmers every frame.
+- Per-map palettes live in `_mapTheme()` as `r,g,b` strings for `rgba()`; the
+  map key for cached decor is `this._decoKey = id + ':' + w + 'x' + h`.
+- `_drawRoads` / the `crowded` + `onRoad` predicates keep decor out of the spawn,
+  NPC, portal and road lanes. If you add a map or move a portal, update them.
+- `updateCamera` clamps to the map and centres a map smaller than the viewport.
+  Do not drop the clamp; the arena map is intentionally smaller than the canvas.
+
+## LOBBY CARD ART — LOCKED
+
+The two placeholder-free lobby cards (`Tu Tiên Kỷ Nguyên`, `Vạn Pháp Đạo Tràng`)
+draw inline `<svg class="mode-scene" viewBox="0 0 320 208"
+preserveAspectRatio="xMidYMax slice">` scenes in `index.html`, styled by
+`.mode-scene` in `assets/css/ui_premium.css`.
+
+- Stacking inside `.mode-art` is: `::after` bottom fade (auto) < `.mode-scene`
+  (z-index 1) < `.tutien-sigil`/`.vanphap-sigil` (2) < `.mode-chip` (4). The
+  scene therefore paints *over* the fade and must carry its own dark base —
+  the sky gradient ends at `#060b18` and the art keeps its weight in the upper
+  60% of the band so the title row below stays readable.
+- Skyline silhouettes use value contrast against the sky (`#1a2450` far /
+  `#0a1226` near) with `#f2c86e` + `#3ee6ff` windows. Do not recolour them to
+  values close to the sky gradient — that is what made the cards look blank.
+- The `.tutien-sigil` / `.vanphap-sigil` emoji rings are positioned
+  `inset:34% 0 -12% 0` on top of the scene and are clipped by `.mode-art`.
+  Keep the closing `</span>` on both; the emoji span is nested.
+- `tutien.html`'s `#auth-screen` reuses the same night-city banner and the site's
+  teal/gold card + school-card styling. Entry screens for any new game should
+  match, not return to a flat black form.
 
 ## VAN PHAP GAME — DO NOT DELETE
 
