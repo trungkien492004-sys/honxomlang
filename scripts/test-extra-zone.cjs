@@ -8,6 +8,7 @@ const server=http.createServer((q,r)=>{const u=new URL(q.url,'http://local'),f=p
   p.on('pageerror',e=>errors.push(e.message));
   await p.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
   await p.setViewport({width:1366,height:768});
+  await p.evaluateOnNewDocument(()=>{try{localStorage.setItem('rank-promo-dismissed','1');sessionStorage.setItem('rank-promo-dismissed','1');}catch{}});
   await p.goto((process.env.DUEL_BASE_URL||`http://127.0.0.1:${server.address().port}`)+'/memecard.html');
   await p.waitForFunction(()=>window.memeAnime?.chooseMany);
   fs.mkdirSync(out,{recursive:true});

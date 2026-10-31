@@ -796,9 +796,17 @@
     };
   }
 
+  let autoPromoTries = 0;
   function tryAutoPromo() {
     try {
       if (sessionStorage.getItem('rank-promo-dismissed') || localStorage.getItem('rank-promo-dismissed')) return;
+      // Only advertise inside the duel lobby; on the landing page it popped over the login gate.
+      if (!document.getElementById('lobby')) return;
+      if (window.memeAccess && window.memeAccess.allowed === false) return;
+      if (document.documentElement.classList.contains('auth-pending') || document.getElementById('siteAuthGate')?.hidden === false) {
+        if (autoPromoTries++ < 10) setTimeout(tryAutoPromo, 600);
+        return;
+      }
       if (document.getElementById('duel') && !document.getElementById('duel').classList.contains('hidden')) return;
       showRankPromo();
     } catch {}

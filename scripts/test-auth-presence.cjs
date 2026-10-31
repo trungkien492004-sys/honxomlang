@@ -33,26 +33,46 @@ const browserPath = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
       };
     });
     await page.addScriptTag({ path: path.join(root, 'assets/js/site_access.js') });
-    assert.equal(await page.$eval('#loginScreen', node => getComputedStyle(node).visibility), 'hidden');
+    const gateState = () => page.evaluate(() => ({
+      hidden: document.getElementById('siteAuthGate').hidden,
+      pending: document.documentElement.classList.contains('auth-pending'),
+      active: document.querySelector('.screen.active')?.id,
+      status: document.getElementById('siteAuthStatus').textContent.trim()
+    }));
+    assert.deepEqual(await gateState(), { hidden: true, pending: true, active: 'loginScreen', status: 'Đang khôi phục đăng nhập…' });
     await page.evaluate(() => siteIdentity.set(null, true));
-    assert.equal(await page.$eval('#siteAuthGate', node => node.hidden), false);
-    assert.equal(await page.$eval('#loginScreen', node => getComputedStyle(node).visibility), 'hidden');
-    await page.evaluate(() => {
-      const user = { uid: 'login-test', displayName: 'Người chơi' };
-      siteIdentity.set(user, true);
-      currentFirebaseUser = user;
-      switchScreen('gameModeScreen');
-    });
-    assert.equal(await page.$eval('#siteAuthGate', node => node.hidden), false);
-    assert.equal(await page.$eval('#gameModeScreen', node => getComputedStyle(node).visibility), 'hidden');
+    assert.equal((await gateState()).hidden, true, 'Identity alone must not reveal the gate before the legacy Firebase bootstrap finishes');
     await page.evaluate(() => {
       window._legacyAuthReady = true;
       window.dispatchEvent(new Event('legacy-auth-ready'));
     });
-    assert.equal(await page.$eval('#siteAuthGate', node => node.hidden), true);
-    assert.equal(await page.$eval('#gameModeScreen', node => getComputedStyle(node).visibility), 'visible');
-    assert.equal(await page.$eval('.screen.active', node => node.id), 'gameModeScreen');
-    checks.push('login stays behind one stable gate until Firebase restores the account and finishes lobby initialization');
+    assert.deepEqual(await gateState(), { hidden: false, pending: true, active: 'loginScreen', status: 'Đăng nhập Google để vào game.' });
+    checks.push('Boot splash covers the legacy login screen until Firebase confirms the visitor is logged out, then one stable gate appears');
+
+    await page.evaluate(() => {
+      const user = { uid: 'login-test', displayName: 'Người chơi' };
+      window._legacyAuthReady = false;
+      window.currentFirebaseUser = user;
+      siteIdentity.set(user, true);
+      switchScreen('gameModeScreen');
+    });
+    assert.equal((await gateState()).hidden, true, 'A signed-in account must stay behind the splash until initUserSession routes to the lobby');
+    await page.evaluate(() => {
+      window._legacyAuthReady = true;
+      window.dispatchEvent(new Event('legacy-auth-ready'));
+    });
+    assert.deepEqual(await gateState(), { hidden: true, pending: false, active: 'gameModeScreen', status: 'Đăng nhập Google để vào game.' });
+    checks.push('Signing in reveals the lobby directly, never a flash of #loginScreen');
+
+    await page.evaluate(() => {
+      window.currentFirebaseUser = null;
+      siteIdentity.set(null, true);
+      switchScreen('loginScreen');
+    });
+    assert.equal((await gateState()).hidden, false, 'Signing out returns to the gate');
+    await page.click('#siteGuestContinue');
+    assert.deepEqual(await gateState(), { hidden: true, pending: false, active: 'gameModeScreen', status: 'Đăng nhập Google để vào game.' });
+    checks.push('Guest play skips the duplicated legacy login screen and enters the lobby');
 
     const identityPage = await browser.newPage();
     identityPage.on('pageerror', error => errors.push(error.message));
@@ -119,25 +139,31 @@ const browserPath = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
         { uid: 'alice', name: 'Alice', online: true, lastSeen: Date.now() },
         { uid: 'bob', name: 'Bob', online: false, lastSeen: Date.now() }
       ];
-      window.__notifyPresence = null;
-      window.__store = { collection() { return { orderBy() { return { limit() { return {
-        async get() { return { docs: window.__players.map(player => ({ id: player.uid, data: () => player })) }; },
-        onSnapshot(callback) { window.__notifyPresence = callback; callback({ docs: window.__players.map(player => ({ id: player.uid, data: () => player })) }); return () => {}; }
+      window.__notifyDirectory = null;
+      window.__notifyRanked = null;
+      const rowsFor = name => window.__players.map(player => ({
+        id: player.uid,
+        data: () => name === 'duel_directory' ? player : { uid: player.uid, name: player.name, rating: 1000 }
+      }));
+      window.__store = { collection(name) { return { orderBy() { return { limit() { return {
+        async get() { return { docs: rowsFor(name) }; },
+        onSnapshot(callback) {
+          if (name === 'duel_directory') window.__notifyDirectory = callback;
+          else window.__notifyRanked = callback;
+          callback({ docs: rowsFor(name) }); return () => {};
+        }
       }; } }; } }; } };
     });
     await rankPage.addScriptTag({ path: path.join(root, 'assets/js/site_rank_players.js') });
-    await rankPage.evaluate(() => siteRankPlayers.render(__store, document.getElementById('rankOverlay'), { docs: [] }));
+    await rankPage.evaluate(() => siteRankPlayers.render(__store, document.getElementById('rankOverlay'), { docs: [] }, __store.collection('rank_profiles').orderBy('rating', 'desc').limit(100)));
     assert.match(await rankPage.$eval('#rankRows', node => node.textContent), /Online.*Alice/s);
     assert.match(await rankPage.$eval('#rankRows', node => node.textContent), /Offline.*Bob/s);
-    await rankPage.click('[data-player-uid="alice"]');
-    assert.match(await rankPage.$eval('#rankOpponentPresence', node => node.textContent), /Đang online/);
     await rankPage.evaluate(() => {
       __players[1] = { ...__players[1], online: true, lastSeen: Date.now() };
-      __notifyPresence({ docs: __players.map(player => ({ id: player.uid, data: () => player })) });
+      __notifyDirectory({ docs: __players.map(player => ({ id: player.uid, data: () => player })) });
     });
-    assert.match(await rankPage.$eval('[data-presence-uid="bob"]', node => node.textContent), /Online/);
-    await rankPage.click('[data-player-uid="bob"]');
-    await rankPage.click('#rankChallenge');
+    await rankPage.waitForFunction(() => /Online\s*Bob/.test(document.getElementById('rankRows').textContent));
+    await rankPage.click('[data-challenge-uid="bob"]');
     await rankPage.waitForFunction(() => window.__closed === true);
     assert.equal(await rankPage.evaluate(() => window.__challenged), 'bob');
     checks.push('rank board labels online/offline players and live-updates presence before challenge');
