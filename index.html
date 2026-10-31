@@ -33,6 +33,21 @@
             }
             box.innerHTML = '<span>' + errText + '</span> <button onclick="this.parentNode.remove()" style="margin-left:12px; padding:3px 10px; background:#fff; color:#000; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">Đóng</button>';
         };
+        window.openTuTienGame = function() {
+            var modal = document.getElementById('tutienGameModal');
+            var frame = document.getElementById('tutienFrame');
+            if (!modal || !frame) { window.location.href = 'tutien.html'; return; }
+            modal.style.display = 'block';
+            if (!frame.src || !frame.src.includes('tutien.html')) frame.src = 'tutien.html?v=' + Date.now();
+        };
+        window.closeTuTienGame = function() {
+            var modal = document.getElementById('tutienGameModal');
+            if (modal) modal.style.display = 'none';
+            if (typeof window.switchScreen === 'function') window.switchScreen('gameModeScreen');
+        };
+        window.addEventListener('message', function(e) {
+            if (e && e.data && e.data.type === 'CLOSE_TUTIEN') window.closeTuTienGame();
+        });
         window.onunhandledrejection = function(event) {
             var reason = event.reason ? (event.reason.message || event.reason) : 'Promise Error';
             window.onerror(reason, 'async', 0, 0, event.reason);
@@ -61,7 +76,7 @@
         <div class="title-container mode-hero">
             <span class="mode-kicker">ANIME DUEL · 60 GIÂY MỖI LƯỢT</span>
             <h1>Chọn Đấu Trường</h1>
-            <p>Đấu bài chiến thuật hoặc cờ đua sinh tồn</p>
+            <p>Đấu bài, cờ đua sinh tồn hoặc tu tiên thế giới mở</p>
         </div>
         <div class="mode-grid">
             <article class="mode-card mode-card--duel" role="button" tabindex="0" aria-label="Vào đấu bài Yu-Gi-Oh DM / GX"
@@ -102,6 +117,24 @@
                         <li>ĐUA CÙNG MÁY</li>
                     </ul>
                     <span class="mode-cta">Vào cờ đua <b aria-hidden="true">🎲</b></span>
+                </div>
+            </article>
+            <article class="mode-card mode-card--tutien" role="button" tabindex="0" aria-label="Vào Tu Tiên Kỷ Nguyên Hiện Đại"
+                onclick="window.openTuTienGame()"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openTuTienGame()}">
+                <div class="mode-art mode-art--tutien">
+                    <span class="mode-chip">THẾ GIỚI MỞ</span>
+                    <span class="tutien-sigil" aria-hidden="true"><span>🌌</span></span>
+                </div>
+                <div class="mode-body">
+                    <h2>Tu Tiên Kỷ Nguyên</h2>
+                    <p>Đô thị tiên hiệp thế giới mở. Thức tỉnh linh căn, đả tọa, độ lôi kiếp và săn quái.</p>
+                    <ul class="mode-tags">
+                        <li>LINH CĂN · CẢNH GIỚI</li>
+                        <li>ĐẢ TỌA · LÔI KIẾP</li>
+                        <li>PVE &amp; PVP ELO</li>
+                    </ul>
+                    <span class="mode-cta">Vào Tu Tiên <b aria-hidden="true">🌌</b></span>
                 </div>
             </article>
         </div>
@@ -1381,6 +1414,12 @@
         </div>
         <!-- ===== END MEME CARD GAME MODAL ===== -->
 
+        <!-- ===== 🌌 TU TIÊN KỶ NGUYÊN MODAL ===== -->
+        <div id="tutienGameModal" style="display:none; position:fixed; inset:0; background:#0a0c14; z-index:100000; width:100%; height:100dvh; overflow:hidden;">
+            <iframe id="tutienFrame" src="about:blank" title="Tu Tiên Kỷ Nguyên" style="width:100%; height:100%; border:none; display:block;"></iframe>
+        </div>
+        <!-- ===== END TU TIÊN MODAL ===== -->
+
         <!-- ===== FULLSCREEN MENU POPUP ===== -->
         <div id="mainMenuPopup" style="display:none; position:fixed; inset:0; background:rgba(26,15,10,0.95); z-index:99998; justify-content:center; align-items:center; flex-direction:column; padding:20px; font-family:'Baloo 2', sans-serif;">
             <div style="background:#2d1810; border:4px solid #d4af37; border-radius:16px; width:min(90vw, 400px); max-height:85vh; display:flex; flex-direction:column; box-shadow:0 0 30px rgba(0,0,0,0.9); padding:20px;" class="rpg-popup-box">
@@ -1399,6 +1438,7 @@
                     <button class="menu-popup-btn" onclick="window.menuAction('board')">🏁 Cờ Đua</button>
                     <button class="menu-popup-btn" onclick="window.menuAction('yugioh')" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); border-color:#d4af37;">🃏 Bài Ma Thuật</button>
                     <button class="menu-popup-btn" onclick="window.menuAction('memecard')" style="background:linear-gradient(135deg, #15803d, #14532d); border-color:#4ade80;">🐸 Yu-Gi-Oh!</button>
+                    <button class="menu-popup-btn" onclick="window.toggleMainMenu(); window.openTuTienGame()" style="background:linear-gradient(135deg, #7c3aed, #4c1d95); border-color:#c084fc;">🌌 Tu Tiên</button>
                     <button class="menu-popup-btn" onclick="window.menuAction('bet')">🏟️ Cược Bóng</button>
                 </div>
                 
@@ -1452,7 +1492,7 @@
     <script src="assets/js/memecard.js?v=20261027-silent-fix3"></script>
     <script src="assets/js/game.js?v=16"></script>
     <link rel="stylesheet" href="assets/css/site_rank.css?v=20261031-boot1">
-    <link rel="stylesheet" href="assets/css/ui_premium.css?v=20261031-ui1">
+    <link rel="stylesheet" href="assets/css/ui_premium.css?v=20261031-tutien1">
     <script src="assets/js/site_rank_config.js?v=20261026-access-rank1"></script>
     <script src="assets/js/site_identity.js?v=20261026-rank-presence1"></script>
     <script src="assets/js/site_access.js?v=20261031-ui1"></script>

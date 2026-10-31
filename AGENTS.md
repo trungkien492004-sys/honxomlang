@@ -49,6 +49,29 @@ How to change the board:
 5. If a request seems to require the old appearance, confirm with the user
    first — do not silently revert.
 
+## TUTIEN GAME — DO NOT DELETE
+
+`Tu Tiên Kỷ Nguyên` is a playable game mode of this site, not scratch work.
+It was once lost because it only existed inside `dist/` and a rebuild wiped it.
+
+Owned files (keep them in the repo, never in `dist/` only):
+
+- `tutien.html`
+- `assets/tutien/css/style.css`, `assets/tutien/css/animations.css`
+- `assets/tutien/js/tutien_bundle.js` (the active entry), plus
+  `tutien_engine.js`, `renderer.js`, `audio.js`
+
+Entry points:
+
+- Mode card `Tu Tiên Kỷ Nguyên` in `#gameModeScreen` (index.html).
+- `window.openTuTienGame()` / `window.closeTuTienGame()` and the
+  `#tutienGameModal` iframe, plus the `🌌 Tu Tiên` menu button.
+- The game posts `{type:'CLOSE_TUTIEN'}` to the parent to leave the iframe.
+
+Build rule: `scripts/build-public.js` wipes `dist/` and copies a **fixed
+list** of root HTML files plus `assets/`. If another root page is added to the
+site, add it to that list; never let a page live only in `dist/`.
+
 ## Concurrent sessions
 
 Multiple agents/sessions share this checkout. Before staging or committing:

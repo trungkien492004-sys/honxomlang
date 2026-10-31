@@ -8,7 +8,7 @@ try {
   fs.rmSync(out, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 } catch (e) {}
 fs.mkdirSync(out, { recursive: true });
-for (const file of ['index.html', 'memecard.html']) {
+for (const file of ['index.html', 'memecard.html', 'tutien.html']) {
   fs.copyFileSync(path.join(root, file), path.join(out, file));
 }
 fs.cpSync(path.join(root, 'assets'), path.join(out, 'assets'), { recursive: true });
