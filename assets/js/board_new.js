@@ -732,22 +732,6 @@ window.boardCardIcon = function(card) {
     return card && card.type === 'monster' ? '👾' : card && card.type === 'equip' ? '🛡️' : card && card.type === 'trap' ? '💣' : '🌪️';
 };
 
-window.boardCardFaceHtml = function(card, result) {
-    const badgeClass = `badge-${card.rarity}`;
-    const art = window.boardCardArtUrl(card);
-    return `<div class="drawn-card card-3d-flip ${card.type}-card">
-        <span class="card-rarity-badge ${badgeClass}">${_boardEsc((card.rarity || '').toUpperCase())}</span>
-        <div class="drawn-card-main">
-            <div class="drawn-card-art" style="background-image:url('${art}')"></div>
-            <div class="drawn-card-info">
-                <div class="drawn-card-name">${window.boardCardIcon(card)} ${_boardEsc(card.name)}</div>
-                <div class="drawn-card-desc">${_boardEsc(card.desc)}</div>
-                <div class="drawn-card-result">👉 ${_boardEsc(result)}</div>
-            </div>
-        </div>
-    </div>`;
-};
-
 window.boardCardNoticeBody = function(card, reason) {
     const art = window.boardCardArtUrl(card);
     return `<div class="notice-card">
@@ -842,8 +826,6 @@ window.boardDrawRandomCard = function(p, reason, callback) {
     const result = applied.result;
     if (!applied.fx) boardPlayCardEventFx(card, p, result);
 
-    const display = document.getElementById('boardCardDisplay');
-    if (display) display.innerHTML = window.boardCardFaceHtml(card, result);
     boardAddLog(`🃏 ${p.name} lật [${card.name}]: ${result}`, 'card');
 
     window.boardShowBigNotice(
@@ -2815,7 +2797,6 @@ window.boardBroadcastState = function(kind) {
             hostId: getMyNetworkId(),
             targetIds: boardGame.players.map(p => p.networkId).filter(Boolean),
             boardGame: JSON.parse(JSON.stringify(boardGame)),
-            cardHtml: document.getElementById('boardCardDisplay')?.innerHTML || '',
             diceText: document.getElementById('diceResultText')?.textContent || ''
         });
     }
@@ -2830,7 +2811,6 @@ window.boardApplyNetworkState = function(msg) {
     });
     boardGame.isRolling = false;
     document.getElementById('boardGameModal').classList.add('active');
-    if(msg.cardHtml) document.getElementById('boardCardDisplay').innerHTML = msg.cardHtml;
     if(msg.diceText) document.getElementById('diceResultText').textContent = msg.diceText;
     if (typeof window.boardSyncView === 'function') window.boardSyncView();
     else { window.boardRenderGrid(); window.boardRenderPlayers(); window.boardUpdateRollBtn(); }
@@ -3778,8 +3758,7 @@ window.boardPushOnlineState = function() {
             lastActionBy: window.boardOnlineRole,
             boardState: JSON.parse(JSON.stringify(boardGame)),
             diceText: document.getElementById('diceResultText')?.textContent || '',
-            diceEmoji: document.getElementById('diceDisplay')?.textContent || '',
-            cardHtml: document.getElementById('boardCardDisplay')?.innerHTML || ''
+            diceEmoji: document.getElementById('diceDisplay')?.textContent || ''
         });
     }
 };
@@ -3798,7 +3777,6 @@ window.boardSyncOnlineState = function(room) {
 
     if (room.diceText) document.getElementById('diceResultText').textContent = room.diceText;
     if (room.diceEmoji) document.getElementById('diceDisplay').textContent = room.diceEmoji;
-    if (room.cardHtml) document.getElementById('boardCardDisplay').innerHTML = room.cardHtml;
 
     if (typeof window.boardSyncView === 'function') window.boardSyncView();
     else { boardRenderGrid(); boardRenderPlayers(); boardUpdateRollBtn(); }

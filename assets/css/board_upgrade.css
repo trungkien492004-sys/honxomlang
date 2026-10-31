@@ -366,18 +366,8 @@
   box-shadow:0 2px 0 #17262b!important;
   text-shadow:none;
 }
-#boardGameModal .card-panel{flex-shrink:0;max-height:178px;overflow:auto}
-#boardGameModal .board-card-display{padding:2px!important;min-height:36px!important}
-#boardGameModal .drawn-card{
-  background:linear-gradient(160deg,#fff8e2,#e1ca97)!important;
-  border:2px solid #b28d4e!important;
-  border-radius:11px!important;
-  padding:7px!important;
-  box-shadow:0 4px 12px #0008!important;
-  color:#22343a!important;
-}
-#boardGameModal .drawn-card div{color:#2a3a3c!important}
-#boardGameModal .drawn-card div:last-child{color:#7a5100!important;font-weight:800}
+/* Thẻ vừa rút chỉ hiện trong bảng thông báo lớn có hình. */
+#boardGameModal .card-panel{display:none!important}
 #boardGameModal .log-panel{flex:1;display:flex;flex-direction:column;min-height:65px}
 #boardGameModal .board-log{
   flex:1;
@@ -627,8 +617,6 @@
   #boardGameModal .dice-panel .dice-face{font-size:34px!important}
   #boardGameModal .dice-panel .dice-result-text{font-size:9px!important;text-align:center}
   #boardGameModal .dice-panel .roll-btn{font-size:10px!important;width:100%;padding:6px!important}
-  #boardGameModal .card-panel{max-height:132px}
-  #boardGameModal .drawn-card>div{font-size:10px!important;margin:2px 0!important}
   #boardGameModal .board-log{font-size:9px}
   #boardGameModal .board-log p{padding:3px 5px;margin-bottom:3px}
   #boardGameModal .board-bottom-dashboard{
@@ -664,10 +652,7 @@
   }
   #boardGameModal .dice-panel{grid-column:1;grid-row:1/3;justify-content:center}
   #boardGameModal .dice-panel .dice-face{font-size:30px!important}
-  #boardGameModal .card-panel{grid-column:2;grid-row:1;max-height:none;padding:5px!important}
-  #boardGameModal .log-panel{grid-column:2;grid-row:2;min-height:0}
-  #boardGameModal .card-panel .overlay-panel-title{display:none}
-  #boardGameModal .drawn-card>div{font-size:9px!important;margin:1px!important;padding:0!important}
+  #boardGameModal .log-panel{grid-column:2;grid-row:1/3;min-height:0}
   #boardGameModal .board-log p{font-size:8px!important;margin:2px 0}
   #boardGameModal .board-bottom-dashboard{grid-row:4}
   #boardGameModal .char-card{height:62px!important}
@@ -687,7 +672,6 @@
   #boardGameModal .char-card{height:44px!important}
   #boardGameModal .board-status-strip{gap:8px}
   #boardGameModal .status-strip-item{font-size:8px!important}
-  #boardGameModal .card-panel{display:none}
   #boardGameModal .dice-panel{display:grid;grid-template-columns:40px 1fr;gap:3px}
   #boardGameModal .dice-panel .dice-face{font-size:32px!important}
   #boardGameModal .log-panel{min-height:30px}
@@ -768,24 +752,6 @@
 @keyframes boardFlashFade{0%{opacity:1}100%{opacity:0}}
 #boardGameModal .board-fx-confetti{position:fixed;top:-14px;width:9px;height:14px;border-radius:2px;z-index:100004;pointer-events:none;animation:boardConfettiFall linear forwards}
 @keyframes boardConfettiFall{0%{opacity:0;transform:translateY(0) rotate(0)}10%{opacity:1}100%{opacity:.9;transform:translateY(102vh) rotate(var(--rot))}}
-
-/* ── Thẻ bài: mặt thẻ có hình ─────────────────────────────── */
-#boardGameModal .drawn-card{position:relative;overflow:hidden}
-#boardGameModal .drawn-card-main{display:flex;gap:8px;align-items:center}
-#boardGameModal .drawn-card-art{
-  flex:0 0 62px;
-  width:62px;
-  height:62px;
-  border-radius:9px;
-  background-size:cover;
-  background-position:center;
-  box-shadow:inset 0 0 0 2px #ffffff55,0 2px 6px #0004;
-}
-#boardGameModal .drawn-card-info{min-width:0;flex:1;text-align:left}
-#boardGameModal .drawn-card-name{font-size:.95rem!important;font-weight:900;color:#22343a!important;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:34px}
-#boardGameModal .drawn-card-desc{font-size:.74rem!important;color:#4a5a5c!important;line-height:1.25}
-#boardGameModal .drawn-card-result{font-size:.72rem!important;color:#7a5100!important;font-weight:800;margin-top:2px}
-#boardGameModal .drawn-card .card-rarity-badge{position:absolute;top:5px;right:5px;font-size:8px;padding:1px 5px;border-radius:6px}
 
 /* ── Bài trên tay: lưới thẻ có hình ───────────────────────── */
 .board-hand-modal{position:fixed;inset:0;z-index:100025;display:flex;align-items:center;justify-content:center;background:rgba(4,10,14,.78);backdrop-filter:blur(3px);padding:12px}
@@ -877,14 +843,8 @@
 @media(max-width:750px){
   #boardGameModal .hand-grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
   #boardGameModal .hand-card-art{height:70px}
-  #boardGameModal .drawn-card-art{flex-basis:52px;width:52px;height:52px}
-  #boardGameModal .drawn-card-name{font-size:.82rem!important}
-  #boardGameModal .drawn-card-desc{font-size:.66rem!important}
-  #boardGameModal .drawn-card-result{font-size:.64rem!important}
 }
 @media(max-width:550px){
   #boardGameModal .hand-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   #boardGameModal .hand-card-art{height:64px}
-  #boardGameModal .drawn-card-art{flex-basis:44px;width:44px;height:44px}
-  #boardGameModal .drawn-card-desc{display:none}
 }
