@@ -22,10 +22,12 @@ try{
   buttons:[...document.querySelectorAll('.journey-start')].map(n=>({text:n.textContent,disabled:n.disabled})),
   rewards:document.querySelector('.journey-rewards').textContent
  }));
- assert.deepEqual(story.tabs,['📖 Chặng truyện','🗼 Tháp 10 tầng','🎲 Đấu cược']);
+ assert.deepEqual(story.tabs,['📖 Chặng truyện','🗼 Tháp 10 tầng','🎯 Truy nã','🎲 Đấu cược']);
  assert.equal(story.rows,6,'six story chapters');
  assert.equal(story.statuses[0],'⚔️ Sẵn sàng');assert.match(story.statuses[1],/Khóa/);assert.equal(story.buttons[1].disabled,true);
  assert.match(story.rewards,/\+300 Xu/);
+ const hudBadge=await page.evaluate(()=>{const b=$('journeyBtn').querySelector('.ticket-badge');return {text:b?.textContent,hidden:b?.hidden};});
+ assert.ok(Number(hudBadge.text)>=1,'journey badge counts open activities');assert.equal(hudBadge.hidden,false);
  await page.screenshot({path:path.join(out,'journey-story-1366x768.png')});
 
  await page.click('[data-tab="tower"]');
@@ -37,6 +39,11 @@ try{
  const stake=await page.evaluate(()=>({cards:document.querySelectorAll('.stake-card').length,disabled:[...document.querySelectorAll('.stake-card')].map(n=>n.disabled)}));
  assert.equal(stake.cards,3);assert.deepEqual(stake.disabled,[true,true,true],'stake needs Xu');
  await page.screenshot({path:path.join(out,'journey-stake-1366x768.png')});
+
+ await page.click('[data-tab="bounty"]');
+ const bountyView=await page.evaluate(()=>({name:document.querySelector('.bounty-body b')?.textContent||'',preset:document.querySelector('.bounty-preset')?.textContent||'',state:document.querySelector('.bounty-state')?.textContent||'',reward:document.querySelector('.bounty-card .journey-rewards')?.textContent||'',disabled:$('bountyStart')?.disabled}));
+ assert.ok(bountyView.name,'the daily bounty names its target');assert.match(bountyView.preset,/Đối thủ:/);assert.match(bountyView.state,/Còn/);assert.ok(bountyView.reward.length>0);assert.equal(bountyView.disabled,false);
+ await page.screenshot({path:path.join(out,'journey-bounty-1366x768.png')});
  await page.click('#journeyClose');await page.waitForFunction(()=>$('modal').classList.contains('hidden'));
 
  await page.click('#journeyBtn');await page.waitForSelector('.journey-modal');
@@ -105,15 +112,39 @@ try{
  assert.equal(relaunched.duel,true,'Đấu lại relaunches the journey mode');assert.deepEqual(relaunched.pending,{kind:'story',id:'c1'});
  await boot();
 
+ const bountyStart=await page.evaluate(()=>{const started=memeJourney.startBounty();return {started,pending:memeJourney.pending,duel:!$('duel').classList.contains('hidden'),today:memePacks.dayKey()};});
+ assert.equal(bountyStart.started,true,'the daily bounty launches an unclaimed target');assert.equal(bountyStart.pending.kind,'bounty');assert.equal(bountyStart.pending.day,bountyStart.today);assert.equal(bountyStart.duel,true);
+ const bountyWin=await page.evaluate(()=>{const pick=()=>{const s=memeProgress.state;return {xu:s.xu,dust:s.dust,t:{...s.tickets}};};const before=pick();const result=memeJourney.onDuelFinished(true);const st=memeJourney.bountyState();return {before,after:pick(),result,done:st.done,day:st.day,today:memePacks.dayKey()};});
+ assert.match(bountyWin.result.title,/Truy nã hoàn thành/);assert.equal(bountyWin.done,true,'a bounty win marks today done');assert.equal(bountyWin.day,bountyWin.today);
+ const gained=(bountyWin.after.xu-bountyWin.before.xu)+(bountyWin.after.dust-bountyWin.before.dust)+['p1','p2','p3'].reduce((sum,k)=>sum+bountyWin.after.t[k]-bountyWin.before.t[k],0);
+ assert.ok(gained>0,'the first bounty win pays its reward');
+ const beforeReplay=await page.evaluate(()=>{const s=memeProgress.state;return {xu:s.xu,dust:s.dust,t:{...s.tickets},badge:$('journeyBtn').querySelector('.ticket-badge')?.textContent};});
+ const bountyReplay=await page.evaluate(()=>{const started=memeJourney.startBounty();return {started,pending:memeJourney.pending,settle:memeJourney.onDuelFinished(true)};});
+ assert.equal(bountyReplay.started,false,'a claimed bounty cannot relaunch today');assert.equal(bountyReplay.pending,null);assert.equal(bountyReplay.settle,null);
+ const afterReplay=await page.evaluate(()=>({xu:memeProgress.state.xu,dust:memeProgress.state.dust,t:{...memeProgress.state.tickets}}));
+ assert.deepEqual(afterReplay,{xu:beforeReplay.xu,dust:beforeReplay.dust,t:beforeReplay.t},'bounty replay pays nothing');
+ assert.ok(Number(beforeReplay.badge)>=0,'journey badge still renders');
+
+ await page.evaluate(()=>{const st=memeJourney.bountyState();st.day='2000-01-01';st.done=true;memeProgress.save();});
+ await boot();
+ const bountyRollover=await page.evaluate(()=>({done:memeJourney.bountyState().done,day:memeJourney.bountyState().day,today:memePacks.dayKey()}));
+ assert.equal(bountyRollover.done,false,'a new day resets the bounty');assert.equal(bountyRollover.day,bountyRollover.today);
+ await page.evaluate(()=>memeJourney.startBounty());
+ const bountyLoss=await page.evaluate(()=>{const s=memeProgress.state;const before={xu:s.xu,dust:s.dust};const result=memeJourney.onDuelFinished(false);return {before,after:{xu:memeProgress.state.xu,dust:memeProgress.state.dust},result,done:memeJourney.bountyState().done};});
+ assert.equal(bountyLoss.result.lost,true);assert.equal(bountyLoss.done,false,'a bounty loss keeps the target open');assert.deepEqual(bountyLoss.after,bountyLoss.before,'a bounty loss costs nothing');
+ await boot();
+
  await page.setViewport({width:390,height:844});
  await page.click('#journeyBtn');await page.waitForSelector('.journey-modal');
  const mobile=await page.evaluate(()=>{const c=document.querySelector('#modal .modal-card');return {width:c.getBoundingClientRect().width,overflow:getComputedStyle(c).overflowY};});
  assert.ok(mobile.width<=390);assert.equal(mobile.overflow,'auto');
  await page.screenshot({path:path.join(out,'journey-story-390x844.png')});
+ await page.click('[data-tab="bounty"]');
+ await page.screenshot({path:path.join(out,'journey-bounty-390x844.png')});
  await page.click('[data-tab="stake"]');
  await page.screenshot({path:path.join(out,'journey-stake-390x844.png')});
  await page.click('#journeyClose');await page.waitForFunction(()=>$('modal').classList.contains('hidden'));
 
  assert.deepEqual(errors,[],errors.join('\n'));
- console.log('P3: journey HUD button, six unlockable story chapters with first-clear rewards, ten tower floors with loss/replay rules, stake duels with up-front deduction and double payout, practice launch, result modal + rematch, persistence, mobile layout, no page errors.');
+ console.log('P3: journey HUD button and badge, six unlockable story chapters with first-clear rewards, ten tower floors with loss/replay rules, daily bounty with reset/replay/loss rules, stake duels with up-front deduction and double payout, practice launch, result modal + rematch, persistence, mobile layout, no page errors.');
 }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

@@ -28,6 +28,15 @@
   const STAKES = [100, 300, 600];
   const STAKE_PRESET = 'Kaiba · Phản công';
   const FALLBACK_PRESET = 'Yugi · Thần Osiris';
+  const BOUNTIES = [
+    { preset: 'Yugi · Thần Osiris', name: 'Thần Osiris Trên Cao', icon: '🐲', brief: 'Yugi triệu hồi Thần Osiris và ép sân từ đầu.', reward: { xu: 300, dust: 40 } },
+    { preset: 'Kaiba · Obelisk', name: 'Obelisk Giáng Lâm', icon: '🗿', brief: 'Kaiba dùng Obelisk nghiền nát mọi tuyến phòng thủ.', reward: { xu: 320, t: { p1: 1 } } },
+    { preset: 'Mai · Phản công', name: 'Bầy Harpie', icon: '🦅', brief: 'Mai phản công bằng Harpie và bẫy liên hoàn.', reward: { xu: 280, dust: 50 } },
+    { preset: 'Zane · Cyberdark', name: 'Cyberdark Nuốt Chửng', icon: '🤖', brief: 'Zane dùng Cyberdark cắn xé từng mục tiêu.', reward: { xu: 340, t: { p1: 1 } } },
+    { preset: 'Yusei · Phản công', name: 'Đồng Bộ Tốc Độ', icon: '⭐', brief: 'Yusei ép nhịp trận đấu bằng Synchro.', reward: { xu: 360, dust: 60 } },
+    { preset: 'Jaden · Neo-Spacian', name: 'Neo-Spacian', icon: '🌌', brief: 'Jaden gọi Neo-Spacian và lật ngược thế cờ.', reward: { xu: 380, t: { p2: 1 } } },
+    { preset: 'Pegasus · Phản công', name: 'Mắt Thiên Nga', icon: '🎭', brief: 'Pegasus phản công bằng Toon và Relinquished.', reward: { xu: 300, dust: 45 } }
+  ];
 
   const $id = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -54,6 +63,33 @@
     if (!st.tower.cleared || typeof st.tower.cleared !== 'object') st.tower.cleared = {};
     st.tower.floor = Math.min(10, Math.max(1, Math.floor(Number(st.tower.floor) || 1)));
     return st.tower;
+  }
+
+  function dayHash(key) {
+    let h = 0;
+    for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return h;
+  }
+
+  function bountyState() {
+    const st = storyState();
+    if (!st.bounty || typeof st.bounty !== 'object') st.bounty = {};
+    const day = PK.dayKey();
+    if (st.bounty.day !== day) st.bounty = { day, done: false };
+    return st.bounty;
+  }
+
+  function bountyToday() {
+    const day = PK.dayKey();
+    const index = dayHash(day) % BOUNTIES.length;
+    return { ...BOUNTIES[index], index, day };
+  }
+
+  function resetIn() {
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 24);
+    const mins = Math.max(0, Math.round((end - now) / 60000));
+    return `${Math.floor(mins / 60)} giờ ${String(mins % 60).padStart(2, '0')} phút`;
   }
 
   function chapterCleared(id) {
@@ -128,6 +164,19 @@
     return true;
   }
 
+  function startBounty() {
+    const bounty = bountyState();
+    if (bounty.done) {
+      window.showActionNotice?.('Hôm nay đã truy nã xong. Mục tiêu mới vào 00:00.', 'Truy nã');
+      return false;
+    }
+    if (!deckReady()) return false;
+    const today = bountyToday();
+    pending = { kind: 'bounty', day: today.day, index: today.index };
+    window.startGame({ customBotDeck: presetName(today.preset) });
+    return true;
+  }
+
   function onDuelFinished(won) {
     const job = pending;
     if (!job) return null;
@@ -168,8 +217,23 @@
         story.stake.losses += 1;
         result = { title: `🎲 Thua cược ${fmt(job.stake)} Xu`, lines: [`Đã trừ ${fmt(job.stake)} Xu khi vào trận.`], lost: true };
       }
+    } else if (job.kind === 'bounty') {
+      const target = BOUNTIES[job.index] || bountyToday();
+      const bounty = bountyState();
+      const live = bounty.day === job.day;
+      if (won && live && !bounty.done) {
+        bounty.done = true;
+        result = { title: '🎯 Truy nã hoàn thành!', lines: grant(target.reward), firstClear: true };
+      } else if (won && live) {
+        result = { title: '🎯 Truy nã hôm nay đã xong', lines: [`Mục tiêu ${target.name} đã bị hạ · mai có mục tiêu mới`] };
+      } else if (live) {
+        result = { title: '🎯 Truy nã thất bại', lines: ['Không mất gì · thử lại trước 00:00.'], lost: true };
+      } else {
+        result = { title: '🎯 Hết ngày truy nã', lines: ['Mục tiêu mới đã xuất hiện · mở Hành trình để nhận.'], lost: true };
+      }
     }
     P.save();
+    refreshBadge();
     return result;
   }
 
@@ -177,6 +241,13 @@
     if (!job) return false;
     if (job.kind === 'story') return startStory(job.id);
     if (job.kind === 'tower') return startTower();
+    if (job.kind === 'bounty') {
+      if (bountyState().done) {
+        window.showActionNotice?.('Hôm nay đã truy nã xong. Mục tiêu mới vào 00:00.', 'Truy nã');
+        return true;
+      }
+      return startBounty();
+    }
     if (job.kind === 'stake') {
       const result = startStake(job.stake);
       if (result && result.ok === false) {
@@ -192,7 +263,7 @@
     return `<div class="journey-list">${CHAPTERS.map((chapter, index) => {
       const cleared = chapterCleared(chapter.id), unlocked = chapterUnlocked(index);
       const status = cleared ? '✅ Đã xong' : unlocked ? '⚔️ Sẵn sàng' : '🔒 Khóa';
-      return `<article class="journey-row${cleared ? ' cleared' : ''}${unlocked ? '' : ' locked'}">
+      return `<article class="journey-row${cleared ? ' cleared' : ''}${unlocked ? '' : ' locked'}"${unlocked ? '' : ' title="Hoàn thành chặng trước để mở khóa"'}>
         <span class="journey-step">${cleared ? '✓' : chapter.num}</span>
         <div class="journey-body">
           <b>${chapter.icon} ${esc(chapter.name)}</b>
@@ -200,7 +271,7 @@
           <div class="journey-rewards">${rewardLines(chapter.reward).map(x => `<span>${x}</span>`).join('')}</div>
         </div>
         <span class="journey-status">${status}</span>
-        <button type="button" class="journey-start primary-btn" data-story="${chapter.id}" ${unlocked ? '' : 'disabled'}>${cleared ? 'Đấu lại' : 'Đấu'}</button>
+        <button type="button" class="journey-start primary-btn" data-story="${chapter.id}" ${unlocked ? '' : 'disabled'} title="${cleared ? 'Đấu lại chặng này' : unlocked ? 'Bắt đầu chặng' : 'Hoàn thành chặng trước để mở khóa'}">${cleared ? 'Đấu lại' : 'Đấu'}</button>
       </article>`;
     }).join('')}</div>`;
   }
@@ -232,20 +303,41 @@
     </div>`;
   }
 
+  function bountyBody() {
+    const bounty = bountyState(), target = bountyToday();
+    return `<div class="bounty-panel">
+      <article class="bounty-card${bounty.done ? ' done' : ''}">
+        <span class="bounty-icon" aria-hidden="true">${target.icon}</span>
+        <div class="bounty-body">
+          <b>${esc(target.name)}</b>
+          <small>${esc(target.brief)}</small>
+          <div class="journey-rewards">${rewardLines(target.reward).map(x => `<span>${x}</span>`).join('')}</div>
+          <small class="bounty-preset">Đối thủ: ${esc(presetName(target.preset))}</small>
+        </div>
+        <span class="bounty-state">${bounty.done ? '✅ Đã truy nã' : `⏳ Còn ${resetIn()}`}</span>
+        <button type="button" id="bountyStart" class="primary-btn" ${bounty.done ? 'disabled' : ''}>${bounty.done ? 'Mai quay lại' : 'Truy nã'}</button>
+      </article>
+      <p class="bounty-note">Mỗi ngày một mục tiêu. Thắng lần đầu trong ngày nhận thưởng; thua không mất gì và có thể thử lại.</p>
+      <div class="stake-stats"><span>🎯 Đã hạ hôm nay: <b>${bounty.done ? 1 : 0}/1</b></span><span>🪙 Ví: <b>${fmt(P.state.xu)} Xu</b></span></div>
+    </div>`;
+  }
+
   let tab = 'story';
   function bodyHTML() {
     if (tab === 'tower') return towerBody();
     if (tab === 'stake') return stakeBody();
+    if (tab === 'bounty') return bountyBody();
     return storyBody();
   }
 
   function open(nextTab) {
     if (nextTab) tab = nextTab;
     window.showModal(`<div class="journey-modal">
-      <div class="journey-head"><div><h2>🧭 Hành trình</h2><p>Chặng truyện, Tháp và Đấu cược để cày Xu và vé pack.</p></div><div class="journey-wallet"><span>🪙 ${fmt(P.state.xu)} Xu</span><span>🎟️ ${P.state.tickets.p1}/${P.state.tickets.p2}/${P.state.tickets.p3}</span></div></div>
+      <div class="journey-head"><div><h2>🧭 Hành trình</h2><p>Chặng truyện, Tháp, Truy nã và Đấu cược để cày Xu và vé pack.</p></div><div class="journey-wallet"><span>🪙 ${fmt(P.state.xu)} Xu</span><span>🎟️ ${P.state.tickets.p1}/${P.state.tickets.p2}/${P.state.tickets.p3}</span></div></div>
       <div class="journey-tabs">
         <button type="button" data-tab="story" class="${tab === 'story' ? 'active' : ''}">📖 Chặng truyện</button>
         <button type="button" data-tab="tower" class="${tab === 'tower' ? 'active' : ''}">🗼 Tháp 10 tầng</button>
+        <button type="button" data-tab="bounty" class="${tab === 'bounty' ? 'active' : ''}">🎯 Truy nã</button>
         <button type="button" data-tab="stake" class="${tab === 'stake' ? 'active' : ''}">🎲 Đấu cược</button>
       </div>
       <div class="journey-body">${bodyHTML()}</div>
@@ -269,33 +361,57 @@
     });
     const towerBtn = $id('towerStart');
     if (towerBtn) towerBtn.onclick = () => startTower();
+    const bountyBtn = $id('bountyStart');
+    if (bountyBtn) bountyBtn.onclick = () => startBounty();
     $id('practiceBtn').onclick = startPractice;
     $id('journeyPack').onclick = () => PK.openShop();
     $id('journeyClose').onclick = () => window.closeModal();
+    refreshBadge();
+  }
+
+  function badgeCount() {
+    let n = 0;
+    if (!bountyState().done) n += 1;
+    const tower = towerState();
+    if (tower.cleared[tower.floor] !== true) n += 1;
+    if (CHAPTERS.some((c, i) => chapterUnlocked(i) && !chapterCleared(c.id))) n += 1;
+    return n;
+  }
+
+  function refreshBadge() {
+    const btn = $id('journeyBtn');
+    if (!btn) return;
+    const n = badgeCount();
+    btn.classList.toggle('has-actions', n > 0);
+    const badge = btn.querySelector('.ticket-badge');
+    if (badge) { badge.textContent = n; badge.hidden = n === 0; }
+    btn.title = n ? `${n} hoạt động có thưởng đang chờ` : 'Chặng truyện, Tháp, Truy nã và Đấu cược';
   }
 
   function ensureButton() {
-    if ($id('journeyBtn')) return;
+    if ($id('journeyBtn')) return refreshBadge();
     const actions = document.querySelector('.progress-actions');
     if (!actions) return;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'journeyBtn';
-    btn.className = 'progress-btn journey';
-    btn.innerHTML = '🧭 <span>Hành trình</span>';
-    btn.title = 'Chặng truyện, Tháp và Đấu cược';
+    btn.className = 'progress-btn journey has-actions';
+    btn.innerHTML = '🧭 <span>Hành trình</span><i class="ticket-badge" hidden>0</i>';
+    btn.title = 'Chặng truyện, Tháp, Truy nã và Đấu cược';
     btn.onclick = () => open();
     actions.insertBefore(btn, actions.firstChild);
+    refreshBadge();
   }
 
   window.memeJourney = {
-    CHAPTERS, TOWER, STAKES,
-    startStory, startTower, startStake, startPractice, relaunch,
+    CHAPTERS, TOWER, STAKES, BOUNTIES,
+    startStory, startTower, startStake, startBounty, startPractice, relaunch,
     onDuelFinished,
     open,
     get pending() { return pending ? { ...pending } : null; },
-    chapterUnlocked, chapterCleared, storyState, towerState
+    chapterUnlocked, chapterCleared, storyState, towerState, bountyState, bountyToday, refreshBadge
   };
 
   ensureButton();
+  refreshBadge();
 })();

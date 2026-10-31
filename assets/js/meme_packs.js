@@ -356,6 +356,7 @@
       if (badge) { badge.textContent = total; badge.hidden = total === 0; }
     }
     window.memeQuests?.refreshBadge?.();
+    window.memeJourney?.refreshBadge?.();
   }
 
   function ensureHud() {
