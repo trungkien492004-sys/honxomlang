@@ -38,7 +38,79 @@
   border-bottom:1px solid #7aa5a166;
   z-index:2;
 }
-#boardGameModal .board-title-banner>img{height:52px;width:230px;object-fit:contain;filter:drop-shadow(0 4px 6px #0007)}
+#boardGameModal .board-title-banner>img{height:52px;width:230px;object-fit:contain;filter:drop-shadow(0 4px 6px #0007);flex:0 0 auto}
+#boardGameModal .board-lives-hud{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex:0 1 auto;
+  min-width:0;
+  overflow:hidden;
+}
+#boardGameModal .lives-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:2px 7px;
+  border-radius:999px;
+  background:#071c26e6;
+  border:1px solid #4f747a;
+  font-size:10px;
+  font-weight:800;
+  color:#dcece6;
+  white-space:nowrap;
+  box-shadow:inset 0 1px 0 #ffffff12;
+  transition:border-color .2s,background .2s;
+}
+#boardGameModal .lives-chip::before{
+  content:'';
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  flex:0 0 auto;
+  background:var(--pc,#ffd27b);
+  box-shadow:0 0 6px var(--pc,#ffd27b);
+}
+#boardGameModal .lives-chip b{font-size:9.5px;font-weight:800;letter-spacing:.2px;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+#boardGameModal .lives-chip em{font-style:normal;font-size:11px;line-height:1;letter-spacing:.5px;color:#ff8fa3;text-shadow:0 1px 2px #000,0 0 6px #ff5a7a55}
+#boardGameModal .lives-chip.is-turn{border-color:#ffd27b;background:#3a2b08d9;box-shadow:0 0 0 1px #ffd27b55,0 0 10px #ffd27b44}
+#boardGameModal .lives-chip.is-out{opacity:.55;filter:grayscale(.5)}
+#boardGameModal .lives-chip.is-out em{color:#c9d6d1}
+#boardGameModal .board-theme-picker{
+  display:flex;
+  gap:3px;
+  padding:3px;
+  border-radius:11px;
+  background:#071c26e6;
+  border:1px solid #4f747a;
+  flex:0 0 auto;
+}
+#boardGameModal .theme-label{
+  display:flex;
+  align-items:center;
+  padding:0 4px;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.6px;
+  color:#ffd27b;
+  white-space:nowrap;
+}
+#boardGameModal .theme-btn{
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  font-size:15px;
+  line-height:1;
+  border-radius:8px;
+  border:1px solid transparent;
+  background:#0d2a35;
+  cursor:pointer;
+  transition:transform .15s,border-color .15s,background .15s;
+}
+#boardGameModal .theme-btn:hover{transform:translateY(-1px);background:#17414f}
+#boardGameModal .theme-btn.active{border-color:#ffd27b;background:linear-gradient(180deg,#3a2b08,#1b1608);box-shadow:0 0 0 1px #ffd27b55,0 0 10px #ffd27b55}
 #raceProgress{
   display:grid;
   grid-template-columns:1fr auto;
@@ -155,6 +227,45 @@
 @keyframes boardBugDrift{0%{transform:translate(0,0)}50%{transform:translate(14px,-12px)}100%{transform:translate(-10px,-20px)}}
 @keyframes boardBugBlink{0%,100%{opacity:.18}50%{opacity:.95}}
 
+/* ── Ba phong cách bản đồ (chọn ở thanh tiêu đề) ──────────── */
+#boardGameModal .board-canvas[data-board-theme="dem"]{
+  background:linear-gradient(#0a1a33b8,#050e1fd9),url(../img/board/race-map.svg) center/cover no-repeat,#071022;
+  border-color:#7f96c4!important;
+  box-shadow:0 18px 44px #000a,0 0 0 7px #0a1830aa,inset 0 0 0 2px #cddcff33,inset 0 0 90px #020814aa!important;
+}
+#boardGameModal .board-canvas[data-board-theme="dem"]::after{
+  background:
+    radial-gradient(circle at 82% 7%,#d8e8ff5c,transparent 30%),
+    radial-gradient(circle at 16% 12%,#9fb8ff26,transparent 38%),
+    radial-gradient(ellipse at 50% 100%,#01040ccc,transparent 62%);
+}
+#boardGameModal .board-canvas[data-board-theme="dem"] .board-location-tag{
+  background:linear-gradient(180deg,#20395c,#0b1830 72%,#060d1c);
+  border-color:#8fb7e6;color:#e3f0ff;
+  box-shadow:0 3px 0 #030812,0 7px 16px #000a,inset 0 1px 0 #bcd8ff44,inset 0 -4px 8px #00000055;
+}
+#boardGameModal .board-canvas[data-board-theme="dem"] .board-location-tag::after{border-top-color:#8fb7e6}
+#boardGameModal .board-canvas[data-board-theme="dem"] .board-bug{background:#cfe8ff;box-shadow:0 0 9px 2px #9fd8ffaa}
+
+#boardGameModal .board-canvas[data-board-theme="hoi"]{
+  background:linear-gradient(#4a1414a8,#2a0808d9),url(../img/board/race-map.svg) center/cover no-repeat,#1c0b08;
+  border-color:#ffb257!important;
+  box-shadow:0 18px 44px #000a,0 0 0 7px #3a100aaa,inset 0 0 0 2px #ffd27b44,inset 0 0 90px #2a0606aa!important;
+}
+#boardGameModal .board-canvas[data-board-theme="hoi"]::after{
+  background:
+    radial-gradient(circle at 14% 4%,#ffe6a566,transparent 40%),
+    radial-gradient(circle at 88% 10%,#ff8a5c4d,transparent 34%),
+    radial-gradient(ellipse at 50% 100%,#2a0505cc,transparent 62%);
+}
+#boardGameModal .board-canvas[data-board-theme="hoi"] .board-location-tag{
+  background:linear-gradient(180deg,#c0392b,#7a1c14 72%,#4a0f0a);
+  border-color:#ffd27b;color:#fff2c9;
+  box-shadow:0 3px 0 #2a0704,0 7px 16px #000a,inset 0 1px 0 #ffe9b355,inset 0 -4px 8px #00000055;
+}
+#boardGameModal .board-canvas[data-board-theme="hoi"] .board-location-tag::after{border-top-color:#ffd27b}
+#boardGameModal .board-canvas[data-board-theme="hoi"] .board-bug{background:#ffd08a;box-shadow:0 0 10px 2px #ff9d4daa}
+
 /* ── Track cells ──────────────────────────────────────────── */
 #boardGameModal .board-cell{
   position:absolute;
@@ -163,7 +274,7 @@
   justify-content:center;
   border-radius:50%!important;
   border:2px solid #f0d79c!important;
-  box-shadow:0 4px 0 #05202a,0 7px 14px #02141a9e,inset 0 2px 2px #fff9,inset 0 -5px 8px #00000030!important;
+  box-shadow:0 0 0 2px #04141b,0 4px 0 #05202a,0 7px 14px #02141a9e,inset 0 2px 2px #fff9,inset 0 -5px 8px #00000030!important;
   color:#0f2c33;
   z-index:5;
   transition:transform .15s ease,box-shadow .2s ease,filter .2s ease;
@@ -194,14 +305,14 @@
 #boardGameModal .board-cell:hover{transform:scale(1.1);z-index:8}
 #boardGameModal .cell-num-center{
   position:absolute;
-  right:-5px;
-  bottom:-5px;
-  width:16px;
-  height:16px;
+  right:-3px;
+  bottom:-3px;
+  width:14px;
+  height:14px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:9px!important;
+  font-size:8.5px!important;
   font-weight:900;
   line-height:1;
   color:#4a3413;
@@ -229,7 +340,7 @@
   box-shadow:none!important;
   z-index:2;
 }
-#boardGameModal .cell-badge svg{width:20px!important;height:20px!important}
+#boardGameModal .cell-badge svg{width:18px!important;height:18px!important}
 #boardGameModal .board-cell.hidden-cell{border-color:#b9884a!important;filter:saturate(.82) brightness(.99)}
 #boardGameModal .board-cell.hidden-cell .cell-num-center{
   background:#3b2710f0;
@@ -239,7 +350,7 @@
 }
 #boardGameModal .board-cell.hidden-cell::before{border:1px dashed rgba(112,74,30,.42)}
 #boardGameModal .cell-q{
-  font-size:17px;
+  font-size:15px;
   font-weight:900;
   color:#6b4a1c;
   text-shadow:0 1px 0 #fff6,0 0 6px #ffcf7a55;
@@ -278,6 +389,13 @@
   50%{box-shadow:0 0 0 4px #fff0c2,0 0 26px #ffd27bcc,0 6px 14px #02141a99!important;transform:scale(1.05)}
 }
 @keyframes cellMystery{0%,100%{opacity:.72;transform:scale(.94)}50%{opacity:1;transform:scale(1.06)}}
+/* Ô đang chịu hiệu ứng (bị chém, dính bùa, ăn trộm…) nháy đỏ để mắt bám theo. */
+#boardGameModal .board-cell.cell-hit{z-index:9!important;animation:cellHitPulse .9s ease-out}
+@keyframes cellHitPulse{
+  0%{box-shadow:0 0 0 2px #ff6b7a,0 0 0 8px #ff6b7a66,0 0 26px #ff6b7a!important;transform:scale(1.14)}
+  70%{box-shadow:0 0 0 2px #ff8fa3,0 0 0 12px #ff6b7a00,0 0 18px #ff6b7a88!important;transform:scale(1.04)}
+  100%{box-shadow:0 0 0 2px #04141b,0 4px 0 #05202a,0 7px 14px #02141a9e!important;transform:scale(1)}
+}
 
 /* ── Pawns ────────────────────────────────────────────────── */
 #boardGameModal .board-pawn-layer{position:absolute;inset:0;z-index:40;pointer-events:none}
@@ -326,6 +444,7 @@
   background:var(--pc,#ffd27b);
   box-shadow:0 0 3px var(--pc,#ffd27b);
 }
+#boardGameModal .pawn-roster span b{color:#ff9db0;font-weight:900;font-size:calc(7.5px * var(--rk,1));text-shadow:0 1px 2px #000}
 #boardGameModal .board-pawn.is-out{display:none!important}
 #boardGameModal .pawn-body{
   position:relative;
@@ -348,15 +467,24 @@
 #boardGameModal .pawn-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 #boardGameModal .pawn-lives{
   position:absolute;
-  top:-7px;
+  top:-10px;
   left:50%;
   transform:translateX(-50%);
-  font-size:9px;
+  display:inline-flex;
+  align-items:center;
+  font-size:9.5px;
+  font-weight:900;
   line-height:1;
-  letter-spacing:-1px;
+  letter-spacing:-.3px;
   white-space:nowrap;
-  color:#ff8fa3;
-  text-shadow:0 1px 2px #000,0 0 4px #000;
+  color:#ffd7df;
+  background:#3a0b12f2;
+  border:1px solid #ff8fa3;
+  border-radius:8px;
+  padding:1px 4px;
+  box-shadow:0 2px 5px #000a,0 0 8px #ff5a7a55;
+  text-shadow:0 1px 2px #000;
+  z-index:2;
 }
 #boardGameModal .pawn-gear{
   position:absolute;
@@ -402,6 +530,28 @@
   filter:drop-shadow(0 2px 0 #3c2a12);
   animation:pawnArrow 1.2s ease-in-out infinite;
 }
+/* Quân vừa ăn hiệu ứng: viền đỏ + vòng lan để mắt bám đúng người. */
+#boardGameModal .board-pawn.pawn-hit{z-index:80!important}
+#boardGameModal .board-pawn.pawn-hit .pawn-avatar{
+  box-shadow:0 0 0 3px #fff2c2,0 0 0 7px #ff6b7a99,0 0 26px #ff5a6f!important;
+  animation:pawnHitPulse .55s ease-in-out 2;
+}
+#boardGameModal .board-pawn.pawn-hit::before{
+  content:'';
+  position:absolute;
+  left:50%;
+  top:18px;
+  width:56px;
+  height:56px;
+  margin:-28px 0 0 -28px;
+  border-radius:50%;
+  border:3px solid #ff8fa3;
+  box-shadow:0 0 22px #ff5a6f,inset 0 0 14px #ff8fa366;
+  pointer-events:none;
+  animation:pawnHitRing .8s ease-out forwards;
+}
+@keyframes pawnHitPulse{0%,100%{transform:scale(1)}40%{transform:scale(1.18)}}
+@keyframes pawnHitRing{0%{opacity:0;transform:scale(.5)}30%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
 #boardGameModal .pawn-hop{animation:pawnHop .36s cubic-bezier(.3,.9,.3,1.4)}
 @keyframes pawnHop{0%,100%{transform:translateY(0) scale(1,1)}26%{transform:translateY(-3px) scale(1.14,.88)}56%{transform:translateY(-15px) scale(.94,1.1)}82%{transform:translateY(2px) scale(1.08,.92)}}
 @keyframes pawnIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
@@ -597,14 +747,16 @@
   position:absolute;
   left:4px;
   bottom:4px;
-  background:#04161ce6;
-  border:1px solid #7fa79b;
-  border-radius:6px;
-  padding:0 5px;
-  font-size:10px;
-  letter-spacing:-1px;
-  color:#ff8fa3;
+  background:#3a0b12f2;
+  border:1px solid #ff8fa3;
+  border-radius:7px;
+  padding:0 6px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:0;
+  color:#ffd7df;
   line-height:1.5;
+  box-shadow:0 2px 5px #0008,0 0 8px #ff5a7a44;
 }
 #boardGameModal .char-card-name{
   font-size:10px;
@@ -695,6 +847,9 @@
 @media(max-width:900px){
   #boardGameModal.active{grid-template-columns:minmax(0,1fr) 236px;grid-template-rows:52px minmax(0,1fr) 164px;gap:10px;padding:10px}
   #boardGameModal .board-title-banner>img{width:190px;height:46px}
+  #boardGameModal .lives-chip b{display:none}
+  #boardGameModal .theme-label{display:none}
+  #boardGameModal .theme-btn{width:24px;height:24px;font-size:13px}
   #raceProgress{min-width:0;font-size:10px}
   #boardGameModal .board-bottom-dashboard{grid-template-columns:minmax(0,1fr) 240px}
   #boardGameModal .info-section{width:136px!important;min-width:0!important}
@@ -706,6 +861,7 @@
   #boardGameModal.active{grid-template-columns:minmax(0,1fr) 150px;grid-template-rows:44px minmax(0,1fr) 186px;gap:7px;padding:7px}
   #boardGameModal .board-title-banner{padding:0;gap:8px}
   #boardGameModal .board-title-banner>img{width:140px;height:38px}
+  #boardGameModal .board-lives-hud{display:none!important}
   #raceProgress{font-size:9px;gap:2px 6px}
   #raceProgress b{font-size:9px}
   #raceProgress progress{height:6px}
@@ -761,6 +917,8 @@
   #boardGameModal .board-action-btn{font-size:9px!important;padding:4px 2px!important;white-space:nowrap}
   #boardGameModal #boardCameraRecenterBtn{bottom:315px!important}
   #boardGameModal .board-location-tag{display:none}
+  #boardGameModal .board-theme-picker{padding:2px;gap:2px}
+  #boardGameModal .theme-btn{width:22px;height:22px;font-size:12px}
   #raceProgress{max-width:58%}
   #raceProgress progress{display:none}
 }

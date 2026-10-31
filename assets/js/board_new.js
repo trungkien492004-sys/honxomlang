@@ -152,7 +152,7 @@ window.boardUpdateCharPanel = function() {
     const shieldsEl = document.getElementById('boardInfoShields');
     const goldEl = document.getElementById('boardInfoGold');
 
-    if (livesEl) livesEl.textContent = p.eliminated ? '💀' : '♥'.repeat(Math.max(0, p.lives || 0));
+    if (livesEl) livesEl.textContent = p.eliminated ? '💀' : `${'❤'.repeat(Math.max(0, p.lives || 0))} (${Math.max(0, p.lives || 0)})`;
     if (weaponsEl) weaponsEl.textContent = p.weapons;
     if (shieldsEl) shieldsEl.textContent = p.shields;
     if (goldEl) goldEl.textContent = p.gold !== undefined ? p.gold : 0;
@@ -234,6 +234,8 @@ const RACE_CARDS = [
               }
           });
           if(nearest) {
+              window.boardFocusTarget && window.boardFocusTarget(nearest.idx, 1000);
+              window.boardPlayFx('steal', nearest.pos, 'Móc ví!');
               let stolen = Math.min(nearest.gold || 0, 40);
               nearest.gold = Math.max(0, nearest.gold - stolen);
               if(nearest.isHuman) boardRefreshHud();
@@ -256,6 +258,8 @@ const RACE_CARDS = [
           let target = boardGame.players[nextIdx];
           if (target) {
               target.skipTurn = true;
+              window.boardFocusTarget && window.boardFocusTarget(target.idx, 1000);
+              window.boardPlayFx('sleep', target.pos, '💤');
               return `${target.name} dính bùa, ngáp 1 lượt.`;
           }
           return 'Không ai để dán bùa.';
@@ -780,12 +784,15 @@ function boardFightMonster(p, card) {
 
 // Hàm Xử lý Mất Mạng
 function boardTakeDamage(p, amount, reason) {
+    window.boardFocusTarget && window.boardFocusTarget(p.idx);
     if (p.shields > 0) {
         p.shields--;
         window.boardPlayFx('shield', p.pos, 'Đỡ!');
         return `🛡️ Khiên đỡ đòn (${reason}).`;
     }
     p.lives -= amount;
+    window.boardRenderPawns();
+    window.boardRenderLivesHud();
     if (p.lives <= 0) {
         p.eliminated = true;
         window.boardPlayFx('damage', p.pos, '💀', { count: 18 });
@@ -832,12 +839,21 @@ window.boardDrawRandomCard = function(p, reason, callback) {
 
     boardAddLog(`🃏 ${p.name} lật [${card.name}]: ${result}`, 'card');
 
-    window.boardShowBigNotice(
-        `${window.boardCardIcon(card)} ${card.name}`,
-        window.boardCardNoticeBody(card, reason),
-        `👉 ${result}`,
-        callback
-    );
+    // Thả hiệu ứng lên bàn trước, chờ camera lia tới đúng quân rồi mới mở thẻ.
+    const title = `${window.boardCardIcon(card)} ${card.name}`;
+    const body = window.boardCardNoticeBody(card, reason);
+    const extra = `👉 ${result}`;
+    const show = () => window.boardShowBigNotice(title, body, extra, callback);
+    const delay = (document.hidden || boardFxReduced()) ? 0 : 850;
+    if (delay <= 0) {
+        show();
+        return;
+    }
+    const match = boardGame;
+    setTimeout(() => {
+        if (boardGame !== match || !boardGame || boardGame.closed) return;
+        show();
+    }, delay);
 };
 
 
@@ -1108,7 +1124,7 @@ window.boardProcessTurn = function(p, roll, callback) {
                     handleCombat();
                 }
 
-            }, 200);
+            }, 380);
             return;
         }
 
@@ -1119,7 +1135,7 @@ window.boardProcessTurn = function(p, roll, callback) {
         if (currentStep === 1) {
             boardAddLog(`🎲 ${p.name} lăn được ${steps}.`);
         }
-    }, 250);
+    }, 300);
 };
 
 // ── Logic đụng độ PvP hỗ trợ chiến thuật chọn lựa hoặc bỏ qua ─────
@@ -1378,11 +1394,21 @@ window.boardUseHandCard = function(playerIdx, handIndex) {
     if (!applied.fx) boardPlayCardEventFx(origCard, p, result);
     boardAddLog(`🎴 ${p.name} dùng [${card.name}]: ${result}`, 'card');
 
-    window.boardShowBigNotice(`${window.boardCardIcon(origCard)} ${card.name}`, window.boardCardNoticeBody(origCard, ''), `👉 ${result}`, () => {
+    const showNotice = () => window.boardShowBigNotice(`${window.boardCardIcon(origCard)} ${card.name}`, window.boardCardNoticeBody(origCard, ''), `👉 ${result}`, () => {
         if (!boardGame || boardGame.closed) return;
         if (typeof window.boardSyncView === 'function') window.boardSyncView();
         else { boardRenderGrid(); boardRenderPlayers(); }
     });
+    const noticeDelay = (document.hidden || boardFxReduced()) ? 0 : 700;
+    if (noticeDelay <= 0) {
+        showNotice();
+        return;
+    }
+    const match = boardGame;
+    setTimeout(() => {
+        if (boardGame !== match || !boardGame || boardGame.closed) return;
+        showNotice();
+    }, noticeDelay);
 };
 
 
@@ -1601,14 +1627,103 @@ function _getCellPos(i) {
 const BOARD_MAP_W = 1024;
 const BOARD_MAP_H = 782;
 
-function _getCellPixelPos(i) {
-    if (typeof BOARD_CUSTOM_COORDS !== 'undefined' && BOARD_CUSTOM_COORDS[i]) {
-        let coord = BOARD_CUSTOM_COORDS[i];
-        return {
-            x: (coord.x / 100) * BOARD_MAP_W,
-            y: (coord.y / 100) * BOARD_MAP_H
-        };
+// ── Bản đồ: 3 bảng màu, chọn được và ghi nhớ ─────────────────
+const BOARD_THEMES = {
+    lang: { name: 'Làng Quê', icon: '🌾', road: ['#2a3a24', '#5c4227', '#9a7046', '#b58655', '#e6c795', '#fbeecb'] },
+    dem:  { name: 'Đêm Trăng', icon: '🌙', road: ['#13293a', '#1d4256', '#2f6376', '#4d8ba0', '#b9ecff', '#e8fbff'] },
+    hoi:  { name: 'Hội Làng', icon: '🏮', road: ['#3a1c18', '#5e2a20', '#8a3f2a', '#b3583a', '#ffc98f', '#ffe9c2'] }
+};
+const BOARD_THEME_KEY = 'honxomBoardTheme';
+window._boardTheme = 'lang';
+try {
+    const savedTheme = localStorage.getItem(BOARD_THEME_KEY);
+    if (savedTheme && BOARD_THEMES[savedTheme]) window._boardTheme = savedTheme;
+} catch (e) {}
+
+window.boardSetTheme = function(name) {
+    if (!BOARD_THEMES[name]) name = 'lang';
+    window._boardTheme = name;
+    try { localStorage.setItem(BOARD_THEME_KEY, name); } catch (e) {}
+    const canvas = document.querySelector('#boardGrid .board-canvas');
+    if (canvas) {
+        canvas.dataset.boardTheme = name;
+        const road = BOARD_THEMES[name].road;
+        canvas.querySelectorAll('.board-road-svg .road-seg').forEach((seg, i) => {
+            if (road[i]) seg.setAttribute('stroke', road[i]);
+        });
     }
+    document.querySelectorAll('#boardThemePicker .theme-btn').forEach(btn => {
+        const on = btn.dataset.theme === name;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+};
+
+function boardRenderThemePicker() {
+    const picker = document.getElementById('boardThemePicker');
+    if (!picker) return;
+    if (!picker.childElementCount) {
+        const label = document.createElement('span');
+        label.className = 'theme-label';
+        label.textContent = 'BẢN ĐỒ';
+        picker.appendChild(label);
+        Object.keys(BOARD_THEMES).forEach(key => {
+            const theme = BOARD_THEMES[key];
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'theme-btn';
+            btn.dataset.theme = key;
+            btn.textContent = theme.icon;
+            btn.title = `Bản đồ: ${theme.name}`;
+            btn.setAttribute('aria-label', `Bản đồ ${theme.name}`);
+            btn.onclick = () => {
+                try { if (window.audio) audio.play('click'); } catch (e) {}
+                window.boardSetTheme(key);
+            };
+            picker.appendChild(btn);
+        });
+    }
+    window.boardSetTheme(window._boardTheme);
+}
+
+// Rải đều 100 ô theo đúng chiều dài đường đua: các ô không còn dồn cục ở
+// đoạn cua gắt, khoảng cách giữa hai ô liên tiếp luôn bằng nhau.
+let _boardResampledCoords = null;
+function _boardResampleCoords() {
+    if (_boardResampledCoords) return _boardResampledCoords;
+    const src = (typeof BOARD_CUSTOM_COORDS !== 'undefined' ? BOARD_CUSTOM_COORDS : [])
+        .map(c => ({ x: (c.x / 100) * BOARD_MAP_W, y: (c.y / 100) * BOARD_MAP_H }));
+    if (src.length < 2) {
+        _boardResampledCoords = src;
+        return src;
+    }
+    const cum = [0];
+    for (let i = 1; i < src.length; i++) {
+        cum.push(cum[i - 1] + Math.hypot(src[i].x - src[i - 1].x, src[i].y - src[i - 1].y));
+    }
+    const total = cum[cum.length - 1];
+    const count = typeof BOARD_TOTAL_CELLS === 'number' ? BOARD_TOTAL_CELLS : src.length;
+    const step = total / (count - 1);
+    const out = [];
+    let seg = 0;
+    for (let k = 0; k < count; k++) {
+        const d = Math.min(total, k * step);
+        while (seg < src.length - 2 && cum[seg + 1] < d) seg++;
+        const span = cum[seg + 1] - cum[seg] || 1;
+        const t = Math.min(1, Math.max(0, (d - cum[seg]) / span));
+        out.push({
+            x: src[seg].x + (src[seg + 1].x - src[seg].x) * t,
+            y: src[seg].y + (src[seg + 1].y - src[seg].y) * t
+        });
+    }
+    out[count - 1] = { x: src[src.length - 1].x, y: src[src.length - 1].y };
+    _boardResampledCoords = out;
+    return out;
+}
+
+function _getCellPixelPos(i) {
+    const coords = _boardResampleCoords();
+    if (coords[i]) return coords[i];
     let pos = _getCellPos(i);
     const BOARD_CELL_PX = 54;
     return { x: (pos.c - 0.5) * BOARD_CELL_PX, y: (pos.r - 0.5) * BOARD_CELL_PX };
@@ -1642,7 +1757,7 @@ function _getBoardSmoothPath() {
 }
 
 // ── Render Track ──────────────────────────────────────────────
-const BOARD_CELL_SIZE = 42;
+const BOARD_CELL_SIZE = 36;
 
 function _boardEsc(text) {
     return String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1703,20 +1818,24 @@ window.boardRenderGrid = function() {
     canvas.className = 'board-canvas';
     canvas.style.width = BOARD_MAP_W + 'px';
     canvas.style.height = BOARD_MAP_H + 'px';
+    const themeKey = BOARD_THEMES[window._boardTheme] ? window._boardTheme : 'lang';
+    const roadColors = BOARD_THEMES[themeKey].road;
+    canvas.dataset.boardTheme = themeKey;
 
-    // Dirt road following the village track.
+    // Dirt road following the village track (màu đường đổi theo bản đồ).
     const roadSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     roadSvg.setAttribute('viewBox', `0 0 ${BOARD_MAP_W} ${BOARD_MAP_H}`);
     roadSvg.setAttribute('width', BOARD_MAP_W);
     roadSvg.setAttribute('height', BOARD_MAP_H);
     roadSvg.setAttribute('class', 'board-road-svg');
+    const roadPath = _getBoardSmoothPath();
     roadSvg.innerHTML = `
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#2a3a24" stroke-width="64" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#5c4227" stroke-width="50" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#9a7046" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#b58655" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#e6c795" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 20" opacity="0.6"/>
-        <path d="${_getBoardSmoothPath()}" fill="none" stroke="#fbeecb" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 46" opacity="0.32"/>
+        <path class="road-seg" d="${roadPath}" fill="none" stroke="${roadColors[0]}" stroke-width="64" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+        <path class="road-seg" d="${roadPath}" fill="none" stroke="${roadColors[1]}" stroke-width="50" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+        <path class="road-seg" d="${roadPath}" fill="none" stroke="${roadColors[2]}" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="road-seg" d="${roadPath}" fill="none" stroke="${roadColors[3]}" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+        <path class="road-seg" d="${roadPath}" fill="none" stroke="${roadColors[4]}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 20" opacity="0.6"/>
+        <path class="road-seg" d="${roadPath}" fill="none" stroke="${roadColors[5]}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 46" opacity="0.32"/>
     `;
     canvas.appendChild(roadSvg);
 
@@ -1780,6 +1899,9 @@ window.boardRenderGrid = function() {
 
     shell.appendChild(canvas);
     grid.appendChild(shell);
+
+    boardRenderThemePicker();
+    if (typeof window.boardRenderLivesHud === 'function') window.boardRenderLivesHud();
 
     if (typeof window.boardInitCameraDrag === 'function') window.boardInitCameraDrag();
     if (typeof window.boardStartCameraLoop === 'function') window.boardStartCameraLoop();
@@ -1969,7 +2091,7 @@ window.boardRenderPawns = function(instant) {
         el.classList.toggle('is-me', !!(p.isHuman || (p.networkId && p.networkId === getMyNetworkId())));
         el.classList.toggle('no-move', !!instant);
         el.querySelector('.pawn-name').textContent = p.name || char.name;
-        el.querySelector('.pawn-lives').textContent = p.eliminated ? '💀' : '♥'.repeat(Math.max(0, p.lives || 0));
+        el.querySelector('.pawn-lives').textContent = p.eliminated ? '💀' : `❤${Math.max(0, p.lives || 0)}`;
         const gear = [];
         if (p.weapons > 0) gear.push('⚔' + p.weapons);
         if (p.shields > 0) gear.push('🛡' + p.shields);
@@ -2014,7 +2136,7 @@ window.boardRenderPawns = function(instant) {
             const gp = boardGame.players[idx];
             const ch = BOARD_CHARACTERS[gp.idx] || BOARD_CHARACTERS[0];
             const short = String(ch.name || gp.name || '').split(' ')[0];
-            return `<span style="--pc:${gp.color || ch.color}">${_boardEsc(short)}</span>`;
+            return `<span style="--pc:${gp.color || ch.color}">${_boardEsc(short)} <b>❤${Math.max(0, gp.lives || 0)}</b></span>`;
         }).join('');
     });
     layer.querySelectorAll('.pawn-roster').forEach(tag => {
@@ -2196,6 +2318,27 @@ window.boardFocusPawn = function(idx) {
     window._cameraTargetY = Math.max(0, Math.min(maxY, ty));
 };
 
+// Hiệu ứng dính vào người khác: lia camera tới đúng quân đó, nháy sáng quân
+// và ô đang đứng để người chơi thấy rõ ai vừa ăn đòn / ăn bùa.
+window.boardFocusTarget = function(idx, holdMs) {
+    if (!boardGame || typeof idx !== 'number') return;
+    const p = boardGame.players[idx];
+    if (!p) return;
+    const hold = Math.max(700, holdMs || 1200);
+    window.boardCameraAutoFollow = true;
+    window.boardFocusPawn(idx);
+
+    const pulse = (node, cls) => {
+        if (!node) return;
+        node.classList.remove(cls);
+        void node.offsetWidth;
+        node.classList.add(cls);
+        setTimeout(() => node.classList.remove(cls), hold);
+    };
+    pulse(document.getElementById('boardPawn_' + idx), 'pawn-hit');
+    pulse(document.getElementById('bcell_' + p.pos), 'cell-hit');
+};
+
 window.boardRefreshCell = function(i) {
     const div = document.getElementById('bcell_' + i);
     if (div) _paintCell(div, i);
@@ -2358,6 +2501,22 @@ window.boardRecenterCamera = function() {
 };
 
 // ── Render Danh sách ──────────────────────────────────────────
+// Dải mạng nằm ngay trên bản đồ: ai còn mấy ❤ nhìn là thấy, khỏi mở bảng.
+window.boardRenderLivesHud = function() {
+    const hud = document.getElementById('boardLivesHud');
+    if (!hud || !boardGame || !boardGame.players) return;
+    hud.innerHTML = boardGame.players.map(p => {
+        const char = BOARD_CHARACTERS[p.idx] || BOARD_CHARACTERS[0];
+        const short = String(p.name || char.name || '').split(' ')[0];
+        const lives = Math.max(0, p.lives || 0);
+        const out = !!p.eliminated;
+        const hearts = out ? '💀' : ('♥'.repeat(lives) || '0');
+        const turn = !boardGame.gameOver && boardGame.currentTurn === p.idx;
+        return `<span class="lives-chip${out ? ' is-out' : ''}${turn ? ' is-turn' : ''}" style="--pc:${p.color || char.color}">` +
+            `<b>${_boardEsc(short)}</b><em>${hearts}</em></span>`;
+    }).join('');
+};
+
 window.boardRenderPlayers = function() {
     if (!boardGame || !boardGame.players) return;
 
@@ -2412,7 +2571,7 @@ window.boardRenderPlayers = function() {
             card.classList.toggle('active', window.boardSelectedCharDisplayIdx === p.idx);
             card.classList.toggle('active-turn', !boardGame.gameOver && boardGame.currentTurn === p.idx);
             card.classList.toggle('eliminated', !!p.eliminated);
-            wrap.querySelector('.char-card-lives').textContent = p.eliminated ? '💀' : '♥'.repeat(Math.max(0, p.lives || 0));
+            wrap.querySelector('.char-card-lives').textContent = p.eliminated ? '💀 HẾT' : `❤ ${Math.max(0, p.lives || 0)}`;
             wrap.querySelector('.char-card-name').textContent = p.name || char.name;
         });
 
@@ -2452,6 +2611,7 @@ window.boardRenderPlayers = function() {
         if (activeCell) activeCell.classList.add('current-racer');
     }
 
+    window.boardRenderLivesHud();
     window.boardUpdateCharPanel();
 };
 
@@ -2588,7 +2748,7 @@ window.boardNextTurn = function() {
         if (document.hidden) {
             window.boardRollForCurrentPlayer();
         } else {
-            setTimeout(() => { if(!boardGame.gameOver) window.boardRollForCurrentPlayer(); }, 900);
+            setTimeout(() => { if(!boardGame.gameOver) window.boardRollForCurrentPlayer(); }, 1250);
         }
     }
 };
@@ -2936,7 +3096,7 @@ window.boardSwapNearest = function(p) {
         window.boardRenderPawns();
         window.boardRenderPlayers();
         window.boardPlayFx('portal', p.pos, '');
-        window.boardFocusPawn(p.idx);
+        window.boardFocusTarget(nearest.idx, 1100);
         return `Đổi chỗ với ${nearest.name}! Nó đang ngơ ngác.`;
     }
     return 'Không ai gần để đổi.';
@@ -2955,7 +3115,7 @@ window.boardTeleportPlayer = function(p, targetPos) {
     window.boardRenderPlayers();
     window.boardUpdateCharPanel();
     window.boardPlayFx('portal', to, 'Xuyên không!');
-    window.boardFocusPawn(p.idx);
+    window.boardFocusTarget(p.idx, 1000);
 };
 
 
