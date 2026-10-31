@@ -9,7 +9,7 @@
   gate.id = 'siteAuthGate';
   gate.hidden = true;
   gate.setAttribute('aria-label', 'Đăng nhập để chơi');
-  gate.innerHTML = '<div class="site-auth-card"><b>YU-GI-OH! DM / GX</b><h1>Đăng nhập để vào game</h1><p>Đăng nhập Google một lần để lưu thứ hạng Elo và thi đấu trên BXH.</p><button id="siteGoogleLogin" type="button">Đăng nhập Google</button><button id="siteGuestContinue" type="button" style="background:#2563eb;color:#fff;margin-top:6px;border-radius:8px;padding:8px 16px;font-weight:bold;cursor:pointer;border:none;">Chơi dạng Khách (Guest)</button><button id="siteGuestLeaderboard" type="button">BXH Rank</button><p id="siteAuthStatus" role="status">Đang khôi phục đăng nhập…</p></div>';
+  gate.innerHTML = '<div class="site-auth-art" aria-hidden="true"><div class="site-auth-fan"><span class="site-auth-hero site-auth-hero--yugi"></span><span class="site-auth-hero site-auth-hero--kaiba"></span><span class="site-auth-hero site-auth-hero--jaden"></span></div><p class="site-auth-wordmark">DM · GX</p></div><div class="site-auth-card"><b>YU-GI-OH! DM / GX</b><h1>Đăng nhập để vào game</h1><p>Đăng nhập Google một lần để lưu thứ hạng Elo và thi đấu trên BXH.</p><button id="siteGoogleLogin" type="button">Đăng nhập Google</button><button id="siteGuestContinue" type="button">Chơi dạng Khách</button><button id="siteGuestLeaderboard" type="button">Xem BXH Rank</button><p id="siteAuthStatus" role="status">Đang khôi phục đăng nhập…</p></div>';
   document.body.appendChild(gate);
 
   const status = gate.querySelector('#siteAuthStatus'), login = gate.querySelector('#siteGoogleLogin');

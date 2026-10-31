@@ -58,26 +58,59 @@
 
     <!-- ===== MÀN HÌNH CHỌN TRÒ CHƠI ===== -->
     <div id="gameModeScreen" class="screen">
-        <div class="title-container">
-            <h1 style="font-size: 3rem; text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);">CHỌN TRÒ CHƠI</h1>
-            <p style="font-size: 1.1rem; color: #94a3b8;">Đấu bài hoặc cờ đua</p>
+        <div class="title-container mode-hero">
+            <span class="mode-kicker">ANIME DUEL · 60 GIÂY MỖI LƯỢT</span>
+            <h1>Chọn Đấu Trường</h1>
+            <p>Đấu bài chiến thuật hoặc cờ đua sinh tồn</p>
         </div>
-        <div class="class-container" style="max-width:800px; display:flex; justify-content:center; gap:32px; flex-wrap:wrap; margin-top:20px;">
-            <div class="class-card" onclick="window.selectGameMode('meme')" style="width:330px; cursor:pointer; padding:28px 20px; border:2px solid #22c55e; background:rgba(15, 23, 42, 0.85); border-radius:16px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 8px 24px rgba(34,197,94,0.2);">
-                <div class="class-emoji" style="font-size:4.5rem; margin-bottom:12px;">🃏</div>
-                <div class="class-name" style="font-size:1.6rem; color:#4ade80; font-weight:800; margin-bottom:10px;">Yu-Gi-Oh! DM / GX</div>
-                <div class="class-desc" style="font-size:0.95rem; color:#cbd5e1; line-height:1.5; min-height:80px;">156 lá DM/GX, 18 bộ mẫu. Đấu máy hoặc online cùng bạn bè.</div>
-                <button class="btn" style="margin-top:20px; width:100%; background:linear-gradient(135deg, #22c55e, #16a34a); font-weight:bold; font-size:1.1rem; padding:12px;">VÀO ĐẤU BÀI ⚔️</button>
-            </div>
-            <div class="class-card" onclick="window.selectGameMode('board')" style="width:330px; cursor:pointer; padding:28px 20px; border:2px solid #38bdf8; background:rgba(15, 23, 42, 0.85); border-radius:16px; transition:transform 0.2s, box-shadow 0.2s; box-shadow:0 8px 24px rgba(56,189,248,0.2);">
-                <div class="class-emoji" style="font-size:4.5rem; margin-bottom:12px;">🏁</div>
-                <div class="class-name" style="font-size:1.6rem; color:#38bdf8; font-weight:800; margin-bottom:10px;">Cờ Đua Sinh Tồn</div>
-                <div class="class-desc" style="font-size:0.95rem; color:#cbd5e1; line-height:1.5; min-height:80px;">Đường đua 100 ô, xúc xắc và thẻ bài. Vượt bẫy để về đích.</div>
-                <button class="btn" style="margin-top:20px; width:100%; background:linear-gradient(135deg, #0284c7, #0369a1); font-weight:bold; font-size:1.1rem; padding:12px;">VÀO CỜ ĐUA 🎲</button>
-            </div>
+        <div class="mode-grid">
+            <article class="mode-card mode-card--duel" role="button" tabindex="0" aria-label="Vào đấu bài Yu-Gi-Oh DM / GX"
+                onclick="window.selectGameMode('meme')"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.selectGameMode('meme')}">
+                <div class="mode-art">
+                    <span class="mode-chip">156 LÁ</span>
+                    <span class="mode-portrait mode-portrait--yugi"></span>
+                    <span class="mode-portrait mode-portrait--kaiba"></span>
+                    <span class="mode-portrait mode-portrait--jaden"></span>
+                </div>
+                <div class="mode-body">
+                    <h2>Yu-Gi-Oh! DM / GX</h2>
+                    <p>18 bộ mẫu, 9 nhân vật. Đấu máy hoặc online cùng bạn bè.</p>
+                    <ul class="mode-tags">
+                        <li>SPEED DUEL 4000 LP</li>
+                        <li>XYZ · SYNCHRO · FUSION</li>
+                        <li>ELO &amp; BXH</li>
+                    </ul>
+                    <span class="mode-cta">Vào đấu bài <b aria-hidden="true">⚔️</b></span>
+                </div>
+            </article>
+            <article class="mode-card mode-card--race" role="button" tabindex="0" aria-label="Vào cờ đua sinh tồn"
+                onclick="window.selectGameMode('board')"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.selectGameMode('board')}">
+                <div class="mode-art mode-art--race">
+                    <span class="mode-chip">100 Ô</span>
+                    <img class="mode-char" src="assets/img/board/char_mam.png" alt="" loading="lazy">
+                    <img class="mode-char" src="assets/img/board/char_trau.png" alt="" loading="lazy">
+                    <img class="mode-char" src="assets/img/board/char_kien.png" alt="" loading="lazy">
+                </div>
+                <div class="mode-body">
+                    <h2>Cờ Đua Sinh Tồn</h2>
+                    <p>Đường đua 100 ô, xúc xắc và thẻ bài. Vượt bẫy để về đích.</p>
+                    <ul class="mode-tags">
+                        <li>4 NHÂN VẬT</li>
+                        <li>THẺ BÀI &amp; BẪY</li>
+                        <li>ĐUA CÙNG MÁY</li>
+                    </ul>
+                    <span class="mode-cta">Vào cờ đua <b aria-hidden="true">🎲</b></span>
+                </div>
+            </article>
         </div>
-        <div style="text-align:center; margin-top:35px;">
-            <button class="btn" style="background:#475569; padding:10px 28px; font-size:1rem; border-radius:8px;" onclick="window.signOutUser()">🚪 Đăng Xuất</button>
+        <div class="mode-footer">
+            <span class="mode-note">Tiến trình và bộ bài được lưu trên trình duyệt này.</span>
+            <div class="mode-actions">
+                <button class="btn mode-rank" onclick="window.siteRank?.show()">🏆 BXH Rank</button>
+                <button class="btn mode-signout" onclick="window.signOutUser()">🚪 Đăng xuất</button>
+            </div>
         </div>
     </div>
 
@@ -1419,9 +1452,10 @@
     <script src="assets/js/memecard.js?v=20261027-silent-fix3"></script>
     <script src="assets/js/game.js?v=16"></script>
     <link rel="stylesheet" href="assets/css/site_rank.css?v=20261031-boot1">
+    <link rel="stylesheet" href="assets/css/ui_premium.css?v=20261031-ui1">
     <script src="assets/js/site_rank_config.js?v=20261026-access-rank1"></script>
     <script src="assets/js/site_identity.js?v=20261026-rank-presence1"></script>
-    <script src="assets/js/site_access.js?v=20261031-boot1"></script>
+    <script src="assets/js/site_access.js?v=20261031-ui1"></script>
     <script src="assets/js/site_rank.js?v=20261031-boot1"></script>
     <script>
         function toggleMobileMenu() {
