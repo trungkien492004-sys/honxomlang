@@ -1,3 +1,11 @@
+/* =====================================================================
+   BOARD UI — LOCKED. DO NOT REWRITE THIS FILE.
+   Read AGENTS.md → "LOCKED BOARD UI" before editing.
+   Keep the teal/gold theme, pale coin cells, clustered pawns with name
+   roster, event FX and themed matchmaking/lobby modals. Only apply small
+   scoped fixes the user explicitly asked for; never wholesale replace,
+   restyle or revert this file.
+   ===================================================================== */
 /* Board visual overhaul: stable layout, portrait pawns, readable panels. */
 #boardGameModal.active{
   display:grid!important;

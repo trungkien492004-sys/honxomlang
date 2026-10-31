@@ -1,4 +1,8 @@
 // ===== 🏁 BOARD_NEW.JS — Cờ Đua Sinh Tồn v4.0 (Yu-Gi-Oh Style) =====
+// BOARD UI — LOCKED. Read AGENTS.md → "LOCKED BOARD UI" before editing.
+// The map, pawn clustering, FX and matchmaking/lobby flow are intentional.
+// Extend them with small scoped edits only; do not rewrite this file or
+// revert the teal/gold visual theme.
 'use strict';
 
 // Resolve getMyNetworkId() from global window (set by game.js)
