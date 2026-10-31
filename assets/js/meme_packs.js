@@ -262,6 +262,7 @@
       <div class="pack-grid">${['p1', 'p2', 'p3'].map(packCard).join('')}</div>
       <div class="pack-exchange"><h3>✦ Đổi bụi ma thuật</h3><p>Thẻ trùng khi đã đủ bản tự chuyển thành bụi.</p><div class="exchange-actions">
         ${Object.entries(EXCHANGES).map(([kind, cost]) => `<button type="button" class="secondary-btn" data-exchange="${kind}" ${st.dust >= cost ? '' : 'disabled'}>${fmt(cost)} ✦ → 1 vé ${PACKS[kind].name}</button>`).join('')}
+        <button type="button" class="secondary-btn" id="packAlbumBtn">📚 Bộ sưu tập · mua thẻ bằng bụi</button>
       </div></div>
       <p class="pack-login-note">🎁 Quà đăng nhập hằng ngày được nhận ở thanh tiến trình phía trên sảnh.</p>
     </div>`);
@@ -283,6 +284,8 @@
         openShop();
       };
     });
+    const albumBtn = $id('packAlbumBtn');
+    if (albumBtn) albumBtn.onclick = () => window.memeAlbum?.open();
   }
 
   function showReveal(result) {

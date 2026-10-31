@@ -1,0 +1,125 @@
+/* Collection album modal. Loaded after meme_journey.css. */
+
+.modal-card:has(.album-modal) {
+  width: min(900px, 96vw);
+  text-align: left;
+  padding: 16px 18px 14px;
+}
+
+.album-modal { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.album-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-right: 26px; }
+.album-head h2 { margin: 0; font: 900 23px/1.1 'Baloo 2', sans-serif; color: #ffe9b0; text-align: left; }
+.album-head p { margin: 3px 0 0; font: 800 11.5px/1.4 'Nunito', sans-serif; color: #9fd0e8; }
+.album-head b { color: #ffe3ac; }
+.album-wallet { display: flex; gap: 6px; flex-wrap: wrap; align-self: flex-start; }
+.album-wallet span {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(20, 48, 72, 0.85);
+  border: 1px solid rgba(140, 200, 230, 0.25);
+  color: #dff2ff;
+  font: 800 10.5px/1.4 'Nunito', sans-serif;
+  white-space: nowrap;
+}
+
+.album-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.album-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.album-chips button {
+  padding: 4px 10px;
+  border-radius: 7px;
+  border: 1px solid #4f7385;
+  background: #122e41;
+  color: #d9e6e9;
+  font: 900 10.5px/1.3 'Nunito', sans-serif;
+  cursor: pointer;
+}
+.album-chips button.active { border-color: #e1bd7d; color: #ffe3ac; background: #354e50; }
+#albumSearch {
+  flex: 1 1 170px;
+  min-width: 140px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #4f7385;
+  background: rgba(9, 26, 40, 0.9);
+  color: #eef8ff;
+  font: 800 11.5px/1 'Nunito', sans-serif;
+}
+#albumSearch::placeholder { color: #7fa6bd; }
+
+.album-body { max-height: 52dvh; overflow-y: auto; padding-right: 3px; }
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(154px, 1fr)); gap: 7px; }
+.album-empty { margin: 8px 0; font: 800 12px/1.5 'Nunito', sans-serif; color: #9fc6da; text-align: center; }
+
+.album-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-areas: 'art info' 'art buy';
+  align-items: center;
+  gap: 2px 8px;
+  padding: 6px;
+  border-radius: 10px;
+  background: rgba(12, 36, 56, 0.75);
+  border: 1px solid rgba(140, 200, 230, 0.18);
+}
+.album-card.owned { border-color: rgba(120, 200, 235, 0.45); background: rgba(14, 46, 68, 0.8); }
+.album-card.full { border-color: rgba(52, 211, 153, 0.5); }
+.album-card.rarity-R { box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.25); }
+.album-card.rarity-SR { box-shadow: inset 0 0 0 1px rgba(192, 132, 252, 0.3); }
+.album-card.rarity-UR { box-shadow: inset 0 0 12px rgba(251, 191, 36, 0.28); border-color: rgba(251, 191, 36, 0.5); }
+.album-art { grid-area: art; width: 42px; height: 42px; border-radius: 8px; overflow: hidden; background-size: cover; background-position: center; }
+.album-rarity {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(6, 20, 32, 0.85);
+  border: 1px solid rgba(140, 200, 230, 0.35);
+  color: #dff2ff;
+  font: 900 8.5px/1.6 'Nunito', sans-serif;
+  vertical-align: 1px;
+}
+.album-card.rarity-SR .album-rarity { color: #e9d5ff; border-color: rgba(192, 132, 252, 0.6); }
+.album-card.rarity-UR .album-rarity { color: #fde68a; border-color: rgba(251, 191, 36, 0.7); }
+.album-info { grid-area: info; min-width: 0; }
+.album-info b {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font: 800 11.5px/1.25 'Nunito', sans-serif;
+  color: #eef8ff;
+}
+.album-info small { display: block; font: 800 9.5px/1.5 'Nunito', sans-serif; color: #9fc6da; }
+.album-buy {
+  grid-area: buy;
+  justify-self: start;
+  margin: 0;
+  min-height: 24px;
+  padding: 3px 9px;
+  border-radius: 7px;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  background: linear-gradient(150deg, rgba(70, 45, 15, 0.85), rgba(35, 22, 8, 0.92));
+  color: #ffe9b0;
+  font: 900 10px/1.3 'Nunito', sans-serif;
+  cursor: pointer;
+}
+.album-buy:disabled { opacity: 0.5; cursor: default; }
+.album-card.owned .album-buy { border-color: rgba(120, 200, 160, 0.45); }
+
+.album-foot { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.album-foot button { margin: 0; }
+
+@media (max-width: 760px) {
+  .modal-card:has(.album-modal) { width: calc(100vw - 14px); max-height: 94dvh; padding: 13px 12px 12px; }
+  .album-head h2 { font-size: 20px; }
+  .album-body { max-height: 46dvh; }
+  .album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+}
+
+@media (max-width: 420px) {
+  .album-grid { grid-template-columns: 1fr; }
+  .album-card { grid-template-columns: 42px minmax(0, 1fr) auto; grid-template-areas: 'art info buy' 'art info buy'; }
+  .album-buy { justify-self: end; align-self: center; }
+}
