@@ -319,6 +319,7 @@ function startGame(options={}){
 function finish(winner,reason=''){
   if(!duel||duel.finished)return;duel.finished=true;duel.winner=winner;duel.finishReason=reason;clearTimeout(aiTimer);
   render();const won=winner==='player',match=duel;
+  match.reward=window.memePacks?.onDuelFinished?.(won)||null;
   const historyId=window.memeMatchHistory?.record?.(match);
   const rankPromise = window.memeIdDuel?.recordResult?.(match)?.catch(e => {
     console.warn('Rank record error:', e);
@@ -345,7 +346,9 @@ function showMatchResult(won,reason,match=duel){
   } else if (receipt) {
     rankText = `<p class="rank-challenge-result" style="color:#4ade80;font-weight:bold;">🏆 BXH ĐÃ CẬP NHẬT: ${receipt.outcome==='win'?'Thắng':receipt.outcome==='loss'?'Thua':'Hòa'} · <span style="font-size:1.15em;color:#fbbf24;">${receipt.delta>0?'+':''}${receipt.delta} Elo</span> (${receipt.ratingAfter} Elo) · ${receipt.wins} thắng / ${receipt.losses} thua</p>`;
   }
-  showModal(`<span class="result-icon">${won?'🏆':'💀'}</span><h2>${won?'Chiến thắng!':'Thất bại!'}</h2><p>${esc(reason||'Trận đấu đã kết thúc.')}</p>${rankText}<div class="result-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"><button class="primary-btn" id="againBtn">⚔️ Đấu lại</button><button class="secondary-btn" id="resultLobbyBtn">🏠 Về sảnh</button></div>`);
+  const reward=match?.reward;
+  const rewardText=reward?`<p class="match-reward">🪙 +${reward.xu} Xu · ⭐ +${reward.xp} XP${reward.levels?` · 🎉 Lên cấp ${reward.level}!${reward.tickets?` +${reward.tickets} vé Pack Tân Binh`:''}`:''}</p>`:'';
+  showModal(`<span class="result-icon">${won?'🏆':'💀'}</span><h2>${won?'Chiến thắng!':'Thất bại!'}</h2><p>${esc(reason||'Trận đấu đã kết thúc.')}</p>${rewardText}${rankText}<div class="result-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"><button class="primary-btn" id="againBtn">⚔️ Đấu lại</button><button class="secondary-btn" id="resultLobbyBtn">🏠 Về sảnh</button></div>`);
   const retryBtn = document.getElementById('retrySyncEloBtn');
   if (retryBtn) {
     retryBtn.onclick = async () => {

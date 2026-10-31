@@ -1,0 +1,438 @@
+/* Pack opening, wallet strip and daily login. Loaded after the lobby skins. */
+
+/* ── Progress strip ───────────────────────────────────────────── */
+.progress-strip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: min(1040px, calc(100% - 56px));
+  margin: 3px auto 0;
+  padding: 3px 6px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: linear-gradient(120deg, rgba(9, 30, 48, 0.92), rgba(6, 20, 34, 0.88));
+  border: 1px solid rgba(230, 195, 110, 0.28);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  z-index: 9;
+}
+.progress-chips {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.progress-chips::-webkit-scrollbar { display: none; }
+.progress-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(20, 48, 72, 0.85);
+  border: 1px solid rgba(140, 200, 230, 0.2);
+  color: #dff2ff;
+  font: 800 11.5px/1 'Nunito', sans-serif;
+  white-space: nowrap;
+}
+.progress-chip b { color: #fff6d6; font-weight: 900; }
+.progress-chip small { font-size: 9px; color: #8fb6cb; font-weight: 800; }
+.progress-chip.lv { padding-left: 10px; padding-right: 10px; gap: 6px; }
+.progress-chip.lv b { color: #ffe69c; }
+.progress-chip.xu b { color: #fcd34d; }
+.progress-chip.dust b { color: #d8b4fe; }
+.progress-chip.tickets b { color: #93c5fd; letter-spacing: 0.3px; }
+.progress-chip.streak b { color: #fdba74; }
+.progress-chip.streak[hidden] { display: none; }
+.xp-track {
+  display: block;
+  width: 34px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.xp-track > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38bdf8, #a78bfa);
+  transition: width 0.35s ease;
+}
+.progress-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.progress-btn {
+  position: relative;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(230, 195, 110, 0.5);
+  background: linear-gradient(150deg, rgba(45, 90, 130, 0.9), rgba(14, 36, 58, 0.95));
+  color: #fff4cb;
+  font: 900 11.5px/1 'Nunito', sans-serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.progress-btn:hover { transform: translateY(-1px); border-color: #ffe9b0; }
+.progress-btn.pack {
+  background: linear-gradient(140deg, #f5b642, #d97706 60%, #b45309);
+  border-color: #fde68a;
+  color: #25160a;
+  box-shadow: 0 2px 10px rgba(217, 119, 6, 0.45);
+  padding-right: 14px;
+}
+.progress-btn.daily.claimed {
+  background: rgba(16, 44, 60, 0.75);
+  border-color: rgba(120, 190, 160, 0.4);
+  color: #a7f3d0;
+  cursor: default;
+}
+.progress-btn.daily.unclaimed { animation: dailyPulse 2.2s ease-in-out infinite; }
+@keyframes dailyPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+  50% { box-shadow: 0 0 14px rgba(251, 191, 36, 0.55); }
+}
+.ticket-badge {
+  position: absolute;
+  top: -6px;
+  right: -5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #f87171, #b91c1c);
+  border: 1px solid #fff;
+  color: #fff;
+  font: 900 9px/15px 'Nunito', sans-serif;
+  text-align: center;
+  font-style: normal;
+}
+.ticket-badge[hidden] { display: none; }
+
+/* ── Shared pack modal ────────────────────────────────────────── */
+.modal-card.pack-modal {
+  width: min(980px, 96vw);
+  max-height: 94dvh;
+  text-align: left;
+  padding: 16px 18px 14px;
+  border: 2px solid #e8c87b;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(56, 120, 165, 0.55), transparent 60%),
+    linear-gradient(160deg, #173d59, #081b2d 62%, #050f1b);
+  box-shadow: 0 0 50px rgba(243, 207, 127, 0.22), 0 24px 60px rgba(0, 0, 0, 0.8);
+}
+.modal-card.pack-modal > #modalContent { display: block; }
+
+.pack-shop-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-right: 26px;
+}
+.pack-shop-head h2 { margin: 0; font-size: 24px; color: #ffe9b0; text-align: left; }
+.pack-sub { margin: 4px 0 0; font: 700 12px/1.45 'Nunito', sans-serif; color: #b9d9ea; }
+.pack-sub b { color: #fff6d6; }
+.pack-wallet { display: flex; gap: 6px; flex-wrap: wrap; }
+.pack-wallet span {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(10, 30, 48, 0.8);
+  border: 1px solid rgba(140, 200, 230, 0.25);
+  font: 800 11.5px/1 'Nunito', sans-serif;
+  color: #d9eefc;
+}
+.collection-track {
+  position: relative;
+  height: 8px;
+  margin: 10px 0 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(140, 200, 230, 0.16);
+  overflow: hidden;
+}
+.collection-track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #34d399, #38bdf8 55%, #a78bfa);
+  transition: width 0.4s ease;
+}
+.collection-track small {
+  position: absolute;
+  right: 8px;
+  top: -18px;
+  font: 800 10px 'Nunito', sans-serif;
+  color: #9fc6da;
+}
+
+/* ── Shop cards ───────────────────────────────────────────────── */
+.pack-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pack-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 12px 13px;
+  border-radius: 16px;
+  background: linear-gradient(165deg, rgba(24, 56, 82, 0.96), rgba(7, 21, 35, 0.98));
+  border: 1.5px solid rgba(150, 190, 215, 0.3);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  min-width: 0;
+}
+.pack-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(80% 55% at 50% 0%, var(--pack-glow, rgba(148, 163, 184, 0.22)), transparent 70%);
+}
+.pack-card.pack-p1 { --pack-glow: rgba(148, 163, 184, 0.3); border-color: rgba(148, 163, 184, 0.5); }
+.pack-card.pack-p2 { --pack-glow: rgba(96, 165, 250, 0.42); border-color: rgba(96, 165, 250, 0.6); }
+.pack-card.pack-p3 { --pack-glow: rgba(251, 191, 36, 0.45); border-color: rgba(251, 191, 36, 0.72); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), 0 0 26px rgba(251, 191, 36, 0.15); }
+.pack-art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 86px;
+  border-radius: 12px;
+  background:
+    radial-gradient(60% 80% at 50% 20%, var(--pack-glow, rgba(148, 163, 184, 0.35)), transparent 70%),
+    linear-gradient(160deg, rgba(18, 45, 68, 0.95), rgba(5, 15, 26, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.pack-icon { font-size: 42px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55)); z-index: 1; }
+.pack-art small {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 900 8px/1 'Nunito', sans-serif;
+  letter-spacing: 2px;
+  color: rgba(255, 246, 214, 0.72);
+}
+.pack-shine {
+  position: absolute;
+  inset: -40% -60%;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.28) 48%, transparent 58%);
+  transform: translateX(-60%);
+  animation: packShine 4.5s ease-in-out infinite;
+}
+.pack-card.pack-p2 .pack-shine { animation-delay: 0.7s; }
+.pack-card.pack-p3 .pack-shine { animation-delay: 1.4s; }
+@keyframes packShine {
+  0%, 62% { transform: translateX(-60%); }
+  82%, 100% { transform: translateX(60%); }
+}
+.pack-card h3 { margin: 0; font: 900 17px/1.15 'Baloo 2', 'Nunito', sans-serif; color: #fff6d6; }
+.pack-odds { margin: 0; font: 800 11px/1.4 'Nunito', sans-serif; color: #9fd0e8; }
+.pack-meta { display: flex; flex-direction: column; gap: 3px; font: 700 10.5px/1.35 'Nunito', sans-serif; color: #a9c3d3; }
+.pack-meta span:first-child { color: #ffd88a; font-weight: 900; }
+.pack-cost {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding: 6px 9px;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.28);
+  font: 900 12px/1 'Nunito', sans-serif;
+  color: #fde68a;
+}
+.pack-cost span:last-child { color: #93c5fd; }
+.pack-open-btn { width: 100%; margin: 0; font-size: 13px; padding: 9px 10px; }
+.pack-open-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Dust exchange ────────────────────────────────────────────── */
+.pack-exchange {
+  margin-top: 14px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: rgba(10, 28, 45, 0.72);
+  border: 1px dashed rgba(168, 139, 250, 0.4);
+}
+.pack-exchange h3 { margin: 0 0 2px; font: 900 14px 'Baloo 2', sans-serif; color: #d8b4fe; text-align: left; }
+.pack-exchange p { margin: 0 0 8px; font: 700 10.5px/1.4 'Nunito', sans-serif; color: #a9c3d3; }
+.exchange-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.exchange-actions .secondary-btn { margin: 0; font-size: 11px; padding: 7px 10px; }
+.exchange-actions .secondary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.pack-login-note { margin: 10px 0 0; font: 700 10.5px/1.4 'Nunito', sans-serif; color: #8fb6cb; }
+
+/* ── Daily login modal ────────────────────────────────────────── */
+.daily-modal { text-align: center; }
+.daily-modal h2 { margin: 0 0 4px; color: #ffe9b0; }
+.daily-sub { margin: 0 0 10px; font: 700 12px/1.45 'Nunito', sans-serif; color: #b9d9ea; }
+.daily-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 auto 14px;
+  max-width: 380px;
+}
+.daily-rewards span {
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(24, 56, 82, 0.95), rgba(8, 24, 40, 0.95));
+  border: 1px solid rgba(230, 195, 110, 0.35);
+  font: 800 12px/1.35 'Nunito', sans-serif;
+  color: #f6e6c4;
+}
+.daily-actions { display: flex; justify-content: center; gap: 9px; flex-wrap: wrap; }
+.daily-actions .primary-btn, .daily-actions .secondary-btn { margin: 0; }
+
+/* ── Reveal ───────────────────────────────────────────────────── */
+.pack-reveal-open { overflow-y: auto; }
+.pack-open-title { margin: 0; font: 900 24px/1.1 'Baloo 2', sans-serif; color: #ffe9b0; text-align: left; }
+.pack-open-sub { margin: 3px 0 12px; font: 800 11.5px/1.4 'Nunito', sans-serif; color: #9fd0e8; }
+.pack-reveal-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.reveal-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 7px 8px;
+  border-radius: 12px;
+  background: linear-gradient(170deg, rgba(22, 50, 74, 0.98), rgba(6, 18, 30, 0.99));
+  border: 2px solid rgba(148, 163, 184, 0.5);
+  overflow: hidden;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(14px) rotateX(18deg);
+  animation: packFlip 0.55s cubic-bezier(0.22, 1.1, 0.36, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 95ms + 120ms);
+}
+.reveal-card.rarity-R { border-color: #60a5fa; box-shadow: 0 0 14px rgba(96, 165, 250, 0.28); }
+.reveal-card.rarity-SR { border-color: #c084fc; box-shadow: 0 0 18px rgba(192, 132, 252, 0.4); }
+.reveal-card.rarity-UR { border-color: #fbbf24; box-shadow: 0 0 24px rgba(251, 191, 36, 0.55); }
+.reveal-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(70% 50% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 65%);
+}
+.reveal-card.rarity-UR .reveal-glow {
+  background: radial-gradient(70% 50% at 50% 0%, rgba(251, 191, 36, 0.4), transparent 70%);
+  animation: urGlow 1.8s ease-in-out infinite;
+}
+@keyframes urGlow { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes packFlip {
+  to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+.reveal-art {
+  display: block;
+  width: 100%;
+  aspect-ratio: 0.72;
+  border-radius: 7px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #42616e, #1a2938);
+}
+.reveal-art img, .reveal-art > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.reveal-rarity {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.68);
+  border: 1px solid currentColor;
+  font: 900 8.5px/1.4 'Nunito', sans-serif;
+  color: #cbd5e1;
+  z-index: 2;
+}
+.reveal-card.rarity-R .reveal-rarity { color: #93c5fd; }
+.reveal-card.rarity-SR .reveal-rarity { color: #d8b4fe; }
+.reveal-card.rarity-UR .reveal-rarity { color: #fde68a; }
+.reveal-card b {
+  width: 100%;
+  font: 800 10.5px/1.2 'Nunito', sans-serif;
+  color: #eef8ff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reveal-card small { font: 800 9px/1.2 'Nunito', sans-serif; color: #9fc6da; text-align: center; }
+.reveal-card .is-new {
+  font-style: normal;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: linear-gradient(140deg, #34d399, #059669);
+  color: #06281c;
+  font-weight: 900;
+}
+.pack-open-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.pack-collection {
+  margin-right: auto;
+  font: 900 12px/1 'Nunito', sans-serif;
+  color: #ffe69c;
+}
+.pack-open-foot .primary-btn, .pack-open-foot .secondary-btn { margin: 0; padding: 9px 14px; font-size: 12.5px; }
+.match-reward {
+  margin: 6px 0;
+  font: 800 13px/1.4 'Nunito', sans-serif;
+  color: #fde68a;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .progress-strip { width: calc(100% - 24px); }
+  .pack-reveal-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .progress-strip { width: calc(100% - 16px); gap: 5px; padding: 2px 4px; margin-top: 2px; }
+  .progress-chip { height: 26px; padding: 0 7px; font-size: 10.5px; gap: 3px; }
+  .progress-chip small { display: none; }
+  .xp-track { width: 26px; }
+  .progress-btn { height: 26px; font-size: 10.5px; padding: 0 9px; }
+  .modal-card.pack-modal { width: calc(100vw - 14px); max-height: 94dvh; padding: 13px 12px 12px; }
+  .pack-grid { grid-template-columns: 1fr; }
+  .pack-art { height: 70px; }
+  .pack-shop-head h2 { font-size: 20px; }
+  .pack-open-title { font-size: 20px; }
+  .pack-reveal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pack-open-foot { justify-content: stretch; }
+  .pack-collection { width: 100%; margin: 0 0 2px; }
+  .pack-open-foot .primary-btn, .pack-open-foot .secondary-btn { flex: 1 1 40%; }
+}
+@media (max-width: 600px) {
+  .progress-chip.dust { display: none; }
+  #dailyBtn { font-size: 0; padding: 0 10px; }
+  #dailyBtn::before { content: '🎁'; font-size: 15px; }
+  #dailyBtn.claimed::before { content: '✅'; }
+  #packBtn > span { display: none; }
+  #packBtn { padding: 0 10px; }
+  .pack-wallet span { padding: 4px 8px; font-size: 10.5px; }
+  .pack-reveal-grid { gap: 7px; }
+  .reveal-card { padding: 5px 5px 6px; }
+}
+@media (max-height: 600px) {
+  .progress-strip { margin-top: 1px; padding-top: 1px; padding-bottom: 1px; }
+  .progress-chip { height: 24px; font-size: 10px; }
+  .progress-btn { height: 24px; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .progress-btn.daily.unclaimed, .pack-shine, .reveal-card, .reveal-card.rarity-UR .reveal-glow { animation: none !important; }
+  .reveal-card { opacity: 1; transform: none; }
+}

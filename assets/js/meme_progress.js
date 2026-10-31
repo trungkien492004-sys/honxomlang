@@ -21,6 +21,7 @@
       pity: { p1: 0, p2: 0, p3: 0 },
       owned: {},
       login: { streak: 0, lastDay: '' },
+      stats: { packOpens: 0, duels: 0, wins: 0 },
       quests: {}, story: {}, tower: {},
       migrated: false, legacyChecked: true
     };
@@ -42,6 +43,11 @@
     state.migrated = raw.migrated === true;
     state.legacyChecked = raw.legacyChecked === true;
     state.login = { streak: Math.max(0, Number(raw.login?.streak) || 0), lastDay: String(raw.login?.lastDay || '') };
+    state.stats = {
+      packOpens: Math.max(0, Number(raw.stats?.packOpens) || 0),
+      duels: Math.max(0, Number(raw.stats?.duels) || 0),
+      wins: Math.max(0, Number(raw.stats?.wins) || 0)
+    };
     state.quests = raw.quests && typeof raw.quests === 'object' ? raw.quests : {};
     state.story = raw.story && typeof raw.story === 'object' ? raw.story : {};
     state.tower = raw.tower && typeof raw.tower === 'object' ? raw.tower : {};
@@ -195,6 +201,70 @@
     return `Còn ${missing.length} lá chưa sở hữu: ${names}${missing.length > 3 ? '…' : ''}. Mở pack để nhận thẻ.`;
   }
 
+  function xpNeed(level) {
+    return 100 + (Math.min(40, Math.max(1, level)) - 1) * 50;
+  }
+
+  function addXu(n) {
+    n = Math.max(0, Math.floor(Number(n) || 0));
+    if (!n) return state.xu;
+    state.xu += n; save(); return state.xu;
+  }
+
+  function spendXu(n) {
+    n = Math.max(0, Math.floor(Number(n) || 0));
+    if (state.xu < n) return false;
+    state.xu -= n; save(); return true;
+  }
+
+  function addDust(n) {
+    n = Math.max(0, Math.floor(Number(n) || 0));
+    if (!n) return state.dust;
+    state.dust += n; save(); return state.dust;
+  }
+
+  function spendDust(n) {
+    n = Math.max(0, Math.floor(Number(n) || 0));
+    if (state.dust < n) return false;
+    state.dust -= n; save(); return true;
+  }
+
+  function addTicket(kind, n = 1) {
+    if (!['p1', 'p2', 'p3'].includes(kind)) return state.tickets;
+    n = Math.max(1, Math.floor(Number(n) || 1));
+    state.tickets[kind] += n; save(); return state.tickets;
+  }
+
+  function useTicket(kind) {
+    if (!['p1', 'p2', 'p3'].includes(kind) || state.tickets[kind] <= 0) return false;
+    state.tickets[kind] -= 1; save(); return true;
+  }
+
+  function addXp(n) {
+    n = Math.max(0, Math.floor(Number(n) || 0));
+    let levels = 0;
+    state.xp += n;
+    while (state.level < 40 && state.xp >= xpNeed(state.level)) {
+      state.xp -= xpNeed(state.level); state.level += 1; levels += 1;
+    }
+    if (state.level >= 40) state.xp = Math.min(state.xp, xpNeed(40));
+    if (n || levels) save();
+    return { levels, level: state.level };
+  }
+
+  function setLogin(streak, lastDay) {
+    state.login = { streak: Math.max(0, Math.floor(Number(streak) || 0)), lastDay: String(lastDay || '') };
+    save();
+  }
+
+  function ownedUnique() {
+    return Object.keys(state.owned).length;
+  }
+
+  function totalCollectible() {
+    return CARDS.filter(c => !c.uncollectible).length;
+  }
+
   window.memeProgress = {
     KEY,
     get state() { return state; },
@@ -206,6 +276,9 @@
     grantDeck,
     ownedProblem,
     starterCards,
+    xpNeed,
+    addXu, spendXu, addDust, spendDust, addTicket, useTicket, addXp,
+    setLogin, ownedUnique, totalCollectible,
     save,
     reset() {
       state = emptyState();
