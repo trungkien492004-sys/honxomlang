@@ -342,8 +342,9 @@
 #lobby .lobby-footer.rank-actions > #shopBigBtn,
 #lobby .lobby-footer.rank-actions > #playBtn,
 #lobby .lobby-footer.rank-actions > #lobbyDeckBtn {
-  height: 42px !important;
-  min-height: 42px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
   font-size: 14px !important;
   font-weight: 900 !important;
   border-radius: 11px !important;

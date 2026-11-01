@@ -118,13 +118,13 @@
 
   const boot = (async () => {
     if (!window.firebase?.apps) {
-      await load('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-      await load('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js');
-      await load('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js');
+      await load('assets/js/libs/firebase/firebase-app-compat.js').catch(() => load('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js'));
+      await load('assets/js/libs/firebase/firebase-auth-compat.js').catch(() => load('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js'));
+      await load('assets/js/libs/firebase/firebase-firestore-compat.js').catch(() => load('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js'));
     }
     if (!firebase.apps.length) firebase.initializeApp(config);
-    auth = firebase.auth();
-    db = firebase.firestore();
+    auth = (typeof firebase.auth === 'function') ? firebase.auth() : (window.parent?.firebase?.auth?.() || null);
+    db = (typeof firebase.firestore === 'function') ? firebase.firestore() : (window.parent?.firebase?.firestore?.() || null);
     await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
       .catch(() => auth.setPersistence(firebase.auth.Auth.Persistence.SESSION))
       .catch(() => {});

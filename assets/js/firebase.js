@@ -25,12 +25,20 @@ function initFirebaseServices() {
     } catch(e) {
         console.warn('Firebase init:', e);
     }
-    if (typeof firebase.auth === 'function') {
+    if (typeof firebase.auth === 'function' && (!auth || auth === safeAuth)) {
         try {
             auth = firebase.auth();
             googleProvider = new firebase.auth.GoogleAuthProvider();
             window.authPersistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
                 .catch(error => console.warn('Không lưu được phiên đăng nhập:', error.code));
+            if (typeof _realAuthAttached !== 'undefined' && !_realAuthAttached && typeof _authStateCallbacks !== 'undefined') {
+                _realAuthAttached = true;
+                auth.onAuthStateChanged(async (user) => {
+                    for (const fn of _authStateCallbacks) {
+                        try { await fn(user); } catch(err) { console.warn('Auth callback error:', err); }
+                    }
+                });
+            }
         } catch(e) {
             console.warn('Firebase auth init:', e);
         }
@@ -47,19 +55,51 @@ function initFirebaseServices() {
 
 initFirebaseServices();
 
-if (!auth) {
-    auth = {
-        currentUser: null,
-        onAuthStateChanged(cb) {
+// Safe auth proxy that never throws TypeError: firebase.auth is not a function
+const _authStateCallbacks = [];
+let _realAuthAttached = false;
+
+const safeAuth = {
+    get currentUser() {
+        if (!auth || auth === safeAuth) initFirebaseServices();
+        return (auth && auth !== safeAuth && auth.currentUser) ? auth.currentUser : null;
+    },
+    onAuthStateChanged(cb) {
+        _authStateCallbacks.push(cb);
+        if (!auth || auth === safeAuth) initFirebaseServices();
+        if (auth && auth !== safeAuth && !_realAuthAttached) {
+            _realAuthAttached = true;
+            auth.onAuthStateChanged(async (user) => {
+                for (const fn of _authStateCallbacks) {
+                    try { await fn(user); } catch(err) { console.warn('Auth callback error:', err); }
+                }
+            });
+        }
+        if (!auth || auth === safeAuth) {
             setTimeout(() => { try { cb(null); } catch(e){} }, 0);
-            return () => {};
-        },
-        async signInWithPopup() {
-            throw new Error('Không thể kết nối Firebase Auth (có thể do trình chặn quảng cáo hoặc lỗi mạng).');
-        },
-        async signOut() {},
-        async setPersistence() {}
-    };
+        }
+        return () => {
+            const idx = _authStateCallbacks.indexOf(cb);
+            if (idx >= 0) _authStateCallbacks.splice(idx, 1);
+        };
+    },
+    async signInWithPopup(provider) {
+        if (!auth || auth === safeAuth || typeof auth.signInWithPopup !== 'function') initFirebaseServices();
+        if (!auth || auth === safeAuth || typeof auth.signInWithPopup !== 'function') {
+            throw new Error('Chưa thể kết nối Firebase Auth (có thể do trình chặn quảng cáo hoặc lỗi mạng).');
+        }
+        return auth.signInWithPopup(provider || googleProvider);
+    },
+    async signOut() {
+        if (auth && auth !== safeAuth && typeof auth.signOut === 'function') return auth.signOut();
+    },
+    async setPersistence(mode) {
+        if (auth && auth !== safeAuth && typeof auth.setPersistence === 'function') return auth.setPersistence(mode);
+    }
+};
+
+if (!auth) {
+    auth = safeAuth;
     window.authPersistenceReady = Promise.resolve();
 }
 

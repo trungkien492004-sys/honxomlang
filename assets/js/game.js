@@ -1156,8 +1156,8 @@
         let networkWriteErrorShown = false;
         function reportNetworkWriteError(err) {
             console.error('🔥 Firestore network write failed:', err);
-            const msg = String(err?.message || err?.code || '');
-            if (msg.includes('Missing or insufficient permissions') || msg.includes('permission-denied')) {
+            const msg = String(err?.message || err?.code || '').toLowerCase();
+            if (msg.includes('permission') || msg.includes('insufficient') || msg.includes('unauthenticated') || msg.includes('denied')) {
                 return;
             }
             if (!networkWriteErrorShown) {
@@ -1246,9 +1246,9 @@
                       isInitialEvent = false;
                   }, err => {
                       console.error("🔥 network_events onSnapshot error:", err);
-                      const msg = String(err?.message || err?.code || '');
-                      if (!msg.includes('Missing or insufficient permissions') && !msg.includes('permission-denied')) {
-                          showToast("⚠️ Lỗi kết nối Firestore: " + err.message);
+                      const msg = String(err?.message || err?.code || '').toLowerCase();
+                      if (!msg.includes('permission') && !msg.includes('insufficient') && !msg.includes('unauthenticated') && !msg.includes('denied')) {
+                          showToast("⚠️ Lỗi kết nối Firestore: " + (err?.message || 'Lỗi mạng'));
                       }
                   });
 
