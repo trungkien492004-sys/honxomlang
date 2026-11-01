@@ -310,7 +310,9 @@ function startGame(options={}){
     duel.rankChallengeId='bot-'+crypto.randomUUID().replaceAll('-','').slice(0,24);
     duel.rankChallengeOpponentUid='bot-'+botGroup;
     duel.botOpponent={uid:duel.rankChallengeOpponentUid,name:typeof HEROES!=='undefined'&&HEROES[botHeroId]?.name||'Seto Kaiba'};
+    duel.isPractice=true;
   }
+  if(options?.isPractice)duel.isPractice=true;
   for(let i=0;i<4;i++){draw('player');draw('enemy');}
   $('lobby').classList.add('hidden');$('duel').classList.remove('hidden');$('duel').classList.remove('match-finished');$('playerName').textContent=HERO_NAMES[chosenHero];$('enemyName').textContent=HEROES[botHeroId]?.name || 'Seto Kaiba';
   duel.openingCoin=window.memeOpening?.create();duel.turn=duel.openingCoin?.first||'player';

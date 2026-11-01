@@ -6,89 +6,43 @@
     <title>Vạn Pháp Đạo Tràng — Game Idle Tu Hành & Quản Lý Tự Viện</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Cinzel:wght@700;800;900&family=Noto+Serif:ital,wght@0,600;0,700;1,600&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/vanphap/css/vanphap.css?v=20261031-vanphap1">
-    <style>
-        /* Shared Xóm Làng chrome — sits inside the sticky temple header */
-        .top-exit-bar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(8, 20, 28, 0.92);
-            border: 1.5px solid rgba(79, 201, 168, 0.42);
-            border-radius: 30px;
-            padding: 4px 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 15px rgba(79, 201, 168, 0.18);
-            backdrop-filter: blur(10px);
-        }
-        .top-exit-label {
-            font-size: 13px;
-            font-weight: 800;
-            color: #fbbf24;
-            letter-spacing: .04em;
-        }
-        .top-exit-btn {
-            background: linear-gradient(135deg, #0e7490, #155e75);
-            color: #fff;
-            border: 1px solid #4fc9a8;
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        .top-exit-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 12px rgba(79, 201, 168, 0.6);
-        }
-        @media (max-width: 560px) {
-            .top-exit-bar { gap: 8px; padding: 4px 10px; }
-            .top-exit-label { display: none; }
-        }
-        @media (max-width: 720px) {
-            .vp-header { flex-wrap: wrap; gap: 8px 10px; padding: 8px 12px; }
-            .vp-brand { flex: 1 1 auto; min-width: 0; }
-            .vp-brand-title { font-size: 17px; line-height: 1.1; }
-            .vp-brand-sub { display: none; }
-            .top-exit-bar { order: 3; width: 100%; justify-content: center; }
-            .top-exit-label { display: none; }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Noto+Serif:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/vanphap/css/vanphap.css">
 </head>
 <body>
     <div class="zen-mist-bg"></div>
     <div id="vp-toast-box"></div>
 
+    <!-- Nút trở về sảnh Hồn Xóm Làng -->
+    <div class="top-exit-bar">
+        <span class="top-exit-pill-label">🪷 VẠN PHÁP ĐẠO TRÀNG</span>
+        <button class="top-exit-btn" id="btn-exit-lobby" title="Trở về Sảnh Xóm Làng">
+            <span>🏘️</span> Sảnh Xóm Làng
+        </button>
+    </div>
+
     <!-- HEADER SƠN MÔN -->
     <header class="vp-header">
         <div class="vp-brand">
-            <div class="vp-brand-icon">🏯</div>
+            <div class="vp-brand-emblem">✦</div>
             <div>
                 <div class="vp-brand-title" id="monastery-name-display">VẠN PHÁP ĐẠO TRÀNG</div>
-                <div class="vp-brand-sub">Game Idle Tu Hành & Quản Lý Tự Viện</div>
+                <div class="vp-brand-sub">Đạo Nghiệp Tinh Tấn • Tự Viện Ngàn Năm</div>
             </div>
         </div>
 
-        <!-- Nút trở về sảnh Hồn Xóm Làng -->
-        <div class="top-exit-bar">
-            <span class="top-exit-label">🪷 VẠN PHÁP ĐẠO TRÀNG</span>
-            <button class="top-exit-btn" id="btn-exit-lobby">
-                <span>🏘️</span> Sảnh Xóm Làng
-            </button>
-        </div>
-
-        <div style="display:flex; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-right:12px; flex-wrap:wrap;">
+            <div class="vp-auth-badge" id="vp-auth-badge">
+                <span id="vp-auth-status-icon">⚪</span>
+                <span id="vp-auth-user-name" style="font-weight:700;">Khách viếng thăm</span>
+                <button type="button" class="btn-login-zen" id="btnZenGoogleLogin">🔑 Đăng nhập Google</button>
+            </div>
             <div class="abbot-header-badge">
                 <span>🧘 <strong id="abbot-name-header">Trụ Trì</strong></span>
                 <span class="abbot-realm-tag" id="abbot-realm-tag">Sơ Học</span>
             </div>
-            <button class="btn-secondary" id="btn-audio-toggle" style="padding:6px 14px; font-size:12px;">
-                🔊 Âm Thiền: Bật
+            <button class="btn-secondary" id="btn-soundscape-panel" style="padding:6px 14px; font-size:12px; border-color:var(--gold-bright); color:var(--gold-bright);" onclick="window.vpApp.toggleSoundscapePanel()">
+                🎶 Chuông Gió Thiền Định
             </button>
         </div>
     </header>
@@ -96,35 +50,35 @@
     <!-- THANH TÀI NGUYÊN TỰ VIỆN -->
     <div class="resources-bar">
         <div class="res-item" title="Gỗ rừng Bồ Đề - Xây dựng công trình">
-            <span class="res-icon">🪵</span>
-            <span>Gỗ: <strong id="res-wood" style="color:var(--text-primary);">0</strong></span>
+            <span class="res-icon" style="color:#d97706;">🪵</span>
+            <span>Gỗ Trầm: <strong id="res-wood" style="color:var(--text-primary);">0</strong></span>
         </div>
         <div class="res-item" title="Đá Thạch Phong - Dựng tháp và tạc bia">
-            <span class="res-icon">🪨</span>
-            <span>Đá: <strong id="res-stone" style="color:var(--text-primary);">0</strong></span>
+            <span class="res-icon" style="color:#94a3b8;">🪨</span>
+            <span>Linh Thạch: <strong id="res-stone" style="color:var(--text-primary);">0</strong></span>
         </div>
         <div class="res-item" title="Dược liệu Nam Dược - Dưỡng sinh và an thần">
-            <span class="res-icon">🌿</span>
-            <span>Dược Liệu: <strong id="res-herbs" style="color:var(--jade-bright);">0</strong></span>
+            <span class="res-icon" style="color:var(--jade-bright);">🌿</span>
+            <span>Nam Dược: <strong id="res-herbs" style="color:var(--jade-bright);">0</strong></span>
         </div>
         <div class="res-item" title="Lương thực Trai Đường - Nuôi dưỡng đệ tử">
-            <span class="res-icon">🍲</span>
-            <span>Lương Thực: <strong id="res-food" style="color:var(--gold-bright);">0</strong></span>
+            <span class="res-icon" style="color:var(--gold-bright);">🍲</span>
+            <span>Trai Phạn: <strong id="res-food" style="color:var(--gold-bright);">0</strong></span>
         </div>
         <div class="res-item" title="Trầm hương - Dâng Phật và thanh tịnh tâm thần">
-            <span class="res-icon">🪔</span>
+            <span class="res-icon" style="color:var(--incense-purple);">🪔</span>
             <span>Trầm Hương: <strong id="res-incense" style="color:var(--incense-purple);">0</strong></span>
         </div>
         <div class="res-item" title="Ngân lượng thập phương cúng dường">
-            <span class="res-icon">🪙</span>
+            <span class="res-icon" style="color:var(--gold-bright);">🪙</span>
             <span>Cúng Dường: <strong id="res-coins" style="color:var(--gold-bright);">0</strong></span>
         </div>
         <div class="res-item" title="Điểm Công Đức tích lũy từ thiện nguyện">
-            <span class="res-icon">🪷</span>
+            <span class="res-icon" style="color:var(--lotus-pink);">🪷</span>
             <span>Công Đức: <strong id="res-merit" style="color:var(--lotus-pink);">0</strong></span>
         </div>
         <div class="res-item" title="Danh vọng sơn môn - Thu hút thiện tín">
-            <span class="res-icon">🌟</span>
+            <span class="res-icon" style="color:var(--gold-light);">🌟</span>
             <span>Danh Vọng: <strong id="res-reputation" style="color:var(--gold-bright);">0</strong></span>
         </div>
     </div>
@@ -133,11 +87,12 @@
     <nav class="vp-tabs">
         <button class="vp-tab-btn active" data-tab="chanting">🪷 Thiền Điện (Gõ Mõ)</button>
         <button class="vp-tab-btn" data-tab="campus">🏯 Sơn Môn</button>
+        <button class="vp-tab-btn" data-tab="zenroom">🌐 Phòng Tu Hành Online</button>
         <button class="vp-tab-btn" data-tab="cultivate">🧘 Tu Hành</button>
         <button class="vp-tab-btn" data-tab="disciples">👥 Đệ Tử</button>
         <button class="vp-tab-btn" data-tab="canons">📜 Tàng Kinh Các</button>
         <button class="vp-tab-btn" data-tab="buildings">🔨 Kiến Thiết</button>
-        <button class="vp-tab-btn" data-tab="leaderboard">🌐 Bảng Vàng & Đạo Hữu</button>
+        <button class="vp-tab-btn" data-tab="leaderboard">🏆 Bảng Vàng & Đạo Hữu</button>
     </nav>
 
     <!-- ======================================================================
@@ -150,7 +105,7 @@
                 <div class="altar-banner-top"></div>
 
                 <div class="altar-title-banner">
-                    <h2 class="altar-title-main">🪷 THIỀN ĐIỆN VẠN PHÁP 🪷</h2>
+                    <h2 class="altar-title-main">✦ THIỀN ĐIỆN VẠN PHÁP ✦</h2>
                     <p class="altar-title-sub">Nhất thanh thanh tịnh diệt trừ vạn phiền não — Nhất niệm bồ đề tăng trưởng vô lượng công đức</p>
                 </div>
 
@@ -184,12 +139,12 @@
 
                 <!-- Center: Interactive Wooden Fish & Animated Mallet Stage -->
                 <div class="wooden-fish-stage" id="woodenFishStage" title="Nhấp liên tục để thỉnh mõ tụng kinh nhận Đạo Hạnh!">
-                    <div class="mala-beads-circle"></div>
                     <div class="mo-ripple-container" id="moRippleContainer"></div>
                     <div class="floating-text-container" id="floatingTextContainer"></div>
 
-                    <!-- Lotus Silk Cushion -->
+                    <!-- Lotus Brocade Cushion -->
                     <div class="fish-lotus-cushion">
+                        <div class="cushion-pattern-overlay"></div>
                         <div class="cushion-tassels">
                             <span>⚜️</span>
                             <span>🪷</span>
@@ -197,62 +152,151 @@
                         </div>
                     </div>
 
-                    <!-- 3D Sandalwood Wooden Fish (SVG) -->
+                    <!-- 3D Sandalwood Wooden Fish (High Detail SVG) -->
                     <div class="wooden-fish-body" id="woodenFishBody">
-                        <svg viewBox="0 0 240 180" class="wooden-fish-svg" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 320 240" class="wooden-fish-svg" xmlns="http://www.w3.org/2000/svg">
                             <defs>
-                                <radialGradient id="fishWoodGrad" cx="45%" cy="35%" r="65%">
+                                <!-- Deep sandalwood lacquer radial gradient -->
+                                <radialGradient id="fishWoodBody" cx="45%" cy="30%" r="75%">
                                     <stop offset="0%" stop-color="#ea580c" />
-                                    <stop offset="35%" stop-color="#b45309" />
-                                    <stop offset="70%" stop-color="#78350f" />
-                                    <stop offset="100%" stop-color="#451a03" />
+                                    <stop offset="25%" stop-color="#b45309" />
+                                    <stop offset="55%" stop-color="#78350f" />
+                                    <stop offset="85%" stop-color="#3d1405" />
+                                    <stop offset="100%" stop-color="#1f0902" />
                                 </radialGradient>
-                                <linearGradient id="goldCarve" x1="0" y1="0" x2="1" y2="1">
+                                
+                                <!-- Antique gold leaf filigree gradient -->
+                                <linearGradient id="goldLeafFiligree" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stop-color="#fef08a" />
-                                    <stop offset="50%" stop-color="#fbbf24" />
-                                    <stop offset="100%" stop-color="#d97706" />
+                                    <stop offset="35%" stop-color="#fbbf24" />
+                                    <stop offset="70%" stop-color="#d97706" />
+                                    <stop offset="100%" stop-color="#92400e" />
                                 </linearGradient>
+
+                                <!-- Specular highlight for polished lacquer -->
+                                <linearGradient id="lacquerShine" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+                                    <stop offset="50%" stop-color="#ffffff" stop-opacity="0.05" />
+                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                                </linearGradient>
+
+                                <!-- Resonant sound cavity slit shadow -->
+                                <linearGradient id="hollowSlitGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#0a0301" />
+                                    <stop offset="50%" stop-color="#1a0803" />
+                                    <stop offset="100%" stop-color="#050100" />
+                                </linearGradient>
+
+                                <!-- Bronze pearl medallion gradient -->
+                                <radialGradient id="dragonPearl" cx="35%" cy="35%" r="65%">
+                                    <stop offset="0%" stop-color="#fef08a" />
+                                    <stop offset="40%" stop-color="#d97706" />
+                                    <stop offset="80%" stop-color="#78350f" />
+                                    <stop offset="100%" stop-color="#2d1108" />
+                                </radialGradient>
                             </defs>
-                            <!-- Fish Base Body -->
-                            <path d="M 40 100 C 40 45, 90 20, 150 25 C 205 30, 225 70, 220 115 C 215 155, 175 165, 120 162 C 65 160, 40 145, 40 100 Z" fill="url(#fishWoodGrad)" stroke="#c59b27" stroke-width="3.5" />
-                            <!-- Resonant Hollow Mouth / Slit -->
-                            <path d="M 60 115 C 90 125, 130 125, 160 115 C 165 110, 155 105, 130 108 C 100 110, 75 108, 60 115 Z" fill="#180c09" stroke="#fbbf24" stroke-width="1.8" />
-                            <!-- Golden Lotus Carving on the back -->
-                            <path d="M 120 40 C 130 55, 130 75, 120 85 C 110 75, 110 55, 120 40 Z" fill="url(#goldCarve)" opacity="0.9" />
-                            <path d="M 100 48 C 115 60, 120 75, 115 85 C 105 78, 95 65, 100 48 Z" fill="url(#goldCarve)" opacity="0.75" />
-                            <path d="M 140 48 C 125 60, 120 75, 125 85 C 135 78, 145 65, 140 48 Z" fill="url(#goldCarve)" opacity="0.75" />
-                            <!-- Auspicious Scales Filigree -->
-                            <path d="M 160 65 Q 175 80 160 95" fill="none" stroke="url(#goldCarve)" stroke-width="2.5" />
-                            <path d="M 175 60 Q 190 75 175 90" fill="none" stroke="url(#goldCarve)" stroke-width="2.5" />
-                            <path d="M 150 85 Q 165 100 150 115" fill="none" stroke="url(#goldCarve)" stroke-width="2.5" />
-                            <!-- Fish Eye -->
-                            <circle cx="65" cy="65" r="14" fill="#180c09" stroke="#fbbf24" stroke-width="2.5" />
-                            <circle cx="65" cy="65" r="7" fill="#fbbf24" />
-                            <circle cx="63" cy="63" r="2.5" fill="#ffffff" />
-                            <!-- Tail fin roll / handle loop -->
-                            <path d="M 45 90 C 25 85, 15 105, 25 125 C 35 140, 50 135, 45 120 C 40 110, 35 100, 45 90 Z" fill="url(#fishWoodGrad)" stroke="#c59b27" stroke-width="2.5" />
+
+                            <!-- Drop shadow base under fish -->
+                            <ellipse cx="160" cy="205" rx="110" ry="22" fill="#000000" opacity="0.6" />
+
+                            <!-- Main Wooden Fish Body (Classical temple muyu contour) -->
+                            <path d="M 55 130 C 50 65, 110 25, 200 32 C 275 38, 305 85, 296 142 C 288 192, 235 204, 160 204 C 85 204, 58 185, 55 130 Z" 
+                                  fill="url(#fishWoodBody)" stroke="#d4af37" stroke-width="3" />
+
+                            <!-- Fish Tail / Handle Fin Loop (Curved Dragon Tail Scroll) -->
+                            <path d="M 68 122 C 38 112, 18 135, 26 165 C 34 190, 64 190, 74 165 C 78 150, 75 134, 68 122 Z" 
+                                  fill="url(#fishWoodBody)" stroke="#c59b27" stroke-width="2.5" />
+                            <circle cx="48" cy="152" r="7" fill="#180702" stroke="#92400e" stroke-width="1.5" />
+
+                            <!-- Upper Lacquer Gloss Highlight -->
+                            <path d="M 95 78 C 130 48, 185 45, 235 62 C 215 54, 165 46, 115 66 C 102 71, 96 76, 95 78 Z" 
+                                  fill="url(#lacquerShine)" />
+
+                            <!-- Auspicious Dragon Head / Crest Contours (Embossed Wood Carving) -->
+                            <path d="M 195 34 C 220 44, 245 58, 265 78 C 255 75, 235 68, 215 64 Z" 
+                                  fill="url(#goldLeafFiligree)" opacity="0.8" />
+
+                            <!-- Resonant Sound Cleft / Mouth Slit with Double Acoustic Eyelets (Khe cộng hưởng truyền thống) -->
+                            <path d="M 90 155 C 130 166, 180 166, 220 155" 
+                                  fill="none" stroke="#0a0301" stroke-width="12" stroke-linecap="round" />
+                            <circle cx="90" cy="155" r="8" fill="#0a0301" stroke="#d4af37" stroke-width="1.8" />
+                            <circle cx="220" cy="155" r="8" fill="#0a0301" stroke="#d4af37" stroke-width="1.8" />
+                            <path d="M 96 156 C 135 166, 175 166, 214 156" 
+                                  fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round" opacity="0.8" />
+
+                            <!-- Dragon Scales Filigree on upper dorsal body (Vảy rồng thếp vàng) -->
+                            <g fill="none" stroke="url(#goldLeafFiligree)" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
+                                <path d="M 140 75 Q 155 90 140 105" />
+                                <path d="M 162 70 Q 177 85 162 100" />
+                                <path d="M 184 68 Q 199 83 184 98" />
+                                <path d="M 206 72 Q 221 87 206 102" />
+                                <path d="M 125 100 Q 140 115 125 130" />
+                                <path d="M 148 95 Q 163 110 148 125" />
+                                <path d="M 170 93 Q 185 108 170 123" />
+                                <path d="M 192 95 Q 207 110 192 125" />
+                                <path d="M 214 102 Q 229 117 214 132" />
+                                <path d="M 135 122 Q 150 137 135 150" />
+                                <path d="M 158 120 Q 173 135 158 148" />
+                                <path d="M 180 120 Q 195 135 180 148" />
+                            </g>
+
+                            <!-- Sacred Lotus Petal Relief on Back Crest -->
+                            <g fill="url(#goldLeafFiligree)" opacity="0.9">
+                                <path d="M 150 48 C 160 62, 160 80, 150 92 C 140 80, 140 62, 150 48 Z" />
+                                <path d="M 132 54 C 145 66, 148 80, 142 90 C 132 82, 124 70, 132 54 Z" opacity="0.8" />
+                                <path d="M 168 54 C 155 66, 152 80, 158 90 C 168 82, 176 70, 168 54 Z" opacity="0.8" />
+                            </g>
+
+                            <!-- Auspicious Dragon Pearl / Bronze Stud Inlay (Mắt Thần Ngư) -->
+                            <g transform="translate(242, 105)">
+                                <circle cx="0" cy="0" r="16" fill="url(#dragonPearl)" stroke="#fbbf24" stroke-width="2.5" />
+                                <circle cx="0" cy="0" r="11" fill="none" stroke="#fef08a" stroke-width="1.5" stroke-dasharray="3 2" />
+                                <circle cx="0" cy="0" r="5" fill="#fef08a" opacity="0.9" />
+                                <circle cx="-3" cy="-3" r="2" fill="#ffffff" />
+                            </g>
+
+                            <!-- Strike Sweetspot Target Indicator -->
+                            <g transform="translate(190, 85)" opacity="0.35">
+                                <ellipse cx="0" cy="0" rx="20" ry="12" fill="none" stroke="#fef08a" stroke-width="1.5" stroke-dasharray="4 3" />
+                            </g>
                         </svg>
                     </div>
 
-                    <!-- Striker Mallet (Dùi Mõ) -->
+                    <!-- Striker Mallet (Dùi Mõ Tử Đàn) -->
                     <div class="wooden-mallet" id="woodenMallet">
-                        <svg viewBox="0 0 60 140" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 70 160" xmlns="http://www.w3.org/2000/svg">
                             <defs>
-                                <linearGradient id="malletHandle" x1="0" y1="0" x2="1" y2="0">
-                                    <stop offset="0%" stop-color="#78350f" />
-                                    <stop offset="50%" stop-color="#b45309" />
-                                    <stop offset="100%" stop-color="#451a03" />
+                                <linearGradient id="rosewoodHandle" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stop-color="#3d1405" />
+                                    <stop offset="50%" stop-color="#78350f" />
+                                    <stop offset="100%" stop-color="#1f0902" />
                                 </linearGradient>
-                                <radialGradient id="malletHead" cx="40%" cy="40%" r="60%">
-                                    <stop offset="0%" stop-color="#fef08a" />
-                                    <stop offset="40%" stop-color="#d97706" />
-                                    <stop offset="100%" stop-color="#991b1b" />
+                                <radialGradient id="feltHead" cx="40%" cy="35%" r="65%">
+                                    <stop offset="0%" stop-color="#f87171" />
+                                    <stop offset="35%" stop-color="#dc2626" />
+                                    <stop offset="75%" stop-color="#991b1b" />
+                                    <stop offset="100%" stop-color="#450a0a" />
                                 </radialGradient>
+                                <linearGradient id="brassCollar" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stop-color="#fef08a" />
+                                    <stop offset="50%" stop-color="#d97706" />
+                                    <stop offset="100%" stop-color="#78350f" />
+                                </linearGradient>
                             </defs>
-                            <rect x="25" y="10" width="8" height="110" rx="4" fill="url(#malletHandle)" stroke="#c59b27" stroke-width="1.5" />
-                            <ellipse cx="29" cy="115" rx="20" ry="16" fill="url(#malletHead)" stroke="#fbbf24" stroke-width="2" />
-                            <line x1="12" y1="113" x2="46" y2="113" stroke="#fef08a" stroke-width="1.5" />
-                            <line x1="14" y1="117" x2="44" y2="117" stroke="#fef08a" stroke-width="1.5" />
+
+                            <!-- Carved Rosewood Shaft -->
+                            <rect x="29" y="8" width="10" height="120" rx="5" fill="url(#rosewoodHandle)" stroke="#c59b27" stroke-width="1.5" />
+                            
+                            <!-- Brass Collar Fittings -->
+                            <rect x="28" y="112" width="12" height="6" rx="2" fill="url(#brassCollar)" stroke="#d97706" stroke-width="1" />
+                            <rect x="28" y="22" width="12" height="4" rx="1" fill="url(#brassCollar)" stroke="#d97706" stroke-width="1" />
+
+                            <!-- Crimson Velvet Striker Head -->
+                            <ellipse cx="34" cy="132" rx="24" ry="20" fill="url(#feltHead)" stroke="#fbbf24" stroke-width="2" />
+                            
+                            <!-- Golden Wire Ribbons -->
+                            <path d="M 15 130 Q 34 135 53 130" fill="none" stroke="#fef08a" stroke-width="2" />
+                            <path d="M 17 136 Q 34 141 51 136" fill="none" stroke="#fef08a" stroke-width="2" />
                         </svg>
                     </div>
                 </div>
@@ -262,7 +306,7 @@
                     <!-- Auto Chant Switch -->
                     <div class="auto-chant-toggle-wrap" id="toggleAutoChant" title="Bật/Tắt tự động thỉnh mõ đều đặn">
                         <div class="auto-chant-switch"></div>
-                        <span style="font-size:13px; font-weight:800; color:var(--gold-bright);">📿 Tự Động Thỉnh Mõ</span>
+                        <span style="font-size:12.5px; font-weight:800; color:var(--gold-bright);">📿 Tự Động Thỉnh Mõ</span>
                     </div>
 
                     <!-- Scripture Selector -->
@@ -285,7 +329,7 @@
                         <div class="abbot-altar-halo">🧘</div>
                         <div>
                             <div style="font-size:11px; color:var(--text-dim);">Trụ Trì Sơn Môn</div>
-                            <h3 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:18px;" id="chant-abbot-name">Thiền Sư Pháp Trí</h3>
+                            <h3 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:17px;" id="chant-abbot-name">Thiền Sư Pháp Trí</h3>
                             <span class="abbot-realm-tag" id="chant-abbot-realm">Sơ Học</span>
                         </div>
                     </div>
@@ -306,7 +350,7 @@
                     </button>
 
                     <div style="font-size:11px; color:var(--text-dim); line-height:1.5; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
-                        💡 <strong>Mẹo Tu Hành:</strong> Mỗi tiếng mõ mang lại Đạo Hạnh và Công Đức. Đạt đủ 108 hạt tràng sẽ nhận được đại khai ngộ với lượng thưởng khổng lồ!
+                        💡 <strong>Mẹo Tu Hành:</strong> Mỗi tiếng mõ mang lại Đạo Hạnh và Công Đức. Đạt đủ 108 hạt tràng sẽ khai ngộ với lượng thưởng khổng lồ!
                     </div>
                 </div>
 
@@ -332,11 +376,25 @@
                 <div class="campus-canvas-wrap">
                     <canvas id="campusCanvas"></canvas>
                 </div>
+                <div id="affinityAlertBanner" class="affinity-banner" style="display:none;" onclick="window.vpApp.openAffinityModal()">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="affinity-pulse-dot"></span>
+                        <strong style="color:var(--gold-bright);">🪷 THIÊN CƠ CHIẾU TRIỆU:</strong>
+                        <span id="affinityAlertTitle">Có duyên sự khẩn thiết cần Trụ trì định đoạt!</span>
+                    </div>
+                    <button class="btn-zen" style="padding:4px 12px; font-size:11px;">Tiếp Đón Ngay ➔</button>
+                </div>
+
                 <div class="campus-control-bar">
                     <span style="color:var(--text-dim); font-size:12px;">💡 Nhấp vào từng công trình trên sân chùa để xem thông tin trùng tu.</span>
-                    <button class="btn-zen" id="btn-meditate-abbot" style="padding:7px 16px; font-size:12px;">
-                        🧘 Tọa Thiền Tịnh Tâm (+Đạo Hạnh)
-                    </button>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn-zen" id="btn-meditate-abbot" style="padding:7px 14px; font-size:12px;">
+                            🧘 Tọa Thiền Tịnh Tâm (+Đạo Hạnh)
+                        </button>
+                        <button class="btn-zen" id="btn-trigger-affinity" style="padding:7px 14px; font-size:12px; background:linear-gradient(135deg, #d97706, #92400e);" onclick="window.vpApp.triggerAffinityEvent(true)">
+                            ✨ Phật Duyên Hiển Hiện
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -345,6 +403,16 @@
                     <h3 class="side-title">🏛️ Công Trình Đang Chọn</h3>
                     <div id="campus-selected-building">
                         <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="side-card" id="campus-visitors-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <h3 class="side-title" style="margin:0;">👥 Khách Vãng Cảnh (<span id="npc-count-badge">0</span>/12)</h3>
+                        <span id="campus-time-label" style="font-size:11px; color:var(--gold-bright);">Thanh Sáng</span>
+                    </div>
+                    <div id="campus-visitors-list" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; padding-right:2px;">
+                        <!-- Populated by TempleNPCManager -->
                     </div>
                 </div>
 
@@ -365,6 +433,67 @@
     </section>
 
     <!-- ======================================================================
+         TAB: PHÒNG TU HÀNH ONLINE (ONLINE ZEN ROOM)
+         ====================================================================== -->
+    <section class="tab-pane" id="tab-zenroom">
+        <div class="zenroom-container">
+            <div class="zenroom-main">
+                <div class="zenroom-header-bar">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="zenroom-live-dot"></span>
+                            <h2 id="zenroom-current-name" style="margin:0; font-family:var(--font-heading); color:var(--gold-bright); font-size:19px;">Thiền Viện Trúc Lâm (Phòng #1)</h2>
+                            <span class="abbot-realm-tag" id="zenroom-capacity-tag">1 / 8 Đạo Hữu</span>
+                        </div>
+                        <p style="font-size:12px; color:var(--text-dim); margin-top:2px;">Không gian tịnh tu chung • Cộng hưởng mõ chuông tăng +25% Công Đức</p>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="window.vpApp.zenRoomManager.openRoomListModal()">🚪 Chọn Phòng</button>
+                        <button class="btn-zen" style="font-size:12px; padding:6px 14px;" onclick="window.vpApp.zenRoomManager.createCustomRoom()">➕ Tạo Phòng Mới</button>
+                    </div>
+                </div>
+
+                <div class="zenroom-altar-stage">
+                    <div class="zenroom-buddha-statue">🪷</div>
+                    <div id="zenroom-resonance-glow" class="zenroom-resonance-glow"></div>
+                    <div id="zenroom-resonance-label" class="zenroom-resonance-label">Trầm hương thanh tịnh</div>
+                </div>
+
+                <div class="zenroom-seats-grid" id="zenroom-seats-grid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="zenroom-actions-bar">
+                    <button class="zen-action-btn" onclick="window.vpApp.zenRoomManager.sendAction('bow', '🙏 Chắp tay cung kính')">🙏 Chắp Tay</button>
+                    <button class="zen-action-btn" onclick="window.vpApp.zenRoomManager.sendAction('mala', '📿 Lần tràng hạt')">📿 Lần Chuỗi</button>
+                    <button class="zen-action-btn" onclick="window.vpApp.zenRoomManager.sendAction('mantra', '🪷 Tụng Án Ma Ni')">🪷 Niệm Chú</button>
+                    <button class="zen-action-btn" onclick="window.vpApp.zenRoomManager.sendAction('meditate', '🧘 Tọa thiền')">🧘 Nhập Định</button>
+                    <button class="zen-action-btn" onclick="window.vpApp.zenRoomManager.sendAction('incense', '🪔 Thắp hương')">🪔 Dâng Hương</button>
+                    <button class="btn-zen" style="padding:6px 16px; font-size:12.5px;" onclick="window.vpApp.strikeWoodenFish(false)">🪵 Gõ Mõ Đồng Thanh</button>
+                </div>
+            </div>
+
+            <div class="zenroom-sidebar">
+                <div class="side-card" style="height:100%; display:flex; flex-direction:column; padding:14px; box-sizing:border-box;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border-gold-subtle); padding-bottom:8px;">
+                        <h3 class="side-title" style="margin:0;">💬 Thiền Đàm Thập Phương</h3>
+                        <span id="zenroom-ping-status" style="font-size:11px; color:#4ade80;">🟢 Trực tuyến</span>
+                    </div>
+
+                    <div id="zenroom-chat-messages" class="zenroom-chat-messages">
+                        <!-- Messages populated by JS -->
+                    </div>
+
+                    <form class="zenroom-chat-form" onsubmit="window.vpApp.zenRoomManager.handleChatSubmit(event)">
+                        <input type="text" id="zenroom-chat-input" placeholder="Gửi thiền ngữ thiện lành..." maxlength="120" autocomplete="off">
+                        <button type="submit" class="btn-zen" style="padding:6px 14px; font-size:12px;">Gửi</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================================
          TAB 3: TU HÀNH & TRỤ TRÌ
          ====================================================================== -->
     <section class="tab-pane" id="tab-cultivate">
@@ -372,7 +501,7 @@
             <div class="abbot-card-showcase">
                 <div class="abbot-avatar-ring">🧘</div>
                 <div>
-                    <h3 class="abbot-name-text" id="abbot-name-card" style="font-family:var(--font-heading); color:var(--gold-bright); font-size:20px;">Thiền Sư Pháp Trí</h3>
+                    <h3 class="abbot-name-text" id="abbot-name-card" style="font-family:var(--font-heading); color:var(--gold-bright); font-size:19px;">Thiền Sư Pháp Trí</h3>
                     <div class="abbot-realm-tag" id="abbot-realm-card" style="margin-top:6px; display:inline-block;">Sơ Học</div>
                 </div>
                 <p class="abbot-motto-text" id="abbot-motto-card" style="font-style:italic; font-size:12px; color:var(--text-dim);">"Vạn Pháp Quy Tâm - Bồ Đề Thường Tịch"</p>
@@ -406,7 +535,7 @@
                     </div>
                 </div>
 
-                <button class="btn-zen" style="width:100%; padding:12px; font-size:14px;" onclick="window.vpApp.handleAbbotMeditate()">
+                <button class="btn-zen" style="width:100%; padding:12px; font-size:13.5px;" onclick="window.vpApp.handleAbbotMeditate()">
                     🧘 Đả Tọa Tịnh Tâm (+Đạo Hạnh)
                 </button>
             </div>
@@ -438,7 +567,7 @@
     <section class="tab-pane" id="tab-disciples">
         <div class="disciples-header">
             <div>
-                <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px;">👥 Đệ Tử Sơn Môn</h2>
+                <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:21px;">👥 Đệ Tử Sơn Môn</h2>
                 <p style="font-size:12px; color:var(--text-dim);">Quản lý, bồi dưỡng và phân bổ công việc tu học cho đệ tử</p>
             </div>
             <div style="display:flex; align-items:center; gap:12px;">
@@ -459,7 +588,7 @@
          ====================================================================== -->
     <section class="tab-pane" id="tab-canons">
         <div style="margin-bottom:14px;">
-            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px;">📜 Tàng Kinh Các</h2>
+            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:21px;">📜 Tàng Kinh Các</h2>
             <p style="font-size:12px; color:var(--text-dim);">10 Nhánh nghiên cứu kinh sách, thiền học, dưỡng sinh và triết lý</p>
         </div>
 
@@ -486,7 +615,7 @@
          ====================================================================== -->
     <section class="tab-pane" id="tab-buildings">
         <div style="margin-bottom:16px;">
-            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px;">🔨 Kiến Thiết & Trùng Tu Tự Viện</h2>
+            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:21px;">🔨 Kiến Thiết & Trùng Tu Tự Viện</h2>
             <p style="font-size:12px; color:var(--text-dim);">Nâng cấp các công trình để mở rộng sức chứa, gia tăng sản lượng và tốc độ tu tập</p>
         </div>
 
@@ -500,7 +629,7 @@
          ====================================================================== -->
     <section class="tab-pane" id="tab-leaderboard">
         <div style="margin-bottom:16px;">
-            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px;">🌐 Đạo Hữu Thập Phương & Bảng Vàng</h2>
+            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:21px;">🏆 Đạo Hữu Thập Phương & Bảng Vàng</h2>
             <p style="font-size:12px; color:var(--text-dim);">Khám phá và viếng thăm các đạo tràng, so tài tu tập trên 5 bảng xếp hạng trực tuyến</p>
         </div>
 
@@ -531,7 +660,7 @@
     <!-- MODAL: BÁO CÁO TIẾN TRÌNH NGOẠI TUYẾN -->
     <div class="vp-modal-backdrop" id="offlineReportModal">
         <div class="vp-modal-box">
-            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:22px; text-align:center; margin-bottom:12px;">
+            <h2 style="font-family:var(--font-heading); color:var(--gold-bright); font-size:21px; text-align:center; margin-bottom:12px;">
                 🪷 BẢN GHI TIẾN TRÌNH NGOẠI TUYẾN
             </h2>
             <p style="text-align:center; font-size:12px; color:var(--text-dim); margin-bottom:16px;">
@@ -540,7 +669,7 @@
             <ul id="offlineReportList" style="list-style:none; font-size:13px; color:var(--text-secondary); background:rgba(0,0,0,0.4); padding:16px; border-radius:12px; margin-bottom:20px;">
                 <!-- Populated by JS -->
             </ul>
-            <button class="btn-zen" style="width:100%; padding:14px; font-size:15px;" onclick="window.vpApp.closeOfflineModal()">
+            <button class="btn-zen" style="width:100%; padding:14px; font-size:14.5px;" onclick="window.vpApp.closeOfflineModal()">
                 🙏 Tiếp Nhận Vạn Pháp Vào Sơn Môn
             </button>
         </div>
@@ -556,6 +685,65 @@
         </div>
     </div>
 
+    <!-- MODAL: TIẾP ĐÓN PHẬT DUYÊN (THIÊN CƠ CHIẾU TRIỆU / TIẾP ĐÓN CÓ ĐÁNH ĐỔI) -->
+    <div class="vp-modal-backdrop" id="buddhaAffinityModal">
+        <div class="vp-modal-box" style="max-width:620px;">
+            <button class="vp-modal-close-btn" onclick="window.vpApp.closeAffinityModal()">✕</button>
+            <div style="text-align:center; margin-bottom:14px;">
+                <span style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold-bright); font-weight:bold;">🪷 THIÊN CƠ CHIẾU TRIỆU · PHẬT DUYÊN HIỂN HIỆN</span>
+                <h3 id="affinity-modal-title" style="margin:4px 0 6px; font-family:var(--font-heading); color:#fff; font-size:22px;">Kẻ Lầm Lỡ Xin Quy Y</h3>
+                <div id="affinity-modal-visitor" style="font-size:12px; color:var(--text-dim);">Khách viếng: <span style="color:#fef08a;">Cư sĩ sám hối</span></div>
+            </div>
+            
+            <div id="affinity-modal-desc" style="background:rgba(0,0,0,0.4); border-left:4px solid var(--gold-bright); padding:15px; border-radius:10px; font-size:13.5px; line-height:1.7; color:#f1f5f9; margin-bottom:16px;">
+                <!-- Populated by JS -->
+            </div>
+
+            <div style="margin-bottom:10px; font-size:12.5px; font-weight:bold; color:var(--gold-bright);">
+                ⚖️ Lựa Chọn Tiếp Đón & Đánh Đổi Sơn Môn:
+            </div>
+
+            <div id="affinity-choices-list" style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+                <!-- Choice cards populated by JS -->
+            </div>
+
+            <div style="text-align:right;">
+                <button class="btn-secondary" style="padding:6px 16px; font-size:12px;" onclick="window.vpApp.closeAffinityModal()">
+                    Tạm gác lại (Xem xét sau)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HỘI THOẠI KHÁCH VÃNG CẢNH (NPC) -->
+    <div class="vp-modal-backdrop" id="npcDialogueModal">
+        <div class="vp-modal-box" style="max-width:480px;">
+            <button class="vp-modal-close-btn" onclick="window.vpApp.closeNpcModal()">✕</button>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <div id="npc-dlg-avatar" style="font-size:34px; background:rgba(0,0,0,0.3); border:1.5px solid var(--border-gold-subtle); border-radius:50%; width:54px; height:54px; display:flex; align-items:center; justify-content:center;">👴</div>
+                <div>
+                    <h3 id="npc-dlg-name" style="margin:0; font-family:var(--font-heading); color:var(--gold-bright); font-size:18px;">Cụ Tư (Làng Dưới)</h3>
+                    <div id="npc-dlg-role" style="font-size:12px; color:var(--text-dim);">Cầu an sức khỏe gia đạo</div>
+                </div>
+            </div>
+            <div id="npc-dlg-speech" style="background:rgba(0,0,0,0.35); padding:16px; border-radius:12px; border-left:3.5px solid var(--gold-bright); font-size:13.5px; line-height:1.65; color:#f1f5f9; font-style:italic; margin-bottom:16px;">
+                "..."
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="npc-dlg-reward-hint" style="font-size:11.5px; color:var(--jade-bright);">🪷 +5 Công Đức</span>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-secondary" style="padding:6px 14px; font-size:12px;" onclick="window.vpApp.closeNpcModal()">Rời Bước</button>
+                    <button class="btn-zen" id="btn-npc-bless" style="padding:6px 16px; font-size:12px;" onclick="window.vpApp.blessNpc()">📿 Niệm Phật Cầu An</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="assets/js/firebase.js"></script>
+    <script src="assets/js/site_identity.js"></script>
     <script src="assets/vanphap/js/vanphap_engine.js"></script>
     <script>
         // Exit to Hon Xom Lang lobby
@@ -567,5 +755,53 @@
             }
         };
     </script>
+    <!-- SOUNDSCAPE CONTROLLER POPUP -->
+    <div id="zenSoundscapePanel" class="zen-soundscape-panel" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong style="color:var(--gold-bright); font-size:13px;">🎶 ÂM THANH THIỀN ĐỊNH (ZEN SOUNDSCAPE)</strong>
+            <button class="vp-modal-close-btn" style="position:static; font-size:16px;" onclick="window.vpApp.toggleSoundscapePanel()">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <label class="sound-toggle-item">
+                <span>🔔 Đại Hồng Chung & Chuông Bát</span>
+                <input type="checkbox" id="snd-toggle-bell" checked onchange="window.vpApp.audio.toggleChannel('bell', this.checked)">
+            </label>
+            <label class="sound-toggle-item">
+                <span>🪵 Mõ Gỗ Thiền Môn</span>
+                <input type="checkbox" id="snd-toggle-woodfish" checked onchange="window.vpApp.audio.toggleChannel('woodfish', this.checked)">
+            </label>
+            <label class="sound-toggle-item">
+                <span>🍃 Gió Rừng Trúc Bồ Đề</span>
+                <input type="checkbox" id="snd-toggle-wind" checked onchange="window.vpApp.audio.toggleChannel('wind', this.checked)">
+            </label>
+            <label class="sound-toggle-item">
+                <span>🐦 Tiếng Chim Hót Ban Mai</span>
+                <input type="checkbox" id="snd-toggle-birds" checked onchange="window.vpApp.audio.toggleChannel('birds', this.checked)">
+            </label>
+            <label class="sound-toggle-item">
+                <span>🌊 Suối Nước Tịnh Tâm</span>
+                <input type="checkbox" id="snd-toggle-water" checked onchange="window.vpApp.audio.toggleChannel('water', this.checked)">
+            </label>
+            <div style="border-top:1px solid rgba(251,191,36,0.2); padding-top:6px; font-size:11px; color:var(--text-dim);">
+                <span>🌙 Điệu Nhạc: </span><strong id="soundscape-hour-mode" style="color:var(--gold-bright);">Sáo Trúc & Chim Ca</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DANH SÁCH PHÒNG TU HÀNH -->
+    <div class="vp-modal-backdrop" id="zenRoomListModal">
+        <div class="vp-modal-box" style="max-width:540px;">
+            <button class="vp-modal-close-btn" onclick="window.vpApp.zenRoomManager.closeRoomListModal()">✕</button>
+            <h3 style="margin-top:0; font-family:var(--font-heading); color:var(--gold-bright); font-size:20px;">🚪 Danh Sách Phòng Tu Hành Online</h3>
+            <p style="font-size:12px; color:var(--text-dim); margin-bottom:14px;">Mỗi phòng tối đa 8 đạo hữu để giữ sự trang nghiêm thanh tịnh. Phòng đầy sẽ tự động mở phòng mới.</p>
+            <div id="zenroom-rooms-list" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; margin-bottom:14px;">
+                <!-- Populated by JS -->
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <button class="btn-secondary" style="padding:6px 14px; font-size:12px;" onclick="window.vpApp.zenRoomManager.closeRoomListModal()">Đóng</button>
+                <button class="btn-zen" style="padding:6px 16px; font-size:12px;" onclick="window.vpApp.zenRoomManager.createCustomRoom()">➕ Mở Phòng Mới</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

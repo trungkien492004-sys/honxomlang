@@ -44,6 +44,63 @@ async function handle(db, engine, uid, name, authCreatedAt, data, now = Date.now
     tx.set(ownRef, { uid, state: 'cancelled', expiresAt: now });
     return { state: 'idle' };
   });
+  if (type === 'recordResult' || type === 'result') {
+    const { matchId, opponentUid, outcome } = data || {};
+    if (!matchId || !opponentUid || !['win', 'loss', 'draw'].includes(outcome)) fail('invalid-argument', 'Thông tin kết quả không hợp lệ.');
+    if (String(opponentUid).startsWith('bot-')) {
+      const pSnap = await db.doc(`rank_profiles/${uid}`).get();
+      const p = pSnap.exists ? pSnap.data() : { uid, name: cleanName(name), rating: policy.START, played: 0, wins: 0, losses: 0, draws: 0 };
+      return {
+        receipt: {
+          uid, matchId, opponentUid, outcome, delta: 0,
+          ratingBefore: p.rating, ratingAfter: p.rating,
+          played: p.played, wins: p.wins, losses: p.losses, draws: p.draws,
+          isPractice: true
+        }
+      };
+    }
+    return db.runTransaction(async tx => {
+      const resultRef = db.doc(`rank_challenge_results/${matchId}_${uid}`);
+      const prior = await tx.get(resultRef);
+      if (prior.exists) return { receipt: prior.data() };
+
+      const mineRef = db.doc(`rank_profiles/${uid}`);
+      const oppRef = db.doc(`rank_profiles/${opponentUid}`);
+      const [mSnap, oSnap] = await Promise.all([tx.get(mineRef), tx.get(oppRef)]);
+      if (!mSnap.exists) fail('failed-precondition', 'Thiếu hồ sơ rank.');
+      const mine = mSnap.data();
+      const opponent = oSnap.exists ? oSnap.data() : { rating: policy.START };
+
+      const winner = outcome === 'draw' ? null : outcome === 'win' ? 0 : 1;
+      const deltas = policy.deltas(mine, opponent, winner, now, null);
+      const delta = deltas[0];
+      const nextRating = Math.max(0, mine.rating + delta);
+
+      const counts = {
+        played: (mine.played || 0) + 1,
+        wins: (mine.wins || 0) + (outcome === 'win' ? 1 : 0),
+        losses: (mine.losses || 0) + (outcome === 'loss' ? 1 : 0),
+        draws: (mine.draws || 0) + (outcome === 'draw' ? 1 : 0)
+      };
+
+      const result = {
+        uid, matchId, opponentUid, outcome, delta,
+        ratingBefore: mine.rating, ratingAfter: nextRating,
+        createdAt: now
+      };
+
+      tx.set(resultRef, result);
+      tx.set(mineRef, {
+        ...mine,
+        rating: nextRating,
+        ...counts,
+        lastMatchId: matchId,
+        lastSeen: now
+      });
+
+      return { receipt: { ...result, ...counts } };
+    });
+  }
   if (type !== 'queue') fail('invalid-argument', 'Thao tác rank không hợp lệ.');
 
   const duel = require('./duel-service.cjs');

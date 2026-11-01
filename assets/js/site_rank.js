@@ -7,7 +7,8 @@
   function showRankError(error, context = 'Đấu Rank') {
     const rawMsg = typeof error === 'string' ? error : (error?.message || error?.code || JSON.stringify(error) || 'Lỗi không xác định');
     const msgStr = String(rawMsg);
-    if (msgStr.includes('Missing or insufficient permissions') || (msgStr.includes('permission-denied') && (context === 'Hệ thống Rank' || context.includes('Đồng bộ nền')))) {
+    // Do not swallow permission-denied silently; let the UI show explicit error
+    if (duelEl && !duelEl.classList.contains('hidden') && context.includes('Đồng bộ nền')) {
       console.warn(`[Hệ thống Rank · ${context}]:`, error);
       return;
     }
@@ -199,7 +200,7 @@
     try { paintProgress(); } catch (e) { console.warn('paintProgress:', e); }
     try {
       const store = await db(), profileQuery = store.collection('rank_profiles').orderBy('rating', 'desc').limit(100);
-      const players = await profileQuery.get().catch(() => ({ docs: [], empty: true }));
+      const players = await profileQuery.get();
       if (!overlay.isConnected) return;
       if (identity.user) {
         const mine = store.doc('rank_profiles/' + identity.user.uid);
@@ -207,7 +208,14 @@
       }
       await window.siteRankPlayers.render(store, overlay, players, profileQuery);
     } catch (error) {
-      if (overlay.isConnected) document.getElementById('rankEmpty').textContent = error.message;
+      if (overlay.isConnected) {
+        const emptyNode = document.getElementById('rankEmpty');
+        if (emptyNode) {
+          emptyNode.innerHTML = '⚠️ Chưa tải được Bảng Xếp Hạng: ' + esc(error.message || 'Lỗi kết nối') + '. <button type="button" id="btnRetryRankQuery" style="margin-left:8px;padding:3px 10px;background:#1e3a5f;border:1px solid #38bdf8;color:#fff;border-radius:4px;cursor:pointer;font-weight:700;">🔄 Thử lại</button>';
+          const retryBtn = document.getElementById('btnRetryRankQuery');
+          if (retryBtn) retryBtn.onclick = () => show();
+        }
+      }
       showRankError(error, 'Tải Bảng Xếp Hạng');
     }
   }
@@ -344,10 +352,9 @@
       } catch (err) {
         console.warn('Rank identity login error:', err);
       }
-      // If user remains unauthenticated, continue matchmaking as Guest
-      // (Guest Elo starts at 1000 and can be synced to Google after the match!)
+      // If user remains unauthenticated, continue matchmaking as Guest (Practice match)
       if (!identity.user) {
-        if (window.notify) window.notify('⚔️ Đang ghép Rank Khách (Điểm sẽ được lưu sau khi đăng nhập Google)');
+        if (window.notify) window.notify('⚔️ Đang ghép trận Chế độ Khách (Trận tập luyện · Đăng nhập Google để lưu điểm và xếp hạng trên BXH)');
       }
     }
     try {
@@ -488,7 +495,7 @@
         try { window.memeIdDuel?.cancelInvite?.(); } catch (_) {}
 
         const statusEl = document.getElementById('rankMatchStatus');
-        if (statusEl) statusEl.textContent = '⏱️ Không có đối thủ Online. Đang ghép với Đấu Sĩ Máy Huyền Thoại...';
+        if (statusEl) statusEl.textContent = '⏱️ Không có đối thủ Online. Ghép với Đấu Sĩ Máy (Đấu tập · Không tính Rank)...';
 
         const LEGEND_BOTS = [
           { name: 'Joey Wheeler', preset: 'Joey · Rồng Đen Bất Diệt', elo: 1150 },
@@ -504,16 +511,16 @@
 
         setTimeout(() => {
           document.getElementById('rankMatchOverlay')?.remove();
-          if (window.notify) window.notify(`⚔️ Ghép thành công! Đối thủ: ${chosenBot.name} (${chosenBot.elo} Elo)`);
+          if (window.notify) window.notify(`⚔️ Ghép thành công vs máy · Đấu tập: ${chosenBot.name} (${chosenBot.elo} Elo) - Không tính Rank`);
           try {
             if (typeof startGame === 'function') {
-              startGame({ customBotDeck: chosenBot.preset });
+              startGame({ customBotDeck: chosenBot.preset, isPractice: true });
             } else if (typeof window.parent?.startGame === 'function') {
-              window.parent.startGame({ customBotDeck: chosenBot.preset });
+              window.parent.startGame({ customBotDeck: chosenBot.preset, isPractice: true });
             } else {
               const frame = document.getElementById('memecardFrame')?.contentWindow;
               if (typeof frame?.startGame === 'function') {
-                frame.startGame({ customBotDeck: chosenBot.preset });
+                frame.startGame({ customBotDeck: chosenBot.preset, isPractice: true });
               } else {
                 throw Error('Hàm khởi tạo trận đấu startGame chưa sẵn sàng.');
               }
@@ -813,7 +820,7 @@
   }
   setTimeout(tryAutoPromo, 900);
 
-  window.siteRank = { show, find, close, paint, setLocalProfile, showPromo: showRankPromo, refresh: async () => {
+  window.siteRank = { api, show, find, close, paint, setLocalProfile, showPromo: showRankPromo, refresh: async () => {
     if (identity.user) await loadProfile(identity.user);
     const overlay = document.getElementById('rankOverlay');
     if (overlay && identity.db) {

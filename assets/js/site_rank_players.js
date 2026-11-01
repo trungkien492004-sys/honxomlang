@@ -41,10 +41,10 @@
 
   async function render(store, overlay, rankedSnapshot, rankedQuery) {
     stopLive?.();
-    const directoryQuery = store.collection('duel_directory').orderBy('name').limit(100);
+    const directoryQuery = store.collection('duel_directory').limit(100);
     const [directory, ranked] = await Promise.all([
       getDocs(directoryQuery).catch(() => []),
-      rankedSnapshot?.docs ? Promise.resolve(rankedSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }))) : getDocs(rankedQuery).catch(() => [])
+      rankedSnapshot?.docs ? Promise.resolve(rankedSnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }))) : getDocs(rankedQuery)
     ]);
     if (!overlay.isConnected) return;
 
@@ -56,10 +56,21 @@
       { uid: 'bot-pegasus', name: 'Pegasus J. Crawford', bot: true, heroId: 3, rating: 1250, wins: 8, losses: 6, draws: 0, played: 14, online: true, title: 'Vương Quốc Hoạt Hình · Toon' },
       { uid: 'bot-joey', name: 'Joey Wheeler', bot: true, heroId: 2, rating: 1150, wins: 7, losses: 7, draws: 0, played: 14, online: true, title: 'Rồng Đen Bất Diệt · May Mắn' }
     ];
+    const botMap = new Map();
+    for (const b of LEGEND_BOTS) botMap.set(b.uid, { ...b });
+
     const people = new Map();
-    for (const b of LEGEND_BOTS) people.set(b.uid, { ...b });
-    for (const { id, data } of directory) people.set(data.uid || id, { ...data, uid: data.uid || id });
-    for (const { id, data } of ranked) people.set(data.uid || id, { ...people.get(data.uid || id), ...withoutPresence(data), uid: data.uid || id });
+    for (const { id, data } of ranked) {
+      const pUid = data?.uid || id;
+      if (!pUid || data?.bot || data?.isBot === true || String(pUid).startsWith('bot-') || botMap.has(pUid)) continue;
+      people.set(pUid, { ...withoutPresence(data), uid: pUid });
+    }
+    for (const { id, data } of directory) {
+      const pUid = data?.uid || id;
+      if (people.has(pUid)) {
+        people.set(pUid, { ...data, ...people.get(pUid), uid: pUid });
+      }
+    }
 
     const tbody = overlay.querySelector('#rankRows');
     let challengeBusy = false;
@@ -72,45 +83,84 @@
     }
 
     function ordered() {
-      return [...people.values()].sort((a, b) => {
+      return [...people.values()].filter(p => !p.bot && p.isBot !== true && !String(p.uid).startsWith('bot-') && !botMap.has(p.uid)).sort((a, b) => {
         const ratingA = Number.isFinite(Number(a.rating)) ? Number(a.rating) : 1000;
         const ratingB = Number.isFinite(Number(b.rating)) ? Number(b.rating) : 1000;
         if (ratingB !== ratingA) return ratingB - ratingA;
         const winsA = Number(a.wins) || 0, winsB = Number(b.wins) || 0;
         if (winsB !== winsA) return winsB - winsA;
+        const timeA = timeOf(a.lastSeen) || Number(a.registeredAt) || 0;
+        const timeB = timeOf(b.lastSeen) || Number(b.registeredAt) || 0;
+        if (timeB !== timeA) return timeB - timeA;
         const playedA = Number(a.played) || 0, playedB = Number(b.played) || 0;
         if (playedB !== playedA) return playedB - playedA;
-        const activeA = (a.bot || online(a)) ? 1 : 0, activeB = (b.bot || online(b)) ? 1 : 0;
-        if (activeB !== activeA) return activeB - activeA;
-        return String(a.name || '').localeCompare(String(b.name || ''), 'vi');
+        return String(a.uid || '').localeCompare(String(b.uid || ''));
       });
+    }
+
+    // Ensure dedicated legend bots section exists below table
+    let botSection = overlay.querySelector('#rankLegendBotsSection');
+    if (!botSection) {
+      const tableWrap = overlay.querySelector('.rank-table-wrap');
+      if (tableWrap) {
+        botSection = document.createElement('div');
+        botSection.id = 'rankLegendBotsSection';
+        botSection.className = 'rank-legend-bots-section';
+        botSection.style.cssText = 'margin-top:24px;border-top:1px dashed rgba(255,255,255,0.2);padding-top:16px;';
+        botSection.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px;">
+            <div>
+              <h3 style="margin:0;font-size:15px;color:#fde047;font-weight:800;display:flex;align-items:center;gap:6px;">
+                <span>🤖</span> Huyền thoại đối kháng · Đấu máy luyện tập
+              </h3>
+              <p style="margin:2px 0 0 0;font-size:11.5px;color:#94a3b8;">
+                Đấu Sĩ AI huyền thoại mô phỏng đối kháng anime DM/GX. Trận đấu máy là đấu tập, <b>KHÔNG</b> cộng/trừ điểm Elo Rank chính thức.
+              </p>
+            </div>
+            <span style="font-size:11px;background:#1e293b;border:1px solid rgba(253,224,71,0.4);color:#fde047;padding:3px 10px;border-radius:12px;font-weight:700;">6 Đấu Sĩ Máy</span>
+          </div>
+          <table class="rank-table" style="margin-top:8px;">
+            <thead>
+              <tr>
+                <th class="rank-col-num" style="text-align:center;">Boss</th>
+                <th class="rank-col-player-head">Đấu sĩ máy</th>
+                <th class="rank-col-tier">Bậc</th>
+                <th class="rank-col-elo" style="text-align:center;">Chuẩn Elo</th>
+                <th class="rank-col-record">Thành tích</th>
+                <th class="rank-col-winrate">Tỉ lệ</th>
+                <th class="rank-col-action" style="text-align:center;">Đấu tập</th>
+              </tr>
+            </thead>
+            <tbody id="rankBotRows"></tbody>
+          </table>
+        `;
+        tableWrap.appendChild(botSection);
+      }
     }
 
     function paint() {
       const rows = ordered();
       tbody.innerHTML = rows.map((player, index) => {
-        const isBot = !!player.bot;
-        const active = isBot || online(player);
+        const active = online(player);
         const rating = Number.isFinite(Number(player.rating)) ? Number(player.rating) : 1000;
         const tierName = getTier(rating);
         const tierClass = tierName === 'Tân Binh' ? 'tier-newbie' : tierName === 'Đồng' ? 'tier-bronze' : tierName === 'Bạc' ? 'tier-silver' : tierName === 'Vàng' ? 'tier-gold' : tierName === 'Bạch Kim' ? 'tier-plat' : tierName === 'Kim Cương' ? 'tier-diamond' : 'tier-king';
-        const newbie = !isBot && (Date.now() < (Number(player.newbieUntil) || 0) || !player.played) ? '<span class="newbie-badge">NEWBIE</span>' : '';
-        const botTag = isBot ? '<span class="rank-bot-badge">BOSS</span>' : '';
+        const newbie = (Date.now() < (Number(player.newbieUntil) || 0) || !player.played) ? '<span class="newbie-badge">NEWBIE</span>' : '';
         const rankIcon = index === 0 ? '🥇 #1' : index === 1 ? '🥈 #2' : index === 2 ? '🥉 #3' : ('#' + (index + 1));
         const wins = Number(player.wins) || 0, losses = Number(player.losses) || 0, played = Number(player.played) || (wins + losses);
         const winrate = played > 0 ? Math.round((wins / played) * 100) + '%' : '0%';
         const isMe = me && player.uid === me;
-        const challengeBtn = !isMe ? `<button type="button" class="rank-table-challenge-btn" data-challenge-uid="${esc(player.uid)}"><span class="btn-full-text">⚔️ ${isBot ? 'Đấu Boss' : 'Khiêu chiến'}</span><span class="btn-short-text">⚔️ ${isBot ? 'Boss' : 'Đấu'}</span></button>` : '<span style="color:#67e8f9;font-size:12px;font-weight:900;">(Bạn)</span>';
+        const challengeBtn = !isMe ? `<button type="button" class="rank-table-challenge-btn" data-challenge-uid="${esc(player.uid)}"><span class="btn-full-text">⚔️ Khiêu chiến</span><span class="btn-short-text">⚔️ Đấu</span></button>` : '<span style="color:#67e8f9;font-size:12px;font-weight:900;">(Bạn)</span>';
 
         return `<tr class="${isMe ? 'is-me' : ''}">
           <td class="rank-num" style="text-align:center;">${rankIcon}</td>
           <td class="rank-col-player">
             <div class="rank-player-row-top">
               <span class="rank-presence ${active ? 'is-online' : 'is-offline'}">
-                <i aria-hidden="true"></i><span class="rank-presence-label">${isBot ? 'Sẵn sàng' : (active ? 'Online' : 'Offline')}</span>
+                <i aria-hidden="true"></i><span class="rank-presence-label">${active ? 'Online' : 'Offline'}</span>
               </span>
               <span class="rank-player-name">${esc(player.name)}</span>
-              ${botTag}${newbie}
+              ${newbie}
             </div>
             <div class="rank-mobile-subinfo">
               <span class="tier-pill ${tierClass}">${esc(tierName)}</span>
@@ -127,16 +177,52 @@
       }).join('');
       const emptyNode = overlay.querySelector('#rankEmpty');
       if (emptyNode) emptyNode.textContent = rows.length ? '' : 'Chưa có người chơi trên bảng xếp hạng.';
+
+      // Render legend bots in separate section
+      const botTbody = overlay.querySelector('#rankBotRows');
+      if (botTbody) {
+        botTbody.innerHTML = LEGEND_BOTS.map((bot, index) => {
+          const rating = bot.rating;
+          const tierName = getTier(rating);
+          const tierClass = tierName === 'Tân Binh' ? 'tier-newbie' : tierName === 'Đồng' ? 'tier-bronze' : tierName === 'Bạc' ? 'tier-silver' : tierName === 'Vàng' ? 'tier-gold' : tierName === 'Bạch Kim' ? 'tier-plat' : tierName === 'Kim Cương' ? 'tier-diamond' : 'tier-king';
+          const wins = bot.wins, losses = bot.losses, played = bot.played;
+          const winrate = played > 0 ? Math.round((wins / played) * 100) + '%' : '0%';
+          const challengeBtn = `<button type="button" class="rank-table-challenge-btn" data-challenge-uid="${esc(bot.uid)}" style="background:linear-gradient(135deg,#b45309,#78350f);border-color:#fde047;"><span class="btn-full-text">⚔️ Đấu tập AI</span><span class="btn-short-text">⚔️ Tập</span></button>`;
+
+          return `<tr>
+            <td class="rank-num" style="text-align:center;"><span class="rank-bot-badge">BOSS #${index + 1}</span></td>
+            <td class="rank-col-player">
+              <div class="rank-player-row-top">
+                <span class="rank-presence is-online">
+                  <i aria-hidden="true"></i><span class="rank-presence-label">AI Máy</span>
+                </span>
+                <span class="rank-player-name" style="color:#fde047;font-weight:800;">${esc(bot.name)}</span>
+              </div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${esc(bot.title || '')}</div>
+              <div class="rank-mobile-subinfo">
+                <span class="tier-pill ${tierClass}">${esc(tierName)}</span>
+                <span class="rank-mobile-record">${wins}W - ${losses}L</span>
+                <span class="rank-mobile-rate">(${winrate})</span>
+              </div>
+            </td>
+            <td class="rank-col-tier"><span class="tier-pill ${tierClass}">${esc(tierName)}</span></td>
+            <td class="rank-col-elo"><b class="rank-elo-val" style="color:#fde047;">${rating}</b> <small class="rank-elo-lbl">Elo</small></td>
+            <td class="rank-col-record"><span class="rank-wins">${wins}W</span> - <span class="rank-losses">${losses}L</span></td>
+            <td class="rank-col-winrate" style="font-weight:800;color:#e2e8f0;">${winrate}</td>
+            <td class="rank-col-action">${challengeBtn}</td>
+          </tr>`;
+        }).join('');
+      }
     }
 
-    tbody.onclick = async event => {
+    const handleChallengeClick = async event => {
       const challengeButton = event.target.closest('[data-challenge-uid]');
       if (!challengeButton || challengeBusy) return;
       const targetUid = challengeButton.dataset.challengeUid;
-      const selected = people.get(targetUid);
+      const selected = botMap.get(targetUid) || people.get(targetUid);
       challengeBusy = true; challengeButton.disabled = true; challengeButton.textContent = 'Đang gọi...';
       try {
-        if (selected?.bot) {
+        if (selected?.bot || botMap.has(targetUid)) {
           window.siteRank.close();
           const presets = {
             'bot-yugi': 'Yugi · Ma Thuật Tối Thượng',
@@ -148,7 +234,7 @@
           };
           const preset = presets[targetUid] || 'Kaiba · Đỉnh Cao Mắt Xanh';
           if (typeof startGame === 'function') {
-            startGame({ customBotDeck: preset, ghost: null });
+            startGame({ customBotDeck: preset, ghost: null, isPractice: true });
           } else {
             if (typeof window.openMemeCardGame !== 'function') throw Error('Hãy mở đấu bài từ sảnh để khiêu chiến.');
             window.openMemeCardGame();
@@ -156,7 +242,7 @@
             for (let i = 0; i < 100; i++) {
               const child = document.getElementById('memecardFrame')?.contentWindow;
               if (typeof child?.startGame === 'function') {
-                child.startGame({ customBotDeck: preset, ghost: null });
+                child.startGame({ customBotDeck: preset, ghost: null, isPractice: true });
                 started = true;
                 break;
               }
@@ -182,11 +268,14 @@
         challengeBusy = false;
         if (challengeButton && challengeButton.isConnected) {
           challengeButton.disabled = false;
-          challengeButton.textContent = selected?.bot ? '⚔️ Đấu Boss' : '⚔️ Khiêu chiến';
+          challengeButton.textContent = (selected?.bot || botMap.has(targetUid)) ? '⚔️ Đấu tập AI' : '⚔️ Khiêu chiến';
         }
       }
     };
 
+    tbody.onclick = handleChallengeClick;
+    const botSectionEl = overlay.querySelector('#rankLegendBotsSection');
+    if (botSectionEl) botSectionEl.onclick = handleChallengeClick;
     paint();
 
     const subscriptions = [];

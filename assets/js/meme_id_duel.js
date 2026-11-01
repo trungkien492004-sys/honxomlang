@@ -107,39 +107,54 @@
     const opponentRef=isBot?null:currentStore.doc('rank_profiles/'+opponentUid),directoryRef=isBot?null:currentStore.doc('duel_directory/'+opponentUid);
     const run=async()=>{
       let receipt=null;
-      await currentStore.runTransaction(async tx=>{
-        const reads=[tx.get(resultRef),tx.get(mineRef)];
-        if(opponentRef&&directoryRef)reads.push(tx.get(opponentRef),tx.get(directoryRef));
-        const [prior,mineSnap,opponentSnap,directorySnap]=await Promise.all(reads);
-        if(prior.exists){receipt=prior.data();return;}
-        const mine=mineSnap.exists?mineSnap.data():{},opponent=opponentSnap?.exists?opponentSnap.data():{},directory=directorySnap?.exists?directorySnap.data():{};
-        const LEGEND_BOT_ELOS = { 'bot-kaiba': 1550, 'bot-yugi': 1600, 'bot-zane': 1450, 'bot-jaden': 1350, 'bot-pegasus': 1250, 'bot-joey': 1150 };
-        const rating=Math.max(0,Math.round(Number(mine.rating)||1000)),opponentRating=isBot?(match?.botOpponent?.elo||LEGEND_BOT_ELOS[opponentUid]||1200):Math.max(0,Math.round(Number(opponent.rating)||1000));
-        const outcome=match.winner==='draw'?'draw':match.winner==='player'?'win':'loss';
-        const ownCreated=Date.parse(currentIdentity?.user?.metadata?.creationTime),ownNewbie=Number.isFinite(ownCreated)&&Date.now()<ownCreated+7*86400000;
-        const opponentNewbie=isBot?false:(Date.now()<Number(directory.newbieUntil||opponent.newbieUntil||0));
-        let delta=0;
-        if(outcome!=='draw'){
-          const winnerRating=outcome==='win'?rating:opponentRating,loserRating=outcome==='win'?opponentRating:rating;
-          const base=Math.max(1,Math.round(32*(1-1/(1+10**((loserRating-winnerRating)/400)))));
-          delta=outcome==='win'?(ownNewbie?base*2:opponentNewbie?1:base):-Math.min(base,rating);
+      const isBotMatch = isBot || !!match?.botOpponent || !!match?.isPractice;
+      const outcome = match.winner==='draw'?'draw':match.winner==='player'?'win':'loss';
+      if (isBotMatch) {
+        // B3: Trận đấu với Bot KHÔNG đổi Elo chính thức (chỉ tính tập luyện, delta = 0)
+        const mineSnap = await mineRef.get().catch(() => null);
+        const mine = mineSnap?.exists ? mineSnap.data() : {};
+        const rating = Math.max(0, Math.round(Number(mine.rating) || 1000));
+        receipt = {
+          uid: currentUid,
+          matchId,
+          opponentUid,
+          outcome,
+          delta: 0,
+          ratingBefore: rating,
+          ratingAfter: rating,
+          isPractice: true,
+          played: Number(mine.played) || 0,
+          wins: Number(mine.wins) || 0,
+          losses: Number(mine.losses) || 0,
+          draws: Number(mine.draws) || 0
+        };
+      } else if (window.SITE_RANK_CONFIG?.enabled && window.siteRank?.api) {
+        // B2: Gọi server authoritative API để tính delta và lưu kết quả trận người thật
+        try {
+          const res = await window.siteRank.api('recordResult', { matchId, opponentUid, outcome });
+          if (res?.receipt) receipt = res.receipt;
+        } catch (serverErr) {
+          console.warn('Server rank recording failed, fallback transaction:', serverErr);
         }
-        delta=Math.round(delta);
-        const counts={played:Math.round((Number(mine.played)||0)+1),wins:Math.round((Number(mine.wins)||0)+(outcome==='win'?1:0)),losses:Math.round((Number(mine.losses)||0)+(outcome==='loss'?1:0)),draws:Math.round((Number(mine.draws)||0)+(outcome==='draw'?1:0))};
-        const nextRating=Math.max(0,Math.round(rating+delta)),createdUntil=Number.isFinite(ownCreated)?ownCreated+7*86400000:0;
-        const s=stamp();
-        const result=Object.assign(native({uid:currentUid,matchId,opponentUid,outcome,delta,ratingBefore:Math.round(rating),ratingAfter:Math.round(nextRating)}),{createdAt:s});
-        const profileName=String(currentIdentity?.user?.displayName||mine.name||'Đấu sĩ').slice(0,48);
-        tx.set(resultRef,result);
-        if(!mineSnap.exists){
-          const newProfile=Object.assign(native({uid:currentUid,name:profileName,rating:Math.round(nextRating),...counts,newbieUntil:createdUntil,lastMatchId:matchId}),{lastSeen:s});
-          tx.set(mineRef,newProfile);
-        }else{
-          const updateProfile=Object.assign(native({name:profileName,rating:Math.round(nextRating),...counts,lastMatchId:matchId}),{lastSeen:s});
-          tx.update(mineRef,updateProfile);
-        }
-        receipt={...result,...counts};
-      });
+      }
+      if (!receipt) {
+        await currentStore.runTransaction(async tx=>{
+          const [prior,mineSnap]=await Promise.all([tx.get(resultRef),tx.get(mineRef)]);
+          if(prior.exists){receipt=prior.data();return;}
+          const mine=mineSnap.exists?mineSnap.data():{};
+          const rating=Math.max(0,Math.round(Number(mine.rating)||1000));
+          const s=stamp();
+          const result=Object.assign(native({uid:currentUid,matchId,opponentUid,outcome,delta:0,ratingBefore:rating,ratingAfter:rating}),{createdAt:s});
+          const profileName=String(currentIdentity?.user?.displayName||mine.name||'Đấu sĩ').slice(0,48);
+          tx.set(resultRef,result);
+          if(!mineSnap.exists){
+            tx.set(mineRef,Object.assign(native({uid:currentUid,name:profileName,rating:1000,played:0,wins:0,losses:0,draws:0,lastMatchId:matchId}),{lastSeen:s}));
+          }else{
+            tx.update(mineRef,Object.assign(native({name:profileName,lastMatchId:matchId}),{lastSeen:s}));
+          }
+          receipt={...result,played:Number(mine.played)||0,wins:Number(mine.wins)||0,losses:Number(mine.losses)||0,draws:Number(mine.draws)||0};
+        }).catch(txErr => console.warn('Rank transaction notice:', txErr));
+      }
       if(receipt){
         match.rankChallengeResult=receipt;
         if(window.siteRank){

@@ -62,8 +62,29 @@ service cloud.firestore {
     }
     match /rank_profiles/{userId} {
       allow read: if true;
-      allow create: if signedIn() && request.auth.uid == userId;
-      allow update: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.rating == 1000 &&
+        request.resource.data.played == 0 &&
+        request.resource.data.wins == 0 &&
+        request.resource.data.losses == 0;
+      allow update: if signedIn() && request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['rating','wins','losses','draws','played','registeredAt']);
+      allow delete: if false;
+    }
+    match /vanphap_monasteries/{userId} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == userId;
+      allow delete: if false;
+
+      match /blessings/{blessingId} {
+        allow read: if true;
+        allow create: if signedIn() && request.resource.data.fromUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+    match /vanphap_rooms/{roomId} {
+      allow read: if true;
+      allow create, update: if signedIn();
       allow delete: if false;
     }
     match /rank_challenge_results/{resultId} {
