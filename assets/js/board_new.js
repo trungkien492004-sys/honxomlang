@@ -575,8 +575,8 @@ const RACE_CARDS = [
       }
     },
 
-    // ❤️ HỖ TRỢ
-    { id: 'hoitang', name: "Hồi Tâm Ngụm Sương", type: 'fun_spell', cat: 'support', rarity: 'epic', desc: "Uống ngụm sương: +1 ❤. Đầy máu thì +2 🗡️.",
+    // ❤️ HỖ TRỢ — không cộng máu/vàng/🗡️: hỗ trợ là thêm lượt, thêm bài, giúp nhau qua cơn
+    { id: 'hoitang', name: "Hồi Tâm Ngụm Sương", type: 'fun_spell', cat: 'support', instant: true, rarity: 'epic', desc: "Uống ngụm sương: +1 ❤. Đầy máu thì +2 🗡️.",
       effect: function(p) {
           if (p.lives < 3) {
               p.lives++;
@@ -587,6 +587,25 @@ const RACE_CARDS = [
           p.weapons += 2;
           window.boardPlayFx('weapon', p.pos, '+2 🗡️');
           return "Máu đầy rồi, biến sương thành 2 🗡️.";
+      }
+    },
+    { id: 'themap', name: "Vé Đi Thêm", type: 'fun_spell', cat: 'support', rarity: 'epic', desc: "Được đi liền thêm 1 lượt nữa. Người dẫn đầu không được mua vé.", cond: { notLeader: true },
+      effect: function(p) {
+          p.extraTurn = true;
+          window.boardPlayFx('forward', p.pos, 'THÊM LƯỢT!', { count: 4, ring: false });
+          return "Có một lượt nữa ngay sau lưng!";
+      }
+    },
+    { id: 'bocong', name: "Bổ Sung Bài", type: 'fun_spell', cat: 'support', rarity: 'rare', desc: "Mở túi bốc 2 lá mới. Tay đầy thì bán lá thừa lấy tiền.",
+      effect: function(p) {
+          const got = [];
+          for (let i = 0; i < 2; i++) {
+              const card = window.boardDrawHandCard(p);
+              if (!card) break;
+              got.push(card.name);
+          }
+          if (!got.length) return 'Tay đã đầy 5 lá, chẳng nhét thêm được.';
+          return `Bốc được ${got.map(n => `[${n}]`).join(' + ')}.`;
       }
     },
 
@@ -641,11 +660,12 @@ const BOARD_TACTIC_CATS = {
     reverse: { name: 'Đảo Tình Thế',   icon: '🔄', dark: '#241740' }
 };
 
-// Thẻ instant luôn tự nổ khi lật trên ô (quái, bẫy, lốc) — phần còn lại rơi vào tay.
+// Thẻ instant luôn tự nổ khi lật trên ô (quái, bẫy, lốc, đồ cộng chỉ số) — phần còn lại rơi vào tay.
+// Bài chỉ cộng 🗡️/🛡️/❤/🪙 bị ép instant: trên tay chỉ giữ bài tương tác với đối thủ.
 const BOARD_LEGACY_CATS = {
     soi: ['attack', true], cuongthi: ['attack', true], rong: ['attack', true],
-    kiem: ['attack'], cung: ['attack'], khien_go: ['defense'], khien_thep: ['defense'], cuuthuong: ['support'],
-    cuongphong: ['move'], ruongvang: ['support'], dichchuyen: ['move'], vochuoi: ['attack'], tromvang: ['attack'],
+    kiem: ['attack', true], cung: ['attack', true], khien_go: ['defense', true], khien_thep: ['defense', true], cuuthuong: ['support', true],
+    cuongphong: ['move'], ruongvang: ['support', true], dichchuyen: ['move'], vochuoi: ['attack'], tromvang: ['attack'],
     sieuquay: ['attack'], giasam: ['attack'], boombip: ['attack'], tocbientuong: ['move'], trollportal: ['reverse'],
     locxoay: ['trap', true], trap_ho: ['trap', true], trap_set: ['trap', true],
     huydebuff: ['reverse'], trombai: ['reverse'], doidat: ['trap'], baohothanky: ['defense']
@@ -684,6 +704,13 @@ function boardIsFrontRunner(p) {
     return p.idx === top.idx;
 }
 
+// Một vòng = mỗi ghế đi đúng 1 lượt. Bài đánh được ngoài lượt nên ngân sách tính theo vòng.
+window.boardCardRound = function() {
+    if (!boardGame) return 0;
+    const seats = Math.max(1, (boardGame.players || []).length);
+    return Math.floor((boardGame.turnNo || 0) / seats);
+};
+
 window.boardWardBlock = function(t, reason) {
     if (!t || !t.ward) return false;
     t.ward = false;
@@ -711,7 +738,7 @@ window.boardSteal = function(from, to, amount) {
     return taken;
 };
 
-// Một người chỉ đánh 1 lá mỗi lượt → không ai dồn combo áp đảo cả bàn.
+// Một người chỉ đánh 1 lá mỗi vòng (đánh được cả ngoài lượt) → không ai dồn combo áp đảo cả bàn.
 window.boardCardPlayable = function(p, card) {
     if (!p || p.eliminated) return { ok: false, why: 'Hết mạng rồi, đánh với ai?' };
     if (!card) return { ok: false, why: 'Không có lá bài nào.' };
@@ -721,7 +748,7 @@ window.boardCardPlayable = function(p, card) {
         const owner = (BOARD_CHARACTERS.find(c => c.id === cond.char) || {}).name || cond.char;
         return { ok: false, why: `Bài riêng của ${owner}.` };
     }
-    if (boardGame && p.lastCardTurn === boardGame.turnNo) return { ok: false, why: 'Mỗi lượt chỉ dùng 1 lá.' };
+    if (boardGame && p.lastCardRound === window.boardCardRound()) return { ok: false, why: 'Mỗi vòng chỉ dùng 1 lá.' };
     if (cond.cost && (p.gold || 0) < cond.cost) return { ok: false, why: `Cần ${cond.cost} 🪙.` };
     if (cond.needWeapon && !(p.weapons > 0)) return { ok: false, why: 'Cần ít nhất 1 🗡️.' };
     if (cond.needShield && !(p.shields > 0)) return { ok: false, why: 'Cần ít nhất 1 🛡️.' };
@@ -743,6 +770,17 @@ window.boardGainCard = function(p, card, reason) {
     return `Thu vào tay${reason ? ` khi qua ${reason}` : ''}.`;
 };
 
+// Bốc thẳng một lá chiến thuật vào tay (dùng cho bài kiểu "Bổ Sung Bài").
+window.boardDrawHandCard = function(p) {
+    if (!p || p.eliminated) return null;
+    const mine = window.boardCharOf(p).id;
+    const pool = RACE_CARDS.filter(c => c.cat && !c.instant && !(c.cond && c.cond.char && c.cond.char !== mine));
+    if (!pool.length) return null;
+    const card = pool[Math.floor(Math.random() * pool.length)];
+    boardAddLog(`🎴 ${p.name} bốc [${card.name}]: ${window.boardGainCard(p, card, 'bài bổ sung')}`, 'card');
+    return card;
+};
+
 // ── Hình minh họa + hiệu ứng kích hoạt thẻ bài ───────────────
 const BOARD_CARD_EMOJI = {
     soi: '🐺', cuongthi: '🧟', rong: '🐉',
@@ -752,7 +790,8 @@ const BOARD_CARD_EMOJI = {
     locxoay: '🌪️', trap_ho: '🕳️', trap_set: '⚡', huydebuff: '🍋', trombai: '🃏',
     doidat: '🧨', baohothanky: '🍲',
     taixang: '⛏️', nuocman: '🧂', trauliem: '🎍', luanbao: '💫', mamnim: '🌱', baocat: '🎒',
-    utnut: '🛵', gaibay: '🪤', hoitang: '🧉', daingo: '♟️', gomai: '🪒', kienxen: '🚜'
+    utnut: '🛵', gaibay: '🪤', hoitang: '🧉', daingo: '♟️', gomai: '🪒', kienxen: '🚜',
+    themap: '🎫', bocong: '🎴'
 };
 
 const BOARD_CARD_CAPTIONS = {
@@ -763,7 +802,8 @@ const BOARD_CARD_CAPTIONS = {
     locxoay: 'XOÁY!', trap_ho: 'HỰ!', trap_set: 'ĐOÀNG!', huydebuff: 'TỈNH!', trombai: 'GIẬT!',
     doidat: 'GÀI!', baohothanky: 'CHE!',
     taixang: 'CƯỚP!', nuocman: 'CAY!', trauliem: 'QUẬT!', luanbao: 'ĐỠ!', mamnim: 'NỞ!', baocat: 'BAY!',
-    utnut: 'BÙ BÙ!', gaibay: 'KẸP!', hoitang: 'UỐNG!', daingo: 'ĐẢO!', gomai: 'CẮT!', kienxen: 'CÁN!'
+    utnut: 'BÙ BÙ!', gaibay: 'KẸP!', hoitang: 'UỐNG!', daingo: 'ĐẢO!', gomai: 'CẮT!', kienxen: 'CÁN!',
+    themap: 'THÊM!', bocong: 'BỐC!'
 };
 
 const BOARD_CARD_ACCENT = {
@@ -774,7 +814,8 @@ const BOARD_CARD_ACCENT = {
     locxoay: '#8ab6f0', trap_ho: '#c98b45', trap_set: '#ffe36b', huydebuff: '#ffe36b', trombai: '#ffb3c6',
     doidat: '#ff9f43', baohothanky: '#ffd66b',
     taixang: '#ff9f43', nuocman: '#ffd08a', trauliem: '#d9a066', luanbao: '#8ad8ff', mamnim: '#8fe08f', baocat: '#e8c48a',
-    utnut: '#6fb8ff', gaibay: '#ffb347', hoitang: '#7ee0a8', daingo: '#c08cff', gomai: '#c8d4de', kienxen: '#6fd08f'
+    utnut: '#6fb8ff', gaibay: '#ffb347', hoitang: '#7ee0a8', daingo: '#c08cff', gomai: '#c8d4de', kienxen: '#6fd08f',
+    themap: '#ffd66b', bocong: '#b49be8'
 };
 
 const BOARD_CARD_TINTS = {
@@ -1135,6 +1176,22 @@ const BOARD_CARD_PROPS = {
         <path d="M12,88 Q60,104 108,88" fill="none" stroke="#201827" stroke-width="4"/>
         <path d="M18,32 q9,-12 22,-7 M96,22 q-11,-8 -24,-3" stroke="#ffe36b" stroke-width="3" fill="none"/>
         <path d="M10,52 l-6,-10 M108,58 l10,-8" fill="#ffb347"/>
+    </g>`,
+    themap: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M12,42 Q24,42 24,60 Q24,78 12,78 L74,78 Q86,78 86,60 Q86,42 74,42 Z" fill="#ffd66b" transform="rotate(-8 60 60)"/>
+        <path d="M34,44 L34,76" stroke="#201827" stroke-width="3" stroke-dasharray="5 5" fill="none"/>
+        <path d="M46,52 l10,8 l-10,8 M60,52 l10,8 l-10,8" fill="none" stroke="#7a5230" stroke-width="4"/>
+        <path d="M14,32 q10,-14 26,-8 M104,86 q-12,10 -28,4" stroke="#ffe36b" stroke-width="3" fill="none"/>
+        <circle cx="98" cy="40" r="7" fill="#c8f4ff"/>
+    </g>`,
+    bocong: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="20" y="52" width="60" height="48" rx="12" fill="#5f4a7a"/>
+        <path d="M20,64 Q50,52 80,64" fill="#4a3a60"/>
+        <rect x="30" y="18" width="26" height="38" rx="5" fill="#f4f7fa" transform="rotate(-14 43 37)"/>
+        <rect x="56" y="22" width="26" height="38" rx="5" fill="#c8f4ff" transform="rotate(12 69 41)"/>
+        <circle cx="43" cy="37" r="6" fill="#b49be8" transform="rotate(-14 43 37)"/>
+        <path d="M70,34 l6,6 l-6,6" fill="none" stroke="#201827" stroke-width="3"/>
+        <path d="M88,56 q10,-10 18,-2 M8,84 q10,8 20,4" stroke="#b49be8" stroke-width="3" fill="none"/>
     </g>`,
     _default: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
         <rect x="38" y="20" width="44" height="64" rx="6" fill="#f4f7fa" transform="rotate(-6 60 52)"/>
@@ -1842,7 +1899,7 @@ window.boardOpenHandPanel = function() {
 
     let box = document.createElement('div');
     box.className = 'board-hand-box';
-    box.innerHTML = `<div class="hand-head"><span>🎴 Bài Trên Tay (${human.hand.length}/${BOARD_HAND_LIMIT})</span><small>${human.ward ? '🌀 Luân đang sáng · ' : ''}Mỗi lượt chỉ dùng 1 lá</small></div>`;
+    box.innerHTML = `<div class="hand-head"><span>🎴 Bài Trên Tay (${human.hand.length}/${BOARD_HAND_LIMIT})</span><small>${human.ward ? '🌀 Luân đang sáng · ' : ''}Đánh được cả ngoài lượt · mỗi vòng 1 lá</small></div>`;
 
     if (human.hand.length === 0) {
         let empty = document.createElement('div');
@@ -1904,7 +1961,7 @@ window.boardPlayHandCard = function(playerIdx, handIndex, silent) {
     p.hand.splice(handIndex, 1);
     const cost = (origCard.cond && origCard.cond.cost) || 0;
     if (cost) p.gold = Math.max(0, (p.gold || 0) - cost);
-    p.lastCardTurn = boardGame.turnNo || 0;
+    p.lastCardRound = window.boardCardRound();
 
     const applied = boardRunCardEffect(origCard, p);
     const result = applied.result;
@@ -1942,12 +1999,12 @@ window.boardUseHandCard = function(playerIdx, handIndex, silent) {
     if (played && !played.ok) boardAddLog(`🚫 ${p.name} chưa dùng được [${boardCardDef(p.hand[handIndex]).name}]: ${played.why}`, 'card');
 };
 
-// Bot chỉ đánh khi lá bài đáng giá; mỗi lượt tối đa 1 lá nên không con nào spam combo.
+// Bot chỉ đánh khi lá bài đáng giá; mỗi vòng tối đa 1 lá nên không con nào spam combo.
 function boardBotCardScore(p, card) {
     const living = boardGame.players.filter(x => !x.eliminated);
     const leader = living.length ? living.reduce((a, b) => (a.pos >= b.pos ? a : b)) : p;
     const gap = (leader.pos || 0) - (p.pos || 0);
-    if (card.cat === 'support') return p.lives < 3 ? 6 : 1;
+    if (card.cat === 'support') return card.id === 'themap' ? (gap >= 3 ? 5.4 : 1.6) : card.id === 'bocong' ? (p.hand.length <= 3 ? 3.4 : 0.6) : 1;
     if (card.cat === 'defense') return (p.lives <= 2 ? 5 : 2.2) + (p.ward ? -4 : 0);
     if (card.cat === 'move') return gap >= 6 ? 4.5 : 0.5;
     if (card.cat === 'attack') return gap >= 4 ? 3.8 : 2.2;
