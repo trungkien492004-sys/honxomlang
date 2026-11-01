@@ -1589,3 +1589,72 @@
   cursor:pointer;
   box-shadow:0 3px 0 #17262b;
 }
+
+/* ===== 🔀 NGÃ RẺ ĐƯỜNG ĐUA — ô ngã rẽ + bảng chọn lối đi ===== */
+#boardGameModal .board-cell.fork{
+  border-color:#3ee6ff!important;
+  box-shadow:0 0 0 3px #3ee6ff2e,0 0 20px #f2c86e4d,0 6px 12px #02141a99!important;
+}
+#boardGameModal .board-cell.fork .cell-num-center{color:#0a2b33!important;background:#bff5ffe6!important}
+#boardGameModal .board-cell.fork.current-racer{box-shadow:0 0 0 4px #f2c86e66,0 0 26px #3ee6ff66,0 8px 16px #02141aaa!important}
+
+#boardBranchModal .branch-box{
+  position:relative;
+  overflow:hidden;
+  width:min(94vw,470px)!important;
+  padding:22px 20px 16px!important;
+  border-radius:22px!important;
+  border:2px solid #e3bd75!important;
+  background:linear-gradient(165deg,#123d4cf7,#07222cfd 62%,#051a22)!important;
+  box-shadow:0 26px 64px #000c,inset 0 1px 0 #ffe7b344,0 0 0 6px #08222b88!important;
+  color:#eae1d4;
+  text-align:center;
+}
+#boardBranchModal .branch-title{
+  font-size:1.32rem;
+  font-weight:900;
+  letter-spacing:.4px;
+  color:#f2c86e;
+  text-shadow:0 0 14px #f2c86e55;
+  margin-bottom:4px;
+}
+#boardBranchModal .branch-sub{font-size:.78rem;color:#a9d7e2;margin-bottom:14px;line-height:1.35}
+#boardBranchModal .branch-routes{
+  display:grid;
+  gap:9px;
+  max-height:min(58vh,430px);
+  overflow-y:auto;
+  padding:2px;
+  text-align:left;
+}
+#boardBranchModal .branch-route{
+  text-align:left;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  grid-template-areas:"icon name" "icon stats" "note note" "desc desc";
+  gap:2px 10px;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1.5px solid #3ee6ff55;
+  background:linear-gradient(150deg,#0f3947,#0a2630);
+  color:#eae1d4;
+  font-family:inherit;
+  cursor:pointer;
+  transition:transform .12s ease,border-color .12s ease;
+}
+#boardBranchModal .branch-route:hover{transform:translateY(-1px);border-color:#f2c86e}
+#boardBranchModal .branch-route.branch-safe{border-color:#7bd9a866;background:linear-gradient(150deg,#123b2c,#0a2620)}
+#boardBranchModal .branch-route:disabled{opacity:.45;cursor:not-allowed;transform:none}
+#boardBranchModal .branch-icon{grid-area:icon;font-size:1.5rem;line-height:1}
+#boardBranchModal .branch-name{grid-area:name;font-weight:900;font-size:.92rem;color:#ffe9c2}
+#boardBranchModal .branch-stats{grid-area:stats;font-size:.76rem;font-weight:800;color:#3ee6ff}
+#boardBranchModal .branch-note{grid-area:note;font-size:.74rem;color:#ffb39a;font-weight:800}
+#boardBranchModal .branch-route.branch-safe .branch-note{color:#7bd9a8}
+#boardBranchModal .branch-desc{grid-area:desc;font-size:.72rem;color:#b8cdd4;line-height:1.3}
+#boardBranchModal .branch-foot{margin-top:12px;font-size:.7rem;color:#8fb3bd}
+@media (max-width:430px){
+  #boardBranchModal .branch-box{padding:16px 12px 12px!important}
+  #boardBranchModal .branch-title{font-size:1.08rem}
+  #boardBranchModal .branch-route{text-align:left;padding:8px 9px}
+}

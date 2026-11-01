@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="assets/css/style.css?v=7">
     <style>html.auth-pending body>#app,html.auth-pending body>.screen,html.auth-pending body>#mobileCardActions{visibility:hidden;pointer-events:none}html.auth-pending body{min-height:100vh;background:#062236}html.auth-pending body::before{content:"Đang khôi phục đăng nhập…";position:fixed;inset:0;z-index:249999;display:grid;place-items:center;background:linear-gradient(145deg,#062236,#10283d);color:#d0e6f3;font:700 16px system-ui,sans-serif}</style>
     <link rel="stylesheet" href="assets/css/mobile.css?v=7">
-    <link rel="stylesheet" href="assets/css/board_upgrade.css?v=20261101-perf-v1">
+    <link rel="stylesheet" href="assets/css/board_upgrade.css?v=20261101-fork-v1">
     <link rel="stylesheet" href="assets/css/game_menu_clean.css?v=20261026-confirm-v1">
     <link rel="stylesheet" href="assets/css/meme_lobby_suggestion.css?v=20261029-v1">
     <script>
@@ -719,6 +719,16 @@
                     <button class="board-action-btn" id="pvpAttackBtn" style="background:linear-gradient(135deg, #ef4444, #b91c1c); border-color:#ef4444; color:#fff; padding:8px 24px;">⚔️ Tấn Công</button>
                     <button class="board-action-btn" id="pvpSpareBtn" style="background:linear-gradient(135deg, #6b7280, #374151); border-color:#4b5563; color:#fff; padding:8px 24px;">🤝 Bỏ Qua</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- ===== 🔀 BRANCH (NGÃ RẺ) CHOICE MODAL ===== -->
+        <div id="boardBranchModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100065; align-items:center; justify-content:center; font-family:'Baloo 2', sans-serif;">
+            <div class="bet-modal-box branch-box">
+                <div class="branch-title" id="branchTitle">🔀 NGÃ RẺ ĐƯỜNG ĐUA</div>
+                <div class="branch-sub" id="branchSub">Chọn lối đi cho lượt này.</div>
+                <div class="branch-routes" id="branchRoutes"></div>
+                <div class="branch-foot">Dừng ở ngã rẽ là hết lượt đi — bước xúc xắc còn lại bị mất.</div>
             </div>
         </div>
 
@@ -1577,8 +1587,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js" crossorigin="anonymous"></script>
     <script src="assets/js/firebase.js?v=20261026-auth-presence1"></script>
     
-    <script src="assets/js/board_new.js?v=20261031-board-v3"></script>
-    <script src="assets/js/board_upgrade.js?v=20261101-perf-v1"></script>
+    <script src="assets/js/board_new.js?v=20261101-fork-v1"></script>
+    <script src="assets/js/board_upgrade.js?v=20261101-fork-v1"></script>
     <script src="assets/js/vfx.js?v=10"></script>
     <script src="assets/js/sprites_data.js?v=10"></script>
     <script src="assets/js/sprites_renderer.js?v=10"></script>

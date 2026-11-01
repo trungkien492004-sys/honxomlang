@@ -8,7 +8,8 @@
  const channel=()=>window.boardOnlineRoomId||(boardGame?.pvp?'LEGACY-'+boardGame.hostId:null);
  function send(type,data={}){if(window.pvpChannel&&channel())window.pvpChannel.postMessage({type,id:mine(),roomId:channel(),hostId:boardGame?.hostId||null,...data});}
  function cleanup(){session++;for(const [id,resolve]of timers){clearTimeout(id);resolve();}timers.clear();if(window._bigEventTimer)clearTimeout(window._bigEventTimer);window._bigEventCallback=null;window._shopCallback=null;window._shopPlayer=null;if(decision)clearTimeout(decision.timer);decision=null;
-  for(const id of ['boardShopModal','boardPvpChoiceModal','bigEventOverlay']){const node=document.getElementById(id);if(node){node.style.display='none';node.classList.remove('active');}}
+  for(const id of ['boardShopModal','boardPvpChoiceModal','boardBranchModal','bigEventOverlay']){const node=document.getElementById(id);if(node){node.style.display='none';node.classList.remove('active');}}
+  if(window._boardBranchAnswer){const answer=window._boardBranchAnswer;window._boardBranchAnswer=null;answer(null);}
   document.querySelectorAll('.board-hand-modal,.board-cast-overlay,.board-fx-flash,.board-fx-confetti').forEach(n=>n.remove());if(window._boardCameraLoopId)cancelAnimationFrame(window._boardCameraLoopId);window._boardCameraLoopId=null;}
  function init(match){match.matchId??='race-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);match.turnNo??=0;match.closed=false;match.stateVersion??=0;}
  function pay(){const b=boardGame;if(!b?.gameOver||!Number.isInteger(b.winnerIdx)||paid.has(b.matchId))return;const winner=b.players[b.winnerIdx];if(!(b.pvp?winner.networkId===mine():winner.isHuman))return;paid.add(b.matchId);if(typeof player!=='undefined'){player.gold=(player.gold||0)+b.prize;boardRefreshHud();}}
@@ -23,7 +24,9 @@
  window.boardProcessTurn=async function(p,roll,callback){const match=boardGame;if(!match||!host()||match.gameOver||!Number.isInteger(roll)||roll<1||roll>6)return;const done=()=>{if(active(match)){checkWinner();window.boardSyncView();window.boardFocusPawn(match.currentTurn);callback?.();}};
   if(p.eliminated)return done();if(p.skipTurn){p.skipTurn=false;window.boardPlayFx?.('sleep',p.pos,'💤');boardAddLog(`😴 ${p.name} mất lượt.`);return done();}
   const count=Math.min(roll,BOARD_TOTAL_CELLS-1-p.pos);boardAddLog(`🎲 ${p.name}: ${roll} điểm · tiến ${count} ô.`);
-  for(let i=0;i<count;i++){await wait(250);if(!active(match))return;window.boardMovePlayer(p.idx,1,true);}
+  const forkHit=boardForkInPath(p.pos,count),walk=forkHit==null?count:forkHit-p.pos;
+  for(let i=0;i<walk;i++){await wait(250);if(!active(match))return;window.boardMovePlayer(p.idx,1,true);}
+  if(forkHit!=null){await wait(320);if(!active(match))return;const chose=await new Promise(res=>window.boardChooseBranch(p,forkHit,r=>res(active(match)?r:null)));if(!chose||!active(match))return;if(checkWinner())return done();boardAddLog(`⏳ ${p.name} dừng ở ngã rẽ ô ${forkHit+1} nên ${Math.max(0,count-walk)} bước xúc xắc còn lại bị mất.`);}
   if(!active(match))return;await wait(340);if(!active(match))return;if(checkWinner())return done();
   if(match.trappedCells[p.pos]){const trapCell=p.pos;delete match.trappedCells[p.pos];window.boardFocusTarget?.(p.idx,1100);window.boardPlayFx?.('trap',trapCell,'BÙM!');window.boardMovePlayer(p.idx,-3,true);boardAddLog(`💣 ${p.name} dẫm bẫy, lùi 3 ô.`,'special');await wait(560);if(!active(match))return;}
   const landed=zone(p);boardHandleCombat(p,()=>{if(!active(match))return;if(checkWinner())return done();if(p.eliminated)return done();const completed=()=>{if(active(match))done();};if(p.pos>=20&&SHOP_ZONES.includes(landed))window.boardHandleShop(p,landed,completed);else window.boardDrawRandomCard(p,landed,completed);});
@@ -45,6 +48,10 @@
  window.boardHandleShop=function(p,name,callback){if(boardGame.pvp&&host()&&p.networkId&&p.networkId!==mine()){window._shopPlayer=p;request('shop',p,{name},()=>{window._shopPlayer=null;callback?.();});return;}return shop(p,name,callback);};
  window.boardCloseShop=function(){if(boardGame?.pvp&&!host()){send('BOARD_DECISION',{requestId:window._boardRemoteDecision,action:'close'});document.getElementById('boardShopModal').style.display='none';window._shopPlayer=null;return;}return closeShop();};
  boardHandleCombat=function(p,callback){const b=boardGame;if(!b?.pvp||!host()||!p.networkId||p.networkId===mine()||p.weapons<=0||p.pos<=0||p.pos>=99)return combat(p,callback);const targets=b.players.filter(t=>t.idx!==p.idx&&!t.eliminated&&t.pos===p.pos);if(!targets.length)return callback?.(null);request('combat',p,{names:targets.map(t=>t.name)},action=>{if(action==='attack'&&p.weapons>0){p.weapons--;for(const t of targets)boardTakeDamage(t,1,`bị ${p.name} tấn công`);boardAddLog(`⚔ ${p.name} chọn tấn công.`);}callback?.(null);});};
+ // Branch choices are decided by the owner but resolved by the host, so the risk roll stays single-source.
+ const chooseBranch=window.boardChooseBranch;window.boardChooseBranch=function(p,forkCell,callback){const b=boardGame,fork=b?.forks?.[forkCell];
+  if(!b?.pvp||!host()||!p.networkId||p.networkId===mine()||!fork)return chooseBranch(p,forkCell,callback);
+  request('branch',p,{fork:forkCell,routes:fork.routes},action=>{const id=action&&action!=='skip'&&fork.routes.includes(action)?action:'safe';window.boardResolveBranch(p,forkCell,id,()=>callback?.(id));});};
  // The host is the sole publisher; rendering a remote snapshot must never echo it back.
  window.boardPushOnlineState=function(){if(!host()||!window.boardOnlineRoomId)return;boardGame.stateVersion=(boardGame.stateVersion||0)+1;send('BOARD_ROOM_STATE',{lastActionBy:'host',version:boardGame.stateVersion,boardState:JSON.parse(JSON.stringify(boardGame)),diceText:document.getElementById('diceResultText').textContent});};
  window.boardBroadcastState=function(kind){if(!host()||!boardGame?.pvp)return;init(boardGame);if(!window.boardOnlineRoomId)return legacyBroadcast(kind);window.boardPushOnlineState();};
@@ -56,9 +63,9 @@
   if(same&&msg.type==='BOARD_ROOM_STATE'){if(!host()&&msg.id===b?.hostId)window.boardSyncOnlineState(msg);return;}
   if(same&&msg.type==='BOARD_PVP_ROLL_EVENT'&&msg.id!==b?.hostId)return;
   if(same&&msg.type==='BOARD_DECISION'&&host()){if(!decision||msg.requestId!==decision.id||msg.id!==decision.p.networkId)return;if(msg.action==='buy'&&decision.kind==='shop'){window.boardShopBuyItem(msg.kind);send('BOARD_SHOP_GOLD',{targetId:msg.id,requestId:decision.id,gold:decision.p.gold});return;}const d=decision;decision=null;clearTimeout(d.timer);d.callback(msg.action);return;}
-  if(same&&msg.type==='BOARD_DECISION_OPEN'&&!host()&&msg.id===b?.hostId&&msg.targetId===mine()){window._boardRemoteDecision=msg.requestId;const me=b.players.find(p=>p.networkId===mine());if(msg.kind==='shop'){window._shopPlayer=me;document.getElementById('shopPlayerGold').textContent=me.gold||0;document.getElementById('shopWelcomeText').textContent=`Ghé ${msg.data.name} · còn 20 giây để mua đồ.`;document.getElementById('boardShopModal').style.display='flex';}else{const modal=document.getElementById('boardPvpChoiceModal');document.getElementById('pvpChoiceTargetText').textContent=`Chạm trán ${msg.data.names.join(', ')}. Dùng 1 vũ khí để tấn công?`;modal.style.display='flex';for(const [id,action]of[['pvpAttackBtn','attack'],['pvpSpareBtn','skip']])document.getElementById(id).onclick=()=>{modal.style.display='none';send('BOARD_DECISION',{requestId:msg.requestId,action});};}return;}
+  if(same&&msg.type==='BOARD_DECISION_OPEN'&&!host()&&msg.id===b?.hostId&&msg.targetId===mine()){window._boardRemoteDecision=msg.requestId;const me=b.players.find(p=>p.networkId===mine());if(msg.kind==='shop'){window._shopPlayer=me;document.getElementById('shopPlayerGold').textContent=me.gold||0;document.getElementById('shopWelcomeText').textContent=`Ghé ${msg.data.name} · còn 20 giây để mua đồ.`;document.getElementById('boardShopModal').style.display='flex';}else if(msg.kind==='branch'){const routes=(msg.data?.routes||[]).filter(r=>BOARD_ROUTE_KINDS[r]);window.boardShowBranchChooser(me,msg.data.fork,routes,routeId=>send('BOARD_DECISION',{requestId:msg.requestId,action:routeId||'safe'}));}else{const modal=document.getElementById('boardPvpChoiceModal');document.getElementById('pvpChoiceTargetText').textContent=`Chạm trán ${msg.data.names.join(', ')}. Dùng 1 vũ khí để tấn công?`;modal.style.display='flex';for(const [id,action]of[['pvpAttackBtn','attack'],['pvpSpareBtn','skip']])document.getElementById(id).onclick=()=>{modal.style.display='none';send('BOARD_DECISION',{requestId:msg.requestId,action});};}return;}
   if(same&&msg.type==='BOARD_SHOP_GOLD'&&msg.id===b?.hostId&&msg.targetId===mine()){document.getElementById('shopPlayerGold').textContent=msg.gold;return;}
-  if(same&&msg.type==='BOARD_DECISION_END'&&msg.id===b?.hostId&&msg.requestId===window._boardRemoteDecision){document.getElementById('boardShopModal').style.display='none';document.getElementById('boardPvpChoiceModal').style.display='none';return;}
+  if(same&&msg.type==='BOARD_DECISION_END'&&msg.id===b?.hostId&&msg.requestId===window._boardRemoteDecision){document.getElementById('boardShopModal').style.display='none';document.getElementById('boardPvpChoiceModal').style.display='none';document.getElementById('boardBranchModal').style.display='none';window._boardBranchAnswer=null;return;}
   return receive(msg);
  };
  // Fit the map to the available panel width. User dragging still explores its full height.
@@ -110,7 +117,7 @@
  window.boardRefreshCell=function(i){
   const b=boardGame;const el=Number.isInteger(i)&&document.getElementById('bcell_'+i);
   if(!b||!el)return refreshCell(i);
-  const s=b.matchId+'|'+(b.revealedCells[i]?1:0)+'|'+(b.trappedCells[i]?1:0)+'|'+((b.cellZones&&b.cellZones[i])||'')+'|'+window._boardTheme;
+  const s=b.matchId+'|'+(b.revealedCells[i]?1:0)+'|'+(b.trappedCells[i]?1:0)+'|'+((b.cellZones&&b.cellZones[i])||'')+'|'+(b.forks&&b.forks[i]?b.forks[i].routes.join(','):'')+'|'+window._boardTheme;
   if(paintedCell.get(i)===s)return;
   paintedCell.set(i,s);return refreshCell(i);
  };

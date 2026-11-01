@@ -1759,11 +1759,204 @@ function _getBoardSmoothPath() {
 // ── Render Track ──────────────────────────────────────────────
 const BOARD_CELL_SIZE = 36;
 
+// ── Ngã rẽ đường đua ──────────────────────────────────────────
+// Ô ngã rẽ cố định để người chơi còn tính nước; các lối đi trên mỗi ngã rẽ
+// được rút lại mỗi ván (host sinh ra và đồng bộ nguyên trong boardGame).
+const BOARD_FORK_CELLS = [12, 25, 38, 51, 64, 77, 89];
+const BOARD_SAFE_ROUTE = 'safe';
+const BOARD_ROUTE_ORDER = ['field', 'mountain', 'cave', 'gate', 'secret'];
+const BOARD_ROUTE_KINDS = {
+    safe:     { name: 'Đường Vòng An Toàn', icon: '🌾', steps: 1, gold: 0,  risk: 0,    back: 0, desc: 'Tiến 1 ô, không rủi ro.' },
+    field:    { name: 'Ngõ Cày Rút Ngắn',   icon: '🛤️', steps: 3, gold: 0,  risk: 0.15, back: 2, desc: 'Tiến 3 ô, 15% vấp ổ gà lùi 2 ô.' },
+    mountain: { name: 'Đường Núi Kho Báu',  icon: '⛰️', steps: 4, gold: 25, risk: 0.35, back: 3, desc: 'Tiến 4 ô + 25 vàng, 35% sạt lở lùi 3 ô.' },
+    cave:     { name: 'Hang Kho Báu',       icon: '💎', steps: 2, gold: 60, risk: 0.2,  back: 2, desc: 'Tiến 2 ô + 60 vàng, 20% hang sập lùi 2 ô.' },
+    gate:     { name: 'Cổng Dịch Chuyển',   icon: '🚪', steps: 8, gold: 0,  risk: 0.1,  back: 2, cost: 40, desc: 'Nhảy 8 ô với 40 vàng, 10% cổng méo lùi 2 ô.' },
+    secret:   { name: 'Lối Bí Mật',         icon: '🌀', steps: 6, gold: 0,  risk: 0.25, back: 4, desc: 'Tiến 6 ô, lạc đường lùi 4 ô.' }
+};
+
+function boardForkAt(i) {
+    return (boardGame && boardGame.forks && boardGame.forks[i]) || null;
+}
+
+// Ngã rẽ đầu tiên mà quân cờ đi qua trong `steps` bước tới.
+function boardForkInPath(pos, steps) {
+    for (let k = 1; k <= steps; k++) {
+        if (boardForkAt(pos + k)) return pos + k;
+    }
+    return null;
+}
+
+// Kênh ngẫu nhiên của ngã rẽ; test ghi đè để có kết quả tất định.
+window.boardRouteRoll = function () { return Math.random(); };
+
+// Dẫn đầu thì đi tắt đắt hơn, về bét thì được nhón tay — giữ cả đám bám nhau.
+function boardRouteRisk(p, route) {
+    if (!route || !route.risk) return 0;
+    const living = boardGame.players.filter(x => !x.eliminated && x.lives > 0);
+    if (living.length < 2) return route.risk;
+    const front = Math.max.apply(null, living.map(x => x.pos));
+    const rear = Math.min.apply(null, living.map(x => x.pos));
+    let risk = route.risk;
+    if (p.pos >= front) risk += 0.15;
+    else if (p.pos <= rear) risk -= 0.1;
+    return Math.max(0, Math.min(0.9, risk));
+}
+
+function boardSeedForks() {
+    boardGame.forks = {};
+    BOARD_FORK_CELLS.forEach(cell => {
+        const dangers = BOARD_ROUTE_ORDER.filter(id => {
+            if (id === 'secret') return Math.random() < 0.3;
+            if (id === 'gate') return Math.random() < 0.35;
+            return true;
+        }).sort(() => Math.random() - 0.5);
+        const picked = [BOARD_SAFE_ROUTE].concat(dangers.slice(0, 2));
+        if (dangers.indexOf('secret') >= 0 && picked.indexOf('secret') < 0) picked.push('secret');
+        boardGame.forks[cell] = { routes: picked.slice(0, 4) };
+        boardGame.revealedCells[cell] = true; // ngã rẽ hiện sẵn trên bản đồ để còn tính nước
+    });
+}
+
+window.boardResolveBranch = function (p, forkCell, routeId, done) {
+    const route = BOARD_ROUTE_KINDS[routeId];
+    const fork = boardForkAt(forkCell);
+    if (!route || !fork || fork.routes.indexOf(routeId) < 0) {
+        if (done) done(null);
+        return;
+    }
+    if (route.cost && (p.gold || 0) < route.cost) {
+        if (done) done(null);
+        return;
+    }
+    let log = `🔀 ${p.name} chọn ${route.icon} ${route.name} tại ngã rẽ ô ${forkCell + 1}.`;
+    if (route.cost) {
+        p.gold = (p.gold || 0) - route.cost;
+        log += ` Trả ${route.cost} vàng qua cổng.`;
+    }
+    window.boardMovePlayer(p.idx, route.steps, true);
+    if (route.gold) {
+        p.gold = (p.gold || 0) + route.gold;
+        if (p.isHuman) boardRefreshHud();
+        window.boardPlayFx('gold', p.pos, `+${route.gold}🪙`, { count: 8, ring: false });
+        log += ` Lượm ${route.gold} vàng.`;
+    }
+    const risk = boardRouteRisk(p, route);
+    if (risk > 0 && window.boardRouteRoll() < risk) {
+        window.boardMovePlayer(p.idx, -route.back, true);
+        window.boardPlayFx('trap', p.pos, `LÙI ${route.back} Ô!`, { count: 14 });
+        log += ` Rủi ro đánh thật: lùi ${route.back} ô.`;
+    }
+    try { if (window.audio) window.audio.play(route.risk ? 'skill' : 'click'); } catch (e) {}
+    boardAddLog(log, 'special');
+    if (done) done(log);
+};
+
+window.boardShowBranchChooser = function (p, forkCell, routes, cb) {
+    const modal = document.getElementById('boardBranchModal');
+    const wrap = document.getElementById('branchRoutes');
+    if (!modal || !wrap || !routes || !routes.length) {
+        if (cb) cb(BOARD_SAFE_ROUTE);
+        return;
+    }
+    let settled = false;
+    const answer = routeId => {
+        if (settled) return;
+        settled = true;
+        modal.style.display = 'none';
+        if (cb) cb(routeId);
+    };
+    document.getElementById('branchTitle').textContent = `🔀 NGÃ RẺ Ô ${forkCell + 1}`;
+    document.getElementById('branchSub').textContent = `${p.name} — chọn lối đi. Bước còn lại của xúc xắc bị lượt này tiêu hết.`;
+    wrap.innerHTML = '';
+    routes.forEach(routeId => {
+        const route = BOARD_ROUTE_KINDS[routeId];
+        if (!route) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'branch-route' + (routeId === BOARD_SAFE_ROUTE ? ' branch-safe' : '');
+        btn.dataset.route = routeId;
+        const icon = document.createElement('span');
+        icon.className = 'branch-icon';
+        icon.textContent = route.icon;
+        const name = document.createElement('span');
+        name.className = 'branch-name';
+        name.textContent = route.name;
+        const stats = document.createElement('span');
+        stats.className = 'branch-stats';
+        const chips = [`+${route.steps} ô`];
+        if (route.gold) chips.push(`+${route.gold}🪙`);
+        if (route.cost) chips.push(`−${route.cost}🪙`);
+        stats.textContent = chips.join(' · ');
+        const note = document.createElement('span');
+        note.className = 'branch-note';
+        if (route.risk) {
+            const pct = Math.round(boardRouteRisk(p, route) * 100);
+            note.textContent = `${pct}% rủi ro lùi ${route.back} ô`;
+        } else {
+            note.textContent = 'Không rủi ro';
+        }
+        const desc = document.createElement('span');
+        desc.className = 'branch-desc';
+        desc.textContent = route.desc;
+        [icon, name, stats, note, desc].forEach(node => btn.appendChild(node));
+        if (route.cost && (p.gold || 0) < route.cost) {
+            btn.disabled = true;
+            note.textContent = `Cần ${route.cost} vàng — bạn chỉ còn ${p.gold || 0}`;
+        }
+        btn.onclick = () => {
+            try { if (window.audio) window.audio.play('click'); } catch (e) {}
+            answer(routeId);
+        };
+        wrap.appendChild(btn);
+    });
+    modal.style.display = 'flex';
+    window._boardBranchAnswer = answer;
+};
+
+// Bot: đường càng nguy hiểm càng hợp kẻ đang bị bỏ lại.
+function boardBotPickRoute(p, routes) {
+    const living = boardGame.players.filter(x => !x.eliminated && x.lives > 0);
+    const front = living.length > 1 ? Math.max.apply(null, living.map(x => x.pos)) : p.pos;
+    const behind = front - p.pos;
+    let best = BOARD_SAFE_ROUTE, bestScore = -Infinity;
+    routes.forEach(routeId => {
+        const route = BOARD_ROUTE_KINDS[routeId];
+        if (!route || (route.cost && (p.gold || 0) < route.cost)) return;
+        const risk = boardRouteRisk(p, route);
+        let score = route.steps + route.gold / 25 - risk * route.back * 1.6;
+        if (behind >= 5) score += route.steps * 0.35;
+        else if (p.pos >= front && route.risk) score -= route.steps * 0.2;
+        if (p.lives <= 1) score -= risk * 2;
+        if (score > bestScore) { bestScore = score; best = routeId; }
+    });
+    return best;
+}
+
+window.boardChooseBranch = function (p, forkCell, cb) {
+    const fork = boardForkAt(forkCell);
+    if (!fork || !fork.routes || !fork.routes.length) {
+        if (cb) cb(null);
+        return;
+    }
+    if (!p.isHuman) {
+        const picked = boardBotPickRoute(p, fork.routes);
+        window.boardResolveBranch(p, forkCell, picked, () => { if (cb) cb(picked); });
+        return;
+    }
+    window.boardShowBranchChooser(p, forkCell, fork.routes, routeId => {
+        window.boardResolveBranch(p, forkCell, routeId || BOARD_SAFE_ROUTE, () => {
+            if (cb) cb(routeId || BOARD_SAFE_ROUTE);
+        });
+    });
+};
+
 function _boardEsc(text) {
     return String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 function boardCellType(i) {
-    return i === 0 ? 'start' : i === BOARD_TOTAL_CELLS - 1 ? 'finish' : '';
+    if (i === 0) return 'start';
+    if (i === BOARD_TOTAL_CELLS - 1) return 'finish';
+    return boardForkAt(i) ? 'fork' : '';
 }
 function boardCellZone(i) {
     return (boardGame && boardGame.cellZones && boardGame.cellZones[i]) || NEIGHBORHOOD_NAMES[i % NEIGHBORHOOD_NAMES.length];
@@ -1776,6 +1969,9 @@ function boardCellArt(i, revealed, type, trapped) {
     if (type === 'finish') {
         return `<svg viewBox="0 0 40 40" width="22" height="22"><path d="M11,6 L11,35" stroke="#4a3216" stroke-width="3.5" stroke-linecap="round"/><path d="M13,7 L33,12 L13,17 Z" fill="#3fbf74" stroke="#1c6d42" stroke-width="1.3"/><path d="M13,20 L28,24 L13,28 Z" fill="#f5c451" stroke="#8f6512" stroke-width="1.3"/></svg>`;
     }
+    if (type === 'fork') {
+        return `<svg viewBox="0 0 40 40" width="22" height="22"><path d="M20,34 L20,22" stroke="#3a2a14" stroke-width="4" stroke-linecap="round"/><path d="M20,23 Q11,20 9,9" fill="none" stroke="#3ee6ff" stroke-width="3.4" stroke-linecap="round"/><path d="M20,23 Q29,20 31,9" fill="none" stroke="#f2c86e" stroke-width="3.4" stroke-linecap="round"/><circle cx="9" cy="8" r="3.2" fill="#3ee6ff" stroke="#0d3a44" stroke-width="1.4"/><circle cx="31" cy="8" r="3.2" fill="#f2c86e" stroke="#6b4a12" stroke-width="1.4"/><circle cx="20" cy="24" r="2.6" fill="#ffe6a8"/></svg>`;
+    }
     if (trapped) {
         return `<svg viewBox="0 0 40 40" width="21" height="21"><circle cx="20" cy="22" r="12" fill="#2a1a14" stroke="#0d0906" stroke-width="2"/><path d="M24,11 Q31,7 29,3" fill="none" stroke="#c98b45" stroke-width="2"/><circle cx="29" cy="4" r="2.4" fill="#ffb74d"><animate attributeName="opacity" values="1;.25;1" dur="1s" repeatCount="indefinite"/></circle><path d="M20,15 L20,25 M20,29 L20,30" stroke="#fff3cf" stroke-width="3" stroke-linecap="round"/></svg>`;
     }
@@ -1785,6 +1981,7 @@ function boardCellBackground(i, revealed, type, trapped) {
     if (!revealed) return 'radial-gradient(circle at 34% 22%,#fff3cf 0%,#e6c184 52%,#a5783c 100%)';
     if (type === 'start') return 'radial-gradient(circle at 32% 24%,#fff2bd 0%,#e0a94a 55%,#a8702c 100%)';
     if (type === 'finish') return 'radial-gradient(circle at 32% 24%,#dcffe9 0%,#4ec07d 55%,#1f7c4c 100%)';
+    if (type === 'fork') return 'radial-gradient(circle at 32% 24%,#bff5ff 0%,#2f8ea3 52%,#123c47 100%)';
     if (trapped) return 'radial-gradient(circle at 32% 24%,#ffb39a 0%,#d2543f 55%,#8f2622 100%)';
     const tint = boardGetZoneColor(boardCellZone(i));
     return `radial-gradient(circle at 32% 24%, ${tint} 0%, rgba(20,46,55,.96) 68%, rgba(11,30,38,1) 100%)`;
@@ -1796,6 +1993,10 @@ function _paintCell(div, i) {
     const trapped = !!boardGame.trappedCells[i];
     div.className = 'board-cell' + (type ? ' ' + type : '') + (revealed ? ' revealed' : ' hidden-cell');
     div.title = revealed ? zoneName : 'Ô bí ẩn — đi tới để mở';
+    if (type === 'fork') {
+        const names = boardForkAt(i).routes.map(r => (BOARD_ROUTE_KINDS[r] || {}).name).filter(Boolean).join(' / ');
+        div.title = `Ngã rẽ ô ${i + 1}: ${names}`;
+    }
     div.style.setProperty('background', boardCellBackground(i, revealed, type, trapped), 'important');
     div.innerHTML = `<span class="cell-num-center">${i + 1}</span>` +
         `<span class="cell-badge">${boardCellArt(i, revealed, type, trapped)}</span>` +
@@ -2638,8 +2839,11 @@ function openBoardGame(pvpMode = false) {
         boardGame.cellZones.push(NEIGHBORHOOD_NAMES[Math.floor(Math.random() * NEIGHBORHOOD_NAMES.length)]);
     }
 
+    boardSeedForks();
+
     // Randomize starting traps on cells (15% chance for cells 5 to 94)
     for (let i = 5; i < BOARD_TOTAL_CELLS - 5; i++) {
+        if (BOARD_FORK_CELLS.indexOf(i) >= 0) continue; // ngã rẽ không chồng bẫy
         if (Math.random() < 0.15) {
             boardGame.trappedCells[i] = true;
         }
@@ -3976,7 +4180,9 @@ window.boardStartOnlineMatch = function(role, room) {
         for (let i = 0; i < BOARD_TOTAL_CELLS; i++) {
             boardGame.cellZones.push(NEIGHBORHOOD_NAMES[Math.floor(Math.random() * NEIGHBORHOOD_NAMES.length)]);
         }
+        boardSeedForks();
         for (let i = 5; i < BOARD_TOTAL_CELLS - 5; i++) {
+            if (BOARD_FORK_CELLS.indexOf(i) >= 0) continue; // ngã rẽ không chồng bẫy
             if (Math.random() < 0.15) {
                 boardGame.trappedCells[i] = true;
             }
