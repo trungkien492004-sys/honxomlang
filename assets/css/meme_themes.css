@@ -1,0 +1,83 @@
+/* Purchasable duel-board themes. JS sets #duel[data-theme="..."]; every rule here is scoped to that attribute. */
+
+/* Ai Cập Cổ Đại */
+#duel[data-theme="ankh"] { background: radial-gradient(ellipse at 50% 42%, #7a5a22 0%, #3d2c10 55%, #181004 100%); }
+#duel[data-theme="ankh"]::before {
+  background-image: repeating-linear-gradient(45deg, transparent 0 34px, #fcd34d0d 35px 36px), repeating-linear-gradient(-45deg, transparent 0 34px, #fcd34d0a 35px 36px);
+  filter: none; opacity: 1;
+}
+#duel[data-theme="ankh"] .board-frame {
+  border-color: #b98a2f;
+  background:
+    radial-gradient(ellipse at 50% 50%, #4a3413 0%, #241705 78%),
+    repeating-linear-gradient(0deg, transparent 0 26px, #fbbf240f 26px 28px);
+}
+#duel[data-theme="ankh"] .card-inspector,
+#duel[data-theme="ankh"] .duel-sidebar { border-color: #b98a2f; background: linear-gradient(160deg, #3a2a10e8, #191004f2); }
+#duel[data-theme="ankh"] .duel-top { background: linear-gradient(90deg, #191004, #4a3413, #191004); }
+#duel[data-theme="ankh"] .duel-bottom { background: linear-gradient(#3a2a10df, #191004f5); }
+#duel[data-theme="ankh"] .special-zone { background: #2417057d; }
+#duel[data-theme="ankh"] .field-divider { filter: sepia(.6) saturate(1.2); }
+
+/* Thành Phố Neon */
+#duel[data-theme="neon"] { background: radial-gradient(ellipse at 50% 38%, #2a0f52 0%, #14082e 55%, #05010f 100%); }
+#duel[data-theme="neon"]::before {
+  background-image: repeating-linear-gradient(90deg, transparent 0 46px, #f0abfc14 46px 48px), repeating-linear-gradient(0deg, transparent 0 46px, #22d3ee12 46px 48px);
+  filter: none; opacity: 1;
+}
+#duel[data-theme="neon"] .board-frame {
+  border-color: #22d3ee;
+  box-shadow: 0 0 22px #a855f755, inset 0 0 34px #22d3ee22;
+  background:
+    radial-gradient(ellipse at 50% 50%, #1d1040 0%, #0b0521 78%),
+    repeating-linear-gradient(135deg, transparent 0 22px, #f0abfc0d 22px 24px);
+}
+#duel[data-theme="neon"] .card-inspector,
+#duel[data-theme="neon"] .duel-sidebar { border-color: #a855f7; background: linear-gradient(160deg, #1d1040e8, #0b0521f2); }
+#duel[data-theme="neon"] .duel-top { background: linear-gradient(90deg, #0b0521, #2a0f52, #0b0521); }
+#duel[data-theme="neon"] .duel-bottom { background: linear-gradient(#1d1040df, #0b0521f5); }
+#duel[data-theme="neon"] .special-zone { background: #0b05217d; }
+#duel[data-theme="neon"] .field-divider { filter: hue-rotate(215deg) saturate(1.5); }
+
+/* Lò Núi Lửa */
+#duel[data-theme="volcano"] { background: radial-gradient(ellipse at 50% 46%, #57160c 0%, #2a0a06 58%, #0d0402 100%); }
+#duel[data-theme="volcano"]::before {
+  background-image: repeating-linear-gradient(65deg, transparent 0 38px, #fb923c12 39px 41px);
+  filter: none; opacity: 1;
+}
+#duel[data-theme="volcano"] .board-frame {
+  border-color: #f97316;
+  box-shadow: 0 0 26px #ef444455, inset 0 0 40px #f9731622;
+  background:
+    radial-gradient(ellipse at 50% 55%, #3d1008 0%, #1a0603 78%),
+    repeating-linear-gradient(20deg, transparent 0 30px, #fb923c0f 30px 33px);
+}
+#duel[data-theme="volcano"] .card-inspector,
+#duel[data-theme="volcano"] .duel-sidebar { border-color: #f97316; background: linear-gradient(160deg, #2a0a06e8, #0d0402f2); }
+#duel[data-theme="volcano"] .duel-top { background: linear-gradient(90deg, #0d0402, #57160c, #0d0402); }
+#duel[data-theme="volcano"] .duel-bottom { background: linear-gradient(#2a0a06df, #0d0402f5); }
+#duel[data-theme="volcano"] .special-zone { background: #1a06037d; }
+#duel[data-theme="volcano"] .field-divider { filter: sepia(.5) hue-rotate(-25deg) saturate(2); }
+
+/* Giải Đấu Chuyên Nghiệp */
+#duel[data-theme="tournament"] { background: radial-gradient(ellipse at 50% 42%, #14356e 0%, #0a1e44 55%, #040b1d 100%); }
+#duel[data-theme="tournament"]::before {
+  background-image: repeating-linear-gradient(125deg, transparent 0 40px, #e2e8f012 41px 42px);
+  filter: none; opacity: 1;
+}
+#duel[data-theme="tournament"] .board-frame {
+  border-color: #cbd5e1;
+  box-shadow: 0 0 20px #3b82f644, inset 0 0 30px #93c5fd1e;
+  background:
+    radial-gradient(ellipse at 50% 50%, #10305f 0%, #071531 78%),
+    repeating-linear-gradient(90deg, transparent 0 52px, #e2e8f00d 52px 54px);
+}
+#duel[data-theme="tournament"] .card-inspector,
+#duel[data-theme="tournament"] .duel-sidebar { border-color: #cbd5e1; background: linear-gradient(160deg, #0d224ae8, #040b1df2); }
+#duel[data-theme="tournament"] .duel-top { background: linear-gradient(90deg, #040b1d, #14356e, #040b1d); }
+#duel[data-theme="tournament"] .duel-bottom { background: linear-gradient(#0d224adf, #040b1df5); }
+#duel[data-theme="tournament"] .special-zone { background: #0715317d; }
+
+@media (prefers-reduced-motion: reduce) {
+  #duel[data-theme] .board-frame { transition: none; }
+}

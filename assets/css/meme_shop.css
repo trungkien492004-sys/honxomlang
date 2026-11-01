@@ -1,0 +1,84 @@
+/* Item shop modal and the big lobby-footer buttons (Hành trình · Cửa hàng). Loaded after meme_profile.css. */
+
+.modal-card:has(.shop-modal) { max-width: 600px; }
+
+.shop-modal { display: flex; flex-direction: column; gap: 12px; }
+
+.shop-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.shop-head h2 { margin: 0; font-size: 20px; color: #fde047; }
+.shop-head p { margin: 2px 0 0; font-size: 12px; color: #8fc7e6; }
+.shop-wallet { display: flex; gap: 8px; font-size: 12.5px; font-weight: 800; color: #eaf7ff; }
+.shop-wallet span {
+  padding: 5px 10px;
+  border: 1px solid #2a5d7c;
+  border-radius: 99px;
+  background: #0e2a3d;
+  white-space: nowrap;
+}
+
+.shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.shop-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #234a63;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #0e2a3d, #0b2131);
+}
+.shop-item.poor { opacity: .62; }
+.shop-item-icon { font-size: 26px; }
+.shop-item-body { flex: 1; }
+.shop-item-body b { display: block; font-size: 13.5px; color: #eaf7ff; }
+.shop-item-body small { display: block; margin-top: 2px; font-size: 11px; line-height: 1.35; color: #7fb6d4; }
+.shop-item-body em { display: block; margin-top: 4px; font-style: normal; font-size: 11px; color: #67e8f9; }
+.shop-buy-btn { height: 34px; font-size: 13px; }
+
+.shop-foot { display: flex; justify-content: flex-end; gap: 8px; }
+
+.shop-section { margin-top: 4px; }
+.shop-section h3 { margin: 0 0 8px; font-size: 15px; color: #fde047; }
+.theme-item .shop-item-icon { font-size: 24px; }
+
+/* ── Nút lớn Hành trình / Cửa hàng ngang hàng Đấu Rank ở footer sảnh ── */
+#lobby .lobby-footer.rank-actions > #journeyBtn {
+  order: 2 !important;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6) !important;
+  border: 1.5px solid #c4b5fd !important;
+  color: #fff !important;
+  box-shadow: 0 3px 12px rgba(124, 58, 237, 0.45) !important;
+  align-self: center !important;
+  margin: 0 !important;
+}
+#lobby .lobby-footer.rank-actions > #shopBigBtn {
+  order: 4 !important;
+  background: linear-gradient(135deg, #db2777, #9d174d) !important;
+  border: 1.5px solid #f9a8d4 !important;
+  color: #fff !important;
+  box-shadow: 0 3px 12px rgba(219, 39, 119, 0.4) !important;
+  align-self: center !important;
+  margin: 0 !important;
+}
+#lobby .lobby-footer.rank-actions > #rankBoardBtn { order: 3 !important; }
+#lobby .lobby-footer.rank-actions > #playBtn { order: 5 !important; }
+#lobby .lobby-footer.rank-actions > #lobbyDeckBtn { order: 6 !important; }
+#lobby .lobby-footer.rank-actions > #journeyBtn .ticket-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+}
+#lobby .lobby-footer.rank-actions > #journeyBtn { position: relative; }
+
+@media (max-width: 768px) {
+  .shop-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #lobby .lobby-footer.rank-actions > #journeyBtn.has-actions { animation: none !important; }
+}

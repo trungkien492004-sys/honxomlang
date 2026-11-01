@@ -167,7 +167,7 @@
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'questBtn';
-    btn.className = 'progress-btn quest has-quests';
+    btn.className = 'progress-btn daily';
     btn.innerHTML = '📋 <span>Nhiệm vụ</span><i class="ticket-badge" hidden>0</i>';
     btn.onclick = openQuests;
     actions.insertBefore(btn, actions.firstChild);

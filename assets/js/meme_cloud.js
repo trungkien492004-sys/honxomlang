@@ -57,7 +57,7 @@
     if (status === 'error') return `Không đồng bộ được: ${lastError || 'lỗi mạng'} · Tiến trình vẫn an toàn trên máy này`;
     if (status === 'loading') return 'Đang tải tiến trình đã lưu trên cloud…';
     if (status === 'syncing') return 'Đang gửi tiến trình lên cloud…';
-    return `Đã đồng bộ lúc ${clock(lastSyncedAt)} · Bấm để xem chi tiết`;
+    return `Đã đồng bộ lúc ${clock(lastSyncedAt)} · Bấm để mở hồ sơ`;
   }
 
   function paint() {
@@ -69,46 +69,6 @@
       chip.dataset.state = status;
       chip.title = title();
     }
-    const body = $id('cloudBody');
-    if (body) body.innerHTML = factsHTML();
-  }
-
-  function factsHTML() {
-    const st = P.state;
-    const rows = [
-      ['Trạng thái', LABEL[status] || LABEL.off],
-      ['Tài khoản', uid ? `Google · ${esc(uid.slice(0, 8))}…` : 'Chưa đăng nhập (khách)'],
-      ['Tiến trình', `Lv.${st.level} · ${fmt(st.xu)} Xu · ${fmt(st.dust)} bụi`],
-      ['Bộ sưu tập', `${P.ownedUnique()}/${P.totalCollectible()} lá`],
-      ['Máy này lưu lúc', clock(st.updatedAt)],
-      ['Cloud cập nhật lúc', lastSyncedAt ? clock(lastSyncedAt) : '—']
-    ];
-    return `<div class="cloud-facts">${rows.map(([k, v]) => `<span><small>${esc(k)}</small><b>${v}</b></span>`).join('')}</div>
-      ${status === 'error' ? `<p class="cloud-error">⚠️ ${esc(lastError || 'Lỗi không xác định')}. Chơi tiếp bình thường — tiến trình vẫn lưu trên máy và sẽ thử gửi lại.</p>` : ''}
-      <p class="cloud-note">Bản mới hơn thắng: nếu cloud có dữ liệu mới hơn máy này, tải về; ngược lại máy này sẽ gửi lên.</p>`;
-  }
-
-  function openModal() {
-    window.showModal(`<div class="cloud-modal">
-      <h2>☁️ Đồng bộ tiến trình</h2>
-      <div id="cloudBody">${factsHTML()}</div>
-      <div class="cloud-actions">
-        <button type="button" id="cloudPush" class="primary-btn" ${uid ? '' : 'disabled'}>⬆️ Gửi lên cloud ngay</button>
-        <button type="button" id="cloudPull" class="secondary-btn" ${uid ? '' : 'disabled'}>⬇️ Tải bản trên cloud</button>
-        <button type="button" id="cloudClose" class="secondary-btn">Đóng</button>
-      </div>
-    </div>`);
-    $id('cloudPush').onclick = async () => {
-      const result = await pushNow();
-      window.showActionNotice?.(result.ok ? 'Đã gửi tiến trình lên cloud.' : `Không gửi được: ${result.error || 'lỗi'}`, 'Đồng bộ');
-      paint();
-    };
-    $id('cloudPull').onclick = async () => {
-      const result = await pull({ force: true });
-      window.showActionNotice?.(result.ok ? (result.adopted ? 'Đã tải tiến trình từ cloud.' : 'Cloud không có bản nào mới hơn.') : `Không tải được: ${result.error || 'lỗi'}`, 'Đồng bộ');
-      paint();
-    };
-    $id('cloudClose').onclick = () => window.closeModal();
   }
 
   function ensureChip() {
@@ -120,7 +80,7 @@
     btn.id = 'cloudBtn';
     btn.className = 'progress-chip cloud';
     btn.innerHTML = '☁️ <b id="cloudState">Khách</b>';
-    btn.onclick = openModal;
+    btn.onclick = () => window.memeProfile?.open();
     chips.appendChild(btn);
   }
 
@@ -211,7 +171,7 @@
   window.memeCloud = {
     DEBOUNCE, PATH,
     onLocalSave() { schedule(); },
-    pushNow, pull, openModal, paint,
+    pushNow, pull, paint,
     get status() { return status; },
     get account() { return uid; },
     get error() { return lastError; },

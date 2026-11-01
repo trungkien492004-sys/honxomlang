@@ -1,0 +1,128 @@
+/* Duelist profile modal: identity, paid rename and item bag. Loaded after meme_cloud.css. */
+
+.modal-card:has(.profile-modal) { max-width: 560px; }
+
+.profile-modal { display: flex; flex-direction: column; gap: 12px; }
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #2a5d7c;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0c2c40, #123b56);
+}
+.profile-portrait {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2px solid #67e8f9;
+  background: #0a2030;
+}
+.profile-portrait-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: #fff;
+  background: radial-gradient(circle at 35% 30%, var(--hero-color, #67e8f9), #0a2030 75%);
+}
+.profile-title { flex: 1; min-width: 0; }
+.profile-title small {
+  display: block;
+  color: #8fc7e6;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-title h2 { margin: 2px 0; font-size: 21px; color: #fde047; }
+.profile-id { font-size: 11.5px; color: #9fd6ef; letter-spacing: .3px; }
+
+.profile-rename { display: flex; gap: 8px; }
+.profile-rename.hidden { display: none; }
+.profile-rename input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid #2a5d7c;
+  background: #0a2030;
+  color: #e6f6ff;
+  font: inherit;
+  font-weight: 700;
+}
+.profile-rename input:focus { outline: none; border-color: #67e8f9; }
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.profile-facts span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid #234a63;
+  border-radius: 10px;
+  background: #0e2a3d;
+}
+.profile-facts small { color: #7fb6d4; font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; }
+.profile-facts b { color: #eaf7ff; font-size: 13.5px; }
+
+.profile-xp { height: 6px; border-radius: 99px; background: #0a2030; overflow: hidden; border: 1px solid #234a63; }
+.profile-xp i { display: block; height: 100%; background: linear-gradient(90deg, #22d3ee, #818cf8); }
+
+.profile-section { margin: 2px 0 -4px; font-size: 14px; color: #f0f9ff; }
+
+.profile-items { display: flex; flex-direction: column; gap: 8px; }
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #234a63;
+  border-radius: 10px;
+  background: #0e2a3d;
+}
+.profile-item-icon { font-size: 22px; }
+.profile-item-body { flex: 1; min-width: 0; }
+.profile-item-body b { display: block; font-size: 13.5px; color: #eaf7ff; }
+.profile-item-body small { color: #7fb6d4; font-size: 11px; }
+.profile-item button { flex: 0 0 auto; height: 30px; font-size: 12px; padding: 0 12px; }
+
+.profile-sync {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px dashed #2a5d7c;
+  border-radius: 10px;
+  background: #0b2434;
+  font-size: 12.5px;
+  color: #bfe6f7;
+}
+.profile-sync span { flex: 1; }
+.profile-sync .ghost-btn { height: 26px; font-size: 11.5px; padding: 0 9px; }
+
+.profile-foot { display: flex; justify-content: flex-end; gap: 8px; }
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid #47708c;
+  color: #bfe6f7;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.ghost-btn:hover { border-color: #67e8f9; color: #eaf7ff; }
+
+@media (max-width: 520px) {
+  .profile-facts { grid-template-columns: 1fr; }
+  .profile-head { flex-wrap: wrap; }
+  .profile-head .ghost-btn { width: 100%; height: 34px; }
+}

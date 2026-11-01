@@ -1,6 +1,6 @@
 /* Daily and weekly quests. Loaded after meme_packs.css. */
 
-.progress-btn.quest.has-quests { animation: dailyPulse 2.2s ease-in-out infinite; }
+.progress-btn.daily.has-quests { animation: dailyPulse 2.2s ease-in-out infinite; }
 
 .modal-card:has(.quest-modal) {
   width: min(680px, 96vw);

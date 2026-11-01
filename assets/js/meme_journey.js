@@ -11,7 +11,27 @@
     { id: 'c3', num: 3, name: 'Bẫy của Pegasus', preset: 'Pegasus · Kinh điển', icon: '🎭', brief: 'Pegasus dùng Toon và bẫy dụ đối thủ.', reward: { xu: 400, t: { p1: 1 } } },
     { id: 'c4', num: 4, name: 'HERO của Jaden', preset: 'Jaden · Kinh điển', icon: '🦸', brief: 'Jaden gọi HERO và dung hợp ngay trên sân.', reward: { xu: 450, t: { p2: 1 } } },
     { id: 'c5', num: 5, name: 'Cyber của Zane', preset: 'Zane · Kinh điển', icon: '🤖', brief: 'Zane áp sát bằng Cyber Dragon.', reward: { xu: 500, t: { p2: 1 } } },
-    { id: 'c6', num: 6, name: 'Tốc độ của Yusei', preset: 'Yusei · Kinh điển', icon: '⭐', brief: 'Yusei triệu hồi Đồng Bộ và tung đòn quyết định.', reward: { xu: 700, t: { p3: 1 } } }
+    { id: 'c6', num: 6, name: 'Tốc độ của Yusei', preset: 'Yusei · Kinh điển', icon: '⭐', brief: 'Yusei triệu hồi Đồng Bộ và tung đòn quyết định.', reward: { xu: 700, t: { p3: 1 } } },
+    { id: 'c7', num: 7, name: 'Bầy Rồng Của Mai', preset: 'Mai · Kinh điển', icon: '🪶', brief: 'Mai tung Yêu Điểu và Tam Tỷ che kín mặt sân.', reward: { xu: 750, t: { p1: 1 } } },
+    { id: 'c8', num: 8, name: 'Cỗ Máy Cyberdark', preset: 'Zane · Cyberdark', icon: '⚙️', brief: 'Zane ghép Cyberdark Edge và nung đối thủ.', reward: { xu: 800, dust: 60 } },
+    { id: 'c9', num: 9, name: 'Neo-Spacian', preset: 'Jaden · Neo-Spacian', icon: '🌈', brief: 'Jaden dùng Scraper Hero và Neo-Spacian.', reward: { xu: 850, t: { p2: 1 } } },
+    { id: 'c10', num: 10, name: 'Exodia Cấm Kỵ', preset: 'Yugi · Exodia', icon: '🀫', brief: 'Yugi gom đủ năm mảnh Exodia — thua trong một nhịp.', reward: { xu: 900, t: { p1: 1 } } },
+    { id: 'c11', num: 11, name: 'Obelisk Hành Hạ', preset: 'Kaiba · Obelisk', icon: '🗿', brief: 'Kaiba gọi Obelisk và hiến tế quái của bạn.', reward: { xu: 950, dust: 70 } },
+    { id: 'c12', num: 12, name: 'Osiris Trên Cao', preset: 'Yugi · Thần Osiris', icon: '⚡', brief: 'Yugi triệu hồi Thần Osiris bằng 3000 LP.', reward: { xu: 1000, t: { p2: 1 } } },
+    { id: 'c13', num: 13, name: 'Thời Gian Của Joey', preset: 'Joey · Thời gian', icon: '⏳', brief: 'Joey già hoá quái của bạn bằng Time Wizard.', reward: { xu: 1050, dust: 80 } },
+    { id: 'c14', num: 14, name: 'Manga HERO', preset: 'Jaden · HERO manga', icon: '📖', brief: 'Jaden vẽ HERO kiểu truyện tranh và tấn công thẳng.', reward: { xu: 1100, t: { p1: 1 } } },
+    { id: 'c15', num: 15, name: 'Mặt Nạ Manga', preset: 'Jaden · Mặt Nạ manga', icon: '🎨', brief: 'Jaden giấu bài sau lớp mặt nạ giấy.', reward: { xu: 1150, dust: 90 } },
+    { id: 'c16', num: 16, name: 'Biến Đổi Kép', preset: 'Jaden · Biến Đổi kép', icon: '🔀', brief: 'Jaden dung hợp hai lần trong một lượt.', reward: { xu: 1200, t: { p2: 1 } } },
+    { id: 'c17', num: 17, name: 'Đỉnh Cao Mắt Xanh', preset: 'Kaiba · Đỉnh Cao Mắt Xanh', icon: '🐲', brief: 'Kaiba dồn toàn lực cho bộ ba Rồng Trắng.', reward: { xu: 1250, dust: 100 } },
+    { id: 'c18', num: 18, name: 'Rồng Đen Bất Diệt', preset: 'Joey · Rồng Đen Bất Diệt', icon: '🔥', brief: 'Joey gọi Red-Eyes liên tục không dứt.', reward: { xu: 1300, t: { p1: 1 } } },
+    { id: 'c19', num: 19, name: 'Vương Quốc Hoạt Hình', preset: 'Pegasus · Vương Quốc Hoạt Hình', icon: '🖊️', brief: 'Pegasus phủ kín sân bằng Toon.', reward: { xu: 1350, dust: 110 } },
+    { id: 'c20', num: 20, name: 'Anh Hùng Tối Thượng', preset: 'Jaden · Anh Hùng Tối Thượng', icon: '🛡️', brief: 'Jaden với bộ HERO hoàn chỉnh nhất.', reward: { xu: 1400, t: { p2: 1 } } },
+    { id: 'c21', num: 21, name: 'Rồng Máy Tận Diệt', preset: 'Zane · Rồng Máy Tận Diệt', icon: '💀', brief: 'Zane hy sinh cả bộ máy để chốt hạ.', reward: { xu: 1450, dust: 120 } },
+    { id: 'c22', num: 22, name: 'Ma Thuật Tối Thượng', preset: 'Yugi · Ma Thuật Tối Thượng', icon: '🔮', brief: 'Yugi nâng cấp Phù Thủy bằng phép tối thượng.', reward: { xu: 1500, t: { p3: 1 } } },
+    { id: 'c23', num: 23, name: 'Thợ Săn Số 9', preset: 'Yuma · Kinh điển', icon: '🔯', brief: 'Yuma đánh bất ngờ cùng Astral.', reward: { xu: 1550, dust: 130 } },
+    { id: 'c24', num: 24, name: 'Utopia Tấn Công', preset: 'Yuma · Utopia', icon: '🗡️', brief: 'Yuma XYZ hai cấp và chém xuyên phòng thủ.', reward: { xu: 1600, t: { p2: 1 } } },
+    { id: 'c25', num: 25, name: 'Nữ Hoàng Tối Thượng', preset: 'Mai · Tối Thượng', icon: '👑', brief: 'Mai khép sân bằng Yêu Điểu và Amazoness.', reward: { xu: 1700, dust: 150 } },
+    { id: 'c26', num: 26, name: 'Nhà Vô Địch', preset: 'Yuma · Tối Thượng', icon: '🏆', brief: 'Trận cuối: bộ bài mạnh nhất giải đấu.', reward: { xu: 2000, t: { p3: 2 } } }
   ];
   const TOWER = [
     { floor: 1, preset: 'Kaiba · Kinh điển', reward: { xu: 100 } },
@@ -23,7 +43,17 @@
     { floor: 7, preset: 'Kaiba · Phản công', reward: { xu: 300, t: { p1: 1 } } },
     { floor: 8, preset: 'Yugi · Phản công', reward: { xu: 350, dust: 50 } },
     { floor: 9, preset: 'Jaden · Neo-Spacian', reward: { xu: 400, t: { p2: 1 } } },
-    { floor: 10, preset: 'Yusei · Tối Thượng', reward: { xu: 600, t: { p3: 1 } } }
+    { floor: 10, preset: 'Yusei · Tối Thượng', reward: { xu: 600, t: { p3: 1 } } },
+    { floor: 11, preset: 'Mai · Kinh điển', reward: { xu: 440, dust: 60 } },
+    { floor: 12, preset: 'Yugi · Exodia', reward: { xu: 480, t: { p1: 1 } } },
+    { floor: 13, preset: 'Kaiba · Obelisk', reward: { xu: 520, dust: 70 } },
+    { floor: 14, preset: 'Joey · Thời gian', reward: { xu: 560, t: { p2: 1 } } },
+    { floor: 15, preset: 'Zane · Cyberdark', reward: { xu: 620, dust: 80 } },
+    { floor: 16, preset: 'Jaden · Biến Đổi kép', reward: { xu: 680, t: { p2: 1 } } },
+    { floor: 17, preset: 'Kaiba · Đỉnh Cao Mắt Xanh', reward: { xu: 740, dust: 90 } },
+    { floor: 18, preset: 'Yugi · Ma Thuật Tối Thượng', reward: { xu: 800, t: { p3: 1 } } },
+    { floor: 19, preset: 'Yuma · Utopia', reward: { xu: 900, dust: 110 } },
+    { floor: 20, preset: 'Yuma · Tối Thượng', reward: { xu: 1200, t: { p3: 2 } } }
   ];
   const STAKES = [100, 300, 600];
   const STAKE_PRESET = 'Kaiba · Phản công';
@@ -390,16 +420,18 @@
 
   function ensureButton() {
     if ($id('journeyBtn')) return refreshBadge();
-    const actions = document.querySelector('.progress-actions');
-    if (!actions) return;
+    const footer = document.querySelector('.lobby-footer');
+    const host = footer || document.querySelector('.progress-actions');
+    if (!host) return;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'journeyBtn';
-    btn.className = 'progress-btn journey has-actions';
+    btn.className = footer ? 'lobby-big-btn journey' : 'progress-btn journey';
     btn.innerHTML = '🧭 <span>Hành trình</span><i class="ticket-badge" hidden>0</i>';
     btn.title = 'Chặng truyện, Tháp, Truy nã và Đấu cược';
     btn.onclick = () => open();
-    actions.insertBefore(btn, actions.firstChild);
+    const anchor = footer ? $id('playBtn') : null;
+    host.insertBefore(btn, anchor && anchor.parentNode === host ? anchor : host.firstChild);
     refreshBadge();
   }
 

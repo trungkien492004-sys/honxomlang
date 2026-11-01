@@ -216,8 +216,8 @@
 }
 
 @media (max-width: 600px) {
-  #journeyBtn > span { display: none; }
-  #journeyBtn { padding: 0 10px; }
+  .progress-btn#journeyBtn > span { display: none; }
+  .progress-btn#journeyBtn { padding: 0 10px; }
   .stake-grid { grid-template-columns: 1fr; }
   .stake-card { flex-direction: row; align-items: center; justify-content: space-between; padding: 9px 12px; }
   .bounty-card { grid-template-columns: 34px minmax(0, 1fr); grid-template-areas: 'icon body' 'state state' 'button button'; }

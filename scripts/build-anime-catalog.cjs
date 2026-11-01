@@ -57,8 +57,8 @@ mon('Mai','Amazoness Swordswoman','Nữ Kiếm Sĩ Amazoness',4,1500,1600,'','Đ
 mon('Mai','Amazoness Tiger','Hổ Amazoness',4,1100,1500,'','Tăng 400 ATK cho mỗi Amazoness khác mà bạn điều khiển. Đối thủ chỉ được tấn công lá này.',['amazon_tiger'],{element:'Địa',engine_notes:'Anime/H5: không giới hạn 1 Hổ Amazoness mỗi sân như TCG.'});
 mon('Mai','Amazoness Chain Master','Nữ Chúa Xiềng Amazoness',4,1500,1300,'amazon_chain','Bị phá hủy trong chiến đấu: trả 1500 LP để lấy 1 quái từ tay đối thủ.',[],{element:'Địa',effect_trigger:'on_destroy'});
 mon('Mai','Cyber Harpie Lady','Yêu Điểu Cyber',4,1800,1300,'','Khi ở trên sân, tên được coi là Harpie Lady.',['harpie_name']);
-mon('Mai','Harpie Queen','Nữ Hoàng Yêu Điểu',4,1900,1500,'','Khi ở trên sân, tên được coi là Harpie Lady.',['harpie_name']);
-mon('Mai',"Harpie's Pet Baby Dragon",'Rồng Cưng Con Yêu Điểu',4,1200,600,'','Tăng 300 ATK/DEF cho mỗi Harpie Lady ngửa trên sân.',['pet_dragon']);
+mon('Mai','Harpie Queen','Nữ Hoàng Yêu Điểu',4,1900,1500,'harpie_queen_search','Bỏ lá này khỏi tay: thêm 1 Thánh Địa Săn Mồi Yêu Điểu từ bộ bài hoặc Mộ lên tay. Khi ở trên sân hoặc trong Mộ, tên được coi là Yêu Điểu.',['harpie_name'],{hand_action:true,effect_trigger:'activated'});
+mon('Mai',"Harpie's Pet Baby Dragon",'Rồng Cưng Con Yêu Điểu',4,1200,600,'','Bạn kiểm soát từ 1 Yêu Điểu (không tính lá này): đối thủ không được chọn quái Yêu Điểu của bạn làm mục tiêu tấn công, trừ lá này. Bạn kiểm soát từ 2 Yêu Điểu: nhân đôi ATK/DEF gốc của lá này.',['pet_baby'],{effect_trigger:'passive'});
 mon('Mai','Amazoness Queen','Nữ Hoàng Amazoness',6,2400,1800,'','Amazoness của bạn không thể bị phá hủy trong chiến đấu.',['amazon_battleproof'],{element:'Địa'});
 mon('Mai','Amazoness Paladin','Hiệp Sĩ Amazoness',4,1700,300,'','Tăng 100 ATK cho mỗi Amazoness bạn điều khiển.',['amazon_paladin'],{element:'Địa'});
 mon('Mai','Amazoness Sage','Hiền Nhân Amazoness',4,1400,700,'','Khi tấn công: phá hủy 1 Phép/Bẫy đối thủ.',['amazon_sage'],{element:'Địa'});
@@ -168,11 +168,11 @@ add('Amazoness Spellcaster','Pháp Sư Amazoness','Mai','Spell',{spell_category:
 add('Shadow of Eyes','Bóng Tối Ánh Nhìn','Mai','Trap',{trap_category:'Phản Ứng',effect_code:'shadow_of_eyes',description:'Khi đối thủ Úp quái: lật ngửa quái đó ở thế công (không kích hoạt hiệu ứng lật).'});
 add('Mirror Wall','Tường Gương','Mai','Trap',{trap_category:'Liên Tục',effect_code:'mirror_wall',description:'Khi đối thủ tấn công: giảm nửa ATK của quái tấn công khi lá này ngửa.',engine_notes:'Anime/H5: bỏ qua phí duy trì 2000 LP mỗi lượt.'});
 add('Amazoness Archers','Cung Thủ Amazoness','Mai','Trap',{trap_category:'Phản Ứng',effect_code:'amazoness_archers',description:'Khi đối thủ tấn công: lật toàn bộ quái của họ sang thế công và giảm 500 ATK mỗi quái.',engine_notes:'Anime/H5: bỏ qua yêu cầu quái đối thủ buộc phải tấn công trong TCG.'});
-add('Dramatic Rescue','Giải Cứu Ngoạn Mục','Mai','Trap',{trap_category:'Phản Ứng',effect_code:'dramatic_rescue',description:'Khi quái Amazoness của bạn bị tấn công: đưa nó về tay, rồi gọi đặc biệt 1 quái từ tay.'});
-add('Triangle Ecstasy Spark','Tia Sáng Khoái Lạc','Mai','Spell',{spell_category:'Thường',effect_code:'ecstasy_spark',description:'Nếu bạn điều khiển Harpie Lady: mọi Harpie Lady ngửa của bạn thành 2700 ATK và miễn nhiễm Bẫy đến hết lượt.'});
-add('Harpie Lady Phoenix Formation','Đội Hình Phượng Hoàng Yêu Điểu','Mai','Spell',{spell_category:'Thường',effect_code:'phoenix_formation',description:'Nếu bạn điều khiển Harpie Lady: phá hủy toàn bộ quái đối thủ và gây 300 sát thương mỗi quái bị phá.'});
+add('Dramatic Rescue','Giải Cứu Ngoạn Mục','Mai','Trap',{trap_category:'Phản Ứng',effect_code:'dramatic_rescue',description:'Khi quái Amazoness của bạn bị tấn công hoặc là mục tiêu hiệu ứng: đưa nó về tay, rồi gọi đặc biệt 1 quái từ tay.'});
+add('Triangle Ecstasy Spark','Tia Sáng Khoái Lạc','Mai','Spell',{spell_category:'Thường',effect_code:'ecstasy_spark',description:'Nếu bạn điều khiển Harpie Lady Sisters: ATK của mọi Harpie Lady Sisters thành 2700, đối thủ không thể kích hoạt Bẫy và vô hiệu toàn bộ Bẫy đối thủ đến hết lượt.'});
+add('Harpie Lady Phoenix Formation','Đội Hình Phượng Hoàng Yêu Điểu','Mai','Spell',{spell_category:'Thường',effect_code:'phoenix_formation',description:'Nếu bạn điều khiển từ 3 quái Harpie: phá hủy số quái đối thủ tối đa bằng số Harpie bạn có, gây sát thương bằng ATK gốc cao nhất của quái bị phá. Bỏ qua phase Chiến Đấu lượt này.'});
 add("Harpie's Hunting Ground",'Thánh Địa Săn Mồi Yêu Điểu','Mai','Spell',{spell_category:'Môi Trường',effect_code:'hunting_ground',description:'Quái Chim thuộc tính Phong của bạn tăng 200 ATK. Khi bạn triệu hồi Harpie Lady: phá hủy 1 Phép/Bẫy đối thủ.'});
-add('Amazoness Village','Làng Amazoness','Mai','Spell',{spell_category:'Môi Trường',effect_code:'amazon_village',description:'Amazoness của bạn tăng 200 ATK. Khi Amazoness của bạn bị phá hủy trong chiến đấu: hồi sinh 1 Amazoness khác từ Mộ.'});
+add('Amazoness Village','Làng Amazoness','Mai','Spell',{spell_category:'Môi Trường',effect_code:'amazon_village',description:'Amazoness của bạn tăng 200 ATK. Mỗi lượt 1 lần: khi 1 Amazoness của bạn bị phá hủy bằng chiến đấu hoặc hiệu ứng, gọi đặc biệt 1 Amazoness có Cấp bằng hoặc thấp hơn từ bộ bài.'});
 
 // Yusei Spells & Traps
 add('Scrap-Iron Scarecrow','Bù Nhìn Sắt Vụn','Yusei','Trap',{trap_category:'Phản Ứng',effect_code:'scrap_iron_scarecrow',description:'Khi quái đối thủ tấn công: vô hiệu đòn tấn công đó, sau đó Úp lại lá này xuống ô Bẫy thay vì gửi vào Mộ (1 lần/lượt).',rarity:'SR'});
@@ -251,10 +251,15 @@ const heroSpecs=[
  ['Jaden Yuki / Judai','Get Your Game On!','jaden','Nếu có HERO: lấy Polymerization hoặc Miracle Fusion từ Deck lên tay.',6,'#ffae88','🔥','Jaden'],
  ['Zane Truesdale / Ryo','Cyber Style','zane','Trả 500 LP: đổi 1 lá trên tay lấy Cyber Dragon hoặc Power Bond từ Deck.',7,'#94d9e9','⚡','Zane'],
  ['Mai Valentine / Mai Kujaku','Vũ Điệu Yêu Điểu','mai','Trả 500 LP: lấy Harpie Lady hoặc Elegant Egotist từ Deck lên tay.',4,'#cfa7f5','🪶','Mai'],
+ ['Yuma Tsukumo','Kattobingu!','yuma','Một lần mỗi trận: gắn 1 quái Cấp 4 từ Mộ làm nguyên liệu XYZ cho 1 quái XYZ trên sân; nếu đó là Number 39: Utopia, rút 1 lá.',5,'#ff9a5a','🔑','Yuma'],
  ['Yusei Fudo','Tăng Tốc Đồng Bộ','yusei','Trả 500 LP: đổi 1 lá trên tay lấy Junk Synchron hoặc Stardust Dragon từ Deck.',8,'#00b4d8','⭐','Yusei']
 ];
 const heroes=heroSpecs.map(([name,skill,code,description,tile,color,icon,group],i)=>({id:i,name,skill,code,description,tile,color,icon,title:group,group,primaryDeck:group+' · Kinh điển',position:(tile%4)/3*100+'%',value:0}));
-for(const h of heroes){h.description=vi(h.description);h.skill=vi(h.skill);}
+for(const h of heroes){
+  h.description=vi(h.description);
+  h.skill=vi(h.skill);
+  if(h.code==='yuma')h.figure='assets/memecard/portraits/yuma-v1.png';
+}
 const meta={version:'20261024-anime-v1',storageVersion:'anime-v1',cardCount:cards.filter(c=>!c.uncollectible).length,mainSize:30,extraLimit:10,defaultExtra:extras[heroes[0].primaryDeck],excelFilename:'xom-arcana-anime.xlsx',era:'DM / GX / 5Ds · Luật Anime H5',portraits:'assets/memecard/anime-duelists-v1.png',roster:heroes.map(h=>h.name)};
 const data={cards,decks,extras,heroes,meta};
 fs.writeFileSync('assets/data/arcana-anime.json',JSON.stringify(data,null,2));

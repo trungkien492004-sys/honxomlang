@@ -23,6 +23,9 @@
       login: { streak: 0, lastDay: '' },
       stats: { packOpens: 0, duels: 0, wins: 0 },
       quests: {}, story: {}, tower: {},
+      profile: { name: '' },
+      items: { potion: 0, rename: 0 },
+      themes: { owned: ['default'], active: 'default' },
       migrated: false, legacyChecked: true
     };
   }
@@ -51,6 +54,11 @@
     state.quests = raw.quests && typeof raw.quests === 'object' ? raw.quests : {};
     state.story = raw.story && typeof raw.story === 'object' ? raw.story : {};
     state.tower = raw.tower && typeof raw.tower === 'object' ? raw.tower : {};
+    state.profile = { name: String(raw.profile?.name || '').trim().slice(0, 20) };
+    for (const k of ['potion', 'rename']) state.items[k] = Math.max(0, Math.floor(Number(raw.items?.[k]) || 0));
+    const ownedThemes = Array.isArray(raw.themes?.owned) ? raw.themes.owned.map(String) : [];
+    state.themes = { owned: [...new Set(['default', ...ownedThemes])], active: String(raw.themes?.active || 'default') };
+    if (!state.themes.owned.includes(state.themes.active)) state.themes.active = 'default';
     if (raw.owned && typeof raw.owned === 'object') {
       for (const [id, count] of Object.entries(raw.owned)) {
         if (!CARD_BY_ID.has(id)) continue;
@@ -255,6 +263,42 @@
     state.tickets[kind] -= 1; save(); return true;
   }
 
+  function addItem(id, n = 1) {
+    if (!['potion', 'rename'].includes(id)) return state.items;
+    state.items[id] = Math.max(0, (state.items[id] || 0) + Math.floor(Number(n) || 0));
+    save();
+    return state.items;
+  }
+
+  function useItem(id) {
+    if (!['potion', 'rename'].includes(id) || (state.items[id] || 0) <= 0) return false;
+    state.items[id] -= 1; save(); return true;
+  }
+
+  function ownsTheme(id) {
+    return state.themes.owned.includes(String(id));
+  }
+
+  function grantTheme(id) {
+    id = String(id);
+    if (!state.themes.owned.includes(id)) state.themes.owned.push(id);
+    save();
+    return state.themes;
+  }
+
+  function setTheme(id) {
+    id = String(id);
+    if (!ownsTheme(id)) return false;
+    state.themes.active = id; save(); return true;
+  }
+
+  function setProfileName(rawName) {
+    const name = String(rawName ?? '').trim().replace(/\s+/g, ' ').slice(0, 20);
+    if (name.length < 2) return { ok: false, error: 'Tên cần ít nhất 2 ký tự.' };
+    state.profile.name = name; save();
+    return { ok: true, name };
+  }
+
   function addXp(n) {
     n = Math.max(0, Math.floor(Number(n) || 0));
     let levels = 0;
@@ -293,6 +337,7 @@
     starterCards,
     xpNeed,
     addXu, spendXu, addDust, spendDust, addTicket, useTicket, addXp,
+    addItem, useItem, ownsTheme, grantTheme, setTheme, setProfileName,
     setLogin, ownedUnique, totalCollectible,
     save,
     snapshot() { return JSON.parse(JSON.stringify(state)); },
