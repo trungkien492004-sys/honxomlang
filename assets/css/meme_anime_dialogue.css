@@ -1,0 +1,168 @@
+/* --------------------------------------------------------------------------
+   YU-GI-OH! ANIME DUEL — CHARACTER DIALOGUE & CUT-IN VOICE SYSTEM (GĐ3)
+   Manga-style floating speech banner for 9 anime heroes.
+   Định vị tại trung tâm bàn đấu, tuyệt đối không che nút lệnh hay chỉ số LP.
+   -------------------------------------------------------------------------- */
+
+.anime-dialogue-banner {
+  position: fixed;
+  z-index: 28;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(500px, 92vw);
+  padding: 10px 18px 10px 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(8, 22, 38, 0.95), rgba(16, 36, 62, 0.97));
+  border: 2px solid var(--hero-color, #cfa7ff);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75), 0 0 22px color-mix(in srgb, var(--hero-color, #cfa7ff), transparent 50%);
+  color: #fff;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: dialogueCenterPop 3.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.anime-dialogue-banner.player-dialogue {
+  top: 50%;
+}
+
+.anime-dialogue-banner.enemy-dialogue {
+  top: 44%;
+}
+
+.anime-dialogue-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid var(--hero-color, #cfa7ff);
+  background: #091b2c;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 12px var(--hero-color, #cfa7ff);
+}
+
+.anime-dialogue-avatar .hero-portrait {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.anime-dialogue-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.anime-dialogue-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Baloo 2', 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--hero-color, #ffd28c);
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
+/* Card Artwork Thumbnail Badge (thay thế emoji rồng/icon phèn) */
+.anime-dialogue-ace-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1.5px solid var(--hero-color, #9cd9ff);
+  overflow: hidden;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--hero-color, #9cd9ff), transparent 35%);
+  background: #081a2c;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.anime-dialogue-ace-badge .dialogue-ace-img,
+.anime-dialogue-ace-badge .art-surface {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  position: relative;
+}
+
+.anime-dialogue-ace-badge img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block;
+}
+
+.anime-dialogue-text {
+  font-family: 'Nunito', sans-serif;
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #fffbeb;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+  word-break: break-word;
+}
+
+@keyframes dialogueCenterPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+  16% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  85% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 700px) {
+  .anime-dialogue-banner {
+    padding: 8px 14px 8px 10px;
+    gap: 10px;
+    width: min(360px, 90vw);
+  }
+  .anime-dialogue-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .anime-dialogue-ace-badge {
+    width: 20px;
+    height: 20px;
+  }
+  .anime-dialogue-name {
+    font-size: 12px;
+    gap: 6px;
+  }
+  .anime-dialogue-text {
+    font-size: 11.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anime-dialogue-banner {
+    animation: none;
+    opacity: 1;
+  }
+}
