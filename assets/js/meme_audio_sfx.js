@@ -80,27 +80,10 @@
       trackVoice(noise, gain);
     },
 
-    // 2. Đặt bài / Úp bài (Card Place / Set snap)
+    // 2. Đặt bài / Úp bài (Card Place / Set snap) - Đã bỏ tiếng tách tách theo yêu cầu
     place() {
-      const ctx = getAudioCtx();
-      if (!ctx || activeVoices >= MAX_VOICES) return;
-      const t = ctx.currentTime;
-
-      // Punchy snap
-      const osc = ctx.createOscillator();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(380, t);
-      osc.frequency.exponentialRampToValueAtTime(85, t + 0.07);
-
-      const gain = ctx.createGain();
-      const vol = sfxVolume * 0.4;
-      gain.gain.setValueAtTime(vol, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.09);
-      trackVoice(osc, gain);
+      // Loại bỏ hoàn toàn âm thanh tách tách khi chạm / ấn vào lá bài
+      return;
     },
 
     // 3. Lật bài (Card Flip magic chime)

@@ -713,7 +713,7 @@ function ygoAddCardToDeck(card) {
         return;
     }
     
-    try { audio.play('click'); } catch(e){}
+    // audio click removed
     ygoGame.myDeck.push(card);
     ygoRenderDeck();
 }
@@ -721,7 +721,7 @@ function ygoAddCardToDeck(card) {
 function ygoRemoveCardFromDeck(card) {
     let idx = ygoGame.myDeck.findIndex(c => c.name_en === card.name_en);
     if (idx !== -1) {
-        try { audio.play('click'); } catch(e){}
+        // audio click removed
         ygoGame.myDeck.splice(idx, 1);
         ygoRenderDeck();
     }
@@ -2548,7 +2548,7 @@ window.ygoActionActivateSpell = function() {
         return;
     }
     
-    try { audio.play('click'); } catch(e){}
+    // audio click removed
     card.faceUp = true;
     d.playerSpells[emptyIdx] = card;
     d.playerHand.splice(d.selectedHandIndex, 1);
@@ -2570,7 +2570,7 @@ window.ygoActionSetSpellTrap = function() {
         return;
     }
     
-    try { audio.play('click'); } catch(e){}
+    // audio click removed
     card.faceUp = false;
     d.playerSpells[emptyIdx] = card;
     d.playerHand.splice(d.selectedHandIndex, 1);
@@ -2586,7 +2586,7 @@ window.ygoActionActivateFieldSpell = function() {
     let card = d.playerHand[d.selectedHandIndex];
     if (!card) return;
     
-    try { audio.play('click'); } catch(e){}
+    // audio click removed
     if (d.playerFieldSpell) {
         d.playerGY.push(d.playerFieldSpell);
     }
@@ -2605,7 +2605,7 @@ window.ygoActionActivateSetCard = function(pos) {
     let card = d.playerSpells[pos];
     if (!card) return;
     
-    try { audio.play('click'); } catch(e){}
+    // audio click removed
     card.faceUp = true;
     ygoLog(`🪄 Bạn lật kích hoạt bài úp: [${card.name_vi}]`);
     ygoStartChain('player', card, pos);

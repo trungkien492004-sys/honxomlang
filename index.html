@@ -42,7 +42,9 @@
         };
         window.closeTuTienGame = function() {
             var modal = document.getElementById('tutienGameModal');
+            var frame = document.getElementById('tutienFrame');
             if (modal) modal.style.display = 'none';
+            if (frame) frame.src = 'about:blank';
             if (typeof window.switchScreen === 'function') window.switchScreen('gameModeScreen');
         };
         window.addEventListener('message', function(e) {
@@ -58,7 +60,9 @@
         };
         window.closeVanPhapGame = function() {
             var modal = document.getElementById('vanphapGameModal');
+            var frame = document.getElementById('vanphapFrame');
             if (modal) modal.style.display = 'none';
+            if (frame) frame.src = 'about:blank';
             if (typeof window.switchScreen === 'function') window.switchScreen('gameModeScreen');
         };
         window.onunhandledrejection = function(event) {
@@ -1594,7 +1598,7 @@
     <script src="assets/js/sprites_renderer.js?v=10"></script>
     <script src="assets/js/map_decorations.js?v=11"></script>
     <script src="assets/js/yugioh_cards_data.js?v=10"></script>
-    <script src="assets/js/yugioh.js?v=10"></script>
+    <script src="assets/js/yugioh.js?v=11"></script>
     <script src="assets/js/memecard_data.js?v=3"></script>
     <script src="assets/js/meme_expansion.js?v=20261025-polish-v1"></script>
     <script src="assets/js/memecard.js?v=20261027-silent-fix3"></script>
