@@ -12,11 +12,60 @@ const firebaseConfig = {
 };
 
 // ── Init ─────────────────────────────────────────────────────
-firebase.initializeApp(firebaseConfig);
-const auth           = firebase.auth();
-const db             = firebase.firestore();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-window.authPersistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(error => console.warn('Không lưu được phiên đăng nhập:', error.code));
+let auth = null;
+let db = null;
+let googleProvider = null;
+
+function initFirebaseServices() {
+    if (typeof firebase === 'undefined') return false;
+    try {
+        if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+    } catch(e) {
+        console.warn('Firebase init:', e);
+    }
+    if (typeof firebase.auth === 'function') {
+        try {
+            auth = firebase.auth();
+            googleProvider = new firebase.auth.GoogleAuthProvider();
+            window.authPersistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                .catch(error => console.warn('Không lưu được phiên đăng nhập:', error.code));
+        } catch(e) {
+            console.warn('Firebase auth init:', e);
+        }
+    }
+    if (typeof firebase.firestore === 'function') {
+        try {
+            db = firebase.firestore();
+        } catch(e) {
+            console.warn('Firebase firestore init:', e);
+        }
+    }
+    return !!auth;
+}
+
+initFirebaseServices();
+
+if (!auth) {
+    auth = {
+        currentUser: null,
+        onAuthStateChanged(cb) {
+            setTimeout(() => { try { cb(null); } catch(e){} }, 0);
+            return () => {};
+        },
+        async signInWithPopup() {
+            throw new Error('Không thể kết nối Firebase Auth (có thể do trình chặn quảng cáo hoặc lỗi mạng).');
+        },
+        async signOut() {},
+        async setPersistence() {}
+    };
+    window.authPersistenceReady = Promise.resolve();
+}
+
+
+
+
 
 window.currentFirebaseUser = null;
 window._cloudSaveEnabled   = false;
@@ -630,6 +679,14 @@ auth.onAuthStateChanged(async (user) => {
 // 🌟 loginWithGoogle — dùng POPUP 🌟🌟🌟🌟🌟🌟
 window.loginWithGoogle = async function() {
     if (window._isGoogleLoggingIn) return;
+    if (!googleProvider || !auth || !auth.signInWithPopup) {
+        initFirebaseServices();
+    }
+    if (!googleProvider) {
+        alert('⚠️ Chưa thể tải thư viện đăng nhập Firebase. Vui lòng kiểm tra kết nối mạng hoặc tắt trình chặn quảng cáo (AdBlock) cho trang web này.');
+        _fbToast('⚠️ Chưa tải được Firebase Auth', '#ef4444');
+        return;
+    }
     window._isGoogleLoggingIn = true;
     _fbToast('⏳ Đang mở cửa sổ đăng nhập...', '#4fc3f7');
     try {
