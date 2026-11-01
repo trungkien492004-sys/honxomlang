@@ -42,15 +42,22 @@
 @keyframes directAttackPop {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(0.5);
   }
-  15%, 85% {
+  20% {
     opacity: 1;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  35% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(0.9);
   }
 }
 
