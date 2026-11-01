@@ -126,6 +126,112 @@ const BOARD_CHARACTERS = [
     { id: 'ut', name: 'Út Mũ Rơm', img: 'assets/img/board/char_ut.png', color: '#3b82f6', desc: 'Út Mũ Rơm tinh nghịch cùng chiếc súng cao su bách phát bách trúng.' }
 ];
 
+const BOARD_BOT_EMOJI = { trau: '👦', mam: '👩‍🦰', kien: '👮‍♂️', ut: '🧢' };
+
+window.boardCharById = function(id) {
+    return BOARD_CHARACTERS.find(c => c.id === id) || BOARD_CHARACTERS[0];
+};
+// Nhân vật của một ghế: ưu tiên charId (chọn trước trận), fallback về BOARD_CHARACTERS[idx]
+// để bàn cũ / state online chưa có charId vẫn render đúng.
+window.boardCharOf = function(p) {
+    if (p && p.charId) return window.boardCharById(p.charId);
+    return BOARD_CHARACTERS[(p && p.idx) || 0] || BOARD_CHARACTERS[0];
+};
+window.boardCharIndex = function(charId) {
+    const i = BOARD_CHARACTERS.findIndex(c => c.id === charId);
+    return i < 0 ? 0 : i;
+};
+// Gán nhân vật cho một ghế: ưu tiên charId mong muốn, trùng thì lấy nhân vật còn trống.
+// Host và khách cùng chạy hàm này với đúng thứ tự ghế nên kết quả giống nhau.
+window.boardTakeChar = function(preferredId) {
+    const players = (boardGame && boardGame.players) ? boardGame.players : [];
+    const taken = players.map(p => window.boardCharOf(p).id);
+    return BOARD_CHARACTERS.find(c => c.id === preferredId && taken.indexOf(c.id) < 0)
+        || BOARD_CHARACTERS.find(c => taken.indexOf(c.id) < 0)
+        || window.boardCharById(preferredId);
+};
+
+// ── Thiết lập trước trận: chọn nhân vật, đổi tên ──
+const BOARD_SETUP_KEY = 'honxomBoardSetup';
+const BOARD_NAME_MAX = 16;
+window.boardRaceSetup = { charId: 'trau', name: '' };
+try {
+    const saved = JSON.parse(localStorage.getItem(BOARD_SETUP_KEY) || 'null');
+    if (saved && BOARD_CHARACTERS.some(c => c.id === saved.charId)) {
+        window.boardRaceSetup.charId = saved.charId;
+        window.boardRaceSetup.name = String(saved.name || '').slice(0, BOARD_NAME_MAX);
+    }
+} catch (e) {}
+window.boardSaveRaceSetup = function() {
+    try { localStorage.setItem(BOARD_SETUP_KEY, JSON.stringify(window.boardRaceSetup)); } catch (e) {}
+};
+window.boardSetupChar = function() {
+    return window.boardCharById(window.boardRaceSetup.charId);
+};
+// Tên hiển thị của ghế người thật: tên tự đặt, không có thì theo tài khoản + nhân vật.
+window.boardRacerName = function(charId) {
+    if (window.boardRaceSetup.name) return window.boardRaceSetup.name;
+    const account = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
+    return `${account} (${window.boardCharById(charId).name})`;
+};
+
+// ── Bảng thiết lập trước trận: chọn nhân vật, đổi tên, chọn bản đồ ──
+window.boardRenderRaceSetup = function() {
+    const panel = document.getElementById('boardRaceSetupPanel');
+    if (!panel || !window.boardRaceSetup) return;
+    const setup = window.boardRaceSetup;
+
+    const charHTML = BOARD_CHARACTERS.map(c => {
+        const sig = RACE_CARDS.find(card => card.cond && card.cond.char === c.id);
+        return `<button type="button" class="setup-char${c.id === setup.charId ? ' active' : ''}" data-char="${c.id}" aria-pressed="${c.id === setup.charId}" title="${_boardEsc(c.name + (sig ? ' · bài riêng: ' + sig.name : ''))}">
+            <img src="${window.boardPawnTokenSrc(c.id)}" alt="">
+            <b>${_boardEsc(c.name.split(' ')[0])}</b>
+        </button>`;
+    }).join('');
+
+    const mapHTML = Object.keys(BOARD_THEMES).map(key => {
+        const t = BOARD_THEMES[key];
+        return `<button type="button" class="setup-map${key === window._boardTheme ? ' active' : ''}" data-map="${key}" aria-pressed="${key === window._boardTheme}" title="Bản đồ: ${_boardEsc(t.name)}">${t.icon}</button>`;
+    }).join('');
+
+    panel.innerHTML = `
+        <div class="setup-row">
+            <span class="setup-label">🧍 nhân vật</span>
+            <div class="setup-chars">${charHTML}</div>
+        </div>
+        <div class="setup-row">
+            <label class="setup-label" for="boardRacerNameInput">✏️ tên đua</label>
+            <input class="setup-name" id="boardRacerNameInput" maxlength="${BOARD_NAME_MAX}" placeholder="${_boardEsc(window.boardRacerName(setup.charId))}" value="${_boardEsc(setup.name || '')}">
+        </div>
+        <div class="setup-row">
+            <span class="setup-label">🗺 bản đồ</span>
+            <div class="setup-maps">${mapHTML}</div>
+        </div>`;
+
+    panel.querySelectorAll('.setup-char').forEach(btn => {
+        btn.onclick = () => {
+            try { if (window.audio) audio.play('click'); } catch (e) {}
+            setup.charId = btn.dataset.char;
+            window.boardSaveRaceSetup();
+            window.boardRenderRaceSetup();
+        };
+    });
+    panel.querySelectorAll('.setup-map').forEach(btn => {
+        btn.onclick = () => {
+            try { if (window.audio) audio.play('click'); } catch (e) {}
+            window.boardSetTheme(btn.dataset.map);
+            window.boardRenderRaceSetup();
+        };
+    });
+    const nameInput = panel.querySelector('#boardRacerNameInput');
+    if (nameInput) {
+        nameInput.oninput = () => {
+            setup.name = nameInput.value.slice(0, BOARD_NAME_MAX);
+            window.boardSaveRaceSetup();
+        };
+    }
+};
+
 window.boardSelectedCharDisplayIdx = 0;
 
 window.boardSelectCharacterDisplay = function(idx) {
@@ -611,7 +717,7 @@ window.boardCardPlayable = function(p, card) {
     if (!card) return { ok: false, why: 'Không có lá bài nào.' };
     const def = RACE_CARDS.find(c => c.id === card.id) || card;
     const cond = def.cond || {};
-    if (cond.char && window.boardCharIdAt(p.idx) !== cond.char) {
+    if (cond.char && window.boardCharOf(p).id !== cond.char) {
         const owner = (BOARD_CHARACTERS.find(c => c.id === cond.char) || {}).name || cond.char;
         return { ok: false, why: `Bài riêng của ${owner}.` };
     }
@@ -1710,8 +1816,8 @@ window.boardMovePlayer = function(idx, steps, animate) {
 };
 
 // ── Bài trên tay — tối đa 5 lá, mỗi nhân vật mở màn bằng bài signature ──
-function boardDealHand(count, charIdx) {
-    const charId = window.boardCharIdAt(charIdx || 0);
+function boardDealHand(count, charRef) {
+    const charId = typeof charRef === 'string' ? charRef : window.boardCharIdAt(charRef || 0);
     const signature = RACE_CARDS.filter(c => c.cat && !c.instant && c.cond && c.cond.char === charId);
     const pool = RACE_CARDS.filter(c => c.cat && !c.instant && !(c.cond && c.cond.char));
     const hand = signature.slice(0, 1);
@@ -2096,6 +2202,8 @@ window.boardSetTheme = function(name) {
     if (!BOARD_THEMES[name]) name = 'lang';
     window._boardTheme = name;
     try { localStorage.setItem(BOARD_THEME_KEY, name); } catch (e) {}
+    // Bản đồ là thuộc tính ván đấu: khách nhận qua boardState sẽ theo đúng đường này.
+    if (boardGame) boardGame.theme = name;
     const canvas = document.querySelector('#boardGrid .board-canvas');
     if (canvas) {
         canvas.dataset.boardTheme = name;
@@ -2671,8 +2779,9 @@ function boardPawnFace(id) {
 }
 
 const _boardPawnTokenCache = {};
-window.boardPawnTokenSrc = function(idx) {
-    const char = BOARD_CHARACTERS[idx] || BOARD_CHARACTERS[0] || {};
+window.boardPawnTokenSrc = function(ref) {
+    const char = (ref && typeof ref === 'object') ? window.boardCharOf(ref)
+        : (typeof ref === 'string' ? window.boardCharById(ref) : (BOARD_CHARACTERS[ref] || BOARD_CHARACTERS[0] || {}));
     const id = char.id || 'trau';
     if (_boardPawnTokenCache[id]) return _boardPawnTokenCache[id];
     const c = BOARD_PAWN_LOOKS[id] || { skin: '#ffe0bd', shade: '#eab378', hair: '#2b1b12', shirt: char.color || '#f4c766', rim: char.color || '#f4c766' };
@@ -2733,9 +2842,9 @@ window.boardRenderPawns = function(instant) {
             el.innerHTML = '<div class="pawn-body"><div class="pawn-avatar"><img alt=""></div><span class="pawn-lives"></span><span class="pawn-gear"></span></div><span class="pawn-name"></span>';
             layer.appendChild(el);
         }
-        const char = BOARD_CHARACTERS[p.idx] || BOARD_CHARACTERS[0];
+        const char = window.boardCharOf(p);
         const img = el.querySelector('.pawn-avatar img');
-        const tokenSrc = window.boardPawnTokenSrc(i);
+        const tokenSrc = window.boardPawnTokenSrc(p);
         if (img.getAttribute('src') !== tokenSrc) img.src = tokenSrc;
         img.alt = p.name || char.name;
         el.style.setProperty('--pc', p.color || char.color);
@@ -2787,8 +2896,8 @@ window.boardRenderPawns = function(instant) {
         tag.style.setProperty('--rk', Math.max(1, Math.min(1.6, 1 / (window._boardZoom || 1))).toFixed(3));
         tag.innerHTML = group.map(idx => {
             const gp = boardGame.players[idx];
-            const ch = BOARD_CHARACTERS[gp.idx] || BOARD_CHARACTERS[0];
-            const short = String(ch.name || gp.name || '').split(' ')[0];
+            const ch = window.boardCharOf(gp);
+            const short = String((gp.customName && gp.name) ? gp.name : (ch.name || gp.name || '')).split(' ')[0];
             return `<span style="--pc:${gp.color || ch.color}">${_boardEsc(short)} <b>❤${Math.max(0, gp.lives || 0)}</b></span>`;
         }).join('');
     });
@@ -3159,7 +3268,7 @@ window.boardRenderLivesHud = function() {
     const hud = document.getElementById('boardLivesHud');
     if (!hud || !boardGame || !boardGame.players) return;
     hud.innerHTML = boardGame.players.map(p => {
-        const char = BOARD_CHARACTERS[p.idx] || BOARD_CHARACTERS[0];
+        const char = window.boardCharOf(p);
         const short = String(p.name || char.name || '').split(' ')[0];
         const lives = Math.max(0, p.lives || 0);
         const out = !!p.eliminated;
@@ -3208,7 +3317,7 @@ window.boardRenderPlayers = function() {
                 charSection.appendChild(wrap);
             }
 
-            const char = BOARD_CHARACTERS[p.idx] || BOARD_CHARACTERS[0];
+            const char = window.boardCharOf(p);
             const img = wrap.querySelector('img');
             if (img.getAttribute('src') !== char.img) {
                 img.src = char.img;
@@ -3283,7 +3392,7 @@ function openBoardGame(pvpMode = false) {
         trappedCells: {}, log: [], gameOver: false,
         revealedCells: { 0: true, [BOARD_TOTAL_CELLS - 1]: true },
         pvp: !!pvpMode, hostId: pvpMode ? getMyNetworkId() : null, betPool: betAmount,
-        cellZones: []
+        cellZones: [], theme: window._boardTheme
     };
 
     // Randomize zone names for each cell in this match
@@ -3301,25 +3410,26 @@ function openBoardGame(pvpMode = false) {
         }
     }
     
-    // Human Player (Player 1) - Trâu Trẻ Trâu
-    const playerName = (window.player && window.player.name) ? window.player.name : 'Anh Hùng';
+    // Human Player (Player 1) - nhân vật do người chơi chọn trước trận
     const playerClass = (window.player && window.player.classId) ? window.player.classId : 'cop';
     const playerSkin = window.player && window.player.equipment ? window.player.equipment.skin : null;
+    const myChar = window.boardSetupChar();
 
     // Shuffled player colors
     window.boardGameColors = [...RACE_PLAYER_COLORS].sort(() => Math.random() - 0.5);
 
     boardGame.players.push({
-        idx: 0, name: playerName + ' (Trâu)', networkId: getMyNetworkId(), classId: playerClass, skin: playerSkin,
+        idx: 0, name: window.boardRacerName(myChar.id), networkId: getMyNetworkId(), classId: playerClass, skin: playerSkin,
+        charId: myChar.id, customName: !!window.boardRaceSetup.name,
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: window.boardGameColors[0],
-        emoji: '👦',
+        emoji: BOARD_BOT_EMOJI[myChar.id] || '👦',
         isHuman: true, isBot: false, skipTurn: false,
         gold: 0,
-        hand: boardDealHand(5, 0)
+        hand: boardDealHand(5, myChar.id)
     });
-    
-    // Add 3 Bots representing Mầm Mềm Mẽ, Kiến Bảo Vệ, Út Mũ Rơm
+
+    // 3 bot còn lại giành 3 nhân vật chưa bị chọn
     boardAddBot();
     boardAddBot();
     boardAddBot();
@@ -3357,23 +3467,22 @@ function openBoardGame(pvpMode = false) {
 }
 window.openBoardGame = openBoardGame;
 
-window.boardAddBot = function() {
+window.boardAddBot = function(preferredCharId) {
     if(boardGame.players.length >= 4) return;
     const idx = boardGame.players.length;
-    const botNames  = ['Mầm Mềm Mẽ', 'Kiến Bảo Vệ', 'Út Mũ Rơm'];
-    const botEmojis = ['👩‍🦰', '👮‍♂️', '👦'];
+    const ch = window.boardTakeChar(preferredCharId || window.boardCharIdAt(idx));
     const color = (window.boardGameColors && window.boardGameColors[idx]) ? window.boardGameColors[idx] : '#f59e0b';
     boardGame.players.push({
-        idx, name: botNames[idx-1] || `Bot ${idx}`, networkId: null,
+        idx, name: ch.name, charId: ch.id, networkId: null,
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: color,
-        emoji: botEmojis[idx-1] || '👾',
+        emoji: BOARD_BOT_EMOJI[ch.id] || '👾',
         isHuman: false, isBot: true, skipTurn: false,
-        hand: boardDealHand(5, idx),
+        hand: boardDealHand(5, ch.id),
         gold: 0
     });
     boardRenderPlayers();
-    boardAddLog(`💀 ${botNames[idx-1]} đã tham gia đấu trường!`);
+    boardAddLog(`💀 ${ch.name} đã tham gia đấu trường!`);
 };
 
 // ── Logic chuyển lượt có xử lý người chết ──────────────────
@@ -3522,6 +3631,7 @@ window.openBoardGameWithBet = function() {
     try { if (window.audio) window.audio.play('click'); } catch(e){}
     const modal = document.getElementById('boardBetModal');
     if(modal) modal.classList.add('active');
+    if (typeof window.boardRenderRaceSetup === 'function') window.boardRenderRaceSetup();
     if (typeof window.boardRenderActiveRoomsList === 'function') window.boardRenderActiveRoomsList();
     window._selectedBetAmount = 0;
     const opts = document.querySelectorAll('.bet-option');
@@ -4157,8 +4267,11 @@ window.boardShowLobbyUI = function(roomId, role, data) {
     const guestName = d.guestName || '';
     const bet = d.betAmount || 0;
     const botCount = d.botCount || 0;
-    const hostToken = window.boardPawnTokenSrc(0);
-    const guestToken = window.boardPawnTokenSrc(1);
+    // Hai ghế hiện đúng nhân vật sẽ vào bàn: chủ phòng chọn, khách lấy suất còn trống đầu tiên
+    const hostChar = window.boardCharById(window.boardRaceSetup.charId);
+    const guestChar = BOARD_CHARACTERS.find(c => c.id !== hostChar.id) || hostChar;
+    const hostToken = window.boardPawnTokenSrc(hostChar.id);
+    const guestToken = window.boardPawnTokenSrc(guestChar.id);
 
     let botsHTML = `<div class="board-lobby-bots is-readonly">
         <span class="lobby-bots-label">🤖 Bot cùng đấu</span>
@@ -4624,7 +4737,7 @@ window.boardStartOnlineMatch = function(role, room) {
         revealedCells: { 0: true, [BOARD_TOTAL_CELLS - 1]: true },
         pvp: true, hostId: (role === 'host') ? getMyNetworkId() : (room.hostId || 'host_id_placeholder'),
         betPool: (room.betAmount || 0) * 2,
-        cellZones: []
+        cellZones: [], theme: window._boardTheme
     };
 
     // Randomize cell zones symmetrically (host does it)
@@ -4645,33 +4758,36 @@ window.boardStartOnlineMatch = function(role, room) {
     const gameColors = room.colors || [...RACE_PLAYER_COLORS];
     window.boardGameColors = gameColors;
 
-    // Add Host (idx 0)
+    // Add Host (idx 0) — chủ phòng chọn nhân vật trước trận
+    const hostChar = window.boardTakeChar(window.boardRaceSetup.charId);
     boardGame.players.push({
-        idx: 0, name: room.hostName + ' (Trâu)', networkId: (role === 'host') ? getMyNetworkId() : (room.hostId || 'host_net_id'),
+        idx: 0, name: room.hostName + ` (${hostChar.name})`, charId: hostChar.id,
+        networkId: (role === 'host') ? getMyNetworkId() : (room.hostId || 'host_net_id'),
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
-        color: gameColors[0], emoji: '👦', isHuman: (role === 'host'), isBot: false, gold: 0,
-        hand: boardDealHand(5, 0)
+        color: gameColors[0], emoji: BOARD_BOT_EMOJI[hostChar.id] || '👦', isHuman: (role === 'host'), isBot: false, gold: 0,
+        hand: boardDealHand(5, hostChar.id)
     });
 
-    // Add Guest (idx 1)
+    // Add Guest (idx 1) — dành nhân vật trống kế tiếp, không trùng chủ phòng
+    const guestChar = window.boardTakeChar(null);
     boardGame.players.push({
-        idx: 1, name: room.guestName + ' (Trẩu)', networkId: (role === 'guest') ? getMyNetworkId() : (room.guestId || 'guest_net_id'),
+        idx: 1, name: room.guestName + ` (${guestChar.name})`, charId: guestChar.id,
+        networkId: (role === 'guest') ? getMyNetworkId() : (room.guestId || 'guest_net_id'),
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: gameColors[1], emoji: '👾', isHuman: (role === 'guest'), isBot: false, gold: 0,
-        hand: boardDealHand(5, 1)
+        hand: boardDealHand(5, guestChar.id)
     });
 
     // Add bots to fill up remaining slots based on botCount selection
-    const botNames = ['Mầm Mềm Mẽ', 'Kiến Bảo Vệ'];
-    const botEmojis = ['👩‍🦰', '👮‍♂️'];
     const botCount = typeof room.botCount === 'number' ? room.botCount : 2;
     for (let i = 0; i < botCount; i++) {
+        const botChar = window.boardTakeChar(null);
         boardGame.players.push({
-            idx: 2 + i, name: botNames[i], networkId: null,
+            idx: 2 + i, name: botChar.name, charId: botChar.id, networkId: null,
             pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
-            color: gameColors[2 + i] || '#f59e0b', emoji: botEmojis[i],
+            color: gameColors[2 + i] || '#f59e0b', emoji: BOARD_BOT_EMOJI[botChar.id] || '👾',
             isHuman: false, isBot: true, skipTurn: false,
-            hand: boardDealHand(5, 2 + i), gold: 0
+            hand: boardDealHand(5, botChar.id), gold: 0
         });
     }
 
@@ -4707,6 +4823,9 @@ window.boardSyncOnlineState = function(room) {
     if (!bs) return;
 
     boardGame = bs;
+
+    // Host chọn bản đồ — khách phải thấy cùng một đường đua.
+    if (bs.theme && BOARD_THEMES[bs.theme] && bs.theme !== window._boardTheme) window.boardSetTheme(bs.theme);
 
     // Symmetrically map isHuman / isBot
     boardGame.players.forEach((p, idx) => {

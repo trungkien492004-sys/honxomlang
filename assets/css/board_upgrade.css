@@ -1670,3 +1670,28 @@
   #boardBranchModal .branch-title{font-size:1.08rem}
   #boardBranchModal .branch-route{text-align:left;padding:8px 9px}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Thiết lập trước trận: chọn nhân vật · tên đua · bản đồ
+   ═══════════════════════════════════════════════════════════ */
+#boardBetModal .bet-modal-box{max-height:min(88vh,680px);overflow-y:auto;overscroll-behavior:contain}
+#boardBetModal .board-race-setup{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}
+#boardBetModal .setup-row{display:flex;align-items:center;gap:8px}
+#boardBetModal .setup-label{flex:0 0 74px;font-size:.66rem;font-weight:900;letter-spacing:.3px;color:#ffd884;text-transform:uppercase}
+#boardBetModal .setup-chars{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#boardBetModal .setup-char{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border-radius:11px;border:2px solid #2f5c6b;background:linear-gradient(165deg,#14404f,#0a2731);color:#dfeff3;cursor:pointer;font-family:inherit;transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease}
+#boardBetModal .setup-char img{width:26px;height:26px;border-radius:50%;box-shadow:0 0 0 2px #0b2029}
+#boardBetModal .setup-char b{font-size:.62rem;line-height:1.05}
+#boardBetModal .setup-char:hover{transform:translateY(-2px);border-color:#e3bd75}
+#boardBetModal .setup-char.active{border-color:#ffd27b;background:linear-gradient(165deg,#1d5665,#123541);box-shadow:0 0 0 1px #ffd27b66,0 5px 12px #0008}
+#boardBetModal .setup-name{flex:1;min-width:0;padding:7px 10px;border-radius:10px;border:2px solid #2f5c6b;background:#051c24;color:#eafffb;font-weight:800;font-size:.82rem;font-family:inherit}
+#boardBetModal .setup-name:focus{outline:none;border-color:#ffd27b}
+#boardBetModal .setup-maps{flex:1;display:flex;gap:6px}
+#boardBetModal .setup-map{width:34px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:2px solid #2f5c6b;background:linear-gradient(165deg,#14404f,#0a2731);color:#dfeff3;font-size:.98rem;cursor:pointer;transition:transform .12s ease,border-color .12s ease}
+#boardBetModal .setup-map:hover{transform:translateY(-2px);border-color:#e3bd75}
+#boardBetModal .setup-map.active{border-color:#ffd27b;background:linear-gradient(165deg,#1d5665,#123541);box-shadow:0 0 0 1px #ffd27b66}
+@media(max-width:430px){
+  #boardBetModal .setup-label{flex-basis:62px;font-size:.6rem}
+  #boardBetModal .setup-char b{font-size:.56rem}
+  #boardBetModal .setup-char img{width:24px;height:24px}
+}
