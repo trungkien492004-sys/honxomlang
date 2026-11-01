@@ -1156,13 +1156,9 @@
         let networkWriteErrorShown = false;
         function reportNetworkWriteError(err) {
             console.error('🔥 Firestore network write failed:', err);
-            const msg = String(err?.message || err?.code || '');
-            if (msg.includes('Missing or insufficient permissions') || msg.includes('permission-denied')) {
-                return;
-            }
             if (!networkWriteErrorShown) {
                 networkWriteErrorShown = true;
-                showToast('⚠️ Không gửi được dữ liệu online. Kiểm tra Firebase Authentication và Firestore Rules.');
+                showToast('⚠️ Không gửi được dữ liệu online: ' + (err?.message || 'Kiểm tra Firestore Rules'));
             }
         }
         let pvpChannel = window.pvpChannel = {
@@ -1170,10 +1166,15 @@
                 if(!window.currentFirebaseUser || typeof db === 'undefined') return;
                 // Firebase rejects Array/Object instances originating in the card game's iframe.
                 // Recreate every nested value in this window before handing it to the SDK.
-                msg = { ...JSON.parse(JSON.stringify(msg)), uid: window.currentFirebaseUser.uid };
+                const senderId = msg.id || window.myNetworkId || ('P_' + window.currentFirebaseUser.uid.slice(0, 10));
+                msg = {
+                    id: senderId,
+                    ...JSON.parse(JSON.stringify(msg)),
+                    uid: window.currentFirebaseUser.uid
+                };
                 if(msg.type === 'PRESENCE') {
-                    db.collection('active_players').doc(myNetworkId).set({
-                        ...msg, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    db.collection('active_players').doc(senderId).set({
+                        ...msg, id: senderId, timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     }, {merge: true}).catch(reportNetworkWriteError);
                 } else {
                     db.collection('network_events').add({
@@ -1186,8 +1187,11 @@
         let chatChannel = window.chatChannel = {
             postMessage(msg) {
                 if(!window.currentFirebaseUser || typeof db === 'undefined') return;
+                const senderId = msg.id || window.myNetworkId || ('P_' + window.currentFirebaseUser.uid.slice(0, 10));
                 db.collection('chat_messages').add({
-                    ...msg, uid: window.currentFirebaseUser.uid,
+                    id: senderId,
+                    ...msg,
+                    uid: window.currentFirebaseUser.uid,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 }).catch(reportNetworkWriteError);
             }
@@ -1235,10 +1239,7 @@
                       isInitialEvent = false;
                   }, err => {
                       console.error("🔥 network_events onSnapshot error:", err);
-                      const msg = String(err?.message || err?.code || '');
-                      if (!msg.includes('Missing or insufficient permissions') && !msg.includes('permission-denied')) {
-                          showToast("⚠️ Lỗi kết nối Firestore: " + err.message);
-                      }
+                      showToast("⚠️ Lỗi kết nối Firestore: " + err.message);
                   });
 
                 // 3. Global Chat - 5-min lookback to avoid clock drift
