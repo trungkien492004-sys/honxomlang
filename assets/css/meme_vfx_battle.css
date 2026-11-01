@@ -141,6 +141,13 @@
   box-shadow: 0 0 14px rgba(251, 191, 36, 0.65) !important;
 }
 
+.field-slot.material-chosen {
+  animation: none !important;
+  outline: 2px solid #77ffce !important;
+  outline-offset: 1px;
+  box-shadow: 0 0 12px rgba(119, 255, 206, 0.5) !important;
+}
+
 /* Giữ biểu tượng kiếm và mũi tên cố định, không nhảy giật liên tục */
 .attack-cue b,
 .attack-sword {

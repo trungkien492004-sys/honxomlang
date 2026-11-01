@@ -110,34 +110,50 @@
     }
 
     // 3.2 Hook afterRender: Bổ sung hiệu ứng nổ vỡ quái vật & theo dõi Crisis
+    let prevMonstersMap = null;
+
     const prevAfterRender = window.memeFx.afterRender;
     if (prevAfterRender && !prevAfterRender.__hookedVfxBattle) {
       const hookedAfterRender = function(state, oldElements) {
-        // Kiểm tra quái vật bị tiêu diệt
-        if (oldElements && canAnimate() && window.card) {
+        // Chỉ kích hoạt hiệu ứng nổ vỡ khi ô thực sự ĐÃ CÓ quái vật trước đó và nay bị tiêu diệt
+        if (prevMonstersMap && oldElements && canAnimate() && window.card) {
           for (const name of ['player', 'enemy']) {
             for (let i = 0; i < 3; i++) {
-              const old = oldElements.find(x => x.name === name && x.zone === 'Monsters' && x.i === i);
+              const prevId = prevMonstersMap[name]?.[i];
               const currentMonster = state[name]?.monsters?.[i];
-              if (old && !currentMonster) {
-                const centerPos = { x: old.rect.left + old.rect.width / 2, y: old.rect.top + old.rect.height / 2 };
-                const oldCardId = old.el?.dataset?.cardId || old.el?.getAttribute('data-id');
-                const c = oldCardId ? window.card(oldCardId) : null;
-                const color = c ? (attackColors[c.element] || '#ffe592') : '#ff7878';
-                spawnShatterParticles(centerPos, color);
-                window.memeAudioSfx?.play('destroy');
+              // Phải có quái vật ở frame trước và nay biến mất mới kích hoạt nổ hủy diệt
+              if (prevId && !currentMonster) {
+                const old = oldElements.find(x => x.name === name && x.zone === 'Monsters' && x.i === i);
+                if (old) {
+                  const centerPos = { x: old.rect.left + old.rect.width / 2, y: old.rect.top + old.rect.height / 2 };
+                  const c = window.card(prevId);
+                  const color = c ? (attackColors[c.element] || '#ffe592') : '#ff7878';
+                  spawnShatterParticles(centerPos, color);
+                  window.memeAudioSfx?.play('destroy');
+                }
               }
             }
             // Ô Extra
-            const oldExtra = oldElements.find(x => x.name === name && x.zone === 'Extra');
+            const prevExtraId = prevMonstersMap[name + 'Extra'];
             const currentExtra = state[name]?.extra;
-            if (oldExtra && !currentExtra) {
-              const centerPos = { x: oldExtra.rect.left + oldExtra.rect.width / 2, y: oldExtra.rect.top + oldExtra.rect.height / 2 };
-              spawnShatterParticles(centerPos, '#cfa7ff');
-              window.memeAudioSfx?.play('destroy');
+            if (prevExtraId && !currentExtra) {
+              const oldExtra = oldElements.find(x => x.name === name && x.zone === 'Extra');
+              if (oldExtra) {
+                const centerPos = { x: oldExtra.rect.left + oldExtra.rect.width / 2, y: oldExtra.rect.top + oldExtra.rect.height / 2 };
+                spawnShatterParticles(centerPos, '#cfa7ff');
+                window.memeAudioSfx?.play('destroy');
+              }
             }
           }
         }
+
+        // Cập nhật bản đồ quái vật cho frame tiếp theo
+        prevMonstersMap = {
+          player: state.player?.monsters?.map(s => s?.id || null) || [null, null, null],
+          enemy: state.enemy?.monsters?.map(s => s?.id || null) || [null, null, null],
+          playerExtra: state.player?.extra?.id || null,
+          enemyExtra: state.enemy?.extra?.id || null
+        };
 
         const res = prevAfterRender.apply(this, arguments);
         updateCrisisState();

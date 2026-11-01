@@ -140,27 +140,33 @@
     }
 
     // 4.2 Hook afterRender: Khi quái vật lật từ úp thủ sang ngửa
+    let prevFaceDownMap = null;
+
     const prevAfterRender = window.memeFx.afterRender;
     if (prevAfterRender && !prevAfterRender.__hookedVfxSummon) {
       const hookedAfterRender = function(state, oldElements) {
         const res = prevAfterRender.apply(this, arguments);
-        if (canAnimate() && oldElements) {
+        if (canAnimate() && oldElements && prevFaceDownMap) {
           for (const name of ['player', 'enemy']) {
             for (let i = 0; i < 3; i++) {
-              const old = oldElements.find(x => x.name === name && x.zone === 'Monsters' && x.i === i);
+              const wasFaceDown = prevFaceDownMap[name]?.[i] === true;
               const curSlot = state[name]?.monsters?.[i];
-              if (old && curSlot && curSlot.position !== 'def_down') {
+              // Chỉ kích hoạt Mana Sigil khi trước đó thực sự ĐANG ÚP và nay được lật ngửa
+              if (wasFaceDown && curSlot && curSlot.position !== 'def_down') {
                 const el = document.querySelectorAll('#' + name + 'Monsters .field-slot')[i];
-                if (el && el.dataset.face === 'up') {
-                  const wasDown = old.el?.dataset?.face === 'down' || old.el?.classList.contains('face-down');
-                  if (wasDown) {
-                    spawnFlipSigil(el, '#facc15');
-                  }
+                if (el) {
+                  spawnFlipSigil(el, '#facc15');
                 }
               }
             }
           }
         }
+
+        prevFaceDownMap = {
+          player: state.player?.monsters?.map(s => s?.position === 'def_down') || [false, false, false],
+          enemy: state.enemy?.monsters?.map(s => s?.position === 'def_down') || [false, false, false]
+        };
+
         return res;
       };
       hookedAfterRender.__hookedVfxSummon = true;
