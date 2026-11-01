@@ -55,12 +55,12 @@
 .modal{z-index:1000}
 .duel.match-finished:after{content:'';position:absolute;inset:0;z-index:9;background:#0612239c;pointer-events:none;animation:memeBanner .7s ease-out both}
 .duel.match-finished .modal-card{box-shadow:0 0 45px #f3cf7f70,0 20px 40px #000b}
-@keyframes memeTargetPulse{0%,100%{filter:drop-shadow(0 0 2px #ffe397)}50%{filter:drop-shadow(0 0 8px #ffe397)}}
+@keyframes memeTargetPulse{0%,100%{filter:drop-shadow(0 0 4px #ffe397);box-shadow:0 0 14px #ffe39766}50%{filter:drop-shadow(0 0 12px #fff3b0) brightness(1.2);box-shadow:0 0 24px #ffde7abb}}
 @keyframes memeHudShake{25%{transform:translateX(-2px)}55%{transform:translateX(2px)}80%{transform:translateX(-1px)}}
 @keyframes memeRing{from{opacity:1;scale:.35}to{opacity:0;scale:1.65}}
 @keyframes memeFloat{from{opacity:0;translate:0 10px}20%{opacity:1}to{opacity:0;translate:0 -38px}}
 @keyframes memeBanner{from{opacity:0;scale:.7}25%{opacity:1;scale:1.05}to{opacity:0;scale:1}}
-@keyframes memeLand{from{filter:brightness(1.5);scale:1.06}to{filter:brightness(1);scale:1}}
+@keyframes memeLand{from{filter:brightness(2);scale:1.14}to{filter:brightness(1);scale:1}}
 @keyframes memeDestroy{to{opacity:0;filter:brightness(3);scale:.7}}
 @keyframes memeImpact{25%{transform:translateX(-2px)}65%{transform:translateX(2px)}}
 @media(max-width:900px){.duel-layout,.duel-layout.inspector-collapsed{grid-template-columns:clamp(150px,23vw,190px) minmax(0,1fr)}.arena{max-width:none}.board-center{width:min(100%,400px)}.hand .card{min-width:74px;width:74px}}

@@ -89,9 +89,9 @@
 
 /* 5. Chế độ Nguy Cấp khi LP <= 1000 (Crisis State) - Tĩnh dịu, trang trọng, không giật nháy */
 .board-frame.board-crisis {
-  animation: none !important;
-  box-shadow: inset 0 0 32px rgba(239, 68, 68, 0.45), 0 0 20px rgba(220, 38, 38, 0.35) !important;
-  border-color: rgba(239, 68, 68, 0.85) !important;
+  animation: crisisPulseBorder 1.4s ease-in-out infinite alternate !important;
+  box-shadow: inset 0 0 36px rgba(239, 68, 68, 0.55), 0 0 24px rgba(220, 38, 38, 0.45) !important;
+  border-color: rgba(239, 68, 68, 0.95) !important;
 }
 
 @keyframes crisisPulseBorder {
@@ -116,50 +116,48 @@
 /* 7. Khắc phục triệt để lỗi nhấp nháy các ô trên sân (Steady Aura - Không nháy mỏi mắt) */
 .field-slot.valid-target,
 .special-zone.valid-target {
-  animation: none !important;
+  animation: memeTargetPulse 1.4s ease-in-out infinite !important;
   outline: 2px solid #38bdf8 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5) !important;
-  filter: none !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.65) !important;
 }
 
 .field-slot.selected,
 .special-zone.selected {
-  animation: none !important;
+  animation: memeTargetPulse 1.4s ease-in-out infinite !important;
   outline: 2px solid #facc15 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 14px rgba(250, 204, 21, 0.6) !important;
-  filter: none !important;
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.75) !important;
 }
 
 .field-slot.attack-ready,
 .special-zone.attack-ready {
-  animation: none !important;
+  animation: attackReadyGlow 1.6s ease-in-out infinite !important;
   outline: 2px solid #34d399 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 10px rgba(52, 211, 153, 0.45) !important;
-  filter: none !important;
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.6) !important;
 }
 
 .field-slot.attacking-selected {
-  animation: none !important;
+  animation: memeTargetPulse 1.2s ease-in-out infinite !important;
   outline: 2px solid #fbbf24 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 14px rgba(251, 191, 36, 0.65) !important;
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.8) !important;
 }
 
 .field-slot.material-chosen {
-  animation: none !important;
+  animation: attackReadyGlow 1.4s ease-in-out infinite !important;
   outline: 2px solid #77ffce !important;
   outline-offset: 1px;
-  box-shadow: 0 0 12px rgba(119, 255, 206, 0.5) !important;
+  box-shadow: 0 0 16px rgba(119, 255, 206, 0.7) !important;
 }
 
-/* Giữ biểu tượng kiếm và mũi tên cố định, không nhảy giật liên tục */
-.attack-cue b,
+/* Kiếm và mũi tên tấn công bay lượn sinh động */
+.attack-cue b {
+  animation: attackArrowFloat 1s ease-in-out infinite !important;
+}
 .attack-sword {
-  animation: none !important;
-  transform: none !important;
+  animation: attackSwordAdvance 1.2s ease-in-out infinite !important;
 }
 
 /* 8. Hỗ trợ giảm chuyển động (Reduced Motion) */
