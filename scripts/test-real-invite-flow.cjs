@@ -206,6 +206,7 @@ const server = http.createServer((request, response) => {
 
         window._testAllowed = true;
         window._legacyAuthReady = true;
+        user.getIdToken = async () => 'mock-token';
         window.currentFirebaseUser = user;
         window.myNetworkId = user.uid;
         window.player = { name: user.displayName };
@@ -215,6 +216,59 @@ const server = http.createServer((request, response) => {
           db,
           whenReady: Promise.resolve(),
           subscribe(cb) { cb({ user, ready: true }); return () => {}; }
+        };
+        const origFetch = window.fetch;
+        window.fetch = async (url, opts) => {
+          if (typeof url === 'string' && url.includes('rankApi')) {
+            try {
+              const payload = opts?.body ? JSON.parse(opts.body) : {};
+              const reqData = payload.data || {};
+              const type = reqData.type;
+              if (type === 'recordResult') {
+                const isWin = reqData.outcome === 'win';
+                const delta = isWin ? 16 : -16;
+                const p = await window.readDb('rank_profiles/' + user.uid);
+                const updated = {
+                  ...p,
+                  rating: p.rating + delta,
+                  played: p.played + 1,
+                  wins: p.wins + (isWin ? 1 : 0),
+                  losses: p.losses + (isWin ? 0 : 1)
+                };
+                await window.writeDb('rank_profiles/' + user.uid, updated, true);
+                return {
+                  ok: true,
+                  status: 200,
+                  json: async () => ({
+                    result: {
+                      receipt: {
+                        outcome: reqData.outcome,
+                        delta,
+                        ratingBefore: p.rating,
+                        ratingAfter: updated.rating,
+                        played: updated.played,
+                        wins: updated.wins,
+                        losses: updated.losses
+                      }
+                    }
+                  })
+                };
+              }
+              const p = await window.readDb('rank_profiles/' + user.uid);
+              return {
+                ok: true,
+                status: 200,
+                json: async () => ({
+                  result: {
+                    profile: p || { rating: 1200, played: 0, wins: 0, losses: 0 }
+                  }
+                })
+              };
+            } catch (e) {
+              console.warn('Mock fetch error:', e);
+            }
+          }
+          return origFetch(url, opts);
         };
         const firestore = () => db;
         firestore.FieldValue = { serverTimestamp: () => new ServerTimestamp() };

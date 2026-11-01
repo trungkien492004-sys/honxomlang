@@ -634,6 +634,7 @@
           window.pendingInviteJoin = {
             roomId: v.roomId,
             peerId: sender?.networkId || v.from,
+            peerUid: v.from,
             peerName: senderName,
             challengeId: v.nonce,
             rankOpponentUid: v.from
@@ -647,6 +648,7 @@
               frame.memeJoinRoom(v.roomId);
               if (frame.memeRoom) {
                 frame.memeRoom.peerId = sender?.networkId || v.from;
+                frame.memeRoom.peerUid = v.from;
                 frame.memeRoom.peerName = senderName;
                 frame.memeRoom.challengeId = v.nonce;
                 frame.memeRoom.rankOpponentUid = v.from;

@@ -1156,6 +1156,10 @@
         let networkWriteErrorShown = false;
         function reportNetworkWriteError(err) {
             console.error('🔥 Firestore network write failed:', err);
+            const msg = String(err?.message || err?.code || '');
+            if (msg.includes('Missing or insufficient permissions') || msg.includes('permission-denied')) {
+                return;
+            }
             if (!networkWriteErrorShown) {
                 networkWriteErrorShown = true;
                 showToast('⚠️ Không gửi được dữ liệu online: ' + (err?.message || 'Kiểm tra Firestore Rules'));
@@ -1163,14 +1167,15 @@
         }
         let pvpChannel = window.pvpChannel = {
             postMessage(msg) {
-                if(!window.currentFirebaseUser || typeof db === 'undefined') return;
+                const authUser = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
+                if(!authUser || !window.currentFirebaseUser || typeof db === 'undefined') return;
                 // Firebase rejects Array/Object instances originating in the card game's iframe.
                 // Recreate every nested value in this window before handing it to the SDK.
-                const senderId = msg.id || window.myNetworkId || ('P_' + window.currentFirebaseUser.uid.slice(0, 10));
+                const senderId = msg.id || window.myNetworkId || ('P_' + authUser.uid.slice(0, 10));
                 msg = {
                     id: senderId,
                     ...JSON.parse(JSON.stringify(msg)),
-                    uid: window.currentFirebaseUser.uid
+                    uid: authUser.uid
                 };
                 if(msg.type === 'PRESENCE') {
                     db.collection('active_players').doc(senderId).set({
@@ -1186,12 +1191,13 @@
 
         let chatChannel = window.chatChannel = {
             postMessage(msg) {
-                if(!window.currentFirebaseUser || typeof db === 'undefined') return;
-                const senderId = msg.id || window.myNetworkId || ('P_' + window.currentFirebaseUser.uid.slice(0, 10));
+                const authUser = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
+                if(!authUser || !window.currentFirebaseUser || typeof db === 'undefined') return;
+                const senderId = msg.id || window.myNetworkId || ('P_' + authUser.uid.slice(0, 10));
                 db.collection('chat_messages').add({
                     id: senderId,
                     ...msg,
-                    uid: window.currentFirebaseUser.uid,
+                    uid: authUser.uid,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 }).catch(reportNetworkWriteError);
             }
@@ -1201,7 +1207,8 @@
         // are rejected by Firestore rules and do not recover after sign-in.
         let networkListenersStarted = false;
         window.startNetworkListeners = function() {
-            if (networkListenersStarted || !window.currentFirebaseUser || typeof db === 'undefined') return;
+            const authUser = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
+            if (networkListenersStarted || !authUser || !window.currentFirebaseUser || typeof db === 'undefined') return;
             networkListenersStarted = true;
                 // 1. Presence Sync
                 db.collection('active_players').onSnapshot(snap => {
@@ -1239,7 +1246,10 @@
                       isInitialEvent = false;
                   }, err => {
                       console.error("🔥 network_events onSnapshot error:", err);
-                      showToast("⚠️ Lỗi kết nối Firestore: " + err.message);
+                      const msg = String(err?.message || err?.code || '');
+                      if (!msg.includes('Missing or insufficient permissions') && !msg.includes('permission-denied')) {
+                          showToast("⚠️ Lỗi kết nối Firestore: " + err.message);
+                      }
                   });
 
                 // 3. Global Chat - 5-min lookback to avoid clock drift

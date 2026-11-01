@@ -298,7 +298,7 @@ window.memeOnlineReceive = function(msg) {
       (!msg.targetId || msg.targetId === memeMyId()) &&
       !deckProblem(msg.deck,msg.extraDeck||[]) &&
       validHero(msg.heroId) &&
-      (!memeRoom.peerId || memeRoom.peerId === msg.id)) {
+      (!memeRoom.peerId || memeRoom.peerId === msg.id || (memeRoom.rankOpponentUid && memeRoom.rankOpponentUid === msg.guestUid) || (memeRoom.peerUid && memeRoom.peerUid === msg.guestUid))) {
     memeRoom.peerId = msg.id;
     memeRoom.peerName = msg.guestName || 'Khách';
     if (msg.guestUid) {
@@ -313,7 +313,7 @@ window.memeOnlineReceive = function(msg) {
   }
   const newMatchStart=(!memeRoom.playing&&!duel?.finished)||(duel?.finished&&typeof msg.matchId==='string'&&msg.matchId!==memeRoom.currentMatchId);
   if (msg.type === 'MEME_ROOM_START' && memeRoom.role === 'guest' && newMatchStart &&
-      msg.targetId === memeMyId() && (!memeRoom.peerId || msg.id === memeRoom.peerId) && msg.state) {
+      msg.targetId === memeMyId() && (!memeRoom.peerId || msg.id === memeRoom.peerId || (memeRoom.rankOpponentUid && memeRoom.rankOpponentUid === msg.hostUid) || (memeRoom.peerUid && memeRoom.peerUid === msg.hostUid)) && msg.state) {
     memeApplyingRemoteState = true;
     clearInterval(memeRoom.joinTimer);
     clearTimeout(memeRoom.waitTimer);

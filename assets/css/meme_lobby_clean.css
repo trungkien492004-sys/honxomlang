@@ -826,14 +826,23 @@
     align-items: center !important;
     align-content: center !important;
   }
-  #lobby .lobby-footer.rank-actions > button {
-    height: 46px !important;
-    min-height: 46px !important;
+  #lobby .lobby-footer.rank-actions > button,
+  #lobby .lobby-footer.rank-actions > button.rank-quick-btn,
+  #lobby .lobby-footer.rank-actions > #rankPlayBtn,
+  #lobby .lobby-footer.rank-actions > #journeyBtn,
+  #lobby .lobby-footer.rank-actions > #rankBoardBtn,
+  #lobby .lobby-footer.rank-actions > #shopBigBtn,
+  #lobby .lobby-footer.rank-actions > #playBtn,
+  #lobby .lobby-footer.rank-actions > #lobbyDeckBtn {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     font-size: 14.5px !important;
     border-radius: 12px !important;
     align-self: center !important;
     margin: 0 !important;
     vertical-align: middle !important;
+    transform: none !important;
   }
 }
 

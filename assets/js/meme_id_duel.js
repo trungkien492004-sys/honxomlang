@@ -1,18 +1,23 @@
 // Saved opponent profiles, direct challenges, and client-side challenge results.
 (() => {
- if(!document.getElementById('lobby')||!window.siteIdentity)return;
- const identity=window.siteIdentity;let store=null,uid=null,unsub=null,timer=null,saving=null,lastSaved='',pending=null,incoming=null,generation=0;
+ const identity = (window.siteIdentity?.user ? window.siteIdentity : (window.parent?.siteIdentity || window.siteIdentity));
+ if(!document.getElementById('lobby')||!identity)return;
+ let store=null,uid=null,unsub=null,timer=null,saving=null,lastSaved='',pending=null,incoming=null,generation=0;
   const stamp=()=>{
     try{
+      const currentStore=store||identity?.db||window.parent?.siteIdentity?.db;
+      if(currentStore?.constructor?.FieldValue?.serverTimestamp)return currentStore.constructor.FieldValue.serverTimestamp();
       if(typeof firebase!=='undefined'&&firebase.firestore?.FieldValue?.serverTimestamp)return firebase.firestore.FieldValue.serverTimestamp();
       if(typeof parent!=='undefined'&&parent.firebase?.firestore?.FieldValue?.serverTimestamp)return parent.firebase.firestore.FieldValue.serverTimestamp();
-      if(store?.constructor?.FieldValue?.serverTimestamp)return store.constructor.FieldValue.serverTimestamp();
       if(identity?.db?.constructor?.FieldValue?.serverTimestamp)return identity.db.constructor.FieldValue.serverTimestamp();
     }catch{}
     return new Date();
   };
   const expiryStamp=()=>{
     try{
+      const currentStore=store||identity?.db||window.parent?.siteIdentity?.db;
+      const fb=currentStore?._delegate?.app?.firebase||window.firebase||window.parent?.firebase;
+      if(fb?.firestore?.Timestamp?.fromMillis)return fb.firestore.Timestamp.fromMillis(Date.now()+60000);
       if(typeof firebase!=='undefined'&&firebase.firestore?.Timestamp?.fromMillis)return firebase.firestore.Timestamp.fromMillis(Date.now()+60000);
       if(typeof parent!=='undefined'&&parent.firebase?.firestore?.Timestamp?.fromMillis)return parent.firebase.firestore.Timestamp.fromMillis(Date.now()+60000);
     }catch{}
@@ -208,7 +213,8 @@
   const roomId = 'ID-' + crypto.randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase();
   const id = uid + '_' + p.uid, nonce = crypto.randomUUID(), inviteRef = store.doc('duel_invites/' + id);
   memeHostRoom(roomId, { silent: !!options.silent });
-  memeRoom.peerId = p.networkId;
+  memeRoom.peerId = p.networkId || p.uid;
+  memeRoom.peerUid = p.uid;
   memeRoom.peerName = p.name;
   memeRoom.challengeId = nonce;
   memeRoom.rankOpponentUid = p.uid;
@@ -238,10 +244,21 @@
   pending.timer=setTimeout(()=>{if(pending?.nonce===nonce){cancelInvite();if(!options?.silent)notify('Lời mời hết hạn. Bạn có thể gửi lại.');}},60000);
  }
  async function showIncoming(id,v){
-  if(incoming||busy()||inviteExpiry(v)<=Date.now())return;const snap=await store.doc('duel_players/'+v.from).get(),p=snap.data();if(!snap.exists||!p||incoming||busy())return;
+  if(incoming||busy()||inviteExpiry(v)<=Date.now())return;
+  let p=null;
+  try{
+    const [pSnap,dSnap]=await Promise.all([
+      store.doc('duel_players/'+v.from).get().catch(()=>null),
+      store.doc('duel_directory/'+v.from).get().catch(()=>null)
+    ]);
+    if(pSnap?.exists)p=pSnap.data();
+    else if(dSnap?.exists)p=dSnap.data();
+  }catch(e){console.warn('showIncoming lookup error:',e);}
+  if(!p)p={name:'Đấu sĩ #'+String(v.from).slice(0,5),uid:v.from};
+  if(incoming||busy())return;
   incoming={id,nonce:v.nonce};const box=document.createElement('section');box.id='directDuelInvite';box.className='direct-duel-invite';box.setAttribute('role','dialog');box.setAttribute('aria-label','Lời mời đấu');box.innerHTML='<h3>Lời mời đấu bài</h3><p>'+esc(p.name)+' muốn đấu với bạn.</p><button type="button" class="primary-btn" id="idAcceptInvite">Nhận lời</button><button type="button" class="secondary-btn" id="idDeclineInvite">Từ chối</button><p class="id-invite-error" role="status"></p>';document.body.appendChild(box);
   const clear=()=>{if(incoming?.nonce===v.nonce)incoming=null;box.remove();};
-   const respond=async accept=>{for(const b of box.querySelectorAll('button'))b.disabled=true;try{if(accept&&(busy()||p.protocol!==MEME_RULES_VERSION))throw Error('Bạn đang bận hoặc hai người khác phiên bản.');await publish(true);await store.runTransaction(async tx=>{const ref=store.doc('duel_invites/'+id),latest=(await tx.get(ref)).data();if(!latest||latest.nonce!==v.nonce||latest.status!=='pending'||inviteExpiry(latest)<=Date.now())throw Error('Lời mời đã hết hạn hoặc bị hủy.');tx.update(ref,native({status:accept?'accepted':'declined'}));});if(accept){memeJoinRoom(v.roomId);memeRoom.peerId=p.networkId;memeRoom.peerName=p.name;memeRoom.challengeId=v.nonce;memeRoom.rankOpponentUid=p.uid;}clear();}catch(e){box.querySelector('.id-invite-error').textContent=e.message;for(const b of box.querySelectorAll('button'))b.disabled=false;}};
+   const respond=async accept=>{for(const b of box.querySelectorAll('button'))b.disabled=true;try{if(accept&&busy())throw Error('Bạn đang bận trong một trận đấu khác.');await publish(true);await store.runTransaction(async tx=>{const ref=store.doc('duel_invites/'+id),latest=(await tx.get(ref)).data();if(!latest||latest.nonce!==v.nonce||latest.status!=='pending'||inviteExpiry(latest)<=Date.now())throw Error('Lời mời đã hết hạn hoặc bị hủy.');tx.update(ref,native({status:accept?'accepted':'declined'}));});if(accept){memeJoinRoom(v.roomId);memeRoom.peerId=p.networkId||v.from;memeRoom.peerUid=v.from;memeRoom.peerName=p.name;memeRoom.challengeId=v.nonce;memeRoom.rankOpponentUid=v.from;}clear();}catch(e){box.querySelector('.id-invite-error').textContent=e.message;for(const b of box.querySelectorAll('button'))b.disabled=false;}};
   box.querySelector('#idAcceptInvite').onclick=()=>respond(true);box.querySelector('#idDeclineInvite').onclick=()=>respond(false);setTimeout(clear,Math.max(0,inviteExpiry(v)-Date.now()));
  }
  async function lookup(value){
@@ -284,15 +301,19 @@
  }
  function ghost(p){if(!valid(p)){p.main=[...defaultDeck()];p.extra=[...defaultExtraDeck()];p.heroId=validHero(p.heroId)?p.heroId:0;}startGame({ghost:p});}
   async function challenge(id){
-    if(!identity.user){try{if(typeof identity.login==='function'&&!identity.signing)await Promise.race([identity.login(),new Promise(r=>setTimeout(r,1200))]);}catch(_){}}if(busy())throw Error('Hãy kết thúc hoặc rời trận hiện tại trước khi khiêu chiến.');const p=await lookup(id);
-    if(uid&&online(p)&&memeParent()&&memeMyId()){
+    const idObj=(identity?.user?identity:(window.parent?.siteIdentity||identity));
+    if(!idObj?.user){try{if(typeof idObj?.login==='function'&&!idObj.signing)await Promise.race([idObj.login(),new Promise(r=>setTimeout(r,1200))]);}catch(_){}}
+    if(busy())throw Error('Hãy kết thúc hoặc rời trận hiện tại trước khi khiêu chiến.');
+    const p=await lookup(id);
+    const currentUid=uid||idObj?.user?.uid;
+    if(currentUid&&memeParent()&&memeMyId()){
       try{
         return await invite(p);
       }catch(err){
         console.warn('Online invite unavailable, falling back to ghost deck:', err?.message || err);
         if(window.notify)notify('📨 Chưa gửi được lời mời cho '+String(p.name||'đối thủ')+' ('+String(err?.message||'lỗi kết nối')+'). Đang đấu với bản sao deck.');
       }
-    }else if(window.notify&&uid&&!online(p)){
+    }else if(window.notify&&currentUid&&!online(p)){
       notify('💤 '+String(p.name||'Đối thủ')+' hiện không online. Đang đấu với bản sao deck của họ.');
     }
     ghost(p);
