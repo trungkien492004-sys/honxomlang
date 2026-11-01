@@ -1059,6 +1059,18 @@
 .hand-close{padding:9px;border:0;border-radius:9px;background:#4b5563;color:#fff;font-weight:800;cursor:pointer}
 .board-hand-modal .hand-close:hover{background:#5c6674}
 
+/* ── Bài chiến thuật: nhãn 6 nhóm + trạng thái chưa đủ điều kiện ── */
+.hand-card-cat{align-self:flex-start;font-size:.6rem;font-weight:900;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:1px 8px;background:#ffffff1a;color:#e9e2ff;border:1px solid #ffffff2e}
+.hand-card.cat-attack .hand-card-cat{color:#ffd9d4;border-color:#ff6b5a66;background:#ff6b5a1f}
+.hand-card.cat-defense .hand-card-cat{color:#d4f1ff;border-color:#59c8ff66;background:#59c8ff1f}
+.hand-card.cat-move .hand-card-cat{color:#d4f6ff;border-color:#8ad8ff66;background:#8ad8ff1a}
+.hand-card.cat-trap .hand-card-cat{color:#ffe6c4;border-color:#ffb34766;background:#ffb3471f}
+.hand-card.cat-support .hand-card-cat{color:#d8ffe9;border-color:#7ee0a866;background:#7ee0a81a}
+.hand-card.cat-reverse .hand-card-cat{color:#eadcff;border-color:#c08cff66;background:#c08cff1f}
+.hand-card.hand-card-off{cursor:not-allowed;opacity:.58}
+.hand-card.hand-card-off:hover{transform:none;border-color:#6f5b8f;box-shadow:none}
+.hand-card.hand-card-off .hand-card-use{background:#7a6b8a;color:#f1eaff}
+
 /* ── Thẻ kích hoạt: một thông báo duy nhất có tranh ───────── */
 #bigEventOverlay .notice-card{display:flex;flex-direction:column;align-items:center;gap:7px}
 #bigEventOverlay .notice-card-frame{

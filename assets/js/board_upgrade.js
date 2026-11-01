@@ -23,12 +23,14 @@
  const fight=boardFightMonster;boardFightMonster=(p,card)=>{const defeated=p.weapons>0,result=fight(p,card);if(defeated&&card.reward){p.gold=(p.gold||0)+card.reward;return result+` Nhận ${card.reward} vàng.`;}return result;};
  window.boardProcessTurn=async function(p,roll,callback){const match=boardGame;if(!match||!host()||match.gameOver||!Number.isInteger(roll)||roll<1||roll>6)return;const done=()=>{if(active(match)){checkWinner();window.boardSyncView();window.boardFocusPawn(match.currentTurn);callback?.();}};
   if(p.eliminated)return done();if(p.skipTurn){p.skipTurn=false;window.boardPlayFx?.('sleep',p.pos,'💤');boardAddLog(`😴 ${p.name} mất lượt.`);return done();}
+  // Bot mở màn bằng một lá bài khi thế cờ đòi hỏi, rồi mới lắc — người chơi thấy rõ nó dùng gì.
+  if(p.isBot){try{const handIndex=window.boardBotCardChoice(p);if(handIndex!=null){window.boardPlayHandCard(p.idx,handIndex,true);await wait(650);if(!active(match))return;if(checkWinner())return done();window.boardPushOnlineState();}}catch(err){console.error('Bot card play failed:',err);}}
   const count=Math.min(roll,BOARD_TOTAL_CELLS-1-p.pos);boardAddLog(`🎲 ${p.name}: ${roll} điểm · tiến ${count} ô.`);
   const forkHit=boardForkInPath(p.pos,count),walk=forkHit==null?count:forkHit-p.pos;
   for(let i=0;i<walk;i++){await wait(250);if(!active(match))return;window.boardMovePlayer(p.idx,1,true);}
   if(forkHit!=null){await wait(320);if(!active(match))return;const chose=await new Promise(res=>window.boardChooseBranch(p,forkHit,r=>res(active(match)?r:null)));if(!chose||!active(match))return;if(checkWinner())return done();boardAddLog(`⏳ ${p.name} dừng ở ngã rẽ ô ${forkHit+1} nên ${Math.max(0,count-walk)} bước xúc xắc còn lại bị mất.`);}
   if(!active(match))return;await wait(340);if(!active(match))return;if(checkWinner())return done();
-  if(match.trappedCells[p.pos]){const trapCell=p.pos;delete match.trappedCells[p.pos];window.boardFocusTarget?.(p.idx,1100);window.boardPlayFx?.('trap',trapCell,'BÙM!');window.boardMovePlayer(p.idx,-3,true);boardAddLog(`💣 ${p.name} dẫm bẫy, lùi 3 ô.`,'special');await wait(560);if(!active(match))return;}
+  if(match.trappedCells[p.pos]){const trapCell=p.pos;delete match.trappedCells[p.pos];window.boardFocusTarget?.(p.idx,1100);window.boardPlayFx?.('trap',trapCell,'BÙM!');const warded=!!p.ward;if(warded)p.ward=false;if(!warded)window.boardPushPlayer(p,-3,'bẫy gài');boardAddLog(warded?`🌀 Luân của ${p.name} đỡ quả bẫy ở ô ${trapCell+1}.`:`💣 ${p.name} dẫm bẫy, lùi 3 ô.`,'special');await wait(560);if(!active(match))return;}
   const landed=zone(p);boardHandleCombat(p,()=>{if(!active(match))return;if(checkWinner())return done();if(p.eliminated)return done();const completed=()=>{if(active(match))done();};if(p.pos>=20&&SHOP_ZONES.includes(landed))window.boardHandleShop(p,landed,completed);else window.boardDrawRandomCard(p,landed,completed);});
  };
  window.boardDoRollAnimation=async function(p,callback,roll){const match=boardGame;if(!match)return;const value=Number.isInteger(roll)&&roll>=1&&roll<=6?roll:1+Math.floor(Math.random()*6),dice=document.getElementById('diceDisplay');

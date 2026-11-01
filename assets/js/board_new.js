@@ -218,7 +218,7 @@ const RACE_CARDS = [
               }
           });
           if(nearest) {
-              boardMovePlayer(nearest.idx, -3, true);
+              if (!boardPushPlayer(nearest, -3, 'vỏ chuối')) return `${nearest.name} xoay xở kịp, vỏ chuối trượt.`;
               return `Trượt vỏ chuối! ${nearest.name} lùi 3 ô.`;
           }
           return 'Không có ai gần để ném vỏ chuối.';
@@ -235,14 +235,13 @@ const RACE_CARDS = [
           });
           if(nearest) {
               window.boardFocusTarget && window.boardFocusTarget(nearest.idx, 1000);
-              window.boardPlayFx('steal', nearest.pos, 'Móc ví!');
-              let stolen = Math.min(nearest.gold || 0, 40);
-              nearest.gold = Math.max(0, nearest.gold - stolen);
-              if(nearest.isHuman) boardRefreshHud();
-              
-              p.gold = (p.gold || 0) + stolen;
-              if (p.isHuman) boardRefreshHud();
-              return `Móc ví ${nearest.name}: +${stolen} 🪙.`;
+              if (nearest.ward) {
+                  boardWardBlock(nearest, 'trộm vặt');
+              } else {
+                  const stolen = boardSteal(nearest, p, 40);
+                  if (stolen) return `Móc ví ${nearest.name}: +${stolen} 🪙.`;
+              }
+              return `Ví ${nearest.name} sạch trơn hoặc đã có luân.`;
           }
           return 'Ví ai cũng rỗng.';
       }
@@ -257,6 +256,7 @@ const RACE_CARDS = [
           }
           let target = boardGame.players[nextIdx];
           if (target) {
+              if (boardWardBlock(target, 'bùa ngủ')) return `${target.name} trở giấc, bùa tan.`;
               target.skipTurn = true;
               window.boardFocusTarget && window.boardFocusTarget(target.idx, 1000);
               window.boardPlayFx('sleep', target.pos, '💤');
@@ -270,7 +270,7 @@ const RACE_CARDS = [
           const cand = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
           const leading = cand.length > 0 ? cand.reduce((a, b) => (a.pos > b.pos ? a : b)) : null;
           if (leading) {
-              boardMovePlayer(leading.idx, -4, true);
+              if (!boardPushPlayer(leading, -4, 'bão ngược')) return `${leading.name} ngồi khít, gió luồn qua.`;
               return `Gió thổi ${leading.name} lùi 4 ô.`;
           }
           return 'Không có ai để thổi.';
@@ -281,7 +281,7 @@ const RACE_CARDS = [
           let targets = boardGame.players.filter(x => !x.eliminated && x.idx !== p.idx);
           if (targets.length > 0) {
               let target = targets[Math.floor(Math.random() * targets.length)];
-              boardMovePlayer(target.idx, -2, true);
+              if (!boardPushPlayer(target, -2, 'bom khói')) return `Khói tan, ${target.name} chẳng sao.`;
               return `Bùm! ${target.name} lùi 2 ô.`;
           }
           return 'Bom nổ suông.';
@@ -307,8 +307,12 @@ const RACE_CARDS = [
     },
 
     // 🌪️ SPELL (Ma pháp môi trường vẽ trên ô)
-    { id: 'locxoay', name: "Lốc Xoáy", type: 'spell', rarity: 'common', desc: "Lốc xoáy tự dưng. Lùi 2 ô.", value: -2,
-      effect: function(p) { boardMovePlayer(p.idx, this.value, true); return `Lốc cuốn! Lùi ${Math.abs(this.value)} ô.`; } },
+    { id: 'locxoay', name: "Lốc Xoáy", type: 'spell', cat: 'trap', instant: true, rarity: 'common', desc: "Lốc xoáy tự dưng. Lùi 2 ô.", value: -2,
+      effect: function(p) {
+          if (boardWardBlock(p, 'lốc xoáy')) return 'Luân giữ bạn ở lại mặt đất.';
+          boardMovePlayer(p.idx, this.value, true);
+          return `Lốc cuốn! Lùi ${Math.abs(this.value)} ô.`;
+      } },
 
     // 💣 TRAP (Cạm bẫy)
     { id: 'trap_ho', name: "Hố Chông Trừng Phạt", type: 'trap', rarity: 'rare', desc: "Hố chông nhà ai đào. -1 ♥.", damage: 1,
@@ -361,6 +365,7 @@ const RACE_CARDS = [
                   }
               }
               boardGame.trappedCells[leading.pos] = true;
+              window.boardRefreshCell(leading.pos);
               return `Dời ${trapsRemoved} bẫy, gài 1 quả dưới chân ${leading.name}.`;
           }
           return 'Không có ai dẫn đầu.';
@@ -372,8 +377,265 @@ const RACE_CARDS = [
           boardMovePlayer(p.idx, 2, true);
           return "Có khiên che, tiến 2 ô.";
       }
+    },
+
+    // ⚔️ TẤN CÔNG — đánh thẳng vào nguồn lực/tọa độ đối thủ
+    { id: 'taixang', name: "Tá Xáng Cướp Đường", type: 'fun_spell', cat: 'attack', rarity: 'rare', desc: "Tá xáng cướp 25 🪙 đứa dẫn đầu, nó lùi 1 ô.", cond: { needsTarget: 'leader', notLeader: true },
+      effect: function(p) {
+          const t = boardRival('leader', p);
+          if (!t) return 'Không có đứa dẫn đầu mà cướp.';
+          if (boardWardBlock(t, 'tá xáng')) return `${t.name} bật luân, giữ chặt túi tiền.`;
+          const taken = boardSteal(t, p, 25);
+          boardPushPlayer(t, -1, 'tá xáng');
+          return `${t.name} rơi ${taken} 🪙, lảo đảo lùi 1 ô.`;
+      }
+    },
+    { id: 'nuocman', name: "Nước Mặn Muối Tiêu", type: 'fun_spell', cat: 'attack', rarity: 'common', desc: "Muối ớt đứa sau lưng: lùi 2 ô, rơi 10 🪙.", cond: { needsTarget: 'behind' },
+      effect: function(p) {
+          const t = boardRival('behind', p);
+          if (!t) return 'Chả có đứa nào bám sau.';
+          if (boardWardBlock(t, 'nước mặn')) return `${t.name} trở mặt, muối tiêu trượt hết.`;
+          const taken = boardSteal(t, p, 10);
+          boardPushPlayer(t, -2, 'nước mặn');
+          return `${t.name} cay mắt, lùi 2 ô và rơi ${taken} 🪙.`;
+      }
+    },
+    { id: 'trauliem', name: "Trâu Liêm Gậy Tre", type: 'fun_spell', cat: 'attack', rarity: 'rare', desc: "Quật gậy: đứa gần nhất lùi 4 ô, rớt 1 🛡️.", cond: { char: 'trau', needsTarget: 'nearest' },
+      effect: function(p) {
+          const t = boardRival('nearest', p);
+          if (!t) return 'Vung gậy vào không khí.';
+          if (boardPushPlayer(t, -4, 'gậy tre') && t.shields > 0) {
+              t.shields--;
+              return `${t.name} ăn gậy, lùi 4 ô và vỡ 1 🛡️.`;
+          }
+          return `${t.name} đỡ được cú quật.`;
+      }
+    },
+
+    // 🛡️ PHÒNG THỦ — luân đỡ đòn, khắc chế hiệu ứng
+    { id: 'luanbao', name: "Luân Hộ Mệnh", type: 'fun_spell', cat: 'defense', rarity: 'rare', desc: "Vòng luân vô hình: đỡ nguyên một đòn kế.",
+      effect: function(p) {
+          if (p.ward) return 'Luân đang sáng, đỡ sẵn rồi.';
+          p.ward = true;
+          window.boardPlayFx('shield', p.pos, '🌀 LUÂN');
+          return "Vòng luân bật quanh cổ: đòn tới kế tiếp tan biến.";
+      }
+    },
+    { id: 'mamnim', name: "Mầm Níu Rễ", type: 'fun_spell', cat: 'defense', rarity: 'epic', desc: "Rễ níu: đỡ đòn kế, nở lối bí mật ở ngã rẽ.", cond: { char: 'mam' },
+      effect: function(p) {
+          p.ward = true;
+          const fork = boardForkAt(p.pos);
+          if (fork && fork.routes.indexOf('secret') < 0) {
+              fork.routes.push('secret');
+              window.boardRefreshCell(p.pos);
+              window.boardPlayFx('portal', p.pos, '🌱 LỐI BÍ MẬT');
+              return "Rễ nở: vừa đỡ đòn kế, vừa hé thêm lối bí mật.";
+          }
+          window.boardPlayFx('shield', p.pos, '🌀 LUÂN');
+          return "Rễ bám chặt đất: đỡ một đòn kế tiếp.";
+      }
+    },
+
+    // 👟 DI CHUYỂN
+    { id: 'baocat', name: "Bao Cát Nhảy", type: 'fun_spell', cat: 'move', rarity: 'common', desc: "Bọc cát nhảy 5 ô. Cước phí 30 🪙.", cond: { cost: 30 },
+      effect: function(p) {
+          boardMovePlayer(p.idx, 5, true);
+          return "Bao cát bay qua đầu làng, bỏ luôn ngã rẽ.";
+      }
+    },
+    { id: 'utnut', name: "Út Nổ Máy", type: 'fun_spell', cat: 'move', rarity: 'rare', desc: "Nổ máy tiến 4 ô. Không dành cho người dẫn đầu.", cond: { char: 'ut', notLeader: true },
+      effect: function(p) {
+          boardMovePlayer(p.idx, 4, true);
+          window.boardPlayFx('forward', p.pos, 'BÙ BÙ!', { count: 8 });
+          return "Pít nổ 4 nhịp, Út vít ga tiến 4 ô.";
+      }
+    },
+
+    // 💣 BẪY — gài chướng ngại vật
+    { id: 'gaibay', name: "Gài Bẫy Sau Lưng", type: 'fun_spell', cat: 'trap', rarity: 'rare', desc: "Gài 1 bẫy ngay sau chân đứa dẫn đầu.", cond: { needsTarget: 'leader', notLeader: true },
+      effect: function(p) {
+          const t = boardRival('leader', p);
+          if (!t) return 'Không có ai để gài.';
+          for (let off = 4; off >= 2; off--) {
+              const cell = t.pos + off;
+              if (cell <= 0 || cell >= BOARD_TOTAL_CELLS - 1) continue;
+              if (boardForkAt(cell) || boardGame.trappedCells[cell]) continue;
+              boardGame.trappedCells[cell] = true;
+              window.boardRefreshCell(cell);
+              window.boardPlayFx('trap', cell, 'GÀI!');
+              return `Gài 1 quả ở ô ${cell + 1}, ngay sau ${t.name}.`;
+          }
+          return 'Đường sau lưng nó trống trơn, chả gài được.';
+      }
+    },
+
+    // ❤️ HỖ TRỢ
+    { id: 'hoitang', name: "Hồi Tâm Ngụm Sương", type: 'fun_spell', cat: 'support', rarity: 'epic', desc: "Uống ngụm sương: +1 ❤. Đầy máu thì +2 🗡️.",
+      effect: function(p) {
+          if (p.lives < 3) {
+              p.lives++;
+              window.boardRenderLivesHud();
+              window.boardPlayFx('heal', p.pos, '+1 ❤️');
+              return `Hồi lại 1 ❤️ (còn ${p.lives}).`;
+          }
+          p.weapons += 2;
+          window.boardPlayFx('weapon', p.pos, '+2 🗡️');
+          return "Máu đầy rồi, biến sương thành 2 🗡️.";
+      }
+    },
+
+    // 🔄 ĐẢO NGƯỢC TÌNH THẾ
+    { id: 'daingo', name: "Đảo Ngựa", type: 'fun_spell', cat: 'reverse', rarity: 'epic', desc: "Đổi chỗ với đứa dẫn đầu: ai ăn ô của nấy.", cond: { notLeader: true },
+      effect: function(p) {
+          const t = boardRival('leader', p);
+          if (!t || t.pos <= p.pos) return 'Chả còn đứa nào đi trước bạn để đổi.';
+          const mine = p.pos;
+          window.boardTeleportPlayer(p, t.pos);
+          window.boardTeleportPlayer(t, mine);
+          return `Nhảy lên ô ${t.pos + 1}, đẩy ${t.name} về ô ${mine + 1}.`;
+      }
+    },
+    { id: 'gomai', name: "Gạt Mài Cướp Kiếm", type: 'fun_spell', cat: 'reverse', rarity: 'rare', desc: "Cắt tiết: phá 🛡️/luân, giật 1 🗡️ đứa gần nhất.", cond: { needsTarget: 'nearest' },
+      effect: function(p) {
+          const t = boardRival('nearest', p);
+          if (!t) return 'Gạt vào không khí.';
+          let broke = [];
+          if (t.ward) { t.ward = false; broke.push('luân'); }
+          if (t.shields > 0) { t.shields--; broke.push('🛡️'); }
+          if (t.weapons > 0) { t.weapons--; p.weapons++; broke.push('1 🗡️'); }
+          window.boardFocusTarget && window.boardFocusTarget(t.idx, 900);
+          if (!broke.length) return `${t.name} tay trắng, chẳng cướp nổi gì.`;
+          return `Phá ${broke.join(', ')} của ${t.name}.`;
+      }
+    },
+    { id: 'kienxen', name: "Kiên Đi Xe Tăng", type: 'fun_spell', cat: 'reverse', rarity: 'epic', desc: "San ủi bẫy quanh ô, đứa dẫn đầu lùi 2 ô.", cond: { char: 'kien' },
+      effect: function(p) {
+          let cleared = 0;
+          for (let i = Math.max(0, p.pos - 3); i <= Math.min(BOARD_TOTAL_CELLS - 1, p.pos + 3); i++) {
+              if (boardGame.trappedCells[i]) { delete boardGame.trappedCells[i]; window.boardRefreshCell(i); cleared++; }
+          }
+          const t = boardRival('leader', p);
+          const pushed = t ? boardPushPlayer(t, -2, 'xe tăng') : false;
+          if (cleared && pushed) return `Cán qua ${cleared} quả bẫy, húc ${t.name} lùi 2 ô.`;
+          if (cleared) return `Cán phẳng ${cleared} quả bẫy quanh ô.`;
+          if (pushed) return `Húc ${t.name} lùi 2 ô.`;
+          return 'Xe tăng chạy không, chẳng cán được gì.';
+      }
     }
 ];
+
+// ── Phân nhóm chiến thuật + điều kiện dùng thẻ ────────────────
+// 6 nhóm theo thiết kế: Tấn Công / Phòng Thủ / Di Chuyển / Bẫy / Hỗ Trợ / Đảo Tình Thế.
+const BOARD_TACTIC_CATS = {
+    attack:  { name: 'Tấn Công',       icon: '⚔️', dark: '#4a1410' },
+    defense: { name: 'Phòng Thủ',      icon: '🛡️', dark: '#0d2f3f' },
+    move:    { name: 'Di Chuyển',      icon: '👟', dark: '#102a3f' },
+    trap:    { name: 'Bẫy',            icon: '💣', dark: '#3a1d07' },
+    support: { name: 'Hỗ Trợ',         icon: '❤️', dark: '#0f3a28' },
+    reverse: { name: 'Đảo Tình Thế',   icon: '🔄', dark: '#241740' }
+};
+
+// Thẻ instant luôn tự nổ khi lật trên ô (quái, bẫy, lốc) — phần còn lại rơi vào tay.
+const BOARD_LEGACY_CATS = {
+    soi: ['attack', true], cuongthi: ['attack', true], rong: ['attack', true],
+    kiem: ['attack'], cung: ['attack'], khien_go: ['defense'], khien_thep: ['defense'], cuuthuong: ['support'],
+    cuongphong: ['move'], ruongvang: ['support'], dichchuyen: ['move'], vochuoi: ['attack'], tromvang: ['attack'],
+    sieuquay: ['attack'], giasam: ['attack'], boombip: ['attack'], tocbientuong: ['move'], trollportal: ['reverse'],
+    locxoay: ['trap', true], trap_ho: ['trap', true], trap_set: ['trap', true],
+    huydebuff: ['reverse'], trombai: ['reverse'], doidat: ['trap'], baohothanky: ['defense']
+};
+RACE_CARDS.forEach(c => {
+    const legacy = BOARD_LEGACY_CATS[c.id];
+    if (legacy && !c.cat) { c.cat = legacy[0]; c.instant = !!legacy[1]; }
+});
+
+const BOARD_HAND_LIMIT = 5;
+
+window.boardCharIdAt = function(idx) {
+    return (BOARD_CHARACTERS[idx] || BOARD_CHARACTERS[0] || {}).id || 'trau';
+};
+
+function boardLivingRivals(p) {
+    return (boardGame ? boardGame.players : []).filter(x => x && x.idx !== p.idx && !x.eliminated);
+}
+
+// Mục tiêu hợp lệ cho thẻ: leader/last/nearest/ahead/behind.
+function boardRival(kind, p) {
+    const rivals = boardLivingRivals(p);
+    if (!rivals.length) return null;
+    const nearestOf = list => list.length ? list.reduce((a, b) => (Math.abs(a.pos - p.pos) <= Math.abs(b.pos - p.pos) ? a : b)) : null;
+    if (kind === 'leader') return rivals.reduce((a, b) => (a.pos >= b.pos ? a : b));
+    if (kind === 'last') return rivals.reduce((a, b) => (a.pos <= b.pos ? a : b));
+    if (kind === 'ahead') return nearestOf(rivals.filter(x => x.pos > p.pos));
+    if (kind === 'behind') return nearestOf(rivals.filter(x => x.pos < p.pos));
+    return nearestOf(rivals);
+}
+
+function boardIsFrontRunner(p) {
+    const all = (boardGame ? boardGame.players : []).filter(x => x && !x.eliminated);
+    if (!all.length) return true;
+    const top = all.reduce((a, b) => (a.pos >= b.pos ? a : b));
+    return p.idx === top.idx;
+}
+
+window.boardWardBlock = function(t, reason) {
+    if (!t || !t.ward) return false;
+    t.ward = false;
+    window.boardPlayFx('shield', t.pos, 'LUÂN!');
+    boardAddLog(`🌀 Luân của ${t.name} tan biến vì ${reason || 'một đòn'}.`, 'card');
+    return true;
+};
+
+// Đẩy/lùi có kiểm tra luân: mọi thẻ tấn công đều đi qua đây.
+window.boardPushPlayer = function(t, steps, reason) {
+    if (!t || t.eliminated) return false;
+    if (steps < 0 && window.boardWardBlock(t, reason)) return false;
+    window.boardMovePlayer(t.idx, steps, true);
+    return true;
+};
+
+window.boardSteal = function(from, to, amount) {
+    if (!from || !to || !((from.gold || 0) > 0)) return 0;
+    if (window.boardWardBlock(from, 'vụ cướp')) return 0;
+    const taken = Math.max(0, Math.min(from.gold || 0, amount));
+    from.gold = Math.max(0, (from.gold || 0) - taken);
+    to.gold = (to.gold || 0) + taken;
+    window.boardPlayFx('steal', from.pos, `-${taken}🪙`);
+    if (from.isHuman || to.isHuman) boardRefreshHud();
+    return taken;
+};
+
+// Một người chỉ đánh 1 lá mỗi lượt → không ai dồn combo áp đảo cả bàn.
+window.boardCardPlayable = function(p, card) {
+    if (!p || p.eliminated) return { ok: false, why: 'Hết mạng rồi, đánh với ai?' };
+    if (!card) return { ok: false, why: 'Không có lá bài nào.' };
+    const def = RACE_CARDS.find(c => c.id === card.id) || card;
+    const cond = def.cond || {};
+    if (cond.char && window.boardCharIdAt(p.idx) !== cond.char) {
+        const owner = (BOARD_CHARACTERS.find(c => c.id === cond.char) || {}).name || cond.char;
+        return { ok: false, why: `Bài riêng của ${owner}.` };
+    }
+    if (boardGame && p.lastCardTurn === boardGame.turnNo) return { ok: false, why: 'Mỗi lượt chỉ dùng 1 lá.' };
+    if (cond.cost && (p.gold || 0) < cond.cost) return { ok: false, why: `Cần ${cond.cost} 🪙.` };
+    if (cond.needWeapon && !(p.weapons > 0)) return { ok: false, why: 'Cần ít nhất 1 🗡️.' };
+    if (cond.needShield && !(p.shields > 0)) return { ok: false, why: 'Cần ít nhất 1 🛡️.' };
+    if (cond.notLeader && boardIsFrontRunner(p)) return { ok: false, why: 'Người dẫn đầu không được dùng.' };
+    if (cond.needsTarget && !boardRival(cond.needsTarget, p)) return { ok: false, why: 'Hết mục tiêu hợp lệ.' };
+    return { ok: true };
+};
+
+window.boardGainCard = function(p, card, reason) {
+    if (!p || !card) return 'Tay không bắt được gió.';
+    p.hand = p.hand || [];
+    if (p.hand.length >= BOARD_HAND_LIMIT) {
+        p.gold = (p.gold || 0) + 20;
+        if (p.isHuman) boardRefreshHud();
+        return `Tay đã đầy ${BOARD_HAND_LIMIT} lá, bán [${card.name}] lấy 20 🪙.`;
+    }
+    p.hand.push(card);
+    if (p.isHuman) boardRefreshHud();
+    return `Thu vào tay${reason ? ` khi qua ${reason}` : ''}.`;
+};
 
 // ── Hình minh họa + hiệu ứng kích hoạt thẻ bài ───────────────
 const BOARD_CARD_EMOJI = {
@@ -382,7 +644,9 @@ const BOARD_CARD_EMOJI = {
     cuongphong: '🌪️', ruongvang: '💰', dichchuyen: '🔀', vochuoi: '🍌', tromvang: '🧤',
     sieuquay: '😴', giasam: '🌬️', boombip: '💣', tocbientuong: '💨', trollportal: '🌀',
     locxoay: '🌪️', trap_ho: '🕳️', trap_set: '⚡', huydebuff: '🍋', trombai: '🃏',
-    doidat: '🧨', baohothanky: '🍲'
+    doidat: '🧨', baohothanky: '🍲',
+    taixang: '⛏️', nuocman: '🧂', trauliem: '🎍', luanbao: '💫', mamnim: '🌱', baocat: '🎒',
+    utnut: '🛵', gaibay: '🪤', hoitang: '🧉', daingo: '♟️', gomai: '🪒', kienxen: '🚜'
 };
 
 const BOARD_CARD_CAPTIONS = {
@@ -391,7 +655,9 @@ const BOARD_CARD_CAPTIONS = {
     cuongphong: 'VÙ!', ruongvang: '+50!', dichchuyen: 'TRÁO!', vochuoi: 'TRƯỢT!', tromvang: 'MÓC!',
     sieuquay: 'NGÁP!', giasam: 'THỔI!', boombip: 'BÙM!', tocbientuong: 'VÈO!', trollportal: 'XUYÊN!',
     locxoay: 'XOÁY!', trap_ho: 'HỰ!', trap_set: 'ĐOÀNG!', huydebuff: 'TỈNH!', trombai: 'GIẬT!',
-    doidat: 'GÀI!', baohothanky: 'CHE!'
+    doidat: 'GÀI!', baohothanky: 'CHE!',
+    taixang: 'CƯỚP!', nuocman: 'CAY!', trauliem: 'QUẬT!', luanbao: 'ĐỠ!', mamnim: 'NỞ!', baocat: 'BAY!',
+    utnut: 'BÙ BÙ!', gaibay: 'KẸP!', hoitang: 'UỐNG!', daingo: 'ĐẢO!', gomai: 'CẮT!', kienxen: 'CÁN!'
 };
 
 const BOARD_CARD_ACCENT = {
@@ -400,7 +666,9 @@ const BOARD_CARD_ACCENT = {
     cuongphong: '#8ad8ff', ruongvang: '#ffd66b', dichchuyen: '#b49be8', vochuoi: '#ffe36b', tromvang: '#c8f4a0',
     sieuquay: '#b39ddb', giasam: '#8ec9d8', boombip: '#a8b0bd', tocbientuong: '#8ad8ff', trollportal: '#c08cff',
     locxoay: '#8ab6f0', trap_ho: '#c98b45', trap_set: '#ffe36b', huydebuff: '#ffe36b', trombai: '#ffb3c6',
-    doidat: '#ff9f43', baohothanky: '#ffd66b'
+    doidat: '#ff9f43', baohothanky: '#ffd66b',
+    taixang: '#ff9f43', nuocman: '#ffd08a', trauliem: '#d9a066', luanbao: '#8ad8ff', mamnim: '#8fe08f', baocat: '#e8c48a',
+    utnut: '#6fb8ff', gaibay: '#ffb347', hoitang: '#7ee0a8', daingo: '#c08cff', gomai: '#c8d4de', kienxen: '#6fd08f'
 };
 
 const BOARD_CARD_TINTS = {
@@ -652,6 +920,116 @@ const BOARD_CARD_PROPS = {
         <path d="M34,102 Q60,110 86,102" fill="none" stroke="#201827" stroke-width="4"/>
         <path d="M40,16 q3,-8 6,0 q3,-8 6,0 M86,44 q3,-8 6,0 q3,-8 6,0" fill="#fff" stroke="#c98b45" stroke-width="1.6"/>
     </g>`,
+    taixang: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M28,16 L34,66 Q44,74 54,66 L48,16 Z" fill="#9fb7c9"/>
+        <rect x="26" y="4" width="24" height="12" rx="5" fill="#7a5230"/>
+        <path d="M40,70 L42,98" stroke="#c98b45" stroke-width="9"/>
+        <ellipse cx="84" cy="96" rx="26" ry="10" fill="#3a2414"/>
+        <circle cx="76" cy="90" r="8" fill="#ffd66b"/><circle cx="94" cy="94" r="8" fill="#ffd66b"/>
+        <path d="M76,88 l4,4 M94,92 l4,4" stroke="#c98b45" stroke-width="2.4"/>
+        <path d="M58,30 q12,-8 24,-2 M54,52 q14,-8 28,-2" stroke="#ffe36b" stroke-width="3" fill="none"/>
+        <path d="M76,12 l6,-8 l1,10 l9,-3" fill="#ffb347"/>
+    </g>`,
+    nuocman: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M32,42 L28,98 Q28,106 36,106 L56,106 Q64,106 64,98 L60,42 Z" fill="#f4f7fa"/>
+        <rect x="32" y="26" width="28" height="16" rx="5" fill="#8e9aa8"/>
+        <path d="M40,16 v9 M50,13 v11 M60,17 v8" stroke="#c8d4de" stroke-width="3"/>
+        <path d="M76,36 q18,6 14,28 q-4,20 -20,14 q-6,-16 6,-42 Z" fill="#ff5a4f"/>
+        <path d="M80,34 q4,-12 14,-10" stroke="#8fe08f" stroke-width="4" fill="none"/>
+        <path d="M64,62 q10,6 18,0" stroke="#ffe36b" stroke-width="3" fill="none"/>
+        <circle cx="98" cy="86" r="4" fill="#fff"/><circle cx="106" cy="70" r="3" fill="#fff"/>
+        <path d="M16,58 l-6,10 M22,42 l-8,8" stroke="#c8f4ff" stroke-width="3"/>
+    </g>`,
+    trauliem: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <g transform="rotate(-24 60 60)">
+            <rect x="54" y="10" width="12" height="100" rx="5" fill="#8fe08f"/>
+            <path d="M54,34 h12 M54,60 h12 M54,86 h12" stroke="#2f5a2f" stroke-width="3"/>
+            <circle cx="60" cy="12" r="7" fill="#d9a066"/>
+        </g>
+        <path d="M12,48 q12,-16 30,-12 M90,76 q16,8 18,24" stroke="#ffe36b" stroke-width="4" fill="none"/>
+        <path d="M84,24 l11,-7 l-2,12 l11,3" fill="#ffb347"/>
+        <ellipse cx="30" cy="100" rx="18" ry="7" fill="#3a4250"/>
+        <path d="M20,94 q7,-11 15,-3 q9,-8 13,5" fill="none" stroke="#8e9aa8" stroke-width="3"/>
+    </g>`,
+    luanbao: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="60" cy="54" r="15" fill="#ffe0bd"/>
+        <path d="M45,50 Q50,34 60,36 Q72,34 75,50 L70,44 Q60,38 50,44 Z" fill="#3a2414"/>
+        <circle cx="55" cy="54" r="2.4" fill="#201827"/><circle cx="66" cy="54" r="2.4" fill="#201827"/>
+        <path d="M48,72 L72,72 L68,104 L52,104 Z" fill="#59c8ff"/>
+        <path d="M22,58 Q14,32 40,18 Q66,6 90,24 Q110,42 96,70 Q82,96 52,96 Q24,94 22,58 Z" fill="none" stroke="#8ad8ff" stroke-width="5" opacity=".85"/>
+        <path d="M96,70 q10,4 12,14 M22,58 q-12,2 -14,12" stroke="#c8f4ff" stroke-width="3" fill="none"/>
+        <circle cx="90" cy="16" r="4" fill="#ffe36b"/><circle cx="26" cy="22" r="3" fill="#ffe36b"/>
+    </g>`,
+    mamnim: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M60,94 L60,52" stroke="#8fe08f" stroke-width="8"/>
+        <path d="M60,58 Q40,50 34,26 Q58,30 60,50 Q64,28 86,22 Q82,50 60,58 Z" fill="#b6e88f"/>
+        <ellipse cx="60" cy="98" rx="32" ry="9" fill="#3a2414"/>
+        <path d="M60,98 Q44,102 28,114 M60,98 Q76,102 92,114 M60,98 L60,116" stroke="#7a5230" stroke-width="5"/>
+        <path d="M22,64 q-10,6 -8,16 M98,64 q10,6 8,16" stroke="#ffe36b" stroke-width="3" fill="none"/>
+        <circle cx="32" cy="82" r="3.5" fill="#c8f4ff"/><circle cx="88" cy="82" r="3.5" fill="#c8f4ff"/>
+    </g>`,
+    baocat: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M34,44 Q26,88 60,92 Q94,88 86,44 Q76,32 60,32 Q44,32 34,44 Z" fill="#e8c48a"/>
+        <path d="M44,30 L52,12 L60,26 L68,10 L76,30" fill="#c98b45"/>
+        <ellipse cx="51" cy="50" rx="4" ry="5" fill="#201827"/><ellipse cx="69" cy="50" rx="4" ry="5" fill="#201827"/>
+        <path d="M50,66 Q60,74 70,66" fill="none" stroke="#201827" stroke-width="3"/>
+        <path d="M16,96 q14,-10 28,-2 M76,94 q14,-8 28,2" stroke="#c8d4de" stroke-width="4" fill="none" opacity=".8"/>
+        <path d="M20,22 l7,10 M100,26 l-7,10" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    utnut: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <circle cx="30" cy="88" r="17" fill="#3a4250"/><circle cx="30" cy="88" r="6" fill="#9fb7c9"/>
+        <circle cx="92" cy="88" r="17" fill="#3a4250"/><circle cx="92" cy="88" r="6" fill="#9fb7c9"/>
+        <path d="M28,74 L58,74 L70,52 L88,52 L92,74" fill="#6fb8ff"/>
+        <path d="M58,74 Q62,58 76,56" fill="none" stroke="#201827" stroke-width="5"/>
+        <rect x="64" y="34" width="18" height="14" rx="6" fill="#ffe0bd"/>
+        <path d="M68,32 q6,-8 14,-2" stroke="#3a2414" stroke-width="4" fill="none"/>
+        <path d="M14,58 l-10,4 M12,70 l-12,2 M18,46 l-10,-6" stroke="#ffe36b" stroke-width="3.4"/>
+        <circle cx="94" cy="24" r="4" fill="#fff" opacity=".7"/><circle cx="108" cy="16" r="5" fill="#fff" opacity=".45"/>
+    </g>`,
+    gaibay: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <ellipse cx="60" cy="86" rx="42" ry="14" fill="#5d6b7a"/>
+        <path d="M22,82 L28,54 L36,80 L44,50 L52,80 L60,46 L68,80 L76,50 L84,80 L92,54 L98,82 Z" fill="#c8d4de"/>
+        <path d="M22,90 L28,112 L36,92 L46,114 L56,92 L66,114 L76,92 L86,112 L92,90" fill="#8e9aa8"/>
+        <path d="M60,46 Q50,24 66,14 Q84,8 90,24" fill="none" stroke="#c98b45" stroke-width="4"/>
+        <circle cx="92" cy="28" r="7" fill="#ffd66b"/>
+        <path d="M12,42 q12,-10 26,-8 M106,46 q-8,-10 -20,-10" stroke="#ffe36b" stroke-width="3" fill="none"/>
+    </g>`,
+    hoitang: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M50,18 L70,18 L70,30 Q90,40 90,64 Q90,96 60,100 Q30,96 30,64 Q30,40 50,30 Z" fill="#c98b45"/>
+        <rect x="48" y="8" width="24" height="11" rx="4" fill="#7a5230"/>
+        <path d="M46,62 Q54,52 60,62 Q66,52 74,62 Q66,78 60,68 Q54,78 46,62 Z" fill="#ff8fa3"/>
+        <path d="M18,44 q6,-10 12,0 q-6,-4 -12,0 M92,76 q6,-10 12,0 q-6,-4 -12,0" fill="#c8f4ff"/>
+        <path d="M22,98 q8,-6 16,0 M84,104 q8,-6 16,0" stroke="#7ee0a8" stroke-width="3" fill="none"/>
+    </g>`,
+    daingo: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M42,98 L42,72 Q28,64 34,46 Q38,32 52,24 L48,12 L64,20 Q80,28 80,50 L80,98 Z" fill="#f4f7fa"/>
+        <circle cx="58" cy="38" r="3.4" fill="#201827"/>
+        <path d="M66,50 l12,6" stroke="#201827" stroke-width="3"/>
+        <path d="M16,38 q16,-16 34,-6 M104,86 q-16,16 -34,6" stroke="#c08cff" stroke-width="4" fill="none"/>
+        <path d="M50,32 l-8,-6 l3,12 Z M70,92 l8,6 l-3,-12 Z" fill="#c08cff"/>
+        <path d="M88,24 l10,-4 M94,38 l12,2" stroke="#ffe36b" stroke-width="3"/>
+    </g>`,
+    gomai: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M18,72 L74,28 L88,48 L32,92 Z" fill="#c8d4de"/>
+        <path d="M18,72 L32,92 L16,86 Z" fill="#8e9aa8"/>
+        <path d="M74,28 L88,48" stroke="#fff" stroke-width="3"/>
+        <g transform="rotate(18 92 62)">
+            <rect x="84" y="36" width="12" height="44" rx="5" fill="#c98b45"/>
+            <rect x="74" y="76" width="32" height="9" rx="3" fill="#ffd66b"/>
+        </g>
+        <path d="M28,32 q12,-12 26,-6 M92,96 q-12,10 -26,4" stroke="#ffe36b" stroke-width="3" fill="none"/>
+        <path d="M52,100 l8,-8 l5,11" fill="#ff8fa3"/>
+    </g>`,
+    kienxen: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+        <rect x="14" y="60" width="92" height="26" rx="11" fill="#4f7a5a"/>
+        <rect x="40" y="38" width="36" height="24" rx="7" fill="#5f8f6a"/>
+        <rect x="70" y="44" width="40" height="9" rx="4" fill="#3a4250"/>
+        <circle cx="28" cy="73" r="8" fill="#201827"/><circle cx="52" cy="73" r="8" fill="#201827"/>
+        <circle cx="76" cy="73" r="8" fill="#201827"/><circle cx="98" cy="73" r="8" fill="#201827"/>
+        <path d="M12,88 Q60,104 108,88" fill="none" stroke="#201827" stroke-width="4"/>
+        <path d="M18,32 q9,-12 22,-7 M96,22 q-11,-8 -24,-3" stroke="#ffe36b" stroke-width="3" fill="none"/>
+        <path d="M10,52 l-6,-10 M108,58 l10,-8" fill="#ffb347"/>
+    </g>`,
     _default: `<g stroke="#201827" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
         <rect x="38" y="20" width="44" height="64" rx="6" fill="#f4f7fa" transform="rotate(-6 60 52)"/>
         <path d="M52,40 Q60,28 68,40 Q60,54 52,40 Z" fill="#ff8fa3"/>
@@ -685,8 +1063,9 @@ function boardCardArtSvg(card) {
     const id = (card && card.id) || '_default';
     if (_boardCardArtCache[id]) return _boardCardArtCache[id];
     const type = (card && card.type) || 'fun_spell';
+    const cat = (card && card.cat) || (BOARD_LEGACY_CATS[id] || [])[0];
     const tint = BOARD_CARD_ACCENT[id] || (BOARD_CARD_TINTS[type] || BOARD_CARD_TINTS.fun_spell)[0];
-    const dark = (BOARD_CARD_TINTS[type] || BOARD_CARD_TINTS.fun_spell)[1];
+    const dark = (BOARD_TACTIC_CATS[cat] || {}).dark || (BOARD_CARD_TINTS[type] || BOARD_CARD_TINTS.fun_spell)[1];
     const prop = BOARD_CARD_PROPS[id] || BOARD_CARD_PROPS._default;
     const caption = BOARD_CARD_CAPTIONS[id] || 'HẢ?!';
     const rays = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((a, i) => {
@@ -761,7 +1140,7 @@ function boardPlayCardEventFx(card, p, result) {
     else if (/lùi/i.test(text)) window.boardPlayFx('back', pos, '');
     else if (/Xuyên không|Đổi chỗ/i.test(text)) window.boardPlayFx('portal', pos, '🌀');
     else if (/ngáp|dính bùa/i.test(text)) window.boardPlayFx('sleep', pos, '💤');
-    else window.boardPlayFx('card', pos, '');
+    else window.boardPlayFx('card', pos, (BOARD_TACTIC_CATS[card.cat] || {}).icon || '');
 }
 
 window.boardShuffleDeck = function() {
@@ -785,6 +1164,12 @@ function boardFightMonster(p, card) {
 // Hàm Xử lý Mất Mạng
 function boardTakeDamage(p, amount, reason) {
     window.boardFocusTarget && window.boardFocusTarget(p.idx);
+    if (p.ward) {
+        p.ward = false;
+        window.boardPlayFx('shield', p.pos, 'LUÂN!');
+        boardAddLog(`🌀 Luân của ${p.name} tan biến vì ${reason}.`, 'card');
+        return `🌀 Luân đỡ trọn đòn (${reason}).`;
+    }
     if (p.shields > 0) {
         p.shields--;
         window.boardPlayFx('shield', p.pos, 'Đỡ!');
@@ -833,14 +1218,21 @@ window.boardDrawRandomCard = function(p, reason, callback) {
     if(!pool.length) pool = RACE_CARDS;
     let card = pool[Math.floor(Math.random() * pool.length)];
 
-    const applied = boardRunCardEffect(card, p);
-    const result = applied.result;
-    if (!applied.fx) boardPlayCardEventFx(card, p, result);
-
-    boardAddLog(`🃏 ${p.name} lật [${card.name}]: ${result}`, 'card');
+    const applied = card.instant ? boardRunCardEffect(card, p) : null;
+    let result, title;
+    if (applied) {
+        result = applied.result;
+        if (!applied.fx) boardPlayCardEventFx(card, p, result);
+        boardAddLog(`🃏 ${p.name} lật [${card.name}]: ${result}`, 'card');
+    } else {
+        // Bài chiến thuật rơi vào tay để người chơi tự chọn thời điểm, trừ khi tay đã đầy.
+        result = window.boardGainCard(p, card, reason);
+        window.boardPlayFx('card', p.pos, '🎴');
+        boardAddLog(`🎴 ${p.name} nhặt [${card.name}]: ${result}`, 'card');
+    }
+    title = `${window.boardCardIcon(card)} ${card.name}`;
 
     // Thả hiệu ứng lên bàn trước, chờ camera lia tới đúng quân rồi mới mở thẻ.
-    const title = `${window.boardCardIcon(card)} ${card.name}`;
     const body = window.boardCardNoticeBody(card, reason);
     const extra = `👉 ${result}`;
     const show = () => window.boardShowBigNotice(title, body, extra, callback);
@@ -1317,15 +1709,21 @@ window.boardMovePlayer = function(idx, steps, animate) {
     }
 };
 
-// ── Bài trên tay (Hand Cards) — 5 lá có lợi ngẫu nhiên/người, dùng bất cứ lúc nào ──
-function boardDealHand(count) {
-    // Chỉ chia bài ma pháp vui nhộn (fun_spell), không có khiên kiếm mạng
-    let pool = RACE_CARDS.filter(c => c.type === 'fun_spell');
-    let hand = [];
-    for (let i = 0; i < count; i++) {
+// ── Bài trên tay — tối đa 5 lá, mỗi nhân vật mở màn bằng bài signature ──
+function boardDealHand(count, charIdx) {
+    const charId = window.boardCharIdAt(charIdx || 0);
+    const signature = RACE_CARDS.filter(c => c.cat && !c.instant && c.cond && c.cond.char === charId);
+    const pool = RACE_CARDS.filter(c => c.cat && !c.instant && !(c.cond && c.cond.char));
+    const hand = signature.slice(0, 1);
+    while (hand.length < count && pool.length) {
         hand.push(pool[Math.floor(Math.random() * pool.length)]);
     }
     return hand;
+}
+window.boardHandLimit = BOARD_HAND_LIMIT;
+
+function boardCardDef(card) {
+    return (card && card.id && RACE_CARDS.find(c => c.id === card.id)) || card;
 }
 
 window.boardOpenHandPanel = function() {
@@ -1338,7 +1736,7 @@ window.boardOpenHandPanel = function() {
 
     let box = document.createElement('div');
     box.className = 'board-hand-box';
-    box.innerHTML = `<div class="hand-head"><span>🎴 Bài Trên Tay (${human.hand.length})</span><small>Dùng trước khi lắc xúc xắc</small></div>`;
+    box.innerHTML = `<div class="hand-head"><span>🎴 Bài Trên Tay (${human.hand.length}/${BOARD_HAND_LIMIT})</span><small>${human.ward ? '🌀 Luân đang sáng · ' : ''}Mỗi lượt chỉ dùng 1 lá</small></div>`;
 
     if (human.hand.length === 0) {
         let empty = document.createElement('div');
@@ -1349,16 +1747,22 @@ window.boardOpenHandPanel = function() {
 
     const grid = document.createElement('div');
     grid.className = 'hand-grid';
-    human.hand.forEach((card, i) => {
+    human.hand.forEach((rawCard, i) => {
+        const card = boardCardDef(rawCard);
+        const gate = window.boardCardPlayable(human, card);
+        const cat = BOARD_TACTIC_CATS[card.cat] || { name: 'Chiến Thuật', icon: '🎴' };
         let tile = document.createElement('button');
         tile.type = 'button';
-        tile.className = `hand-card rarity-${card.rarity || 'common'}`;
+        tile.className = `hand-card rarity-${card.rarity || 'common'} cat-${card.cat || 'support'}${gate.ok ? '' : ' hand-card-off'}`;
+        tile.disabled = !gate.ok;
         tile.innerHTML = `
             <span class="hand-card-art" style="background-image:url('${window.boardCardArtUrl(card)}')"></span>
+            <span class="hand-card-cat">${cat.icon} ${_boardEsc(cat.name)}</span>
             <span class="hand-card-top">${window.boardCardIcon(card)} ${_boardEsc(card.name)}</span>
             <span class="hand-card-desc">${_boardEsc(card.desc)}</span>
-            <span class="hand-card-use">Dùng ngay</span>`;
+            <span class="hand-card-use">${gate.ok ? 'Dùng ngay' : _boardEsc(gate.why || 'Chưa dùng được')}</span>`;
         tile.onclick = () => {
+            if (!window.boardCardPlayable(human, card).ok) return;
             modal.remove();
             window.boardUseHandCard(human.idx, i);
         };
@@ -1376,25 +1780,38 @@ window.boardOpenHandPanel = function() {
     document.body.appendChild(modal);
 };
 
-window.boardUseHandCard = function(playerIdx, handIndex) {
+// Chơi lá thứ i. Trả về {ok:false, why} khi điều kiện không cho phép, {ok:true, result} khi hiệu ứng đã chạy.
+window.boardPlayHandCard = function(playerIdx, handIndex, silent) {
     let p = boardGame.players[playerIdx];
-    if (!p || !p.hand || !p.hand[handIndex]) return;
-    let card = p.hand[handIndex];
-    p.hand.splice(handIndex, 1);
+    if (!p || !p.hand || !p.hand[handIndex]) return { ok: false, why: 'Không có lá bài đó.' };
+    const card = p.hand[handIndex];
 
     // Look up original definition to restore functions lost in JSON serialization over network
-    const origCard = RACE_CARDS.find(c => c.id === card.id) || card;
+    const origCard = boardCardDef(card);
     if (typeof origCard.effect !== 'function') {
         console.error('Card effect function not found for card:', card);
-        return;
+        return { ok: false, why: 'Lỗi thẻ.' };
     }
+    const gate = window.boardCardPlayable(p, origCard);
+    if (!gate.ok) return gate;
+
+    p.hand.splice(handIndex, 1);
+    const cost = (origCard.cond && origCard.cond.cost) || 0;
+    if (cost) p.gold = Math.max(0, (p.gold || 0) - cost);
+    p.lastCardTurn = boardGame.turnNo || 0;
 
     const applied = boardRunCardEffect(origCard, p);
     const result = applied.result;
     if (!applied.fx) boardPlayCardEventFx(origCard, p, result);
-    boardAddLog(`🎴 ${p.name} dùng [${card.name}]: ${result}`, 'card');
+    boardAddLog(`🎴 ${p.name} dùng [${origCard.name}]: ${result}${cost ? ` (tiêu ${cost} 🪙)` : ''}`, 'card');
+    if (p.isHuman || cost) boardRefreshHud();
 
-    const showNotice = () => window.boardShowBigNotice(`${window.boardCardIcon(origCard)} ${card.name}`, window.boardCardNoticeBody(origCard, ''), `👉 ${result}`, () => {
+    if (silent) {
+        if (typeof window.boardSyncView === 'function') window.boardSyncView();
+        return { ok: true, result };
+    }
+
+    const showNotice = () => window.boardShowBigNotice(`${window.boardCardIcon(origCard)} ${origCard.name}`, window.boardCardNoticeBody(origCard, ''), `👉 ${result}`, () => {
         if (!boardGame || boardGame.closed) return;
         if (typeof window.boardSyncView === 'function') window.boardSyncView();
         else { boardRenderGrid(); boardRenderPlayers(); }
@@ -1402,13 +1819,48 @@ window.boardUseHandCard = function(playerIdx, handIndex) {
     const noticeDelay = (document.hidden || boardFxReduced()) ? 0 : 700;
     if (noticeDelay <= 0) {
         showNotice();
-        return;
+        return { ok: true, result };
     }
     const match = boardGame;
     setTimeout(() => {
         if (boardGame !== match || !boardGame || boardGame.closed) return;
         showNotice();
     }, noticeDelay);
+    return { ok: true, result };
+};
+
+window.boardUseHandCard = function(playerIdx, handIndex, silent) {
+    const p = boardGame.players[playerIdx];
+    if (!p || !p.hand || !p.hand[handIndex]) return;
+    const played = window.boardPlayHandCard(playerIdx, handIndex, silent);
+    if (played && !played.ok) boardAddLog(`🚫 ${p.name} chưa dùng được [${boardCardDef(p.hand[handIndex]).name}]: ${played.why}`, 'card');
+};
+
+// Bot chỉ đánh khi lá bài đáng giá; mỗi lượt tối đa 1 lá nên không con nào spam combo.
+function boardBotCardScore(p, card) {
+    const living = boardGame.players.filter(x => !x.eliminated);
+    const leader = living.length ? living.reduce((a, b) => (a.pos >= b.pos ? a : b)) : p;
+    const gap = (leader.pos || 0) - (p.pos || 0);
+    if (card.cat === 'support') return p.lives < 3 ? 6 : 1;
+    if (card.cat === 'defense') return (p.lives <= 2 ? 5 : 2.2) + (p.ward ? -4 : 0);
+    if (card.cat === 'move') return gap >= 6 ? 4.5 : 0.5;
+    if (card.cat === 'attack') return gap >= 4 ? 3.8 : 2.2;
+    if (card.cat === 'trap') return gap >= 4 ? 3.4 : 1.4;
+    if (card.cat === 'reverse') return gap >= 10 ? 5.5 : 1.2;
+    return 1;
+}
+
+window.boardBotCardChoice = function(p) {
+    if (!p || !p.hand || !p.hand.length) return null;
+    let best = null, bestScore = 2.6;
+    for (let i = 0; i < p.hand.length; i++) {
+        const card = boardCardDef(p.hand[i]);
+        if (!card || typeof card.effect !== 'function') continue;
+        if (!window.boardCardPlayable(p, card).ok) continue;
+        const score = boardBotCardScore(p, card);
+        if (score > bestScore) { bestScore = score; best = i; }
+    }
+    return best;
 };
 
 
@@ -2864,7 +3316,7 @@ function openBoardGame(pvpMode = false) {
         emoji: '👦',
         isHuman: true, isBot: false, skipTurn: false,
         gold: 0,
-        hand: boardDealHand(5)
+        hand: boardDealHand(5, 0)
     });
     
     // Add 3 Bots representing Mầm Mềm Mẽ, Kiến Bảo Vệ, Út Mũ Rơm
@@ -2917,7 +3369,7 @@ window.boardAddBot = function() {
         color: color,
         emoji: botEmojis[idx-1] || '👾',
         isHuman: false, isBot: true, skipTurn: false,
-        hand: boardDealHand(5),
+        hand: boardDealHand(5, idx),
         gold: 0
     });
     boardRenderPlayers();
@@ -4198,7 +4650,7 @@ window.boardStartOnlineMatch = function(role, room) {
         idx: 0, name: room.hostName + ' (Trâu)', networkId: (role === 'host') ? getMyNetworkId() : (room.hostId || 'host_net_id'),
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: gameColors[0], emoji: '👦', isHuman: (role === 'host'), isBot: false, gold: 0,
-        hand: boardDealHand(5)
+        hand: boardDealHand(5, 0)
     });
 
     // Add Guest (idx 1)
@@ -4206,7 +4658,7 @@ window.boardStartOnlineMatch = function(role, room) {
         idx: 1, name: room.guestName + ' (Trẩu)', networkId: (role === 'guest') ? getMyNetworkId() : (room.guestId || 'guest_net_id'),
         pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
         color: gameColors[1], emoji: '👾', isHuman: (role === 'guest'), isBot: false, gold: 0,
-        hand: boardDealHand(5)
+        hand: boardDealHand(5, 1)
     });
 
     // Add bots to fill up remaining slots based on botCount selection
@@ -4219,7 +4671,7 @@ window.boardStartOnlineMatch = function(role, room) {
             pos: 0, lives: 3, weapons: 0, shields: 0, eliminated: false,
             color: gameColors[2 + i] || '#f59e0b', emoji: botEmojis[i],
             isHuman: false, isBot: true, skipTurn: false,
-            hand: boardDealHand(5), gold: 0
+            hand: boardDealHand(5, 2 + i), gold: 0
         });
     }
 
