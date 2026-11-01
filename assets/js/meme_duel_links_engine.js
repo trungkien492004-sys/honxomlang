@@ -17,10 +17,11 @@
     return false;
   }
 
+  const aid = n => 'AN-' + n.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_$/, '');
   const C = id => card(id);
   const isHero = c => /\bHERO\b/.test(c?.name_en || '');
   const isBlueEyes = c => /Blue-Eyes/i.test(c?.name_en || '') || c?.id === 'DL-dragon_spirit_of_white';
-  const isDarkMagician = c => /Dark Magician/i.test(c?.name_en || '') || c?.id === 'AN-dark_magician';
+  const isDarkMagician = c => /Dark Magician/i.test(c?.name_en || '') || c?.id === 'AN-dark_magician' || c?.id === 'DL-magician_of_chaos';
   const isRedEyes = c => /Red-Eyes/i.test(c?.name_en || '') || c?.id === 'AN-red_eyes_black_dragon';
   const isToon = c => c?.traits?.includes('toon') || /Toon/i.test(c?.name_en || '');
   const isCyber = c => /Cyber/i.test(c?.name_en || '') || c?.id === 'AN-cyber_dragon';
@@ -255,10 +256,15 @@
   // 2. YUGI HANDLERS
   // ─────────────────────────────────────────────────────────────
   // Dark Magical Circle
-  register('DL-dark_magical_circle', async (n, c, ctx) => {
+  const handleDarkMagicalCircle = async (n, c, ctx) => {
     const s = S(n);
     const top3 = s.deck.slice(0, 3).map((id, index) => ({ id, index, zone: 'deck' }));
-    const dmCards = top3.filter(e => isDarkMagician(C(e.id)) || ['DL-magicians_rod', 'DL-dark_magical_circle', 'DL-magician_navigation', 'DL-eternal_soul', 'AN-dark_magic_attack'].includes(e.id));
+    const dmCards = top3.filter(e => isDarkMagician(C(e.id)) || [
+      'DL-magicians_rod', 'DL-dark_magical_circle', 'DL-magician_navigation',
+      'DL-eternal_soul', 'AN-dark_magic_attack', 'DL-illusion_magic',
+      'DL-the_eye_of_timaeus', 'DL-magicians_souls', 'DL-apprentice_illusion_magician',
+      'DL-magician_of_chaos'
+    ].includes(e.id));
     const picked = dmCards.length ? await pick(n, 'Ma Pháp Trận Đen: lấy 1 lá lên tay', dmCards, { optional: true }) : null;
 
     return fx(n, c, 'search', [], () => {
@@ -272,16 +278,213 @@
       }
       s.deck = shuffle(s.deck);
     });
-  });
+  };
+  register('DL-dark_magical_circle', handleDarkMagicalCircle);
+  register('dl_magical_circle', handleDarkMagicalCircle);
+
+  // Apprentice Illusion Magician (hand special summon)
+  const handleApprenticeIllusion = async (n, c, ctx = {}) => {
+    const s = S(n);
+    if (!ctx.source) {
+      if (s.apprenticeSpecialRound === duel.round) {
+        if (n === 'player') window.showActionNotice?.('Đồ Đệ Ảo Ảnh chỉ được triệu hồi đặc biệt từ tay 1 lần mỗi lượt!', 'Đã dùng lượt này');
+        return false;
+      }
+      if (s.noSpecialRound === duel.round) {
+        if (n === 'player') window.showActionNotice?.('Đang bị cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+        return false;
+      }
+      if (free(n) < 0) {
+        if (n === 'player') window.showActionNotice?.('Khu vực quái thú trên sân đã đầy!', 'Hết ô trống');
+        return false;
+      }
+      const handIdx = s.hand.indexOf('DL-apprentice_illusion_magician');
+      const pool = choices(s.hand, 'hand').filter(e => e.index !== handIdx);
+      if (!pool.length) {
+        if (n === 'player') window.showActionNotice?.('Cần thêm 1 lá bài khác trên tay để bỏ làm chi phí!', 'Không đủ bài trên tay');
+        return false;
+      }
+      const cost = await pick(n, `${c.name}: bỏ 1 lá trên tay làm chi phí`, pool, { cheap: true });
+      if (!cost) return false;
+
+      return fx(n, c, 'summon', [], async () => {
+        takeDiscard(n, cost);
+        s.apprenticeSpecialRound = duel.round;
+        const myIdx = s.hand.indexOf('DL-apprentice_illusion_magician');
+        if (myIdx >= 0 && free(n) >= 0) {
+          s.hand.splice(myIdx, 1);
+          const slot = monsterSlot('DL-apprentice_illusion_magician', 'atk');
+          uid(slot);
+          s.monsters[free(n)] = slot;
+          log(`✦ Triệu hồi đặc biệt ${c.name} lên sân.`);
+          enqueue(() => postSummon(n, slot));
+        }
+      });
+    }
+    return true;
+  };
+  register('DL-apprentice_illusion_magician', handleApprenticeIllusion);
+  register('dl_apprentice_illusion', handleApprenticeIllusion);
+
+  // Magician of Chaos
+  const handleMagicianOfChaos = async (n, c, ctx = {}) => {
+    return true;
+  };
+  register('DL-magician_of_chaos', handleMagicianOfChaos);
+  register('dl_magician_chaos', handleMagicianOfChaos);
+
+  // Magicians' Souls
+  const handleMagiciansSouls = async (n, c, ctx = {}) => {
+    const s = S(n);
+    const isField = Boolean(ctx.source);
+
+    if (isField) {
+      if (s.soulsDrawRound === duel.round) {
+        if (n === 'player') window.showActionNotice?.('Hiệu ứng rút bài của Linh Hồn Phù Thủy chỉ được dùng 1 lần mỗi lượt!', 'Đã dùng lượt này');
+        return false;
+      }
+      const stHand = choices(s.hand, 'hand').filter(e => ['Spell', 'Trap'].includes(C(e.id)?.card_type));
+      const stField = spellList(n).filter(e => e.slot);
+      const allST = [...stHand, ...stField];
+      if (!allST.length) {
+        if (n === 'player') window.showActionNotice?.('Cần ít nhất 1 Phép/Bẫy trên tay hoặc sân để gửi xuống Mộ!', 'Không đủ Phép/Bẫy');
+        return false;
+      }
+      const maxPick = Math.min(2, allST.length);
+      const multiFn = core.pickMany || window.memeAnime.chooseMany;
+      let picked = null;
+      if (multiFn) {
+        picked = await multiFn(n, 'Linh Hồn Phù Thủy: chọn tối đa 2 Phép/Bẫy gửi xuống Mộ để rút bài', allST, {
+          min: 1,
+          max: maxPick,
+          text: 'Chọn 1 hoặc 2 lá Phép/Bẫy từ tay hoặc sân để gửi xuống Mộ, rồi rút số lá tương ứng.'
+        });
+      }
+      if (!picked || !picked.length) {
+        const single = await pick(n, 'Linh Hồn Phù Thủy: chọn 1 Phép/Bẫy gửi xuống Mộ', allST);
+        if (!single) return false;
+        picked = [single];
+      }
+
+      return fx(n, c, 'draw', [], () => {
+        s.soulsDrawRound = duel.round;
+        for (const p of picked) {
+          if (p.zone === 'hand') {
+            takeDiscard(n, p);
+          } else {
+            clearSpell(n, p.index);
+          }
+        }
+        drawCards(n, picked.length);
+        log(`✦ Linh Hồn Phù Thủy gửi ${picked.length} Phép/Bẫy xuống Mộ và rút ${picked.length} lá!`);
+      });
+    } else {
+      if (s.soulsSummonRound === duel.round) {
+        if (n === 'player') window.showActionNotice?.('Hiệu ứng triệu hồi của Linh Hồn Phù Thủy chỉ được dùng 1 lần mỗi lượt!', 'Đã dùng lượt này');
+        return false;
+      }
+      if (s.noSpecialRound === duel.round) {
+        if (n === 'player') window.showActionNotice?.('Đang bị cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+        return false;
+      }
+      const pool = choices(s.deck, 'deck').filter(e => {
+        const x = C(e.id);
+        return x?.card_type === 'Monster' && (x.tribe === 'Pháp Sư' || x.race === 'Spellcaster') && (x.stars || 0) >= 6;
+      });
+      if (!pool.length) {
+        if (n === 'player') window.showActionNotice?.('Cần có quái thú Pháp Sư Cấp 6 trở lên trong Bộ bài!', 'Không có mục tiêu');
+        return false;
+      }
+      if (free(n) < 0) {
+        if (n === 'player') window.showActionNotice?.('Khu vực quái thú trên sân đã đầy!', 'Hết ô trống');
+        return false;
+      }
+      const costCard = await pick(n, 'Linh Hồn Phù Thủy: chọn Pháp Sư Cấp 6+ từ Deck gửi xuống Mộ', pool);
+      if (!costCard) return false;
+
+      const modes = [
+        { id: 'summon_self', label: 'Triệu hồi Linh Hồn Phù Thủy lên sân' }
+      ];
+      const isDmOrDmg = id => id === 'AN-dark_magician' || id === aid('Dark Magician') || id === 'AN-dark_magician_girl' || id === aid('Dark Magician Girl') || id === 'DL-magician_of_chaos';
+      const hasReviveTarget = isDmOrDmg(costCard.id) || s.grave.some(isDmOrDmg);
+      if (hasReviveTarget) {
+        modes.push({ id: 'revive_dm', label: 'Gửi lá này xuống Mộ và hồi sinh Phù Thủy Áo Đen / Nữ Phù Thủy Áo Đen' });
+      }
+      const chosenMode = await pick(n, 'Linh Hồn Phù Thủy: chọn hiệu ứng kích hoạt', modes);
+      if (!chosenMode) return false;
+
+      return fx(n, c, 'summon', [], async () => {
+        s.soulsSummonRound = duel.round;
+        const deckIdx = s.deck.indexOf(costCard.id);
+        if (deckIdx >= 0) {
+          s.deck.splice(deckIdx, 1);
+          s.deck = shuffle(s.deck);
+          s.grave.push(costCard.id);
+          sentToGrave(n, costCard.id, true, 'cost');
+          log(`✦ Linh Hồn Phù Thủy gửi ${C(costCard.id).name} từ Bộ bài xuống Mộ.`);
+        }
+
+        if (chosenMode.id === 'summon_self') {
+          const hIdx = s.hand.indexOf('DL-magicians_souls');
+          if (hIdx >= 0 && free(n) >= 0) {
+            s.hand.splice(hIdx, 1);
+            const slot = monsterSlot('DL-magicians_souls', 'atk');
+            uid(slot);
+            s.monsters[free(n)] = slot;
+            log(`✦ Triệu hồi đặc biệt Linh Hồn Phù Thủy lên sân.`);
+            enqueue(() => postSummon(n, slot));
+          }
+        } else {
+          const hIdx = s.hand.indexOf('DL-magicians_souls');
+          if (hIdx >= 0) {
+            s.hand.splice(hIdx, 1);
+            s.grave.push('DL-magicians_souls');
+            sentToGrave(n, 'DL-magicians_souls', true, 'cost');
+          }
+          const revivePool = choices(s.grave, 'grave').filter(e => isDmOrDmg(e.id));
+          if (revivePool.length && free(n) >= 0) {
+            const pickRevive = await pick(n, 'Chọn Phù Thủy Áo Đen hoặc Nữ Phù Thủy Áo Đen để hồi sinh', revivePool);
+            if (pickRevive) {
+              const revived = revive(n, n, pickRevive.id, 'atk');
+              if (revived) {
+                log(`✦ Linh Hồn Phù Thủy hồi sinh ${C(pickRevive.id).name} từ Mộ!`);
+                enqueue(() => postSummon(n, revived));
+              }
+            }
+          }
+        }
+      });
+    }
+  };
+  register('DL-magicians_souls', handleMagiciansSouls);
+  register('dl_magicians_souls', handleMagiciansSouls);
 
   // Magician Navigation
-  register('DL-magician_navigation', async (n, c, ctx) => {
+  const handleMagicianNavigation = async (n, c, ctx = {}) => {
     const s = S(n);
+
+    // GY Effect: banish self to negate face-up Spell/Trap
+    if (ctx.fromGY || ctx.source === 'grave') {
+      const dmOnField = E(n).some(e => face(e.slot) && isDarkMagician(C(e.slot.id)));
+      if (!dmOnField) return false;
+      const foeSpells = spellList(other(n)).filter(e => e.slot && !e.slot.faceDown);
+      if (!foeSpells.length) return false;
+      const t = await pick(n, 'Điều Hướng Phù Thủy: chọn Phép/Bẫy đối thủ để vô hiệu', foeSpells);
+      if (!t) return false;
+      return fx(n, c, 'negate', [t], () => {
+        const idx = s.grave.indexOf('DL-magician_navigation');
+        if (idx >= 0) s.banished.push(s.grave.splice(idx, 1)[0]);
+        t.slot.negatedUntil = duel.round;
+        log(`✦ Điều Hướng Phù Thủy trục xuất từ Mộ, vô hiệu hóa ${C(t.id).name} đến hết lượt!`);
+      });
+    }
+
     if (s.noSpecialRound === duel.round) {
       if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
       return false;
     }
-    if (free(n) < 0) {
+    const freeCount = s.monsters.filter(m => m === null).length;
+    if (freeCount < 1) {
       if (n === 'player') window.showActionNotice?.('Khu vực quái thú trên sân đã đầy!', 'Hết ô trống');
       return false;
     }
@@ -293,7 +496,7 @@
       const x = C(e.id);
       return x?.tribe === 'Pháp Sư' && x.element === 'Ám' && x.stars <= 7;
     });
-    const second = deckSpellcasters.length && free(n) >= 1 ? await pick(n, 'Điều Hướng: chọn Pháp Sư từ Deck để gọi tiếp', deckSpellcasters, { optional: true }) : null;
+    const second = deckSpellcasters.length && freeCount >= 2 ? await pick(n, 'Điều Hướng: chọn Pháp Sư từ Deck để gọi tiếp', deckSpellcasters, { optional: true }) : null;
 
     return fx(n, c, 'summon', [], () => {
       clearSpell(n, ctx.fromSet?.index ?? s.spells.indexOf(ctx.source));
@@ -317,11 +520,17 @@
         }
       }
     });
-  });
+  };
+  register('DL-magician_navigation', handleMagicianNavigation);
+  register('dl_navigation', handleMagicianNavigation);
 
   // Eternal Soul
-  register('DL-eternal_soul', async (n, c, ctx) => {
+  const handleEternalSoul = async (n, c, ctx) => {
     const s = S(n);
+    if (s.eternalSoulRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng của Linh Hồn Vĩnh Cửu chỉ được dùng 1 lần mỗi lượt!', 'Đã dùng lượt này');
+      return false;
+    }
     const options = [
       { id: 'AN-dark_magician', mode: 'revive', label: 'Gọi Phù Thủy Áo Đen từ tay hoặc Mộ' },
       { id: 'AN-dark_magic_attack', mode: 'search', label: 'Tìm Ma Thuật Hắc Ám từ Deck' }
@@ -339,6 +548,7 @@
       if (!target) return false;
 
       return fx(n, c, 'revive', [], () => {
+        s.eternalSoulRound = duel.round;
         if (target.zone === 'hand') {
           s.hand.splice(target.index, 1);
           const slot = monsterSlot('AN-dark_magician', 'atk');
@@ -354,6 +564,7 @@
       const dma = choices(s.deck, 'deck').find(e => e.id === 'AN-dark_magic_attack');
       if (!dma) return false;
       return fx(n, c, 'search', [], () => {
+        s.eternalSoulRound = duel.round;
         const idx = s.deck.indexOf('AN-dark_magic_attack');
         if (idx >= 0) {
           window.memeCardMotion?.record('search', n, 'AN-dark_magic_attack');
@@ -362,10 +573,12 @@
         }
       });
     }
-  });
+  };
+  register('DL-eternal_soul', handleEternalSoul);
+  register('dl_eternal_soul', handleEternalSoul);
 
   // The Eye of Timaeus
-  register('DL-the_eye_of_timaeus', async (n, c, ctx) => {
+  const handleEyeOfTimaeus = async (n, c, ctx) => {
     const s = S(n);
     const dmOnField = E(n).filter(e => face(e.slot) && isDarkMagician(C(e.slot.id)));
     if (!dmOnField.length) return false;
@@ -385,10 +598,12 @@
       if (!summonExtra(n, slot, fusionChoice.id)) return;
       enqueue(() => postSummon(n, slot));
     });
-  });
+  };
+  register('DL-the_eye_of_timaeus', handleEyeOfTimaeus);
+  register('dl_eye_of_timaeus', handleEyeOfTimaeus);
 
   // Illusion Magic - tribute a Spellcaster, add up to 2 Dark Magician from Deck and/or GY
-  register('DL-illusion_magic', async (n, c, ctx) => {
+  const handleIllusionMagic = async (n, c, ctx) => {
     const s = S(n);
     const spellcasters = E(n).filter(e => face(e.slot) && C(e.slot.id)?.tribe === 'Pháp Sư');
     if (!spellcasters.length) return false;
@@ -413,10 +628,13 @@
       }
       s.deck = shuffle(s.deck);
     });
-  });
+  };
+  register('DL-illusion_magic', handleIllusionMagic);
+  register('dl_illusion_magic', handleIllusionMagic);
 
   // Magician's Rod (Trượng Ma Thuật) - On Normal Summon: Search Dark Magician Spell/Trap
-  const handleMagiciansRod = async (n, c, ctx) => {
+  const handleMagiciansRod = async (n, c, ctx = {}) => {
+    if (ctx?.kind && ctx.kind !== 'normal') return false;
     const s = S(n);
     const targets = choices(s.deck, 'deck').filter(e => {
       return ['DL-dark_magical_circle', 'DL-magician_navigation', 'DL-eternal_soul', 'DL-illusion_magic', 'DL-the_eye_of_timaeus', 'AN-dark_magic_attack'].includes(e.id);
@@ -440,10 +658,14 @@
   // 3. JOEY HANDLERS
   // ─────────────────────────────────────────────────────────────
   // Red-Eyes Fusion - Fusion Summon from Hand, Field or DECK with material choice!
-  register('DL-red_eyes_fusion', async (n, c, ctx) => {
+  const handleRedEyesFusion = async (n, c, ctx) => {
     const s = S(n);
+    if (s.redEyesFusionRound === duel.round) {
+      if (n === 'player') window.showActionNotice?.('Chỉ có thể kích hoạt 1 Dung Hợp Mắt Đỏ mỗi lượt!', 'Đã dùng lượt này');
+      return false;
+    }
     if (s.noSpecialRound === duel.round) {
-      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác (như Neos Fusion) đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
+      if (n === 'player') window.showActionNotice?.('Hiệu ứng lá bài khác đang cấm Triệu hồi Đặc biệt trong lượt này!', 'Bị cấm Triệu hồi');
       return false;
     }
     const fusions = choices(s.extraDeck, 'extra').filter(e => ['DL-red_eyes_slash_dragon', 'AN-black_skull_dragon'].includes(e.id));
@@ -511,13 +733,18 @@
       const slot = { ...monsterSlot(fusionTarget.id, 'atk'), fusionSummoned: true };
       uid(slot);
       if (!summonExtra(n, slot, fusionTarget.id)) return;
+      s.noSpecialRound = duel.round;
+      s.normalUsed = true;
+      s.redEyesFusionRound = duel.round;
       enqueue(() => postSummon(n, slot));
       log(`🌀 Dung Hợp Mắt Đỏ gọi ${C(fusionTarget.id).name} từ Bộ bài phụ!`);
     });
-  });
+  };
+  register('DL-red_eyes_fusion', handleRedEyesFusion);
+  register('dl_red_eyes_fusion', handleRedEyesFusion);
 
   // Red-Eyes Insight
-  register('DL-red_eyes_insight', async (n, c, ctx) => {
+  const handleRedEyesInsight = async (n, c, ctx) => {
     const s = S(n);
     const reMonsters = [
       ...choices(s.hand, 'hand').filter(e => e.index !== ctx.handIndex && isRedEyes(C(e.id))),
@@ -545,10 +772,12 @@
       }
       s.deck = shuffle(s.deck);
     });
-  });
+  };
+  register('DL-red_eyes_insight', handleRedEyesInsight);
+  register('dl_red_eyes_insight', handleRedEyesInsight);
 
   // Red-Eyes Spirit
-  register('DL-red_eyes_spirit', async (n, c, ctx) => {
+  const handleRedEyesSpirit = async (n, c, ctx) => {
     const s = S(n);
     if (free(n) < 0) return false;
     const targets = choices(s.grave, 'grave').filter(e => isRedEyes(C(e.id)));
@@ -561,10 +790,12 @@
       const slot = revive(n, n, t.id, 'atk');
       if (slot) enqueue(() => postSummon(n, slot));
     });
-  });
+  };
+  register('DL-red_eyes_spirit', handleRedEyesSpirit);
+  register('dl_red_eyes_spirit', handleRedEyesSpirit);
 
   // Return of the Red-Eyes
-  register('DL-return_of_the_red_eyes', async (n, c, ctx) => {
+  const handleReturnOfRedEyes = async (n, c, ctx) => {
     const s = S(n);
     if (free(n) < 0) return false;
     const targets = choices(s.grave, 'grave').filter(e => e.id === 'AN-red_eyes_black_dragon');
@@ -576,7 +807,9 @@
       const slot = revive(n, n, t.id, 'def');
       if (slot) enqueue(() => postSummon(n, slot));
     });
-  });
+  };
+  register('DL-return_of_the_red_eyes', handleReturnOfRedEyes);
+  register('dl_return_red_eyes', handleReturnOfRedEyes);
 
   // ─────────────────────────────────────────────────────────────
   // Red-Eyes Fang with Chain (Nanh Xích Mắt Đỏ) Full Implementation
@@ -643,12 +876,14 @@
     });
   }
 
-  register('DL-red_eyes_fang_with_chain', async (n, c, ctx) => {
+  const handleFangDispatch = async (n, c, ctx) => {
     if (ctx.fromSet) {
       return handleFangWithChain(n, ctx.fromSet.index);
     }
     return false;
-  });
+  };
+  register('DL-red_eyes_fang_with_chain', handleFangDispatch);
+  register('dl_fang_with_chain', handleFangDispatch);
 
   // Black Metal Dragon (Rồng Đen Thép Mắt Đỏ) - Sent to GY -> Search Red-Eyes card
   const handleBlackMetalGY = async (n) => {
@@ -696,7 +931,79 @@
       target.slot.blackMetalEquipped = true;
       log(`✦ Hắc Kim Long trang bị cho ${C(target.slot.id).name} (+600 ATK).`);
     });
-  }
+  };
+  window.equipBlackMetal = equipBlackMetal;
+
+  // Gearfried the Red-Eyes Iron Knight (Kỵ Sĩ Sắt Mắt Đỏ Gearfried)
+  const handleGearfriedRedEyesSpecial = async (n, c, ctx = {}) => {
+    const s = S(n);
+    const source = ctx.source || E(n).find(e => face(e.slot) && e.slot.id === 'DL-gearfried_the_red_eyes_iron_knight')?.slot;
+    if (!source) {
+      log('Không tìm thấy Kỵ Sĩ Sắt Mắt Đỏ trên sân.');
+      return false;
+    }
+    if (source.gearfriedReviveRound === duel.round) {
+      log('Hiệu ứng Kỵ Sĩ Sắt Mắt Đỏ chỉ dùng 1 lần mỗi lượt.');
+      return false;
+    }
+    if (free(n) < 0) {
+      log('Không còn ô quái trống để Triệu hồi Đặc biệt.');
+      return false;
+    }
+    const equips = [
+      ...spellList(n).filter(e => e.slot.equippedTo === source.uid).map(e => ({ ...e, zone: 'spell', label: 'Trang bị: ' + (C(e.id)?.name || e.id) })),
+      ...(source.equippedCards || []).map((id, idx) => ({ id, idx, zone: 'slot', label: 'Trang bị: ' + (C(id)?.name || id) }))
+    ];
+    if (source.blackMetalEquipped) equips.push({ id: 'DL-black_metal_dragon', zone: 'blackMetal', label: 'Trang bị: Hắc Kim Long' });
+    if (!equips.length) {
+      log('Cần có lá trang bị đang gắn vào Kỵ Sĩ Sắt Mắt Đỏ để gửi xuống Mộ.');
+      return false;
+    }
+    const reGrave = choices(s.grave, 'grave').filter(e => isRedEyes(C(e.id)) && (C(e.id)?.stars || 0) <= 7 && C(e.id)?.card_type === 'Monster');
+    if (!reGrave.length) {
+      log('Không có quái Mắt Đỏ Cấp 7 hoặc thấp hơn trong Mộ.');
+      return false;
+    }
+
+    const eqPick = equips.length === 1 ? equips[0] : await pick(n, 'Kỵ Sĩ Sắt Mắt Đỏ: chọn lá trang bị gửi xuống Mộ', equips);
+    if (!eqPick) return false;
+
+    const reTarget = await pick(n, 'Kỵ Sĩ Sắt Mắt Đỏ: chọn quái Mắt Đỏ Cấp ≤7 trong Mộ để hồi sinh', reGrave);
+    if (!reTarget) return false;
+
+    return fx(n, c || card('DL-gearfried_the_red_eyes_iron_knight'), 'revive', [reTarget], () => {
+      source.gearfriedReviveRound = duel.round;
+      if (eqPick.zone === 'spell') {
+        clearSpell(n, eqPick.index);
+      } else if (eqPick.zone === 'slot') {
+        source.equippedCards.splice(eqPick.idx, 1);
+        s.grave.push(eqPick.id);
+        sentToGrave(n, eqPick.id, true, 'effect');
+      } else if (eqPick.zone === 'blackMetal') {
+        delete source.blackMetalEquipped;
+        source.tempAtk = Math.max(0, (source.tempAtk || 0) - 600);
+        s.grave.push('DL-black_metal_dragon');
+        sentToGrave(n, 'DL-black_metal_dragon', true, 'effect');
+        handleBlackMetalGY(n);
+      }
+      const slot = revive(n, n, reTarget.id, 'atk');
+      if (slot) enqueue(() => postSummon(n, slot));
+      log(`✦ Kỵ Sĩ Sắt Mắt Đỏ gửi ${C(eqPick.id)?.name || 'lá trang bị'} xuống Mộ, hồi sinh ${C(reTarget.id)?.name}!`);
+    });
+  };
+  register('DL-gearfried_the_red_eyes_iron_knight', handleGearfriedRedEyesSpecial);
+  register('dl_gearfried_red_eyes', handleGearfriedRedEyesSpecial);
+
+  // Red-Eyes Baby Dragon, Retro Dragon, Slash Dragon registrations
+  register('DL-red_eyes_baby_dragon', async () => true);
+  register('dl_baby_red_eyes', async () => true);
+  register('DL-red_eyes_retro_dragon', async () => true);
+  register('dl_retro_dragon', async () => true);
+  register('DL-red_eyes_slash_dragon', async () => true);
+  register('dl_red_eyes_slash', async () => true);
+  // Dark Cavalry registration
+  register('DL-dark_cavalry', async () => true);
+  register('dl_dark_cavalry', async () => true);
 
   // ─────────────────────────────────────────────────────────────
   // 4. PEGASUS HANDLERS
@@ -1395,6 +1702,9 @@
     if (c && handlers.has(c.id)) {
       return handlers.get(c.id)(n, c, ctx);
     }
+    if (c && c.effect_code && handlers.has(c.effect_code)) {
+      return handlers.get(c.effect_code)(n, c, ctx);
+    }
     return originalResolveEffect(n, c, ctx);
   };
 
@@ -1423,7 +1733,14 @@
       if (s.hand.includes('AN-blue_eyes_white_dragon') && free(n) >= 0 && s.altSpecialRound !== duel.round) return 'free';
     }
     if (c.id === 'DL-apprentice_illusion_magician') {
-      if (s.hand.length >= 2 && free(n) >= 0) return 'free';
+      if (s.apprenticeSpecialRound !== duel.round && s.hand.length >= 2 && free(n) >= 0) return 'free';
+    }
+    if (c.id === 'DL-magicians_souls') {
+      const hasSpellcaster6 = s.deck.some(id => {
+        const x = C(id);
+        return x?.card_type === 'Monster' && (x.tribe === 'Pháp Sư' || x.race === 'Spellcaster') && (x.stars || 0) >= 6;
+      });
+      if (s.soulsSummonRound !== duel.round && free(n) >= 0 && hasSpellcaster6) return 'free';
     }
     if (c.id === 'DL-cyber_dragon_nachster') {
       if (s.hand.length >= 2 && free(n) >= 0) return 'free';
@@ -1441,6 +1758,9 @@
     const c = card(s.hand[index]);
     const mode = c && window.memeAnime.specialMode(n, c);
     if (mode === 'free') {
+      if (c.id === 'DL-magicians_souls') {
+        return handleMagiciansSouls(n, c, { fromHand: true });
+      }
       if (free(n) < 0) return false;
       let cost = null;
       if (c.id === 'DL-apprentice_illusion_magician' || c.id === 'DL-cyber_dragon_nachster') {
@@ -1479,12 +1799,12 @@
       if (!reList.length) return 'Cần có quái Mắt Đỏ ngửa trên sân để trang bị.';
       return '';
     }
-    if (c.id === 'DL-red_eyes_spirit') {
+    if (c.id === 'DL-red_eyes_spirit' || c.effect_code === 'dl_red_eyes_spirit') {
       if (free('player') < 0) return 'Không còn ô quái trống.';
       if (!S('player').grave.some(id => isRedEyes(C(id)))) return 'Cần có quái Mắt Đỏ trong Mộ.';
       return '';
     }
-    if (c.id === 'DL-return_of_the_red_eyes') {
+    if (c.id === 'DL-return_of_the_red_eyes' || c.effect_code === 'dl_return_red_eyes') {
       const hasRe = targetList('player', (s, x) => face(s) && isRedEyes(x)).length > 0;
       if (!hasRe) return 'Cần có quái Mắt Đỏ trên sân để kích hoạt Sự Trở Lại.';
       return '';
@@ -1583,6 +1903,15 @@
           const pool = choices(s.hand, 'hand').filter(e => C(e.id)?.card_type === 'Monster' && isHero(C(e.id)));
           if (pool.length && ![...actions.querySelectorAll('button')].some(b => b.textContent.includes('Tự tăng ATK'))) {
             addAction(actions, '✦ Bỏ HERO từ tay: Tự tăng ATK', () => window.memeAnime.perform(() => handlers.get('DL-elemental_hero_honest_neos')('player', c, { source: slot })));
+          }
+        }
+        if (slot && face(slot) && slot.id === 'DL-gearfried_the_red_eyes_iron_knight') {
+          const hasEquip = spellList('player').some(e => e.slot.equippedTo === slot.uid) || slot.equippedCards?.length || slot.blackMetalEquipped;
+          const hasReGrave = choices(s.grave, 'grave').some(e => isRedEyes(C(e.id)) && (C(e.id)?.stars || 0) <= 7 && C(e.id)?.card_type === 'Monster');
+          if (hasEquip && hasReGrave && slot.gearfriedReviveRound !== duel.round && free('player') >= 0) {
+            if (![...actions.querySelectorAll('button')].some(b => b.textContent.includes('Hồi sinh Mắt Đỏ Cấp ≤7'))) {
+              addAction(actions, '✦ Gửi trang bị: Hồi sinh Mắt Đỏ Cấp ≤7', () => window.memeAnime.perform(() => handleGearfriedRedEyesSpecial('player', card(slot.id), { source: slot })));
+            }
           }
         }
       }
