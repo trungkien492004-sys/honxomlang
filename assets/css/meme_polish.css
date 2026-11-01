@@ -17,10 +17,10 @@
 .field-slot:hover{border-color:#e7d58d;box-shadow:0 0 14px #a3faff75,inset 0 0 12px #d8faff30}
 .field-slot.occupied.attack-position{box-shadow:0 0 12px #ff824866,0 3px 0 #06202e}
 .field-slot.occupied.defense{box-shadow:0 0 12px #5dbdff75,0 3px 0 #06202e}
-.field-slot.selected,.field-slot.valid-target{outline:2px solid #a3faff;box-shadow:0 0 16px #79e9ff,0 0 28px #3bd8e980;animation:memeTargetPulse 1.4s ease-in-out infinite}
+.field-slot.selected,.field-slot.valid-target{outline:2px solid #a3faff;box-shadow:0 0 16px #79e9ff,0 0 28px #3bd8e980;animation:none!important}
 .field-slot.valid-target{border-color:#a3faff}
-.field-slot.fx-charging,.special-zone.fx-charging{filter:brightness(1.4);box-shadow:0 0 18px #ffb969,0 0 30px #ff813f99;transform:translateY(-4px)}
-.special-zone.valid-target{outline:2px solid #a3faff;box-shadow:0 0 17px #73e9ff;animation:memeTargetPulse 1.4s ease-in-out infinite}
+.field-slot.fx-charging,.special-zone.fx-charging{filter:brightness(1.4);box-shadow:0 0 18px #ffb969,0 0 30px #ff813f99;transform:none!important}
+.special-zone.valid-target{outline:2px solid #a3faff;box-shadow:0 0 17px #73e9ff;animation:none!important}
 .field-slot.defense{transform:rotate(90deg) scale(.72)}
 .field-slot.defense.selected,.field-slot.defense.valid-target{transform:rotate(90deg) scale(.72)}
 .special-zone{border-color:#e8d3957d;background:#092c3fa8}
@@ -49,18 +49,18 @@
 .meme-fx-float.heal{color:#76ffa9}
 .meme-fx-banner{position:fixed;left:50%;top:43%;transform:translate(-50%,-50%);z-index:3;padding:9px 22px;border:2px solid #ffe1a0;border-radius:12px;background:#09283ee8;color:#ffe1a0;font:900 clamp(18px,3vw,36px) 'Baloo 2';white-space:nowrap;animation:memeBanner .8s ease-out forwards}
 .meme-skip-fx{position:fixed;right:10px;bottom:10px;z-index:12;padding:5px 9px;border:1px solid #ffe2a0;border-radius:8px;background:#0d3149;color:#fff;font-size:11px}
-.field-slot.fx-land{animation:memeLand .36s ease-out}
+.field-slot.fx-land{animation:none!important;transform:none!important}
 .field-slot.fx-destroy{animation:memeDestroy .5s ease-in forwards}
 .board-frame.fx-impact{animation:memeImpact .22s ease-out}
 .modal{z-index:1000}
 .duel.match-finished:after{content:'';position:absolute;inset:0;z-index:9;background:#0612239c;pointer-events:none;animation:memeBanner .7s ease-out both}
 .duel.match-finished .modal-card{box-shadow:0 0 45px #f3cf7f70,0 20px 40px #000b}
-@keyframes memeTargetPulse{50%{filter:brightness(1.2);box-shadow:0 0 20px #89edff}}
+@keyframes memeTargetPulse{0%,100%{filter:none}}}
 @keyframes memeHudShake{25%{transform:translateX(-2px)}55%{transform:translateX(2px)}80%{transform:translateX(-1px)}}
 @keyframes memeRing{from{opacity:1;scale:.35}to{opacity:0;scale:1.65}}
 @keyframes memeFloat{from{opacity:0;translate:0 10px}20%{opacity:1}to{opacity:0;translate:0 -38px}}
 @keyframes memeBanner{from{opacity:0;scale:.7}25%{opacity:1;scale:1.05}to{opacity:0;scale:1}}
-@keyframes memeLand{from{filter:brightness(2);scale:1.14}to{filter:brightness(1);scale:1}}
+@keyframes memeLand{0%,100%{filter:none;transform:none;scale:1}}to{filter:brightness(1);scale:1}}
 @keyframes memeDestroy{to{opacity:0;filter:brightness(3);scale:.7}}
 @keyframes memeImpact{25%{transform:translateX(-2px)}65%{transform:translateX(2px)}}
 @media(max-width:900px){.duel-layout,.duel-layout.inspector-collapsed{grid-template-columns:clamp(150px,23vw,190px) minmax(0,1fr)}.arena{max-width:none}.board-center{width:min(100%,400px)}.hand .card{min-width:74px;width:74px}}

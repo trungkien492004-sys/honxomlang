@@ -151,27 +151,68 @@
     return '';
   }
 
+    // Quản lý giọng đọc tiếng Việt theo chuẩn Web Speech API
+  let viVoiceCache = null;
+  function getViVoice() {
+    if (viVoiceCache) return viVoiceCache;
+    if (typeof window.speechSynthesis === 'undefined') return null;
+    const voices = window.speechSynthesis.getVoices() || [];
+    viVoiceCache = voices.find(v => {
+      const l = (v.lang || '').toLowerCase();
+      const n = (v.name || '').toLowerCase();
+      return l.startsWith('vi') || l.includes('vie') || n.includes('vietnam') || n.includes('tiếng việt');
+    }) || null;
+    return viVoiceCache;
+  }
+
+  if (typeof window.speechSynthesis !== 'undefined') {
+    window.speechSynthesis.onvoiceschanged = () => {
+      viVoiceCache = null;
+      getViVoice();
+    };
+  }
+
   // Giọng đọc câu thoại tiếng Việt theo sắc thái nhân vật (Native Web Speech Synthesis)
   function speakDialogue(text, heroId) {
     if (!text || typeof window.speechSynthesis === 'undefined') return;
-    if (localStorage.getItem('meme-sound') === 'off') return;
+    if (localStorage.getItem('meme-sound') === 'off' || localStorage.getItem('meme-voice') === 'off') return;
 
     try {
       window.speechSynthesis.cancel(); // Hủy câu cũ, không nói đè
-      const utterance = new SpeechSynthesisUtterance(text);
+
+      // Làm sạch ký tự dấu gạch ngang, dấu ngoặc kép trước khi đọc để không bị phát âm "dấu trừ / gạch ngang"
+      const cleanText = text
+        .replace(/[-—–~]/g, ' ')
+        .replace(/["'«»]/g, '')
+        .replace(/!{2,}/g, '!')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'vi-VN';
+
       const cfg = HERO_VOICE_CONFIG[heroId] || { pitch: 1.0, rate: 1.0 };
       utterance.pitch = cfg.pitch;
       utterance.rate = cfg.rate;
       const vol = Number(localStorage.getItem('meme-sfx-volume') || 0.6);
       utterance.volume = Math.max(0, Math.min(1, vol * 1.2));
 
-      // Ưu tiên giọng tiếng Việt có sẵn trong hệ điều hành
-      const voices = window.speechSynthesis.getVoices();
-      const viVoice = voices.find(v => v.lang && (v.lang.startsWith('vi') || v.lang.includes('VIE')));
+      const viVoice = getViVoice();
       if (viVoice) {
         utterance.voice = viVoice;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        // Kiểm tra danh sách voices đã tải
+        const allVoices = window.speechSynthesis.getVoices() || [];
+        if (allVoices.length === 0) {
+          // Trình duyệt chưa tải xong danh sách voices (Chrome async), gửi utterance với lang='vi-VN'
+          window.speechSynthesis.speak(utterance);
+        } else {
+          // Đã có danh sách voices nhưng hệ điều hành không có giọng tiếng Việt:
+          // Tuyệt đối KHÔNG để giọng tiếng Anh (như Microsoft David) đọc tiếng Việt gây sai ngữ âm
+          // Âm thanh Web Audio heroCall đã đảm nhiệm tiếng hô anime đặc trưng
+        }
       }
-      window.speechSynthesis.speak(utterance);
     } catch (_) {}
   }
 
@@ -303,7 +344,16 @@
     speak: speakDialogue,
     hookEvents,
     get dialogues() { return DIALOGUES; },
-    get aceCards() { return HERO_ACE_CARDS; }
+    get aceCards() { return HERO_ACE_CARDS; },
+    toggleVoice(enable) {
+      if (typeof enable === 'boolean') {
+        localStorage.setItem('meme-voice', enable ? 'on' : 'off');
+      } else {
+        const cur = localStorage.getItem('meme-voice') !== 'off';
+        localStorage.setItem('meme-voice', cur ? 'off' : 'on');
+      }
+      return localStorage.getItem('meme-voice') !== 'off';
+    }
   };
 
   if (document.readyState === 'loading') {
