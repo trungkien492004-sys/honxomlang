@@ -210,7 +210,7 @@
     btn.innerHTML = '👤 <span>Hồ sơ</span>';
     btn.title = 'Thông tin nhân vật, túi đồ và đổi tên';
     btn.onclick = open;
-    actions.insertBefore(btn, actions.firstChild);
+    actions.appendChild(btn);
   }
 
   function refreshName() {
