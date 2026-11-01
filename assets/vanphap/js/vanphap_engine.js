@@ -4,20 +4,228 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;
 // Pure Vanilla JavaScript — Zero External Dependencies
 // ==========================================================================
 
-// 1. ZEN PROCEDURAL AUDIO ENGINE (Realistic Web Audio API)
+// 1. ZEN PROCEDURAL AUDIO ENGINE (Realistic Web Audio API & Continuous Zen BGM)
 class ZenAudioEngine {
     constructor() {
         this.ctx = null;
         this.enabled = true;
+        this.bgmPlaying = false;
+        this.masterGain = null;
+        this.bgmGain = null;
+        this.sfxGain = null;
+        this.droneNodes = null;
+        this.streamNode = null;
+        this.fluteTimer = null;
+        this.ambientInterval = null;
+
         this.channels = {
+            bgm: true,
             bell: true,
             woodfish: true,
             wind: true,
             birds: true,
             water: true
         };
-        this.ambientInterval = null;
+
+        this.setupGestureUnlock();
+    }
+
+    setupGestureUnlock() {
+        const unlock = () => {
+            this.init();
+            if (this.ctx && this.ctx.state === 'running') {
+                if (this.enabled && this.channels.bgm && !this.bgmPlaying) {
+                    this.startContinuousBgm();
+                }
+                window.removeEventListener('pointerdown', unlock);
+                window.removeEventListener('click', unlock);
+                window.removeEventListener('keydown', unlock);
+            }
+        };
+        window.addEventListener('pointerdown', unlock, { passive: true });
+        window.addEventListener('click', unlock, { passive: true });
+        window.addEventListener('keydown', unlock, { passive: true });
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                this.ctx = new AudioContext();
+                this.masterGain = this.ctx.createGain();
+                this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+                this.masterGain.connect(this.ctx.destination);
+
+                this.bgmGain = this.ctx.createGain();
+                this.bgmGain.gain.setValueAtTime(0.45, this.ctx.currentTime);
+                this.bgmGain.connect(this.masterGain);
+
+                this.sfxGain = this.ctx.createGain();
+                this.sfxGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+                this.sfxGain.connect(this.masterGain);
+            }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    toggleAudio() {
+        this.init();
+        this.enabled = !this.enabled;
+        if (this.masterGain && this.ctx) {
+            this.masterGain.gain.setValueAtTime(this.enabled ? 0.85 : 0.0001, this.ctx.currentTime);
+        }
+        if (this.enabled && !this.bgmPlaying) {
+            this.startContinuousBgm();
+        }
+        this.updateHeaderAudioUI();
+        return this.enabled;
+    }
+
+    updateHeaderAudioUI() {
+        const btn = document.getElementById('btn-quick-audio-toggle');
+        if (btn) {
+            btn.innerHTML = this.enabled 
+                ? '🎵 Nhạc Thiền: <b>BẬT</b> <span class="zen-audio-wave">ılılı</span>' 
+                : '🔇 Nhạc Thiền: <b>TẮT</b>';
+            btn.style.borderColor = this.enabled ? 'var(--gold-bright)' : 'var(--border-subtle)';
+            btn.style.color = this.enabled ? 'var(--gold-bright)' : 'var(--text-dim)';
+        }
+    }
+
+    startContinuousBgm() {
+        this.init();
+        if (!this.ctx || this.bgmPlaying) return;
+        this.bgmPlaying = true;
+
+        this.startTempleDrone();
+        this.startWaterStream();
+        this.startFluteMelody();
         this.startAmbientSoundscape();
+        this.updateHeaderAudioUI();
+    }
+
+    startTempleDrone() {
+        if (!this.ctx || !this.bgmGain) return;
+        try {
+            const ctx = this.ctx;
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const droneGain = ctx.createGain();
+            const filter = ctx.createBiquadFilter();
+
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(130.81, ctx.currentTime); // C3
+
+            osc2.type = 'triangle';
+            osc2.frequency.setValueAtTime(196.00, ctx.currentTime); // G3
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(320, ctx.currentTime);
+
+            droneGain.gain.setValueAtTime(0.065, ctx.currentTime);
+
+            const lfo = ctx.createOscillator();
+            const lfoGain = ctx.createGain();
+            lfo.frequency.setValueAtTime(0.09, ctx.currentTime);
+            lfoGain.gain.setValueAtTime(0.015, ctx.currentTime);
+            lfo.connect(lfoGain);
+            lfoGain.connect(droneGain.gain);
+
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(droneGain);
+            droneGain.connect(this.bgmGain);
+
+            osc1.start();
+            osc2.start();
+            lfo.start();
+            this.droneNodes = { osc1, osc2, lfo, droneGain };
+        } catch (_) {}
+    }
+
+    startWaterStream() {
+        if (!this.ctx || !this.bgmGain) return;
+        try {
+            const ctx = this.ctx;
+            const bufferSize = ctx.sampleRate * 3;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            let lastOut = 0.0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                lastOut = (lastOut + (0.02 * white)) / 1.02;
+                data[i] = lastOut * 3.5;
+            }
+
+            const noiseSource = ctx.createBufferSource();
+            noiseSource.buffer = buffer;
+            noiseSource.loop = true;
+
+            const bandpass = ctx.createBiquadFilter();
+            bandpass.type = 'bandpass';
+            bandpass.frequency.setValueAtTime(750, ctx.currentTime);
+            bandpass.Q.setValueAtTime(1.8, ctx.currentTime);
+
+            const streamGain = ctx.createGain();
+            streamGain.gain.setValueAtTime(0.045, ctx.currentTime);
+
+            noiseSource.connect(bandpass);
+            bandpass.connect(streamGain);
+            streamGain.connect(this.bgmGain);
+
+            noiseSource.start();
+            this.streamNode = { noiseSource, streamGain };
+        } catch (_) {}
+    }
+
+    startFluteMelody() {
+        if (!this.ctx || !this.bgmGain) return;
+        const notes = [261.63, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33, 659.25];
+
+        const playFluteNote = () => {
+            if (!this.enabled || !this.bgmPlaying || !this.ctx) return;
+            try {
+                const ctx = this.ctx;
+                const now = ctx.currentTime;
+                const freq = notes[Math.floor(Math.random() * notes.length)];
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+
+                const vibrato = ctx.createOscillator();
+                const vibGain = ctx.createGain();
+                vibrato.frequency.setValueAtTime(4.8, now);
+                vibGain.gain.setValueAtTime(freq * 0.012, now);
+                vibrato.connect(vibGain);
+                vibGain.connect(osc.frequency);
+                vibrato.start(now);
+                vibrato.stop(now + 3.8);
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(freq * 2.2, now);
+
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.linearRampToValueAtTime(0.12, now + 0.35);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.8);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.bgmGain);
+
+                osc.start(now);
+                osc.stop(now + 3.8);
+
+                const nextInterval = 2400 + Math.random() * 2600;
+                this.fluteTimer = setTimeout(playFluteNote, nextInterval);
+            } catch (_) {}
+        };
+
+        setTimeout(playFluteNote, 800);
     }
 
     toggleChannel(name, isChecked) {
@@ -1572,6 +1780,7 @@ class VanPhapGame {
         this.initAuth();
         this.initDOM();
         this.loadState();
+        this.initGuideSystem();
     }
 
     initAuth() {
@@ -1758,6 +1967,18 @@ class VanPhapGame {
     // ======================================================================
     strikeWoodenFish(isAuto = false) {
         this.audio.playWoodenFish();
+
+        // Track Step 1 guide quest
+        if (this.guideStep === 1) {
+            this.guideChantCount = Math.min(10, (this.guideChantCount || 0) + 1);
+            this.updateGuideBannerUI();
+            if (this.guideChantCount === 10) {
+                this.guideStep = 2;
+                this.updateGuideBannerUI();
+                this.audio.playSingingBowl();
+                this.showToast('🎉 Chúc mừng! Đã tích lũy đủ 10 tiếng mõ khai sơn! Bước kế tiếp: Khám phá Sơn Môn.');
+            }
+        }
         if (this.zenRoomManager) this.zenRoomManager.onChant();
 
         // 1. Trigger Mallet Swing Animation
@@ -3047,6 +3268,108 @@ class VanPhapGame {
         toast.innerHTML = msg;
         box.appendChild(toast);
         setTimeout(() => toast.remove(), 4000);
+    }
+
+    // ======================================================================
+    // SƠN MÔN CHỈ DẪN & CẨM NANG TRỤ TRÌ (TUTORIAL & GAMEPLAY GUIDE)
+    // ======================================================================
+    initGuideSystem() {
+        this.guideStep = 1;
+        this.guideChantCount = 0;
+        this.guideStepsConfig = [
+            {
+                step: 1,
+                title: 'Chỉ Dẫn Tu Hành Sơ Môn (Bước 1/5)',
+                desc: 'Gõ Mõ 10 lần tại Thiền Điện để tích lũy Công Đức khai sơn phá thạch!',
+                progressText: () => `${this.guideChantCount} / 10`,
+                btnText: 'Gõ Mõ Ngay ➔',
+                action: () => {
+                    this.switchTab('chanting');
+                    const fish = document.getElementById('woodenFishStage');
+                    if (fish) fish.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    this.strikeWoodenFish(false);
+                }
+            },
+            {
+                step: 2,
+                title: 'Khai Thác Tự Viện (Bước 2/5)',
+                desc: 'Khám phá Sơn Môn: Nhấp vào Chánh Điện để xem cấp độ và sản lượng tài nguyên tự động!',
+                progressText: () => 'Sẵn sàng',
+                btnText: 'Xem Sơn Môn ➔',
+                action: () => {
+                    this.switchTab('campus');
+                    this.showToast('🏯 Đây là bản đồ Sơn Môn! Các công trình tự sản xuất tài nguyên theo giờ.');
+                }
+            },
+            {
+                step: 3,
+                title: 'Độ Hóa Đệ Tử (Bước 3/5)',
+                desc: 'Vào tab Đệ Tử để phân công 6 đại chức vị (Trụ Trì, Giảng Sư, Thủ Tàng Kinh...) nhận buff lớn!',
+                progressText: () => 'Sẵn sàng',
+                btnText: 'Bổ Nhiệm Đệ Tử ➔',
+                action: () => {
+                    this.switchTab('disciples');
+                    this.showToast('👥 Hãy chọn chức vụ phù hợp cho từng đệ tử để gia tăng sản lượng sơn môn!');
+                }
+            },
+            {
+                step: 4,
+                title: 'Tàng Kinh Các (Bước 4/5)',
+                desc: 'Dùng Công Đức đốn ngộ kinh điển Đại Thừa mở khóa Nội Tại Vĩnh Viễn bảo hộ tự viện!',
+                progressText: () => 'Sẵn sàng',
+                btnText: 'Vào Tàng Kinh Các ➔',
+                action: () => {
+                    this.switchTab('canons');
+                    this.showToast('📜 Nghiên cứu hoàn tất 100% một bộ kinh thư sẽ kích hoạt vĩnh viễn 1 Nội Tại Thiền Môn!');
+                }
+            },
+            {
+                step: 5,
+                title: 'Phòng Tu Hành Online (Bước 5/5)',
+                desc: 'Cùng 8 đạo hữu thập phương ngồi thiền, đàm đạo và cộng hưởng mõ chuông (+25% Công Đức)!',
+                progressText: () => 'Hoàn tất',
+                btnText: 'Vào Phòng Online ➔',
+                action: () => {
+                    this.switchTab('zenroom');
+                    this.showToast('🌐 Chào mừng đến Phòng Tu Hành Online! Hãy cùng các đạo hữu gõ mõ đồng thanh.');
+                }
+            }
+        ];
+        this.updateGuideBannerUI();
+    }
+
+    updateGuideBannerUI() {
+        const titleEl = document.getElementById('guideBannerTitle');
+        const descEl = document.getElementById('guideBannerDesc');
+        const progEl = document.getElementById('guideBannerProgress');
+        const btnEl = document.getElementById('btnGuideAction');
+        const cfg = this.guideStepsConfig[this.guideStep - 1] || this.guideStepsConfig[0];
+
+        if (titleEl) titleEl.innerText = cfg.title;
+        if (descEl) descEl.innerText = cfg.desc;
+        if (progEl) progEl.innerText = typeof cfg.progressText === 'function' ? cfg.progressText() : cfg.progressText;
+        if (btnEl) btnEl.innerText = cfg.btnText;
+    }
+
+    handleGuideAction() {
+        const cfg = this.guideStepsConfig[this.guideStep - 1];
+        if (cfg && typeof cfg.action === 'function') {
+            cfg.action();
+            if (this.guideStep > 1 && this.guideStep < 5) {
+                this.guideStep++;
+                this.updateGuideBannerUI();
+            }
+        }
+    }
+
+    openGuideModal() {
+        const modal = document.getElementById('monasteryGuideModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    closeGuideModal() {
+        const modal = document.getElementById('monasteryGuideModal');
+        if (modal) modal.style.display = 'none';
     }
 }
 

@@ -41,8 +41,14 @@
                 <span>🧘 <strong id="abbot-name-header">Trụ Trì</strong></span>
                 <span class="abbot-realm-tag" id="abbot-realm-tag">Sơ Học</span>
             </div>
-            <button class="btn-secondary" id="btn-soundscape-panel" style="padding:6px 14px; font-size:12px; border-color:var(--gold-bright); color:var(--gold-bright);" onclick="window.vpApp.toggleSoundscapePanel()">
-                🎶 Chuông Gió Thiền Định
+            <button class="btn-secondary" id="btn-quick-audio-toggle" style="padding:6px 14px; font-size:12px; border-color:var(--gold-bright); color:var(--gold-bright); display:flex; align-items:center; gap:6px; cursor:pointer;" onclick="window.vpApp.audio.toggleAudio()">
+                🎵 Nhạc Thiền: <b>BẬT</b> <span class="zen-audio-wave">ılılı</span>
+            </button>
+            <button class="btn-zen" id="btn-open-guide-modal" style="padding:6px 14px; font-size:12px; display:flex; align-items:center; gap:6px; background:linear-gradient(135deg, #059669, #047857); border-color:#34d399;" onclick="window.vpApp.openGuideModal()">
+                📖 Cẩm Nang Lối Chơi
+            </button>
+            <button class="btn-secondary" id="btn-soundscape-panel" style="padding:6px 12px; font-size:12px; border-color:var(--border-subtle); color:var(--text-dim);" onclick="window.vpApp.toggleSoundscapePanel()" title="Tùy chỉnh từng kênh chuông, gió, chim, suối">
+                ⚙️ Âm Cảnh
             </button>
         </div>
     </header>
@@ -80,6 +86,22 @@
         <div class="res-item" title="Danh vọng sơn môn - Thu hút thiện tín">
             <span class="res-icon" style="color:var(--gold-light);">🌟</span>
             <span>Danh Vọng: <strong id="res-reputation" style="color:var(--gold-bright);">0</strong></span>
+        </div>
+    </div>
+
+    <!-- KHUNG CHỈ DẪN NHIỆM VỤ SƠ MÔN (HƯỚNG DẪN TÂN THỦ) -->
+    <div class="zen-guide-banner" id="zenGuideBanner">
+        <div class="guide-banner-left">
+            <div class="guide-banner-icon">🎯</div>
+            <div>
+                <div class="guide-banner-title" id="guideBannerTitle">Chỉ Dẫn Tu Hành Sơ Môn (Bước 1/5)</div>
+                <div class="guide-banner-desc" id="guideBannerDesc">Gõ Mõ 10 lần tại Thiền Điện để tích lũy Công Đức khai sơn phá thạch!</div>
+            </div>
+        </div>
+        <div class="guide-banner-right">
+            <span class="guide-banner-progress" id="guideBannerProgress">0 / 10</span>
+            <button class="btn-guide-step" id="btnGuideAction" onclick="window.vpApp.handleGuideAction()">Thực Hiện Ngay ➔</button>
+            <button class="btn-guide-help" onclick="window.vpApp.openGuideModal()">📖 Cẩm Nang</button>
         </div>
     </div>
 
@@ -800,6 +822,101 @@
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <button class="btn-secondary" style="padding:6px 14px; font-size:12px;" onclick="window.vpApp.zenRoomManager.closeRoomListModal()">Đóng</button>
                 <button class="btn-zen" style="padding:6px 16px; font-size:12px;" onclick="window.vpApp.zenRoomManager.createCustomRoom()">➕ Mở Phòng Mới</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CẨM NANG TRỤ TRÌ (HƯỚNG DẪN LỐI CHƠI TOÀN DIỆN) -->
+    <div class="modal-overlay" id="monasteryGuideModal" style="display:none;" onclick="if(event.target===this)window.vpApp.closeGuideModal()">
+        <div class="guide-modal-content">
+            <div class="guide-modal-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:22px;">📜</span>
+                    <div>
+                        <h2 style="margin:0; font-family:var(--font-heading); color:var(--gold-bright); font-size:18px;">CẨM NANG TRỤ TRÌ — HƯỚNG DẪN LỐI CHƠI</h2>
+                        <span style="font-size:12px; color:var(--text-dim);">Quy luật tu hành & phát triển tự viện Vạn Pháp Đạo Tràng</span>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="window.vpApp.closeGuideModal()">✕</button>
+            </div>
+            <div class="guide-modal-body">
+                <div class="guide-section-card">
+                    <div class="guide-step-header">
+                        <span class="guide-step-badge">BƯỚC 1</span>
+                        <span class="guide-step-title">🪷 Tọa Thiền & Gõ Mõ (Tích Lũy Công Đức)</span>
+                    </div>
+                    <div class="guide-step-body">
+                        Vào tab <b>Thiền Điện (Gõ Mõ)</b>, nhấp chuột hoặc chạm liên tục vào Mõ Gỗ Trầm Hương. Mỗi tiếng mõ vang lên tiêu trừ phiền não và mang lại <b>Công Đức</b> (đơn vị tu hành chính) cùng <b>Đạo Hạnh</b>. Chuỗi gõ liên tiếp càng cao (Combo Streak) sẽ kích hoạt gia tăng % Exp nhận được.
+                    </div>
+                    <div class="guide-step-tip">
+                        💡 <b>Mẹo Trụ Trì</b>: Bạn có thể bật <i>"Tự Động Gõ Mõ"</i> để đệ tử thay phiên tụng niệm khi rảnh tay!
+                    </div>
+                </div>
+
+                <div class="guide-section-card">
+                    <div class="guide-step-header">
+                        <span class="guide-step-badge">BƯỚC 2</span>
+                        <span class="guide-step-title">🏯 Khai Thác & Quản Lý Sơn Môn (Tài Nguyên Tự Viện)</span>
+                    </div>
+                    <div class="guide-step-body">
+                        Vào tab <b>Sơn Môn</b> hoặc <b>Kiến Thiết</b> để quản lý 6 công trình chính: Chánh Điện, Trai Đường, Vườn Nam Dược, Tàng Kinh Các, Tháp Chuông, Phòng Tăng. Tự viện sẽ tự động sản xuất <b>6 loại tài nguyên</b> (Gỗ Trầm, Linh Thạch, Nam Dược, Trai Phạn, Trầm Hương, Cúng Dường). Dùng tài nguyên nâng cấp các công trình để gia tăng sản lượng theo giờ.
+                    </div>
+                    <div class="guide-step-tip">
+                        💡 <b>Mẹo Trụ Trì</b>: Nhấp trực tiếp vào các ô công trình trên bức họa thủy mặc Sơn Môn để xem chi tiết và nâng cấp nhanh!
+                    </div>
+                </div>
+
+                <div class="guide-section-card">
+                    <div class="guide-step-header">
+                        <span class="guide-step-badge">BƯỚC 3</span>
+                        <span class="guide-step-title">👥 Độ Hóa & Bổ Nhiệm Chức Vụ Đệ Tử</span>
+                    </div>
+                    <div class="guide-step-body">
+                        Vào tab <b>Đệ Tử</b> để thu nhận đệ tử thập phương gia nhập môn phái. Mỗi đệ tử sở hữu căn cơ và phẩm chất riêng. Hãy bổ nhiệm họ vào <b>6 Chức Vị Thiền Môn</b>:
+                        <ul style="margin:6px 0 0 16px; padding:0; line-height:1.6;">
+                            <li>👑 <b>Đại Đức Trụ Trì</b>: Tăng định lực và tốc độ lan tỏa danh vọng sơn môn.</li>
+                            <li>📖 <b>Giảng Sư</b>: Đăng đàn thuyết pháp, tăng <b>+15% Danh Vọng</b> thập phương.</li>
+                            <li>📜 <b>Thủ Tàng Kinh Các</b>: Trông nom kinh điển, tăng <b>+25% Tốc độ nghiên cứu</b>.</li>
+                            <li>🍲 <b>Điển Tọa</b>: Quản lý Trai Đường, tăng <b>+20% Trai Phạn</b> nuôi chúng tăng.</li>
+                            <li>🌿 <b>Dược Sư</b>: Quản lý Vườn Thuốc, tăng <b>+20% sản lượng Nam Dược</b>.</li>
+                            <li>🛡️ <b>Hộ Pháp</b>: Trấn giữ sơn môn, tăng <b>+15% Sức Chứa Kho Tàng</b>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="guide-section-card">
+                    <div class="guide-step-header">
+                        <span class="guide-step-badge">BƯỚC 4</span>
+                        <span class="guide-step-title">📜 Tàng Kinh Các & Mở Khóa Nội Tại Vĩnh Viễn</span>
+                    </div>
+                    <div class="guide-step-body">
+                        Vào tab <b>Tàng Kinh Các</b> để nghiên cứu các bộ kinh văn Đại Thừa (Bát Nhã Tâm Kinh, Kim Cương Kinh, Pháp Hoa Kinh...). Dùng Công Đức tích lũy để lĩnh ngộ. Khi nghiên cứu hoàn tất 100%, sơn môn sẽ kích hoạt <b>Nội Tại Thiền Môn Vĩnh Viễn</b> giúp tăng năng suất và phước đức dài lâu!
+                    </div>
+                </div>
+
+                <div class="guide-section-card">
+                    <div class="guide-step-header">
+                        <span class="guide-step-badge">BƯỚC 5</span>
+                        <span class="guide-step-title">📿 Nhân Duyên Khách Sân Chùa & Thiên Cơ Chiếu Triệu</span>
+                    </div>
+                    <div class="guide-step-body">
+                        Khách viếng chùa xuất hiện tự động theo các khung giờ (ông lão cầu an, sĩ tử cầu thi, người mang gà quy y, khách áo trắng ban đêm...). Nhấp trò chuyện với họ để ban phúc nhận Công Đức. Khi xuất hiện thông báo <b>Phật Duyên Hiển Hiện</b>, hãy đưa ra quyết định sáng suốt để nhận các phần thưởng nhân quả xứng đáng.
+                    </div>
+                </div>
+
+                <div class="guide-section-card">
+                    <div class="guide-step-header">
+                        <span class="guide-step-badge">BƯỚC 6</span>
+                        <span class="guide-step-title">🌐 Phòng Tu Hành Online (Cộng Hưởng Hoa Sen)</span>
+                    </div>
+                    <div class="guide-step-body">
+                        Vào tab <b>Phòng Tu Hành Online</b> để cùng tối đa 8 đạo hữu thập phương ngồi trên 8 bồ đoàn quanh đài sen. Trò chuyện thiện lành, thực hiện biểu cảm chắp tay, lần chuỗi và cùng nhau gõ mõ đồng thanh để kích hoạt <b>Hào Quang Sen Vàng (+25% Công Đức)</b>!
+                    </div>
+                </div>
+            </div>
+            <div style="padding:14px 24px; background:rgba(0,0,0,0.5); border-top:1px solid var(--border-gold); display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; color:var(--gold-bright);">🪷 Chúc quý đạo hữu đạo nghiệp tinh tấn, vạn sự cát tường!</span>
+                <button class="btn-zen" style="padding:8px 24px; font-weight:800;" onclick="window.vpApp.closeGuideModal()">Đã Hiểu, Vào Tu Hành 🙏</button>
             </div>
         </div>
     </div>
