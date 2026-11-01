@@ -320,7 +320,7 @@
   transform: translateY(-1px) !important;
 }
 
-/* ── 6. 4 Nút Hành động ở Footer (.lobby-footer.rank-actions) ── */
+/* ── 6. 6 Nút Hành động ở Footer (.lobby-footer.rank-actions) ── */
 #lobby .lobby-footer.rank-actions {
   flex: 0 0 auto !important;
   width: min(580px, calc(100% - 24px)) !important;
@@ -331,8 +331,17 @@
   gap: 8px !important;
   box-sizing: border-box !important;
   z-index: 10 !important;
+  align-items: center !important;
+  align-content: center !important;
 }
-#lobby .lobby-footer.rank-actions > button {
+#lobby .lobby-footer.rank-actions > button,
+#lobby .lobby-footer.rank-actions > button.rank-quick-btn,
+#lobby .lobby-footer.rank-actions > #rankPlayBtn,
+#lobby .lobby-footer.rank-actions > #journeyBtn,
+#lobby .lobby-footer.rank-actions > #rankBoardBtn,
+#lobby .lobby-footer.rank-actions > #shopBigBtn,
+#lobby .lobby-footer.rank-actions > #playBtn,
+#lobby .lobby-footer.rank-actions > #lobbyDeckBtn {
   height: 42px !important;
   min-height: 42px !important;
   font-size: 14px !important;
@@ -343,6 +352,9 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  align-self: center !important;
+  vertical-align: middle !important;
+  transform: none !important;
   box-sizing: border-box !important;
   margin: 0 !important;
 }
@@ -353,22 +365,28 @@
   color: #fff !important;
   box-shadow: 0 3px 12px rgba(217, 119, 6, 0.45) !important;
 }
-#lobby .lobby-footer.rank-actions > #rankBoardBtn {
+#lobby .lobby-footer.rank-actions > #journeyBtn {
   order: 2 !important;
+}
+#lobby .lobby-footer.rank-actions > #rankBoardBtn {
+  order: 3 !important;
   background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
   border: 1.5px solid #93c5fd !important;
   color: #fff !important;
   box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4) !important;
 }
+#lobby .lobby-footer.rank-actions > #shopBigBtn {
+  order: 4 !important;
+}
 #lobby .lobby-footer.rank-actions > #playBtn {
-  order: 3 !important;
+  order: 5 !important;
   background: linear-gradient(135deg, #059669, #047857) !important;
   border: 1.5px solid #6ee7b7 !important;
   color: #fff !important;
   box-shadow: 0 3px 12px rgba(5, 150, 105, 0.4) !important;
 }
 #lobby .lobby-footer.rank-actions > #lobbyDeckBtn {
-  order: 4 !important;
+  order: 6 !important;
   background: linear-gradient(135deg, #1e3a5f, #142842) !important;
   border: 1.5px solid #7dd3fc !important;
   color: #f0f9ff !important;
@@ -805,12 +823,17 @@
     grid-template-columns: none !important;
     gap: 12px !important;
     padding: 2px 0 12px !important;
+    align-items: center !important;
+    align-content: center !important;
   }
   #lobby .lobby-footer.rank-actions > button {
     height: 46px !important;
     min-height: 46px !important;
     font-size: 14.5px !important;
     border-radius: 12px !important;
+    align-self: center !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
   }
 }
 

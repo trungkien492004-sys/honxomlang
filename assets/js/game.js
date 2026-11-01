@@ -1156,6 +1156,10 @@
         let networkWriteErrorShown = false;
         function reportNetworkWriteError(err) {
             console.error('🔥 Firestore network write failed:', err);
+            const msg = String(err?.message || err?.code || '');
+            if (msg.includes('Missing or insufficient permissions') || msg.includes('permission-denied')) {
+                return;
+            }
             if (!networkWriteErrorShown) {
                 networkWriteErrorShown = true;
                 showToast('⚠️ Không gửi được dữ liệu online. Kiểm tra Firebase Authentication và Firestore Rules.');
@@ -1231,7 +1235,10 @@
                       isInitialEvent = false;
                   }, err => {
                       console.error("🔥 network_events onSnapshot error:", err);
-                      showToast("⚠️ Lỗi kết nối Firestore: " + err.message);
+                      const msg = String(err?.message || err?.code || '');
+                      if (!msg.includes('Missing or insufficient permissions') && !msg.includes('permission-denied')) {
+                          showToast("⚠️ Lỗi kết nối Firestore: " + err.message);
+                      }
                   });
 
                 // 3. Global Chat - 5-min lookback to avoid clock drift
