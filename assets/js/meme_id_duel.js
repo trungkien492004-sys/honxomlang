@@ -205,8 +205,8 @@
   if (!memeParent() || !memeMyId()) throw Error('Hãy mở đấu bài từ trang chính để nhận lời mời online.');
   await publish(true);
   if (cancelled()) return;
-  if (p.protocol !== MEME_RULES_VERSION) throw Error('Hai người cần tải lại game để dùng cùng phiên bản.');
-  if (p.busy) throw Error('Người này đang trong trận đấu. Hãy thử lại sau.');
+  if (p.protocol !== MEME_RULES_VERSION && online(p)) throw Error('Hai người cần tải lại game để dùng cùng phiên bản.');
+  if (p.busy && !options.silent && window.notify) notify('Bạn ấy đang trong trận đấu. Lời mời vẫn được gửi và sẽ hiện ngay khi bạn ấy rảnh.');
 
   await cancelInvite();
   if (cancelled()) return;
@@ -244,7 +244,7 @@
   pending.timer=setTimeout(()=>{if(pending?.nonce===nonce){cancelInvite();if(!options?.silent)notify('Lời mời hết hạn. Bạn có thể gửi lại.');}},60000);
  }
  async function showIncoming(id,v){
-  if(incoming||busy()||inviteExpiry(v)<=Date.now())return;
+  if(incoming||inviteExpiry(v)<=Date.now())return;
   let p=null;
   try{
     const [pSnap,dSnap]=await Promise.all([
@@ -255,11 +255,15 @@
     else if(dSnap?.exists)p=dSnap.data();
   }catch(e){console.warn('showIncoming lookup error:',e);}
   if(!p)p={name:'Đấu sĩ #'+String(v.from).slice(0,5),uid:v.from};
-  if(incoming||busy())return;
+  if(incoming)return;
   incoming={id,nonce:v.nonce};const box=document.createElement('section');box.id='directDuelInvite';box.className='direct-duel-invite';box.setAttribute('role','dialog');box.setAttribute('aria-label','Lời mời đấu');box.innerHTML='<h3>Lời mời đấu bài</h3><p>'+esc(p.name)+' muốn đấu với bạn.</p><button type="button" class="primary-btn" id="idAcceptInvite">Nhận lời</button><button type="button" class="secondary-btn" id="idDeclineInvite">Từ chối</button><p class="id-invite-error" role="status"></p>';document.body.appendChild(box);
-  const clear=()=>{if(incoming?.nonce===v.nonce)incoming=null;box.remove();};
-   const respond=async accept=>{for(const b of box.querySelectorAll('button'))b.disabled=true;try{if(accept&&busy())throw Error('Bạn đang bận trong một trận đấu khác.');await publish(true);await store.runTransaction(async tx=>{const ref=store.doc('duel_invites/'+id),latest=(await tx.get(ref)).data();if(!latest||latest.nonce!==v.nonce||latest.status!=='pending'||inviteExpiry(latest)<=Date.now())throw Error('Lời mời đã hết hạn hoặc bị hủy.');tx.update(ref,native({status:accept?'accepted':'declined'}));});if(accept){memeJoinRoom(v.roomId);memeRoom.peerId=p.networkId||v.from;memeRoom.peerUid=v.from;memeRoom.peerName=p.name;memeRoom.challengeId=v.nonce;memeRoom.rankOpponentUid=v.from;}clear();}catch(e){box.querySelector('.id-invite-error').textContent=e.message;for(const b of box.querySelectorAll('button'))b.disabled=false;}};
+  let waiter=null,statusHint=false;const acceptBtn=box.querySelector('#idAcceptInvite'),statusLine=box.querySelector('.id-invite-error');
+  const clear=()=>{if(incoming?.nonce===v.nonce)incoming=null;if(waiter){clearInterval(waiter);waiter=null;}box.remove();};
+  const syncAvailability=()=>{const fighting=busy();acceptBtn.disabled=fighting;if(fighting){statusHint=true;statusLine.textContent='Bạn đang trong trận đấu — kết thúc trận rồi nhận lời.';}else if(statusHint){statusHint=false;statusLine.textContent='';}};
+  syncAvailability();
+   const respond=async accept=>{for(const b of box.querySelectorAll('button'))b.disabled=true;try{if(accept&&busy())throw Error('Bạn đang trong trận đấu.');await publish(true);await store.runTransaction(async tx=>{const ref=store.doc('duel_invites/'+id),latest=(await tx.get(ref)).data();if(!latest||latest.nonce!==v.nonce||latest.status!=='pending'||inviteExpiry(latest)<=Date.now())throw Error('Lời mời đã hết hạn hoặc bị hủy.');tx.update(ref,native({status:accept?'accepted':'declined'}));});if(accept){memeJoinRoom(v.roomId);memeRoom.peerId=p.networkId||p.uid||v.from;memeRoom.peerUid=v.from;memeRoom.peerName=p.name;memeRoom.challengeId=v.nonce;memeRoom.rankOpponentUid=v.from;}clear();}catch(e){statusHint=false;statusLine.textContent=e.message;for(const b of box.querySelectorAll('button'))b.disabled=false;syncAvailability();}};
   box.querySelector('#idAcceptInvite').onclick=()=>respond(true);box.querySelector('#idDeclineInvite').onclick=()=>respond(false);setTimeout(clear,Math.max(0,inviteExpiry(v)-Date.now()));
+  waiter=setInterval(()=>{if(incoming?.nonce!==v.nonce){clearInterval(waiter);waiter=null;return;}syncAvailability();},1000);
  }
  async function lookup(value){
   const id=String(value||'').trim();

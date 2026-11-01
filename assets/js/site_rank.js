@@ -694,7 +694,13 @@
       const invVal = pendingDoc.data();
       const cardModal = document.getElementById('memecardGameModal');
       const isCardOpen = cardModal && cardModal.style.display !== 'none' && cardModal.style.display !== '';
-      if (isCardOpen) {
+      let duelFrameAlive = false;
+      try {
+        duelFrameAlive = !!document.getElementById('memecardFrame')?.contentWindow?.memeIdDuel;
+      } catch {
+        duelFrameAlive = false;
+      }
+      if (isCardOpen && duelFrameAlive) {
         return;
       }
       try {
