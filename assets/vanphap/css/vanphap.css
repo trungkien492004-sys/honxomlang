@@ -1958,3 +1958,583 @@ body {
     font-size: 12px;
     color: #a7f3d0;
 }
+
+/* ==========================================================================
+   ALTAR SPIRITUAL CEREMONY & TIKTOK LIVE ĐI CHÙA CẦU AN UPGRADE
+   Xin Xăm Cầu An • Thắp Hương Trầm • Thả Đèn Hoa Đăng • Thỉnh Chuông Đại Hồng Chung
+   ========================================================================== */
+
+.altar-ceremony-panel {
+    margin-top: 18px;
+    background: linear-gradient(180deg, rgba(30, 16, 10, 0.96) 0%, rgba(16, 8, 5, 0.98) 100%);
+    border: 1.5px solid #d4af37;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(212, 175, 55, 0.15);
+}
+
+.altar-ceremony-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed rgba(212, 175, 55, 0.35);
+}
+
+.altar-ceremony-label {
+    font-family: var(--font-heading);
+    color: var(--gold-bright);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+.altar-prayer-center {
+    background: rgba(8, 4, 2, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    color: #fef08a;
+    font-style: italic;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    animation: prayerGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes prayerGlow {
+    0% { border-color: rgba(212, 175, 55, 0.3); box-shadow: 0 0 6px rgba(212, 175, 55, 0.15); }
+    100% { border-color: rgba(251, 191, 36, 0.8); box-shadow: 0 0 16px rgba(251, 191, 36, 0.45); }
+}
+
+.altar-ceremony-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.altar-action-btn {
+    background: linear-gradient(180deg, #2a1208 0%, #150803 100%);
+    border: 1.5px solid #d4af37;
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #fef3c7;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    text-align: left;
+}
+
+.altar-action-btn:hover {
+    background: linear-gradient(180deg, #421c0b 0%, #200c05 100%);
+    border-color: #fbbf24;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+}
+
+.altar-action-btn:active {
+    transform: translateY(1px);
+}
+
+.altar-action-btn .btn-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.altar-action-btn .btn-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.altar-action-btn .btn-text {
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.altar-action-btn .btn-reward {
+    font-size: 10px;
+    font-weight: 700;
+    color: #34d399;
+}
+
+.btn-action-fortune {
+    border-color: #f59e0b;
+}
+.btn-action-fortune .btn-reward {
+    color: #fbbf24;
+}
+
+.btn-action-incense {
+    border-color: #f97316;
+}
+.btn-action-lantern {
+    border-color: #ec4899;
+}
+.btn-action-lantern .btn-reward {
+    color: #f472b6;
+}
+
+.btn-action-bell {
+    border-color: #eab308;
+}
+
+.altar-incense-burner.incense-active {
+    border-color: #f59e0b !important;
+    background: rgba(245, 158, 11, 0.18) !important;
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.45) !important;
+}
+
+.bell-shockwave-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin-left: -30px;
+    margin-top: -30px;
+    border: 3px solid #fbbf24;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 25;
+    animation: bellShockwave 1.6s cubic-bezier(0.1, 0.6, 0.3, 1) forwards;
+}
+
+@keyframes bellShockwave {
+    0% {
+        transform: scale(0.3);
+        opacity: 1;
+        box-shadow: 0 0 10px #fbbf24;
+    }
+    100% {
+        transform: scale(7.5);
+        opacity: 0;
+        box-shadow: 0 0 35px rgba(251, 191, 36, 0);
+    }
+}
+
+/* ==================== AUSPICIOUS FORTUNE SCROLL MODAL ==================== */
+.fortune-overlay-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(7, 4, 3, 0.88);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    animation: modalBackdropFade 0.3s ease;
+}
+
+.fortune-scroll-wrapper {
+    position: relative;
+    max-width: 520px;
+    width: 100%;
+    animation: scrollUnroll 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+}
+
+@keyframes scrollUnroll {
+    0% { transform: scale(0.7) translateY(40px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.fortune-scroll {
+    position: relative;
+    background: linear-gradient(180deg, #fef6e9 0%, #fae4bd 100%);
+    border: 6px solid #991b1b;
+    outline: 3px solid #d4af37;
+    border-radius: 18px;
+    padding: 24px 22px;
+    color: #451a03;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 30px rgba(212, 175, 55, 0.35);
+    text-align: center;
+}
+
+.fortune-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: rgba(153, 27, 27, 0.15);
+    border: 1.5px solid #991b1b;
+    border-radius: 50%;
+    color: #991b1b;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fortune-close-btn:hover {
+    background: #991b1b;
+    color: #fff;
+}
+
+.fortune-scroll-header {
+    margin-bottom: 12px;
+}
+
+.fortune-scroll-seal {
+    font-size: 32px;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 2px 4px rgba(153, 27, 27, 0.4));
+}
+
+.fortune-title {
+    font-family: var(--font-heading), 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: #991b1b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fortune-theme {
+    font-size: 15px;
+    font-weight: 800;
+    color: #78350f;
+    margin-top: 4px;
+}
+
+.fortune-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 12px 0 16px 0;
+}
+
+.fortune-divider .divider-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #991b1b, transparent);
+}
+
+.fortune-divider .divider-lotus {
+    font-size: 18px;
+    color: #991b1b;
+}
+
+.fortune-poem {
+    font-family: 'Playfair Display', 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.7;
+    color: #3b1212;
+    font-weight: 700;
+    white-space: pre-line;
+    background: rgba(153, 27, 27, 0.05);
+    border: 1px solid rgba(153, 27, 27, 0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+}
+
+.fortune-meaning-box {
+    background: rgba(217, 119, 6, 0.1);
+    border-left: 4px solid #d97706;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: left;
+    margin-bottom: 12px;
+}
+
+.meaning-label {
+    font-size: 12px;
+    font-weight: 900;
+    color: #92400e;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.meaning-text {
+    font-size: 13.5px;
+    color: #451a03;
+    line-height: 1.5;
+}
+
+.fortune-blessing-box {
+    background: rgba(153, 27, 27, 0.08);
+    border-left: 4px solid #991b1b;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: left;
+    margin-bottom: 14px;
+}
+
+.blessing-label {
+    font-size: 12px;
+    font-weight: 900;
+    color: #991b1b;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.blessing-text {
+    font-size: 13.5px;
+    color: #451a03;
+    line-height: 1.5;
+    font-weight: 600;
+}
+
+.fortune-merit-reward {
+    font-size: 13px;
+    font-weight: 800;
+    color: #065f46;
+    background: rgba(5, 150, 105, 0.15);
+    border: 1px dashed #059669;
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.fortune-actions-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-fortune-draw-again {
+    background: #fff;
+    border: 1.5px solid #b45309;
+    color: #92400e;
+    font-weight: 800;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.btn-fortune-draw-again:hover {
+    background: #fef3c7;
+    border-color: #78350f;
+}
+
+.btn-fortune-confirm {
+    background: linear-gradient(135deg, #b91c1c, #991b1b);
+    border: 1.5px solid #d4af37;
+    color: #fff;
+    font-weight: 800;
+    padding: 10px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    box-shadow: 0 4px 14px rgba(153, 27, 27, 0.4);
+    transition: all 0.2s;
+}
+
+.btn-fortune-confirm:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+}
+
+/* ==================== SACRED LOTUS LANTERN MODAL ==================== */
+.lotus-modal-card {
+    background: linear-gradient(180deg, #150f1f 0%, #0d0914 100%);
+    border: 2px solid #ec4899;
+    border-radius: 18px;
+    max-width: 520px;
+    width: 100%;
+    padding: 24px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.85), 0 0 25px rgba(236, 72, 153, 0.35);
+    animation: scrollUnroll 0.35s ease;
+}
+
+.lotus-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(236, 72, 153, 0.3);
+    padding-bottom: 12px;
+}
+
+.lotus-modal-title {
+    font-family: var(--font-heading);
+    color: #f472b6;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.lotus-modal-sub {
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+.lotus-preset-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.preset-chip {
+    background: rgba(236, 72, 153, 0.1);
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fce7f3;
+    font-size: 12.5px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.preset-chip:hover {
+    background: rgba(236, 72, 153, 0.25);
+    border-color: #ec4899;
+    transform: translateX(4px);
+}
+
+.lotus-wish-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1.5px solid rgba(236, 72, 153, 0.4);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.lotus-wish-input:focus {
+    border-color: #ec4899;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.4);
+}
+
+.lotus-preview-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.lotus-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 14px;
+}
+
+.btn-release-lantern {
+    background: linear-gradient(135deg, #db2777, #be185d) !important;
+    border-color: #f472b6 !important;
+    color: #fff !important;
+    font-weight: 800;
+    box-shadow: 0 4px 16px rgba(219, 39, 119, 0.45);
+}
+
+/* ==================== FLOATING LOTUS LANTERN RIVER FX ==================== */
+.lotus-river-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 180px;
+    pointer-events: none;
+    z-index: 80;
+    overflow: hidden;
+}
+
+.floating-lotus-lantern {
+    position: absolute;
+    right: -250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: driftAcross 18s linear forwards;
+    filter: drop-shadow(0 0 14px rgba(236, 72, 153, 0.65));
+}
+
+@keyframes driftAcross {
+    0% {
+        transform: translateX(0) translateY(0);
+        opacity: 0;
+    }
+    5% {
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(calc(-50vw - 100px)) translateY(-15px);
+    }
+    92% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(calc(-100vw - 300px)) translateY(0);
+        opacity: 0;
+    }
+}
+
+.floating-lotus-lantern .lantern-flame {
+    width: 10px;
+    height: 16px;
+    background: radial-gradient(ellipse at 50% 80%, #fef08a 0%, #f59e0b 60%, transparent 100%);
+    border-radius: 50% 50% 35% 35%;
+    margin-bottom: -4px;
+    animation: flameBob 1.2s ease-in-out infinite alternate;
+    box-shadow: 0 0 12px #fbbf24;
+}
+
+@keyframes flameBob {
+    0% { transform: scale(0.9) translateY(0); opacity: 0.85; }
+    100% { transform: scale(1.15) translateY(-2px); opacity: 1; }
+}
+
+.floating-lotus-lantern .lantern-flower {
+    font-size: 38px;
+    line-height: 1;
+    filter: drop-shadow(0 0 10px rgba(251, 113, 133, 0.8));
+    animation: flowerBob 3s ease-in-out infinite alternate;
+}
+
+@keyframes flowerBob {
+    0% { transform: rotate(-3deg); }
+    100% { transform: rotate(3deg); }
+}
+
+.floating-lotus-lantern .lantern-wish-chip {
+    background: rgba(15, 7, 20, 0.88);
+    border: 1px solid #f472b6;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 11px;
+    color: #fff;
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}

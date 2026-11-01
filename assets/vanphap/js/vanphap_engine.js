@@ -18,6 +18,25 @@ class ZenAudioEngine {
         this.fluteTimer = null;
         this.ambientInterval = null;
 
+        // Authentic Buddhist Temple Audio Assets (from TikTok Live Đi Chùa Cầu An)
+        try {
+            this.bgmAudio = new Audio('assets/vanphap/audio/meditation_guzheng.wav');
+            this.bgmAudio.loop = true;
+            this.bgmAudio.volume = 0.35;
+
+            this.moAudio = new Audio('assets/vanphap/audio/mo.wav');
+            this.moAudio.volume = 0.75;
+
+            this.bellAudio = new Audio('assets/vanphap/audio/bell.wav');
+            this.bellAudio.volume = 0.85;
+
+            this.chimeAudio = new Audio('assets/vanphap/audio/chime.wav');
+            this.chimeAudio.volume = 0.75;
+
+            this.fortuneAudio = new Audio('assets/vanphap/audio/fortune.wav');
+            this.fortuneAudio.volume = 0.85;
+        } catch (_) {}
+
         this.channels = {
             bgm: true,
             bell: true,
@@ -33,18 +52,29 @@ class ZenAudioEngine {
     setupGestureUnlock() {
         const unlock = () => {
             this.init();
-            if (this.ctx && this.ctx.state === 'running') {
-                if (this.enabled && this.channels.bgm && !this.bgmPlaying) {
-                    this.startContinuousBgm();
-                }
-                window.removeEventListener('pointerdown', unlock);
-                window.removeEventListener('click', unlock);
-                window.removeEventListener('keydown', unlock);
+            if (this.enabled && !this.bgmPlaying) {
+                this.playBGM();
             }
+            window.removeEventListener('pointerdown', unlock);
+            window.removeEventListener('click', unlock);
+            window.removeEventListener('keydown', unlock);
+            window.removeEventListener('touchstart', unlock);
         };
         window.addEventListener('pointerdown', unlock, { passive: true });
         window.addEventListener('click', unlock, { passive: true });
         window.addEventListener('keydown', unlock, { passive: true });
+        window.addEventListener('touchstart', unlock, { passive: true });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (this.bgmAudio && !this.bgmAudio.paused) this.bgmAudio.pause();
+                if (this.ctx && this.ctx.state === 'running') this.ctx.suspend();
+            } else {
+                if (this.enabled && this.bgmPlaying && this.bgmAudio && this.bgmAudio.paused) {
+                    this.bgmAudio.play().catch(() => {});
+                }
+                if (this.enabled && this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            }
+        });
     }
 
     init() {
@@ -70,14 +100,48 @@ class ZenAudioEngine {
         }
     }
 
+    playBGM() {
+        if (!this.enabled) return;
+        this.init();
+        if (this.bgmAudio) {
+            this.bgmAudio.volume = 0.35;
+            this.bgmAudio.loop = true;
+            this.bgmAudio.play().then(() => {
+                this.bgmPlaying = true;
+                this.updateHeaderAudioUI();
+            }).catch(() => {
+                this.startContinuousBgm();
+            });
+        } else {
+            this.startContinuousBgm();
+        }
+        if (!this.streamNode) {
+            this.startWaterStream();
+        }
+        this.updateHeaderAudioUI();
+    }
+
+    pauseBGM() {
+        if (this.bgmAudio) {
+            this.bgmAudio.pause();
+        }
+        this.bgmPlaying = false;
+        this.updateHeaderAudioUI();
+    }
+
     toggleAudio() {
         this.init();
         this.enabled = !this.enabled;
-        if (this.masterGain && this.ctx) {
-            this.masterGain.gain.setValueAtTime(this.enabled ? 0.85 : 0.0001, this.ctx.currentTime);
-        }
-        if (this.enabled && !this.bgmPlaying) {
-            this.startContinuousBgm();
+        if (this.enabled) {
+            this.playBGM();
+            if (this.masterGain && this.ctx) {
+                this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+            }
+        } else {
+            this.pauseBGM();
+            if (this.masterGain && this.ctx) {
+                this.masterGain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+            }
         }
         this.updateHeaderAudioUI();
         return this.enabled;
@@ -91,6 +155,15 @@ class ZenAudioEngine {
                 : '🔇 Nhạc Thiền: <b>TẮT</b>';
             btn.style.borderColor = this.enabled ? 'var(--gold-bright)' : 'var(--border-subtle)';
             btn.style.color = this.enabled ? 'var(--gold-bright)' : 'var(--text-dim)';
+        }
+        const altarMusicStatus = document.getElementById('altarMusicStatus');
+        const altarMusicIcon = document.getElementById('altarMusicIcon');
+        if (altarMusicStatus) {
+            altarMusicStatus.innerHTML = this.enabled ? 'Bật ılılı' : 'Tắt';
+            altarMusicStatus.style.color = this.enabled ? '#34d399' : 'var(--text-dim)';
+        }
+        if (altarMusicIcon) {
+            altarMusicIcon.textContent = this.enabled ? '🎵' : '🔇';
         }
     }
 
@@ -116,10 +189,10 @@ class ZenAudioEngine {
             const filter = ctx.createBiquadFilter();
 
             osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(130.81, ctx.currentTime); // C3
+            osc1.frequency.setValueAtTime(130.81, ctx.currentTime);
 
             osc2.type = 'triangle';
-            osc2.frequency.setValueAtTime(196.00, ctx.currentTime); // G3
+            osc2.frequency.setValueAtTime(196.00, ctx.currentTime);
 
             filter.type = 'lowpass';
             filter.frequency.setValueAtTime(320, ctx.currentTime);
@@ -197,28 +270,19 @@ class ZenAudioEngine {
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, now);
 
-                const vibrato = ctx.createOscillator();
-                const vibGain = ctx.createGain();
-                vibrato.frequency.setValueAtTime(4.8, now);
-                vibGain.gain.setValueAtTime(freq * 0.012, now);
-                vibrato.connect(vibGain);
-                vibGain.connect(osc.frequency);
-                vibrato.start(now);
-                vibrato.stop(now + 3.8);
-
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(freq * 2.2, now);
+                filter.frequency.setValueAtTime(1200, now);
 
-                gain.gain.setValueAtTime(0.0001, now);
-                gain.gain.linearRampToValueAtTime(0.12, now + 0.35);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.8);
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.045, now + 0.35);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
 
                 osc.connect(filter);
                 filter.connect(gain);
                 gain.connect(this.bgmGain);
 
                 osc.start(now);
-                osc.stop(now + 3.8);
+                osc.stop(now + 2.3);
 
                 const nextInterval = 2400 + Math.random() * 2600;
                 this.fluteTimer = setTimeout(playFluteNote, nextInterval);
@@ -235,16 +299,13 @@ class ZenAudioEngine {
     }
 
     startAmbientSoundscape() {
-        // Procedural ambient sounds triggered every 5-10s
         setInterval(() => {
             if (!this.enabled || !this.ctx) return;
             const hour = new Date().getHours();
-            // Daytime: birds chirping & breeze
             if (hour >= 5 && hour < 18) {
                 if (this.channels.birds && Math.random() < 0.45) this.synthesizeBirdChirp();
                 if (this.channels.wind && Math.random() < 0.35) this.synthesizeWindBreeze();
             } else {
-                // Nighttime: gentle wind and deep temple bell
                 if (this.channels.wind && Math.random() < 0.45) this.synthesizeWindBreeze();
                 if (this.channels.bell && Math.random() < 0.2) this.playTempleBell();
             }
@@ -293,26 +354,25 @@ class ZenAudioEngine {
         } catch (_) {}
     }
 
-    init() {
-        if (!this.ctx) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (AudioContext) {
-                this.ctx = new AudioContext();
+    playWoodenFish() {
+        if (!this.enabled) return;
+        try {
+            if (this.moAudio) {
+                this.moAudio.currentTime = 0;
+                this.moAudio.play().catch(() => this.synthMo());
+            } else {
+                this.synthMo();
             }
-        }
-        if (this.ctx && this.ctx.state === 'suspended') {
-            this.ctx.resume();
+        } catch (_) {
+            this.synthMo();
         }
     }
 
-    // Tiếng Mõ Gỗ Tụng Kinh (Multi-Harmonic Hardwood Hollow Resonance)
-    playWoodenFish() {
-        if (!this.enabled) return;
+    synthMo() {
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
 
-        // 1. Hardwood transient click contact (~880Hz -> 350Hz)
         const clickOsc = this.ctx.createOscillator();
         const clickGain = this.ctx.createGain();
         clickOsc.type = 'triangle';
@@ -325,7 +385,6 @@ class ZenAudioEngine {
         clickOsc.start(now);
         clickOsc.stop(now + 0.03);
 
-        // 2. Hollow Sandalwood Chamber Resonance (~420Hz -> 180Hz)
         const bodyOsc = this.ctx.createOscillator();
         const bodyGain = this.ctx.createGain();
         bodyOsc.type = 'sine';
@@ -338,7 +397,6 @@ class ZenAudioEngine {
         bodyOsc.start(now);
         bodyOsc.stop(now + 0.095);
 
-        // 3. Low body thud (~120Hz)
         const subOsc = this.ctx.createOscillator();
         const subGain = this.ctx.createGain();
         subOsc.type = 'triangle';
@@ -352,9 +410,21 @@ class ZenAudioEngine {
         subOsc.stop(now + 0.075);
     }
 
-    // Tiếng Chuông Gia Trì / Khánh Ngân (528Hz Solfeggio Miracle Healing Tone)
     playSingingBowl() {
         if (!this.enabled) return;
+        try {
+            if (this.chimeAudio) {
+                this.chimeAudio.currentTime = 0;
+                this.chimeAudio.play().catch(() => this.synthSingingBowl());
+            } else {
+                this.synthSingingBowl();
+            }
+        } catch (_) {
+            this.synthSingingBowl();
+        }
+    }
+
+    synthSingingBowl() {
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
@@ -370,10 +440,8 @@ class ZenAudioEngine {
             const gain = this.ctx.createGain();
             osc.type = 'sine';
             osc.frequency.setValueAtTime(h.f, now);
-
             gain.gain.setValueAtTime(h.g, now);
             gain.gain.exponentialRampToValueAtTime(0.0001, now + h.d);
-
             osc.connect(gain);
             gain.connect(this.ctx.destination);
             osc.start(now);
@@ -381,30 +449,49 @@ class ZenAudioEngine {
         });
     }
 
-    // Tiếng Đại Hồng Chung (Deep Temple Bell)
     playTempleBell() {
         if (!this.enabled) return;
+        try {
+            if (this.bellAudio) {
+                this.bellAudio.currentTime = 0;
+                this.bellAudio.play().catch(() => this.synthBell());
+            } else {
+                this.synthBell();
+            }
+        } catch (_) {
+            this.synthBell();
+        }
+    }
+
+    synthBell() {
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-
-        const baseF = 130.81; // C3 low resonance
+        const baseF = 130.81;
         const harmonics = [1, 1.98, 2.76, 3.44, 4.88];
         harmonics.forEach((h, i) => {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sine';
             osc.frequency.setValueAtTime(baseF * h, now);
-
             const startGain = 0.35 / (i + 1);
             gain.gain.setValueAtTime(startGain, now);
             gain.gain.exponentialRampToValueAtTime(0.0001, now + 5.5);
-
             osc.connect(gain);
             gain.connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 5.5);
         });
+    }
+
+    playFortuneShake() {
+        if (!this.enabled) return;
+        try {
+            if (this.fortuneAudio) {
+                this.fortuneAudio.currentTime = 0;
+                this.fortuneAudio.play().catch(() => {});
+            }
+        } catch (_) {}
     }
 }
 
@@ -1747,6 +1834,77 @@ class ZenOnlineRoomManager {
 }
 
 // 3. MASTER VẠN PHÁP GAME CONTROLLER
+
+// ======================================================================
+// 8 CANONICAL AUSPICIOUS FORTUNES (XĂM ĐI CHÙA CẦU AN ĐẦU NĂM)
+// ======================================================================
+const FORTUNE_CARDS = [
+    {
+        id: 1,
+        title: "Quẻ Số 1 — Thượng Thượng Cát",
+        theme: "Long Môn Hóa Rồng (Công Danh Đỗ Đạt)",
+        poem: "Đầu cành hoa nở ánh bình minh\nBảng vàng đề danh chí toại tình\nĐèn sách mười năm nay đắc ngộ\nCông thành danh toại rạng quang minh.",
+        meaning: "Thi cử đỗ đạt cao, công danh sự nghiệp thăng tiến vù vù, được quý nhân đề bạt.",
+        blessing: "Nguyện cho thí chủ học hành đỗ đạt, thi cử điểm cao, công danh rạng rỡ, bảng vàng vinh quy!"
+    },
+    {
+        id: 2,
+        title: "Quẻ Số 2 — Đại Cát",
+        theme: "Phú Quý Tự Lai (Tài Lộc Dồi Dào)",
+        poem: "Cửa thiền thanh tịnh phúc lành sinh\nBuôn bán hanh thông lợi phát nhanh\nVốn một lời mười tiền bạc tiến\nGia trang thịnh vượng lộc thêm lành.",
+        meaning: "Kinh doanh phát tài, buôn may bán đắt, tài lộc tự tìm đến gõ cửa.",
+        blessing: "Nguyện cầu thí chủ tiền vào như nước, buôn may bán đắt, kinh doanh thuận buồm xuôi gió!"
+    },
+    {
+        id: 3,
+        title: "Quẻ Số 3 — Thượng Cát",
+        theme: "Phật Quang Phổ Chiếu (Bình An Sức Khỏe)",
+        poem: "Từ bi tế độ vạn muôn phương\nÁnh sáng kim thân rạng cát tường\nBệnh tật tiêu trừ thân thể khỏe\nMột đời an lạc ngát mùi hương.",
+        meaning: "Thân tâm an lạc, tai qua nạn khỏi, sức khỏe dồi dào, gia đạo bình yên.",
+        blessing: "Cầu chúc thí chủ tai qua nạn khỏi, sức khỏe dồi dào, tâm an trí sáng, bách bệnh tiêu tan!"
+    },
+    {
+        id: 4,
+        title: "Quẻ Số 4 — Thượng Thượng Cát",
+        theme: "Nguyệt Lão Se Duyên (Tình Duyên Viên Mãn)",
+        poem: "Trăm năm tơ tóc kết duyên lành\nChỉ thắm kim ngân rạng bức tranh\nÝ hợp tâm đầu người tri kỷ\nSớm ngày loan phụng đón duyên anh.",
+        meaning: "Sớm gặp được ý trung nhân, tình cảm mặn nồng son sắt, gia đạo ấm êm hạnh phúc.",
+        blessing: "Nguyện chúc thí chủ sớm tìm được lương duyên, tình duyên viên mãn, trăm năm hạnh phúc!"
+    },
+    {
+        id: 5,
+        title: "Quẻ Số 5 — Đại Cát",
+        theme: "Quý Nhân Tương Trợ (Hanh Thông Mọi Sự)",
+        poem: "Ra ngoài ắt gặp quý nhân phò\nTrắc trở mây tan hết lửng lo\nChuyện khó hóa nghèo thành thịnh đạt\nĐường đời thênh thang rộng mở to.",
+        meaning: "Mọi khó khăn đều có người tốt tương trợ hóa giải, bước đường tương lai rạng ngời rộng mở.",
+        blessing: "Cầu chúc thí chủ tứ phương gặp quý nhân nâng đỡ, vạn sự hanh thông, bước ra đường gặp may mắn!"
+    },
+    {
+        id: 6,
+        title: "Quẻ Số 6 — Thượng Cát",
+        theme: "Gia Đạo An Khang (Gia Đình Thịnh Vượng)",
+        poem: "Cây lành quả ngọt rợp hiên nhà\nCon cháu hiếu hòa tiếng hát ca\nPhúc ấm tiền nhân còn để lại\nMột nhà hòa thuận lộc đầy hoa.",
+        meaning: "Gia đình yên ấm thuận hòa, trên kính dưới nhường, phúc lộc trường tồn bền vững.",
+        blessing: "Nguyện cho gia quyến thí chủ trong ấm ngoài êm, phúc lộc thọ tràn đầy, an khang trường thịnh!"
+    },
+    {
+        id: 7,
+        title: "Quẻ Số 7 — Thượng Thượng Cát",
+        theme: "Tâm Thành Sở Nguyện (Cầu Được Ước Thấy)",
+        poem: "Thành tâm dâng nén khói hương trầm\nTam Bảo chứng minh tấc dạ thâm\nCầu tài được tài như ý nguyện\nTrời cao gia hộ thấu tình thâm.",
+        meaning: "Cầu tài được tài, cầu lộc được lộc, mọi ước nguyện ấp ủ bấy lâu nay đều thành hiện thực.",
+        blessing: "Cầu cho sự cầu như ý, sự nguyện tòng tâm, tâm tưởng sự thành, vạn điều may mắn tựu hội!"
+    },
+    {
+        id: 8,
+        title: "Quẻ Số 8 — Đại Cát",
+        theme: "Mở Mang Cơ Đồ (Khởi Sắc Vận May)",
+        poem: "Đông qua xuân tới rạng hoa mai\nVận hội hanh thông mở rộng tài\nNắm lấy thời cơ vươn cánh lớn\nMột thời vang dội chí anh tài.",
+        meaning: "Vận may chuyển mình mạnh mẽ, cơ hội lớn mở ra, sự nghiệp bứt phá ngoạn mục.",
+        blessing: "Chúc thí chủ thời vận hanh thông, công việc thăng hoa rực rỡ, đón nhận cơ hội đổi đời!"
+    }
+];
+
 class VanPhapGame {
     constructor() {
         this.audio = new ZenAudioEngine();
@@ -3365,6 +3523,182 @@ class VanPhapGame {
     openGuideModal() {
         const modal = document.getElementById('monasteryGuideModal');
         if (modal) modal.style.display = 'flex';
+    }
+
+    
+    // =========================================================================
+    // TEMPLE CEREMONIES & AUSPICIOUS BLESSINGS (FROM LIVE TIKTOK ĐI CHÙA CẦU AN)
+    // =========================================================================
+
+        save() {
+        if (!this.state) return;
+        try {
+            const uid = (this.currentUser && this.currentUser.uid) ? this.currentUser.uid : 'guest';
+            localStorage.setItem('vanphap_save_' + uid, JSON.stringify(this.state));
+        } catch (_) {}
+    }
+
+    drawFortune() {
+        this.audio.playFortuneShake();
+        const randIdx = Math.floor(Math.random() * FORTUNE_CARDS.length);
+        const fort = FORTUNE_CARDS[randIdx];
+
+        const titleEl = document.getElementById('fortuneTitle');
+        const themeEl = document.getElementById('fortuneTheme');
+        const poemEl = document.getElementById('fortunePoem');
+        const meanEl = document.getElementById('fortuneMeaning');
+        const blessEl = document.getElementById('fortuneBlessing');
+
+        if (titleEl) titleEl.textContent = fort.title;
+        if (themeEl) themeEl.textContent = fort.theme;
+        if (poemEl) poemEl.textContent = fort.poem;
+        if (meanEl) meanEl.textContent = fort.meaning;
+        if (blessEl) blessEl.textContent = fort.blessing;
+
+        const modal = document.getElementById('fortuneScrollModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+
+        // Award +100 Công Đức
+        if (this.state && this.state.monastery) {
+            this.state.monastery.cong_duc = (this.state.monastery.cong_duc || 0) + 100;
+            this.renderHeaderAndResources();
+            this.save();
+        }
+
+        // Live Altar prayer announcement
+        const prayerEl = document.getElementById('altarLivePrayer');
+        if (prayerEl) {
+            prayerEl.textContent = `📜 ${fort.title}: ${fort.theme} 🙏`;
+        }
+
+        this.showToast(`📜 Quý đạo hữu đã gieo được ${fort.title}! (+100 Công Đức)`);
+    }
+
+    closeFortuneModal() {
+        const modal = document.getElementById('fortuneScrollModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    lightIncense() {
+        this.audio.playSingingBowl();
+
+        // Award +25 Công Đức
+        if (this.state && this.state.monastery) {
+            this.state.monastery.cong_duc = (this.state.monastery.cong_duc || 0) + 25;
+            this.renderHeaderAndResources();
+            this.save();
+        }
+
+        // Trigger incense smoke animation
+        this.spawnIncenseSmokeFx();
+
+        // Live prayer announcement
+        const prayerEl = document.getElementById('altarLivePrayer');
+        if (prayerEl) {
+            prayerEl.textContent = '🪔 Nguyện khói hương thanh tịnh biến khắp mười phương cõi 🙏';
+        }
+
+        this.showToast('🪔 Đã thắp 3 nén tâm hương dâng lên Tam Bảo. Nguyện thân tâm an lạc! (+25 Công Đức)');
+    }
+
+    spawnIncenseSmokeFx() {
+        const burner = document.querySelector('.altar-incense-burner');
+        if (!burner) return;
+        burner.classList.add('incense-active');
+        setTimeout(() => burner.classList.remove('incense-active'), 4000);
+    }
+
+    openLotusLanternModal() {
+        const input = document.getElementById('lotusWishInput');
+        if (input && !input.value) {
+            input.value = 'Cầu cho gia đạo bình an, tai qua nạn khỏi, muôn sự hanh thông!';
+        }
+        const modal = document.getElementById('lotusLanternModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    closeLotusLanternModal() {
+        const modal = document.getElementById('lotusLanternModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    selectLanternPreset(presetText) {
+        const input = document.getElementById('lotusWishInput');
+        if (input) input.value = presetText;
+    }
+
+    submitLotusLantern() {
+        const input = document.getElementById('lotusWishInput');
+        const wish = (input && input.value.trim()) ? input.value.trim() : 'Cầu cho gia đạo bình an, muôn sự hanh thông!';
+        this.closeLotusLanternModal();
+        this.floatLotusLantern(wish);
+    }
+
+    floatLotusLantern(wishText) {
+        this.audio.playSingingBowl();
+
+        // Award +30 Công Đức
+        if (this.state && this.state.monastery) {
+            this.state.monastery.cong_duc = (this.state.monastery.cong_duc || 0) + 30;
+            this.renderHeaderAndResources();
+            this.save();
+        }
+
+        const river = document.getElementById('lotusRiverContainer');
+        if (river) {
+            const lantern = document.createElement('div');
+            lantern.className = 'floating-lotus-lantern';
+            const randomY = 15 + Math.floor(Math.random() * 55);
+            const animDuration = 14 + Math.floor(Math.random() * 6);
+            lantern.style.bottom = randomY + 'px';
+            lantern.style.animationDuration = animDuration + 's';
+
+            lantern.innerHTML = `
+                <div class="lantern-flame"></div>
+                <div class="lantern-flower">🪷</div>
+                <div class="lantern-wish-chip">${esc(wishText)}</div>
+            `;
+            river.appendChild(lantern);
+            setTimeout(() => {
+                if (lantern.parentNode) lantern.remove();
+            }, animDuration * 1000);
+        }
+
+        const prayerEl = document.getElementById('altarLivePrayer');
+        if (prayerEl) {
+            prayerEl.textContent = '🏮 Đèn hoa sen tỏa sáng mang theo ước nguyện bình an 🙏';
+        }
+
+        this.showToast('🏮 Đã thả đèn hoa đăng gửi gắm ước nguyện cầu an! (+30 Công Đức)');
+    }
+
+    ringGreatBell() {
+        this.audio.playTempleBell();
+
+        // Award +20 Công Đức
+        if (this.state && this.state.monastery) {
+            this.state.monastery.cong_duc = (this.state.monastery.cong_duc || 0) + 20;
+            this.renderHeaderAndResources();
+            this.save();
+        }
+
+        // Spawn visual golden acoustic shockwave ring
+        const stage = document.getElementById('woodenFishStage');
+        if (stage) {
+            const ring = document.createElement('div');
+            ring.className = 'bell-shockwave-ring';
+            stage.appendChild(ring);
+            setTimeout(() => ring.remove(), 1800);
+        }
+
+        const prayerEl = document.getElementById('altarLivePrayer');
+        if (prayerEl) {
+            prayerEl.textContent = '🔔 Văn chung thanh, phiền não khinh, trí tuệ trưởng, bồ đề sinh 🙏';
+        }
+
+        this.showToast('🔔 Thỉnh Đại Hồng Chung: Nguyện tiêu trừ vạn phiền não! (+20 Công Đức)');
     }
 
     closeGuideModal() {

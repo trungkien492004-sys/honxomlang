@@ -342,6 +342,51 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- Interactive Altar Spiritual Ceremony Quick Actions (Đi Chùa Cầu An: Xin Xăm • Thắp Hương • Thả Đèn • Thỉnh Chuông) -->
+                <div class="altar-ceremony-panel" id="altarCeremonyBar">
+                    <div class="altar-ceremony-header">
+                        <span class="altar-ceremony-label">🪷 KHÓA LỄ TÂM THÀNH CẦU AN</span>
+                        <span class="altar-prayer-center" id="altarLivePrayer">Nam Mô Bổn Sư Thích Ca Mâu Ni Phật 🙏</span>
+                    </div>
+                    <div class="altar-ceremony-actions">
+                        <button class="altar-action-btn btn-action-fortune" id="btnAltarFortune" onclick="window.vpApp.drawFortune()" title="Gieo quẻ xăm may mắn cầu bình an, công danh, tài lộc">
+                            <span class="btn-icon">📜</span>
+                            <span class="btn-content">
+                                <span class="btn-text">Xin Xăm Cầu An</span>
+                                <span class="btn-reward">+100 Công Đức</span>
+                            </span>
+                        </button>
+                        <button class="altar-action-btn btn-action-incense" id="btnAltarIncense" onclick="window.vpApp.lightIncense()" title="Thắp 3 nén tâm hương dâng lên Tam Bảo">
+                            <span class="btn-icon">🪔</span>
+                            <span class="btn-content">
+                                <span class="btn-text">Thắp Hương Trầm</span>
+                                <span class="btn-reward">+25 Công Đức</span>
+                            </span>
+                        </button>
+                        <button class="altar-action-btn btn-action-lantern" id="btnAltarLantern" onclick="window.vpApp.openLotusLanternModal()" title="Thả đèn hoa đăng dâng ước nguyện trôi theo dòng nước">
+                            <span class="btn-icon">🏮</span>
+                            <span class="btn-content">
+                                <span class="btn-text">Thả Hoa Đăng</span>
+                                <span class="btn-reward">+30 Công Đức</span>
+                            </span>
+                        </button>
+                        <button class="altar-action-btn btn-action-bell" id="btnAltarBell" onclick="window.vpApp.ringGreatBell()" title="Thỉnh Đại Hồng Chung vang dội chốn thiền môn">
+                            <span class="btn-icon">🔔</span>
+                            <span class="btn-content">
+                                <span class="btn-text">Thỉnh Chuông</span>
+                                <span class="btn-reward">+20 Công Đức</span>
+                            </span>
+                        </button>
+                        <button class="altar-action-btn btn-action-music" id="btnAltarMusic" onclick="window.vpApp.audio.toggleAudio()" title="Bật/Tắt Nhạc Thiền Đàn Tranh thanh tịnh">
+                            <span class="btn-icon" id="altarMusicIcon">🎵</span>
+                            <span class="btn-content">
+                                <span class="btn-text" id="altarMusicText">Nhạc Đàn Tranh</span>
+                                <span class="btn-reward" id="altarMusicStatus">Bật ılılı</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Right: Abbot Progress & Breakthrough Panel -->
@@ -917,6 +962,91 @@
             <div style="padding:14px 24px; background:rgba(0,0,0,0.5); border-top:1px solid var(--border-gold); display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-size:12px; color:var(--gold-bright);">🪷 Chúc quý đạo hữu đạo nghiệp tinh tấn, vạn sự cát tường!</span>
                 <button class="btn-zen" style="padding:8px 24px; font-weight:800;" onclick="window.vpApp.closeGuideModal()">Đã Hiểu, Vào Tu Hành 🙏</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING LOTUS LANTERN RIVER CONTAINER -->
+    <div id="lotusRiverContainer" class="lotus-river-container"></div>
+
+    <!-- ======================================================================
+         MODAL 6: AUSPICIOUS FORTUNE SCROLL (XIN XĂM CẦU AN ĐẦU NĂM)
+         ====================================================================== -->
+    <div class="fortune-overlay-modal" id="fortuneScrollModal" style="display:none;" onclick="if(event.target===this)window.vpApp.closeFortuneModal()">
+        <div class="fortune-scroll-wrapper">
+            <div class="fortune-scroll">
+                <button class="fortune-close-btn" onclick="window.vpApp.closeFortuneModal()" title="Đóng cuộn sớ">✕</button>
+                <div class="fortune-scroll-header">
+                    <div class="fortune-scroll-seal">🪷</div>
+                    <div class="fortune-title" id="fortuneTitle">Quẻ Số 1 — Thượng Thượng Cát</div>
+                    <div class="fortune-theme" id="fortuneTheme">Long Môn Hóa Rồng (Công Danh Đỗ Đạt)</div>
+                </div>
+                <div class="fortune-divider">
+                    <span class="divider-line"></span>
+                    <span class="divider-lotus">🪷</span>
+                    <span class="divider-line"></span>
+                </div>
+                <div class="fortune-poem" id="fortunePoem">
+Đầu cành hoa nở ánh bình minh
+Bảng vàng đề danh chí toại tình
+Đèn sách mười năm nay đắc ngộ
+Công thành danh toại rạng quang minh.
+                </div>
+                <div class="fortune-meaning-box">
+                    <div class="meaning-label">📜 Ý Nghĩa Quẻ:</div>
+                    <div class="meaning-text" id="fortuneMeaning">Thi cử đỗ đạt cao, công danh sự nghiệp thăng tiến vù vù, được quý nhân đề bạt.</div>
+                </div>
+                <div class="fortune-blessing-box">
+                    <div class="blessing-label">🙏 Lời Cầu Phúc:</div>
+                    <div class="blessing-text" id="fortuneBlessing">Nguyện cho thí chủ học hành đỗ đạt, thi cử điểm cao, công danh rạng rỡ, bảng vàng vinh quy!</div>
+                </div>
+                <div class="fortune-merit-reward">
+                    ✨ Thí chủ thành tâm gieo quẻ tích lũy <strong style="color:#d97706;">+100 Công Đức</strong>!
+                </div>
+                <div class="fortune-actions-row">
+                    <button class="btn-fortune-draw-again" onclick="window.vpApp.drawFortune()">📜 Gieo Quẻ Khác</button>
+                    <button class="btn-fortune-confirm" onclick="window.vpApp.closeFortuneModal()">Tạ Ơn Tam Bảo 🙏</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         MODAL 7: SACRED LOTUS LANTERN WISH (THẢ HOA ĐĂNG CẦU AN)
+         ====================================================================== -->
+    <div class="fortune-overlay-modal" id="lotusLanternModal" style="display:none;" onclick="if(event.target===this)window.vpApp.closeLotusLanternModal()">
+        <div class="lotus-modal-card">
+            <div class="lotus-modal-header">
+                <div>
+                    <h3 class="lotus-modal-title">🏮 Thả Đèn Hoa Đăng Cầu An</h3>
+                    <p class="lotus-modal-sub">Dâng trọn tấm lòng thành gửi gắm vào đóa sen hồng trôi theo dòng nước thanh tịnh</p>
+                </div>
+                <button class="modal-close-btn" onclick="window.vpApp.closeLotusLanternModal()">✕</button>
+            </div>
+            <div class="lotus-modal-body">
+                <div style="font-size:12px; color:var(--gold-bright); font-weight:800; margin-bottom:8px;">Chọn nhanh lời nguyện ước cầu an:</div>
+                <div class="lotus-preset-chips">
+                    <button class="preset-chip" onclick="window.vpApp.selectLanternPreset('Cầu cho gia đạo bình an, tai qua nạn khỏi, muôn sự hanh thông!')">🙏 Gia Đạo Bình An</button>
+                    <button class="preset-chip" onclick="window.vpApp.selectLanternPreset('Cầu cho công danh sự nghiệp thăng tiến, bảng vàng đề danh, học hành đỗ đạt!')">🎓 Công Danh Đỗ Đạt</button>
+                    <button class="preset-chip" onclick="window.vpApp.selectLanternPreset('Cầu cho tài lộc dồi dào, buôn may bán đắt, kinh doanh phát đạt!')">💰 Tài Lộc Dồi Dào</button>
+                    <button class="preset-chip" onclick="window.vpApp.selectLanternPreset('Cầu cho thân tâm an lạc, bách bệnh tiêu trừ, phước thọ song toàn!')">🌸 Thân Tâm An Lạc</button>
+                </div>
+
+                <div style="margin-top:14px;">
+                    <label style="font-size:12px; color:var(--text-dim); display:block; margin-bottom:5px;">Lời ước nguyện của thí chủ:</label>
+                    <textarea class="lotus-wish-input" id="lotusWishInput" rows="3" placeholder="Nhập lời ước nguyện thành kính của bạn lên Tam Bảo..."></textarea>
+                </div>
+
+                <div class="lotus-preview-box">
+                    <span style="font-size:32px;">🪷</span>
+                    <div style="font-size:12px; color:#cbd5e1; line-height:1.5;">
+                        Khi thả hoa đăng, đóa sen lung linh mang theo ước nguyện sẽ trôi nhẹ trên dòng nước, mang lại <b>+30 Công Đức</b> và tiêu trừ chướng ngại.
+                    </div>
+                </div>
+            </div>
+            <div class="lotus-modal-footer">
+                <button class="btn-secondary" onclick="window.vpApp.closeLotusLanternModal()" style="padding:8px 18px;">Hủy Bỏ</button>
+                <button class="btn-zen btn-release-lantern" onclick="window.vpApp.submitLotusLantern()">🏮 Thả Hoa Đăng Cầu An (+30 Công Đức)</button>
             </div>
         </div>
     </div>
