@@ -265,20 +265,24 @@ check('Catalog: Yuma hero entry, portrait file and primary preset');
   assert.ok(r.grave.includes('AN-dark_magician'),'the destroyed card goes to the Graveyard');
   check('Gagagabolt: destroys an opponent card while a Gagaga is face-up');
 
-  // 13. Gagagaguard: effect destruction is blocked for the rest of the turn.
+  // 13. Gagagaguard: effect destruction is blocked until the end of the opponent's turn.
   r=await p.evaluate(async()=>{
    zxReset({monsters:['AN-gagaga_magician',null,null],traps:[{id:'AN-gagagaguard',setRound:1}]});
    const activated=await activateTrap(0);
    const shield=duel.player.effectShieldRound;
    duel.turn='enemy';duel.phase='MAIN1';duel.enemy.hand=['AN-raigeki'];
    await memeAnime.playSpellFor('enemy',0);
-   return {activated,shield,alive:duel.player.monsters.map(s=>s?.id||null),grave:duel.enemy.grave.slice()};
+   const guarded=duel.player.monsters.map(s=>s?.id||null);
+   duel.round=5;duel.enemy.hand=['AN-raigeki'];
+   await memeAnime.playSpellFor('enemy',0);
+   return {activated,shield,guarded,alive:duel.player.monsters.map(s=>s?.id||null),grave:duel.enemy.grave.slice()};
   });
   assert.equal(r.activated,true,'Gagagaguard activates');
-  assert.equal(r.shield,3,'the effect shield is armed for this turn');
-  assert.deepEqual(r.alive,['AN-gagaga_magician',null,null],'the Gagaga survives effect destruction');
+  assert.equal(r.shield,4,'the effect shield lasts through the opponent turn');
+  assert.deepEqual(r.guarded,['AN-gagaga_magician',null,null],'the Gagaga survives effect destruction while guarded');
+  assert.deepEqual(r.alive,[null,null,null],'the guard expires once the opponent turn ends');
   assert.ok(r.grave.includes('AN-raigeki'),'the opposing spell resolved and went to the Graveyard');
-  check('Gagagaguard: blocks effect destruction for the turn');
+  check('Gagagaguard: blocks effect destruction for the opponent turn, then expires');
 
   // 14. Half Unbreak: battle damage is halved and the monster survives the battle.
   r=await p.evaluate(async()=>{
@@ -286,14 +290,61 @@ check('Catalog: Yuma hero entry, portrait file and primary preset');
    const activated=await activateTrap(0);
    const marked=duel.player.monsters[0].halfUnbreakRound;
    duel.phase='BATTLE';duel.turn='enemy';
-   await zxBattle('enemy',0,false,0,false);
-   return {activated,marked,lp:duel.player.lp,alive:duel.player.monsters.map(s=>s?.id||null)};
+   const battled=await zxBattle('enemy',0,false,0,false);
+   return {activated,marked,battled,lp:duel.player.lp,alive:duel.player.monsters.map(s=>s?.id||null),logs:duel.logs.slice(-6)};
   });
   assert.equal(r.activated,true,'Half Unbreak activates');
-  assert.equal(r.marked,3,'the chosen monster is marked for this turn');
+  assert.equal(r.marked,4,'the chosen monster stays marked through the opponent turn');
   assert.equal(r.alive[0],'AN-gagaga_magician','the monster is not destroyed by battle');
   assert.equal(r.lp,3250,'1500 battle damage is halved to 750');
-  check('Half Unbreak: halves battle damage and prevents battle destruction');
+
+  // 14b. The mark expires once the protected opponent turn ends.
+  r=await p.evaluate(async()=>{
+   duel.round=5;duel.phase='BATTLE';duel.turn='enemy';duel.player.lp=4000;duel.enemy.monsters[0].attacksUsed=0;duel.enemy.monsters[0].attacked=false;
+   const battled=await zxBattle('enemy',0,false,0,false);
+   return {battled,lp:duel.player.lp,alive:duel.player.monsters.map(s=>s?.id||null),logs:duel.logs.slice(-6)};
+  });
+  assert.equal(r.alive[0],null,'the guard expires once the opponent turn ends');
+  assert.equal(r.lp,2500,'the full battle damage is taken again');
+  check('Half Unbreak: halves battle damage and prevents battle destruction for the opponent turn');
+
+  // 14c. Gagagaguard gate: only a face-up Gagaga opens the activation window.
+  r=await p.evaluate(()=>{
+   zxReset({traps:[{id:'AN-gagagaguard',setRound:1}]});
+   const without=memeAnime.trapProblem(0);
+   duel.player.monsters[0]={...monsterSlot('AN-gagaga_magician','atk'),uid:'zx-gate',summonedRound:0};
+   render();
+   const withGagaga=memeAnime.trapProblem(0);
+   return {without,withGagaga};
+  });
+  assert.ok(r.without,'Gagagaguard is refused while no Gagaga is on the field');
+  assert.equal(r.withGagaga,'','Gagagaguard can be activated once a face-up Gagaga is on the field');
+  check('Gagagaguard gate: refuses with a reason and opens when a face-up Gagaga appears');
+
+  // 14d. Mirror Force from the Yuma preset reacts by itself during the opponent attack.
+  r=await p.evaluate(async()=>{
+   zxReset({enemyMonsters:['AN-blue_eyes_white_dragon',null,null],traps:[{id:'AN-mirror_force',setRound:1}],turn:'enemy',phase:'BATTLE'});
+   const battled=await zxBattle('enemy',0,false,null,false);
+   return {battled,playerLp:duel.player.lp,enemy:duel.enemy.monsters.map(s=>s?.id||null),grave:duel.player.grave.slice()};
+  });
+  assert.equal(r.battled,true,'the attack reaches the trap window');
+  assert.deepEqual(r.enemy,[null,null,null],'Mirror Force destroys the attacking monster');
+  assert.equal(r.playerLp,4000,'no battle damage is taken');
+  assert.ok(r.grave.includes('AN-mirror_force'),'the trap resolves and leaves the field');
+  check('Mirror Force: the set Yuma trap fires on its own when the opponent attacks');
+
+  // 14e. Magic Cylinder burns the attacker without taking battle damage.
+  r=await p.evaluate(async()=>{
+   zxReset({enemyMonsters:['AN-blue_eyes_white_dragon',null,null],traps:[{id:'AN-magic_cylinder',setRound:1}],turn:'enemy',phase:'BATTLE'});
+   const battled=await zxBattle('enemy',0,false,null,false);
+   return {battled,playerLp:duel.player.lp,enemyLp:duel.enemy.lp,enemy:duel.enemy.monsters.map(s=>s?.id||null),grave:duel.player.grave.slice()};
+  });
+  assert.equal(r.battled,true,'the attack reaches the trap window');
+  assert.equal(r.enemyLp,1000,'3000 attacker ATK is dealt as effect damage');
+  assert.equal(r.playerLp,4000,'the attack is cancelled before damage');
+  assert.equal(r.enemy[0],'AN-blue_eyes_white_dragon','the attacker survives');
+  assert.ok(r.grave.includes('AN-magic_cylinder'),'the trap resolves and leaves the field');
+  check('Magic Cylinder: the set Yuma trap fires on its own and cancels the attack');
 
   // 15. Gogogo Golem survives the first battle destruction each turn, damage still applies.
   r=await p.evaluate(async()=>{

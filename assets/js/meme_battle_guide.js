@@ -11,8 +11,9 @@
   if(secret){node.classList.remove('spell-card','trap-card');node.innerHTML='<span class="card-back-art" aria-hidden="true"><i>✦</i></span>';}
   else if(isDown){node.innerHTML=`<span class="card-back-art" aria-hidden="true"><i>✦</i></span>${artHTML(slot.id,'own-set-peek')}<span class="slot-label">${esc(c.name)}</span>${isMonster?`<span class="slot-stats">🛡${effectiveDef(name,slot)}</span>`:''}`;}
   node.querySelector('.face-state')?.remove();const chip=document.createElement('span');chip.className='face-state '+(isDown?'is-down':'is-up');chip.textContent=label;node.appendChild(chip);
-  node.title=secret?'Bài úp của đối thủ · Nội dung được giữ kín':`${c.name} · ${label}${isDown?' · Chỉ bạn xem được nội dung':''} · ${c.description}`;
-  node.setAttribute('aria-label',secret?`Bài úp của đối thủ, ${label}`:`${c.name}, ${label}${isDown?', chỉ bạn xem được nội dung':''}`);
+  const shown=window.memeAnime?.fieldName?.(slot)||c.name,origin=shown!==c.name?` (gốc: ${c.name})`:'';
+  node.title=secret?'Bài úp của đối thủ · Nội dung được giữ kín':`${shown}${origin} · ${label}${isDown?' · Chỉ bạn xem được nội dung':''} · ${c.description}`;
+  node.setAttribute('aria-label',secret?`Bài úp của đối thủ, ${label}`:`${shown}, ${label}${isDown?', chỉ bạn xem được nội dung':''}`);
   const ownBattle=name==='player'&&isMonster&&duel.turn==='player'&&duel.phase==='BATTLE'&&!duel.finished,canAttack=ownBattle&&canAttackSlot(slot),interactive=canAct()&&!duel.mode;
   const attacking=ownBattle&&duel.mode==='attack'&&duel.pending?.index===index&&!!duel.pending?.isExtra===(type==='extra'),selected=ownBattle&&duel.selected?.name===name&&duel.selected?.type===type&&(type==='extra'||duel.selected.index===index);
   node.classList.toggle('attack-ready',!!canAttack&&interactive);node.classList.toggle('attack-spent',ownBattle&&!isDown&&(slot.attacksUsed||0)>0&&!canAttack);

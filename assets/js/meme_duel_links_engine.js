@@ -6,7 +6,7 @@
     S, E, face, has, uid, free, allFields, extraOpen, placeOnField, targetList, spellList, choices,
     pick, pickMany, enqueue, fx, flush, stat, remove, clearSpell, revive, revivalPosition,
     takeDiscard, drawCards, damage, spendSpellSource, commitSpellSource,
-    negateSpell, postSummon, specialSummon, normalSummon, fuse, sentToGrave
+    negateSpell, postSummon, specialSummon, normalSummon, fuse, sentToGrave, treatedName, zoneName
   } = core;
 
   // Extra Deck summons prefer the Extra Monster Zone; fall back to a free main zone.
@@ -25,6 +25,7 @@
   const isRedEyes = c => /Red-Eyes/i.test(c?.name_en || '') || c?.id === 'AN-red_eyes_black_dragon';
   const isToon = c => c?.traits?.includes('toon') || /Toon/i.test(c?.name_en || '');
   const isCyber = c => /Cyber/i.test(c?.name_en || '') || c?.id === 'AN-cyber_dragon';
+  const isCyberDragon = e => zoneName(e) === 'AN-cyber_dragon';
   const isSameEntry = (a, b) => a && b && a.zone === b.zone && (a.zone === 'field' ? a.slot === b.slot : a.index === b.index);
 
   // Handler map for all DL cards
@@ -1151,7 +1152,7 @@
       const at = s.extraDeck.indexOf(target.id);
       if (at < 0) return;
       s.extraDeck.splice(at, 1);
-      const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true };
+      const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true, materials: [reliq, otherMat].map(e => e.id), materialCount: 2 };
       uid(slot);
       if (!summonExtra(n, slot, target.id)) return;
       enqueue(() => postSummon(n, slot));
@@ -1234,7 +1235,7 @@
       }
       s.deck = shuffle(s.deck);
       s.extraDeck.splice(s.extraDeck.indexOf(target.id), 1);
-      const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true };
+      const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true, materials: chosen.map(e => e.id), materialCount: chosen.length };
       uid(slot);
       if (!summonExtra(n, slot, target.id)) return;
       s.noSpecialRound = duel.round;
@@ -1563,7 +1564,7 @@
 
     const tc = C(target.id);
     const mats = Array.isArray(tc?.fusion_materials) ? tc.fusion_materials : [];
-    const isCD = e => e.id === 'AN-cyber_dragon' || (e.zone === 'field' && e.id === 'AN-proto_cyber_dragon');
+    const isCD = e => isCyberDragon(e);
     const cdOnly = mats.length > 0 && mats.every(m => m === 'AN-cyber_dragon');
     const materials = [
       ...E(n).filter(e => face(e.slot) && (isCyber(C(e.slot.id)) || e.slot.id === 'AN-cyber_dragon')).map(e => ({ ...e, id: e.slot.id, zone: 'field' })),
@@ -1573,7 +1574,7 @@
       ? materials.filter(e => C(e.id)?.tribe === 'Máy')
       : cdOnly ? materials.filter(isCD) : materials;
     const min = tc?.flex_machine ? 2 : Math.max(2, mats.length);
-    const max = tc?.flex_machine ? Math.min(3, pool.length) : min;
+    const max = tc?.flex_machine || tc?.flex_cyber ? Math.min(3, pool.length) : min;
     if (pool.length < min) return false;
     const picked = await pickMany(n, 'Dung Hợp Nạp Mạng: chọn nguyên liệu', pool, {
       min, max, text: `Chọn ${min === max ? min : `${min}–${max}`} nguyên liệu từ Sân hoặc đã bị trục xuất.`
@@ -1596,7 +1597,7 @@
       }
       s.deck = shuffle(s.deck);
       s.extraDeck.splice(target.index, 1);
-      const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true };
+      const slot = { ...monsterSlot(target.id, 'atk'), fusionSummoned: true, materials: picked.map(e => e.id), materialCount: picked.length };
       uid(slot);
       if (!summonExtra(n, slot, target.id)) return;
       enqueue(() => postSummon(n, slot));
@@ -1673,10 +1674,105 @@
   register('DL-cyber_dragon_core', handleCyberCore);
   register('dl_cyber_core', handleCyberCore);
 
+  // Cyber Dragon Nachster - On summon: revive 1 Machine monster with 2100 ATK or DEF from GY
+  register('DL-cyber_dragon_nachster', async (n, c, ctx) => {
+    const s = S(n), slot = ctx.source;
+    if (!slot || slot.nachsterRound === duel.round) return false;
+    if (s.noSpecialRound === duel.round || free(n) < 0) return false;
+    const pool = choices(s.grave, 'grave').filter(e => {
+      const x = C(e.id);
+      return x?.card_type === 'Monster' && x.tribe === 'Máy' && (x.atk === 2100 || x.def === 2100);
+    });
+    if (!pool.length) return false;
+    const t = await pick(n, 'Rồng Máy Hậu Duệ: gọi 1 quái Máy 2100 ATK/DEF từ Mộ', pool, { optional: true, text: 'Hồi sinh 1 quái Machine có 2100 ATK hoặc DEF từ Mộ về sân.' });
+    if (!t) return false;
+    let revived = null;
+    const done = await fx(n, c, 'revive', [], () => {
+      if (!E(n).some(e => e.slot === slot)) return;
+      slot.nachsterRound = duel.round;
+      revived = revive(n, n, t.id, 'atk');
+      if (revived) log(`✦ Rồng Máy Hậu Duệ: hồi sinh ${C(t.id).name} từ Mộ.`);
+    });
+    if (done && revived) enqueue(() => postSummon(n, revived, 'special'));
+    return !!revived;
+  });
+  register('dl_cyber_nachster', (n, c, ctx) => window.memeDlHandlers.get('DL-cyber_dragon_nachster')(n, c, ctx));
+
+  // Cyber Dragon Vier - Special Summon itself from hand when you summon a Cyber Dragon
+  async function autoCyberVier(n, slot) {
+    const s = S(n);
+    if (!isCyberDragon({ id: slot.id, zone: 'field', slot })) return false;
+    const id = 'DL-cyber_dragon_vier';
+    if (!s.hand.includes(id) || free(n) < 0 || s.noSpecialRound === duel.round || s.vierSpecialRound === duel.round) return false;
+    const c = card(id);
+    const yes = await pick(n, 'Rồng Máy Đệ Tứ: gọi đặc biệt từ tay?', [{ id, label: `Triệu hồi đặc biệt ${c.name} ở thế thủ` }], { optional: true, reaction: true, text: `${C(slot.id).name} vừa được triệu hồi: gọi Rồng Máy Đệ Tứ từ tay, 1 lần mỗi lượt.` });
+    if (!yes) return false;
+    let summoned = null;
+    const done = await fx(n, c, 'summon', [], () => {
+      const handIndex = s.hand.indexOf(id);
+      if (handIndex < 0 || free(n) < 0) return;
+      s.hand.splice(handIndex, 1);
+      summoned = monsterSlot(id, 'def');
+      uid(summoned);
+      s.monsters[free(n)] = summoned;
+      s.vierSpecialRound = duel.round;
+      log('✦ Rồng Máy Đệ Tứ được gọi đặc biệt từ tay ở thế thủ.');
+    });
+    if (done && summoned) await postSummon(n, summoned, 'special');
+    return !!summoned;
+  }
+
+  // Chimeratech Rampage Dragon - On summon: destroy Spells/Traps equal to the materials used
+  const handleRampageSummon = async (n, c, ctx) => {
+    const slot = ctx.source, foe = other(n);
+    if (!slot || slot.rampageDestroyRound === duel.round) return false;
+    const targets = [...spellList(foe)];
+    if (!targets.length) return false;
+    const max = Math.min(slot.materialCount || slot.materials?.length || 2, targets.length);
+    const picked = await pickMany(n, 'Rồng Hợp Máy Cuồng Nộ: phá Phép/Bẫy đối thủ', targets.map(e => ({ ...e, hidden: !!e.slot.faceDown })), {
+      min: 1, max, text: `Phá hủy tối đa ${max} lá Phép/Bẫy (số nguyên liệu Dung Hợp: ${slot.materialCount || slot.materials?.length || 2}).`
+    });
+    if (!picked?.length) return false;
+    return fx(n, c, 'destroy', picked, () => {
+      slot.rampageDestroyRound = duel.round;
+      for (const t of [...picked].sort((a, b) => b.index - a.index)) clearSpell(foe, t.index);
+      log(`💥 Rồng Hợp Máy Cuồng Nộ phá hủy ${picked.length} lá Phép/Bẫy của đối thủ.`);
+    });
+  };
+  register('DL-chimeratech_rampage_dragon', handleRampageSummon);
+  register('dl_rampage_dragon', handleRampageSummon);
+
+  // Rampage Dragon: send up to 2 LIGHT Machine monsters from the Deck to the GY for extra attacks this turn
+  async function rampageExtraAttacks(n, slot) {
+    const s = S(n), c = card(slot.id);
+    if (!E(n).some(e => e.slot === slot) || slot.rampageBoostRound === duel.round) return false;
+    const pool = choices(s.deck, 'deck').filter(e => {
+      const x = C(e.id);
+      return x?.card_type === 'Monster' && x.tribe === 'Máy' && x.element === 'Quang';
+    });
+    if (!pool.length) return false;
+    const picked = await pickMany(n, 'Rồng Hợp Máy Cuồng Nộ: gửi quái Máy Ánh Sáng từ Bộ bài xuống Mộ', pool, {
+      min: 1, max: Math.min(2, pool.length), text: 'Mỗi lá gửi xuống Mộ cho lá này thêm 1 lần tấn công trong lượt này.'
+    });
+    if (!picked?.length) return false;
+    return fx(n, c, 'bury', picked, () => {
+      slot.rampageBoostRound = duel.round;
+      slot.rampageExtraAttacks = (slot.rampageExtraAttacks || 0) + picked.length;
+      for (const t of [...picked].sort((a, b) => b.index - a.index)) {
+        const id = s.deck.splice(t.index, 1)[0];
+        s.grave.push(id);
+        sentToGrave(n, id, true, 'cost');
+      }
+      s.deck = shuffle(s.deck);
+      log(`⚔ Rồng Hợp Máy Cuồng Nộ: thêm ${picked.length} lần tấn công trong lượt này.`);
+    });
+  }
+  window.memeDlRampageExtraAttacks = rampageExtraAttacks;
+
   // Cyber Repair Plant (Nhà Máy Sửa Chữa Cyber)
   register('DL-cyber_repair_plant', async (n, c, ctx) => {
     const s = S(n);
-    const hasCD = s.grave.some(id => id === 'AN-cyber_dragon' || id === 'DL-cyber_dragon_core' || id === 'AN-proto_cyber_dragon');
+    const hasCD = s.grave.some(id => isCyberDragon({ id, zone: 'grave' }));
     if (!hasCD) return false;
     const targets = choices(s.deck, 'deck').filter(e => {
       const x = C(e.id);
@@ -1914,6 +2010,15 @@
             }
           }
         }
+        if (slot && face(slot) && (slot.id === 'DL-chimeratech_rampage_dragon' || C(slot.id)?.effect_code === 'dl_rampage_dragon') && duel.turn === 'player') {
+          const pool = choices(s.deck, 'deck').filter(e => {
+            const x = C(e.id);
+            return x?.card_type === 'Monster' && x.tribe === 'Máy' && x.element === 'Quang';
+          });
+          if (pool.length && slot.rampageBoostRound !== duel.round && ![...actions.querySelectorAll('button')].some(b => b.textContent.includes('thêm lần tấn công'))) {
+            addAction(actions, '⚔ Gửi quái Máy Ánh Sáng: thêm lần tấn công', () => window.memeAnime.perform(() => rampageExtraAttacks('player', slot)));
+          }
+        }
       }
 
       // Spell / Trap backrow inspection
@@ -2102,6 +2207,11 @@
   };
   window.memeAnime.onBanished = async function(n, id) {
     if (id === 'DL-elemental_hero_liquid_soldier' || id === 'dl_liquid_soldier') await handleLiquidSoldierFusionMat(n);
+  };
+
+  // After-summon hook: Cyber Dragon Vier calls itself from the hand when a Cyber Dragon is summoned.
+  window.memeAnime.onSummoned = async function(n, slot) {
+    await autoCyberVier(n, slot);
   };
 
   // End Phase hook for Duel Links (The White Stone of Ancients, Cyber Dragon Core)

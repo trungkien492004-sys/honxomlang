@@ -91,17 +91,17 @@
       id: 'AN-gagagaguard', name: 'Gagagaguard', name_vi: 'Gagagaguard', name_en: 'Gagagaguard',
       card_type: 'Trap', rarity: 'R', effect_code: 'gagagaguard', effect_trigger: 'activated',
       trap_category: 'Thường', element: 'Quang', tribe: 'Hỗ Trợ', atk: 0, def: 0, stars: 0, monster_category: '',
-      description: 'Nếu bạn điều khiển quái "Gagaga": trong lượt này, quái của bạn không thể bị phá hủy bởi hiệu ứng lá bài.',
-      activation_rules: 'Úp 1 lượt rồi kích hoạt chủ động trong MAIN khi có quái Gagaga ngửa trên sân.',
-      engine_notes: 'Bảo vệ mọi quái của bạn khỏi phá hủy bởi hiệu ứng trong phần còn lại của lượt, không chặn sát thương.'
+      description: 'Nếu bạn điều khiển quái "Gagaga": quái của bạn không thể bị phá hủy bởi hiệu ứng lá bài cho đến hết lượt kế tiếp của đối thủ.',
+      activation_rules: 'Úp 1 lượt rồi kích hoạt chủ động trong MAIN khi có quái Gagaga ngửa trên sân; lá chắn có hiệu lực suốt lượt đối thủ ngay sau đó.',
+      engine_notes: 'Bảo vệ mọi quái của bạn khỏi phá hủy bởi hiệu ứng từ lúc kích hoạt đến hết lượt kế tiếp của đối thủ, không chặn sát thương.'
     },
     { ...base,
       id: 'AN-half_unbreak', name: 'Nửa Bất Diệt', name_vi: 'Nửa Bất Diệt', name_en: 'Half Unbreak',
       card_type: 'Trap', rarity: 'N', effect_code: 'half_unbreak', effect_trigger: 'activated',
       trap_category: 'Thường', element: 'Quang', tribe: 'Hỗ Trợ', atk: 0, def: 0, stars: 0, monster_category: '',
-      description: 'Chọn 1 quái của bạn: trong lượt này, quái đó không thể bị phá hủy bởi chiến đấu, và sát thương chiến đấu liên quan đến nó bị chia đôi.',
-      activation_rules: 'Úp 1 lượt. Tự hỏi khi đối thủ tấn công quái của bạn; cũng có thể kích hoạt chủ động trong MAIN.',
-      engine_notes: 'Sát thương chiến đấu (cả hai chiều) làm tròn lên sau khi chia đôi; không chặn hiệu ứng phá hủy.'
+      description: 'Chọn 1 quái của bạn: quái đó không thể bị phá hủy bởi chiến đấu, và sát thương chiến đấu liên quan đến nó bị chia đôi cho đến hết lượt kế tiếp của đối thủ.',
+      activation_rules: 'Úp 1 lượt. Tự hỏi khi đối thủ tấn công quái của bạn; cũng có thể kích hoạt chủ động trong MAIN để che chắn trước.',
+      engine_notes: 'Sát thương chiến đấu (cả hai chiều) làm tròn lên sau khi chia đôi; kích hoạt chủ động giữ lá chắn đến hết lượt đối thủ ngay sau đó; không chặn hiệu ứng phá hủy.'
     },
     // XYZ monsters
     { ...base,
