@@ -29,6 +29,7 @@ const server = http.createServer((req, res) => {
     await page.goto(`http://127.0.0.1:${server.address().port}/memecard.html`);
     await page.waitForFunction(() => window.memeAnime && window.memeDlHandlers && window.memeProgress, { timeout: 30000 });
 
+    if (args.includes('--tcg')) await page.evaluate(() => { window.memeApplyTcgCatalog(); });
     const results = await page.evaluate(async (only) => {
       const rejections = [];
       window.addEventListener('unhandledrejection', e => rejections.push(String(e.reason?.message || e.reason)));
