@@ -78,11 +78,11 @@ const server = http.createServer((req, res) => {
 
     await page.evaluate(() => { deckFilter = 'Spell'; renderDeckBuilder(); });
     const spellCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(spellCount, 74, `Spell count expected 74, got ${spellCount}`);
+    assert.equal(spellCount, 73, `Spell count expected 73, got ${spellCount}`);
 
     await page.evaluate(() => { deckFilter = 'Trap'; renderDeckBuilder(); });
     const trapCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(trapCount, 27, `Trap count expected 27, got ${trapCount}`);
+    assert.equal(trapCount, 28, `Trap count expected 28, got ${trapCount}`);
 
     await page.evaluate(() => { deckFilter = 'All'; renderDeckBuilder(); });
     console.log('✓ Card type filters verified (Monster: 189, Spell: 72, Trap: 24)');

@@ -28,6 +28,7 @@
  function onLeave(n,slot,reason,toGrave){const c=C(slot.id);if(c.id===H('absolute_zero'))enqueue(()=>fx(n,c,'destroy',targetList(other(n)),()=>{for(const e of [...E(other(n))])remove(other(n),e,'effect');}));if(c.id===H('the_shining')&&toGrave)enqueue(()=>shiningRecovery(slot.originalOwner||slot.homeOwner||n,c));}
  function statValue(n,slot,kind='atk'){
   const c=C(slot.id),s=S(n),f=S(other(n));if(!c)return 0;let value=Math.max(0,Number(kind==='atk'?slot.statAtk??c.atk:slot.statDef??c.def)||0);
+  if(kind==='atk'&&slot.swapRound===duel.round&&slot.swapAtk!=null)value=slot.swapAtk;
   if(c.id==='AN-slifer_the_sky_dragon')value=s.hand.length*1000;
   if(['AN-relinquished','AN-thousand_eyes_restrict'].includes(c.id))value=kind==='atk'?slot.absorbAtk||0:slot.absorbDef||0;
   if(c.id==='AN-chimeratech_overdragon')value=(slot.materialCount||0)*800;
@@ -46,13 +47,19 @@
    if(c.id===H('the_shining'))value+=300*s.banished.filter(id=>isElemental(C(id))).length;
    if(c.id===H('escuridao'))value+=100*s.grave.filter(id=>isElemental(C(id))).length;
    if(c.id==='MGX-masked_hero_koga')value+=500*E(other(n)).length;
+   if(slot.favoriteHero&&s.field)value+=c.def||0;
+   if(slot.babyEquipAtk)value+=slot.babyEquipAtk;
+   if(E(n).some(e=>face(e.slot)&&C(e.slot.id)?.effect_code==='dl_hero_sunrise'))value+=200*new Set(E(n).filter(e=>face(e.slot)).map(e=>C(e.slot.id)?.element)).size;
   }
   for(const e of [...spellList(n),...spellList(other(n))]){const x=C(entryId(e));if(e.slot.faceDown)continue;if(x.id==='MGX-umi'){if(['Cá','Hải Long','Sấm','Thủy Tộc'].includes(c.tribe))value+=200;if(['Máy','Hỏa Tộc'].includes(c.tribe))value-=200;}if(e.slot.equippedTo&&e.slot.equippedTo===slot.uid){if(x.id==='AN-megamorph'&&kind==='atk'){}else if(kind==='atk')value+=e.slot.equipValue??x.effect_value??0;else value+=e.slot.equipDef||0;}}
   if(kind==='atk')value+=window.memeEquipRules?.megamorphDelta(n,slot)||0;
   value+=kind==='atk'?(slot.tcgAtkDelta||0)+(slot.powerAtk||0)+(slot.attackBonus||0)+(slot.equip||0):(slot.tcgDefDelta||0)+(slot.equipDef||0);
   if(slot.tcgTempRound===duel.round)value+=kind==='atk'?slot.tcgTempAtk||0:slot.tcgTempDef||0;
   if(slot.tempRound===duel.round&&kind==='atk')value+=slot.tempAtk||0;
+  if(kind==='atk'){value+=(slot.mangaAtkDelta||0)+(slot.mangaTempRound===duel.round?slot.mangaTempAtk||0:0);if(slot.rocketWeakenRound===duel.round)value+=slot.rocketWeakenAtk||0;}else value+=(slot.mangaDefDelta||0)+(slot.mangaTempRound===duel.round?slot.mangaTempDef||0:0);
+  if(kind==='atk'&&[...spellList(n),...spellList(other(n))].some(e=>e.slot&&!e.slot.faceDown&&(e.slot.halvedUids||[]).includes(slot.uid)))value=Math.floor(value/2);
   return Math.max(0,Math.round(value));
  }
+ if(active())for(const t of window.MEME_TCG_CATALOG.cards)if(t.effect_code)window.memeAnime.supported?.add(t.effect_code);
  window.memeTcgEngine={handles:id=>active()&&handlers.has(id),resolveEffect:(n,c,ctx)=>handlers.get(c.id)(n,c,ctx),stat:statValue,onLeave,onSummon,attackProblem,payAttackFee,register,handlers,active,helpers:{effect,addTemp,chooseMany,returnToHand,isHero,isElemental,ownSlot}};
 })();

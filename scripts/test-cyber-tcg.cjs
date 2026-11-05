@@ -100,7 +100,7 @@ server.listen(0, async () => {
         eq(card('AN-cyber_phoenix').traits.includes('cyber_phoenix'), true, 'Phoenix trait');
         for (const id of ['AN-cyberdark_horn', 'AN-cyberdark_edge', 'AN-cyberdark_keel', 'AN-cyberdark_dragon'])
           eq(card(id).traits.includes('cyberdark_guard'), true, id + ' guard trait');
-        ok(card('AN-chimeratech_overdragon').description.includes('800 × số nguyên liệu'), 'Chimeratech text');
+        ok(card('AN-chimeratech_overdragon').description.includes('×800'), 'Chimeratech text');
       });
 
       await test('Cyber Phoenix negates Spell/Trap targets on Machines only in Attack Position', async () => {

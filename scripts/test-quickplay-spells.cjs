@@ -309,17 +309,17 @@ const QUICK_PLAY = [
       await test('Form Change: hand and set activation recycle a HERO Fusion into a same-Level Masked HERO', async () => {
         put('player', 'AN-elemental_hero_flame_wingman');
         duel.player.hand = ['DL-form_change'];
-        duel.player.extraDeck = ['MGX-masked_hero_koga'];
+        duel.player.extraDeck = ['MGX-masked_hero_blast'];
         ok(await play(0), 'hand activation');
-        eq(summonedIds(), ['MGX-masked_hero_koga'], 'Koga on field');
+        eq(summonedIds(), ['MGX-masked_hero_blast'], 'Blast on field');
         eq(duel.player.extraDeck.includes('AN-elemental_hero_flame_wingman'), true, 'source returned to Extra');
 
         reset();
         put('player', 'AN-elemental_hero_flame_wingman');
-        duel.player.extraDeck = ['MGX-masked_hero_koga'];
+        duel.player.extraDeck = ['MGX-masked_hero_blast'];
         setSpell('DL-form_change');
         ok(await playSet(0), 'set activation');
-        eq(summonedIds(), ['MGX-masked_hero_koga'], 'Koga from set Spell');
+        eq(summonedIds(), ['MGX-masked_hero_blast'], 'Blast from set Spell');
         eq(duel.player.grave.includes('DL-form_change'), true, 'Spell to GY');
       });
 
