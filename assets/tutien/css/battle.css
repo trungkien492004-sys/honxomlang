@@ -31,3 +31,9 @@
 .battle-btn:disabled { opacity: .4; cursor: not-allowed; }
 .battle-hint { margin-top: 8px; font-size: 10px; color: var(--text-muted); text-align: center; }
 @media (max-width: 560px) { .battle-field { flex-direction: column; } }
+
+/* GĐ2: sprite pixel + hiệu ứng hạt (Kenney, CC0) */
+.bc-sprite { display: block; width: 96px; height: 96px; margin: 0 auto 6px; image-rendering: pixelated; filter: drop-shadow(0 4px 6px rgba(0,0,0,.7)); }
+.battle-card.enemy .bc-sprite { transform: scaleX(1); }
+.fx-sprite { position: absolute; left: 50%; top: 38%; width: var(--sz, 110px); height: var(--sz, 110px); transform: translate(-50%, -50%); background: var(--c, #fff); -webkit-mask: var(--img) center / contain no-repeat; mask: var(--img) center / contain no-repeat; mix-blend-mode: screen; opacity: 0; animation: fxPop .7s ease-out forwards; pointer-events: none; }
+@keyframes fxPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4) rotate(-20deg); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25) rotate(10deg); } }

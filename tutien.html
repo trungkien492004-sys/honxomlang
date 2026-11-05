@@ -6,9 +6,9 @@
     <title>Tu Tiên Kỷ Nguyên Hiện Đại — Hồn Xóm Làng</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/tutien/css/style.css?v=20261101-combat-v1">
+    <link rel="stylesheet" href="assets/tutien/css/style.css?v=20261101-sprites-v1">
     <link rel="stylesheet" href="assets/tutien/css/animations.css">
-    <link rel="stylesheet" href="assets/tutien/css/battle.css?v=20261105-combat-v1">
+    <link rel="stylesheet" href="assets/tutien/css/battle.css?v=20261105-sprites-v1">
     <style>
         * { font-family: 'Nunito', system-ui, sans-serif; }
         h1, h2, h3, h4, .brand-title, .modal-title, .auth-title { font-family: 'Baloo 2', sans-serif !important; }
@@ -258,6 +258,7 @@
             <div class="battle-field">
                 <div class="battle-card enemy" id="battle-enemy-card">
                     <div class="battle-fx" id="battle-enemy-fx"></div>
+                    <canvas class="bc-sprite" id="battle-enemy-sprite" width="64" height="64"></canvas>
                     <div class="bc-name" id="battle-enemy-name"></div>
                     <div class="bc-el" id="battle-enemy-el"></div>
                     <div class="bar-wrap"><div class="bar-fill bar-hp" id="battle-enemy-hp"></div></div>
@@ -267,6 +268,7 @@
                 <div class="battle-vs">VS</div>
                 <div class="battle-card player" id="battle-player-card">
                     <div class="battle-fx" id="battle-player-fx"></div>
+                    <canvas class="bc-sprite" id="battle-player-sprite" width="64" height="64"></canvas>
                     <div class="bc-name" id="battle-player-name"></div>
                     <div class="bc-el" id="battle-player-el"></div>
                     <div class="bar-wrap"><div class="bar-fill bar-hp" id="battle-player-hp"></div></div>
@@ -374,7 +376,7 @@
         </div>
     </div>
 
-    <script src="assets/tutien/js/tutien_bundle.js?v=20261101-combat-v1"></script>
+    <script src="assets/tutien/js/tutien_bundle.js?v=20261101-sprites-v1"></script>
     <script>
         let selectedSchool = 'sword';
         document.querySelectorAll('.school-card').forEach(card => {

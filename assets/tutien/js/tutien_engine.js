@@ -27,8 +27,8 @@ export const MAPS_DATA = {
             { targetMap: 'arena_heaven', x: 700, y: 100, label: 'Thiên Môn Đấu Trường (PvP)' }
         ],
         npcs: [
-            { id: 'npc_guide', name: 'Lý Linh Vân', title: 'Hiệp Hội Tu Sĩ Đô Thị', x: 500, y: 400 },
-            { id: 'npc_ceo', name: 'Vương Tổng', title: 'Chủ Tịch Tập Đoàn Vạn Linh', x: 800, y: 400 }
+            { id: 'npc_guide', name: 'Lý Linh Vân', title: 'Hiệp Hội Tu Sĩ Đô Thị', x: 500, y: 400, sprite: 99 },
+            { id: 'npc_ceo', name: 'Vương Tổng', title: 'Chủ Tịch Tập Đoàn Vạn Linh', x: 800, y: 400, sprite: 100 }
         ]
     },
     beast_forest: {
@@ -93,7 +93,7 @@ function mobTemplates() {
         id, name, element: el, isBoss: false, maxHp: hp, hp, atk, def, speed, x, y, homeX: x, homeY: y,
         realm, moves, isDead: false, isEnraged: false, nextEngage: 0, respawnAt: 0, ...extra
     });
-    return [
+    const list = [
         mk('mob_1', 'Thiết Giáp Sói', 'Kim', 260, 32, 14, 90, 800, 500, 1, wolf, { mapId: 'beast_forest' }),
         mk('mob_5', 'Thanh Mộc Sói', 'Mộc', 260, 30, 12, 90, 1100, 800, 1, wolf, { mapId: 'beast_forest' }),
         mk('mob_2', 'Lôi Đình Ưng', 'Lôi', 340, 42, 12, 110, 600, 300, 1, eagle, { mapId: 'beast_forest' }),
@@ -101,7 +101,26 @@ function mobTemplates() {
         mk('mob_3', 'Xích Viêm Cự Hùng (Thủ Lĩnh)', 'Hỏa', 2200, 80, 50, 75, 500, 600, 2, bear, { mapId: 'beast_forest', isBoss: true }),
         mk('mob_4', 'Hư Không Diệt Thế Ma Tôn (Thế Giới Boss)', 'Thủy', 12000, 300, 160, 85, 250, 1000, 3, demon, { mapId: 'beast_forest', isBoss: true })
     ];
+    // Ô sprite trong dungeon.png (Kenney Tiny Dungeon)
+    const SPR = { mob_1: 124, mob_5: 122, mob_2: 120, mob_6: 108, mob_3: 110, mob_4: 121 };
+    for (const m of list) m.sprite = SPR[m.id];
+    return list;
 }
+
+// Hiệu ứng chiến đấu: ảnh hạt Kenney (CC0) tô màu bằng mask, chồng lên thẻ nhân vật.
+const FX = {
+    attack: [['slash_03', '#e2e8f0', 1]],
+    sword_slash: [['slash_02', '#bfe9ff', 1]],
+    ten_thousand_swords: [['slash_01', '#ffffff', 1.3], ['star_04', '#7dd3fc', 1]],
+    elemental_burst: [['fire_01', '#ff6a2b', 1.3], ['flame_01', '#ffd24a', 1]],
+    thunder_wrath: [['spark_01', '#c084fc', 1.4], ['light_01', '#e9d5ff', 1.2]],
+    enemy_hit: [['slash_03', '#ff5a5a', 1]],
+    enemy_heavy: [['magic_03', '#ff3b3b', 1.4], ['flare_01', '#ffd24a', 1.2]],
+    bolt: [['spark_03', '#c084fc', 1.5], ['light_01', '#ffffff', 1.4]],
+    heal: [['magic_05', '#34d399', 1.2]],
+    guard: [['circle_03', '#67e8f9', 1.2]]
+};
+const PVP_SPRITES = [84, 86, 87, 96, 97, 98, 99, 100, 111, 112];
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -129,6 +148,7 @@ class TuTienGame {
     initDOM() {
         const canvas = document.getElementById('gameCanvas');
         this.renderer = new GameRenderer(canvas);
+        this.renderer.onSheetsLoaded = () => { this.updateHUD(); if (this.battle) this.renderBattle(); };
 
         window.addEventListener('keydown', (e) => this.handleKeyDown(e));
         window.addEventListener('keyup', (e) => this.handleKeyUp(e));
@@ -412,7 +432,7 @@ class TuTienGame {
         const warn = this.character.realm < mob.realm;
         this.beginBattle({
             mode: 'pve', mob,
-            enemy: { name: mob.name, element: mob.element, hp: mob.hp, maxHp: mob.maxHp, atk: mob.atk, def: mob.def, moves: mob.moves, isBoss: mob.isBoss }
+            enemy: { name: mob.name, element: mob.element, hp: mob.hp, maxHp: mob.maxHp, atk: mob.atk, def: mob.def, moves: mob.moves, isBoss: mob.isBoss, sprite: mob.sprite }
         });
         this.logBattle(`⚔️ [${mob.name}] xuất hiện!` + (warn ? ' ⚠ Cảnh giới của ngươi thấp hơn nó rất nhiều.' : ''), 'warn');
     }
@@ -430,7 +450,7 @@ class TuTienGame {
             mode: 'pvp',
             enemy: {
                 name: pick(names), element: pick(els), hp, maxHp: hp,
-                atk: Math.round(c.atk * 0.95 * f), def: Math.round(c.def * f), isBoss: false,
+                atk: Math.round(c.atk * 0.95 * f), def: Math.round(c.def * f), isBoss: false, sprite: pick(PVP_SPRITES),
                 moves: [{ name: 'Kiếm Quyết', mult: 1, w: 3 }, { name: 'Pháp Thuật', mult: 1.3, w: 2 }, { name: 'Tuyệt Kỹ', mult: 2.0, w: 1, heavy: true }]
             }
         });
@@ -505,6 +525,7 @@ class TuTienGame {
             this.playerHit(s, false);
         } else if (type === 'guard') {
             b.player.guard = c.school === 'array' ? 0.75 : 0.6;
+            this.battleFx('player', 'guard');
             c.mp = Math.min(c.max_mp, c.mp + Math.max(6, Math.round(c.max_mp * 0.08)));
             this.logBattle('🛡️ Ngươi vận công phòng thủ, hồi chút linh lực.', 'good');
         } else if (type === 'ward' && trib) {
@@ -512,6 +533,7 @@ class TuTienGame {
             if (c.mp < cost) { this.showToast(`Cần ${cost} linh lực để Hộ Thể Linh Quang!`, 'danger'); return; }
             c.mp -= cost;
             b.player.guard = 0.85;
+            this.battleFx('player', 'guard');
             this.logBattle('✨ Hộ Thể Linh Quang bừng sáng!', 'good');
         } else if (type === 'pill') {
             if (!this.consumeItem(PILL_HEAL)) { this.showToast(`Hết ${PILL_HEAL}! Mua ở tab Tu Luyện.`, 'danger'); return; }
@@ -520,6 +542,7 @@ class TuTienGame {
             c.qi = Math.min(c.max_qi, c.qi + 30);
             audio.playMeditationQi();
             this.renderer.addFloatingText('+' + amt, c.pos_x, c.pos_y - 30, 'heal');
+            this.battleFx('player', 'heal');
             this.logBattle(`💊 Uống ${PILL_HEAL}, hồi ${amt} sinh lực.`, 'good');
         } else if (type === 'flee') {
             if (b.mode !== 'pve' || e.isBoss) { this.showToast('Không thể bỏ chạy trận này!', 'danger'); return; }
@@ -545,6 +568,7 @@ class TuTienGame {
         dmg = Math.max(1, Math.round(dmg - e.def * 0.5));
         e.hp = Math.max(0, e.hp - dmg);
         audio.playSlash();
+        this.battleFx('enemy', isBasic ? 'attack' : skill.id);
         let note = em > 1 ? ' (khắc chế!)' : em < 1 ? ' (bị kháng)' : '';
         this.logBattle(`${isBasic ? '🗡️' : '✨'} ${skill.name}: gây ${dmg} sát thương${crit ? ' BẠO KÍCH' : ''}${note}`, em > 1 || crit ? 'good' : '');
         this.hitFx('enemy', dmg, crit);
@@ -635,6 +659,7 @@ class TuTienGame {
         audio.playThunder();
         this.logBattle(`${mv.heavy ? '💥' : '🩸'} [${e.name}] dùng ${mv.name}: ngươi mất ${dmg} sinh lực${guardNote}`, 'bad');
         this.hitFx('player', dmg, !!mv.heavy);
+        this.battleFx('player', mv.heavy ? 'enemy_heavy' : 'enemy_hit');
         if (mv.burn && !b.player.guard) { b.player.burn = mv.burn; this.logBattle('🔥 Ngươi bốc cháy!', 'bad'); }
     }
 
@@ -651,6 +676,7 @@ class TuTienGame {
         this.renderer.addSkillVisual('thunder_wrath', c.pos_x, c.pos_y);
         this.logBattle(`⚡ Thiên Lôi giáng xuống: mất ${dmg} sinh lực! (còn ${b.boltsLeft} đạo)`, 'bad');
         this.hitFx('player', dmg, true);
+        this.battleFx('player', 'bolt');
         if (c.hp <= 0) { this.endBattle('lose'); return; }
         if (b.boltsLeft <= 0) this.endBattle('win');
     }
@@ -746,6 +772,21 @@ class TuTienGame {
         this.updateHUD();
     }
 
+    battleFx(side, kind) {
+        const box = document.getElementById(side === 'enemy' ? 'battle-enemy-fx' : 'battle-player-fx');
+        if (!box) return;
+        (FX[kind] || []).forEach(([name, color, size], i) => {
+            const d = document.createElement('div');
+            d.className = 'fx-sprite';
+            d.style.setProperty('--c', color);
+            d.style.setProperty('--img', `url(assets/tutien/img/fx/${name}.png)`);
+            d.style.setProperty('--sz', Math.round(110 * size) + 'px');
+            d.style.animationDelay = (i * 90) + 'ms';
+            box.appendChild(d);
+            setTimeout(() => d.remove(), 900 + i * 90);
+        });
+    }
+
     hitFx(side, dmg, strong) {
         const el = document.getElementById(side === 'enemy' ? 'battle-enemy-card' : 'battle-player-card');
         if (el) {
@@ -774,6 +815,10 @@ class TuTienGame {
 
         $('battle-title').textContent = trib ? '⚡ Độ Lôi Kiếp' : b.mode === 'pvp' ? '🏟️ Lôi Đài Thiên Môn' : '⚔️ Chiến Đấu';
         $('battle-enemy-name').textContent = e.name;
+        const es = $('battle-enemy-sprite');
+        es.style.display = e.sprite !== undefined ? '' : 'none';
+        if (e.sprite !== undefined) this.renderer.drawSpriteTo(es, 'dungeon', e.sprite);
+        this.renderer.drawSpriteTo($('battle-player-sprite'), 'urban', this.renderer.charIndex(c.school, 1, 1));
         const rel = elementMult(c.linh_can, e.element);
         $('battle-enemy-el').textContent = `${ELEMENT_ICON[e.element] || ''} ${e.element}` + (trib ? '' : rel > 1 ? ' · ta khắc' : rel < 1 ? ' · ta bị khắc' : '');
         $('battle-enemy-hp').style.width = pct(e.hp, e.maxHp) + '%';
@@ -1049,6 +1094,19 @@ class TuTienGame {
 
         document.getElementById('hud-gold').textContent = Number(c.gold).toLocaleString();
         document.getElementById('hud-stones').textContent = Number(c.spirit_stones).toLocaleString();
+
+        const av = document.getElementById('hud-avatar');
+        if (av) {
+            if (!av._cv) {
+                av.textContent = '';
+                const cv = document.createElement('canvas');
+                cv.width = cv.height = 48;
+                cv.style.cssText = 'width:44px;height:44px;image-rendering:pixelated;';
+                av.appendChild(cv);
+                av._cv = cv;
+            }
+            this.renderer.drawSpriteTo(av._cv, 'urban', this.renderer.charIndex(c.school, 1, 1));
+        }
 
         const bt = document.getElementById('bt-chance');
         if (bt) {

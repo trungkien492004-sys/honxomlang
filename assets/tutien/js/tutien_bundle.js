@@ -149,9 +149,54 @@ class GameRenderer {
         this.particles = [];
         this.floatingTexts = [];
         this.skillVisuals = [];
+        this._pl = {};
+        this._loadSprites();
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
+    }
+
+    // Kenney (CC0): urban.png = RPG Urban Pack, dungeon.png = Tiny Dungeon. Ô 16x16.
+    _loadSprites() {
+        this.sheets = {};
+        for (const [k, f] of [['urban', 'urban.png'], ['dungeon', 'dungeon.png']]) {
+            const im = new Image();
+            im.onload = () => { im._ok = true; if (this.onSheetsLoaded) this.onSheetsLoaded(); };
+            im.src = 'assets/tutien/img/' + f;
+            this.sheets[k] = im;
+        }
+    }
+
+    _tile(ctx, im, idx, dx, dy, s) {
+        const cols = Math.floor(im.width / 16);
+        ctx.drawImage(im, (idx % cols) * 16, Math.floor(idx / cols) * 16, 16, 16, dx, dy, 16 * s, 16 * s);
+    }
+
+    _block(ctx, im, idx, w, h, dx, dy, s) {
+        const cols = Math.floor(im.width / 16);
+        for (let r = 0; r < h; r++) {
+            for (let c = 0; c < w; c++) this._tile(ctx, im, idx + r * cols + c, dx + c * 16 * s, dy + r * 16 * s, s);
+        }
+    }
+
+    // Chỉ số ô nhân vật Urban: nhóm g (3 hàng khung đi) x 4 hướng (cột 23..26).
+    static charGroup(school) {
+        return { sword: 0, body: 3, spell: 2, array: 4, demonic: 1, medicine: 5 }[school] ?? 0;
+    }
+    charIndex(school, frame, dir) {
+        return (GameRenderer.charGroup(school) * 3 + frame) * 27 + 23 + dir;
+    }
+
+    // Vẽ 1 ô sprite lên canvas phụ (chân dung trong khung chiến đấu / HUD).
+    drawSpriteTo(canvas, sheet, idx) {
+        const im = this.sheets && this.sheets[sheet];
+        if (!canvas || !im || !im._ok) return false;
+        const c = canvas.getContext('2d');
+        c.imageSmoothingEnabled = false;
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        const cols = Math.floor(im.width / 16);
+        c.drawImage(im, (idx % cols) * 16, Math.floor(idx / cols) * 16, 16, 16, 0, 0, canvas.width, canvas.height);
+        return true;
     }
 
     resize() {
@@ -212,6 +257,7 @@ class GameRenderer {
         this._mapW = mapInfo?.width || 1400;
         this._mapH = mapInfo?.height || 1000;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.imageSmoothingEnabled = false;
 
         ctx.save();
         ctx.translate(-Math.round(this.camera.x), -Math.round(this.camera.y));
@@ -413,10 +459,15 @@ class GameRenderer {
         cy += (this._hash(i, j, 5) - .5) * 22;
         if (r1 < 0.5) {
             if (r1 > 0.4) { // bồn cây ven đường
+                const im = this.sheets && this.sheets.urban;
                 ctx.fillStyle = 'rgba(0,0,0,.4)';
                 ctx.beginPath(); ctx.ellipse(cx + 4, cy + 12, 15, 7, 0, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = `rgb(${T.skin[2]})`;
-                ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI * 2); ctx.fill();
+                if (im && im._ok) {
+                    this._tile(ctx, im, (this._hash(i, j, 8) > 0.5 ? 367 : 286) + (r2 > 0.5 ? 1 : 0), cx - 24, cy - 32, 3);
+                } else {
+                    ctx.fillStyle = `rgb(${T.skin[2]})`;
+                    ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI * 2); ctx.fill();
+                }
             }
             return;
         }
@@ -449,7 +500,9 @@ class GameRenderer {
     _drawForestLot(ctx, T, i, j, cx, cy, r1, r2, r3, now) {
         cx += (this._hash(i, j, 4) - .5) * 56;
         cy += (this._hash(i, j, 5) - .5) * 48;
-        if (r1 > 0.42) {
+        if (r1 > 0.42 && this._spriteTree(ctx, i, j, r2, r3, cx, cy)) {
+            // cây sprite đã vẽ
+        } else if (r1 > 0.42) {
             const big = r2 > 0.72;
             const rr = (big ? 27 : 17) * (0.8 + r3 * 0.5);
             ctx.fillStyle = 'rgba(0,0,0,.45)';
@@ -483,6 +536,19 @@ class GameRenderer {
             ctx.fillStyle = `rgba(${T.warm},.75)`;
             ctx.beginPath(); ctx.arc(cx + 18, fy, 2, 0, Math.PI * 2); ctx.fill();
         }
+    }
+
+    _spriteTree(ctx, i, j, r2, r3, cx, cy) {
+        const im = this.sheets && this.sheets.urban;
+        if (!im || !im._ok) return false;
+        const o = this._hash(i, j, 6) > 0.5 ? 81 : 0; // biến thể lá cam
+        let idx, w, h;
+        if (r2 > 0.8) { idx = 235 + o; w = 2; h = 3; } else if (r3 > 0.5) { idx = 232 + o; w = 1; h = 2; } else { idx = 233 + o; w = 1; h = 2; }
+        const s = 3;
+        ctx.fillStyle = 'rgba(0,0,0,.4)';
+        ctx.beginPath(); ctx.ellipse(cx, cy + 14, w * 8 * s * 0.75, 9, 0, 0, Math.PI * 2); ctx.fill();
+        this._block(ctx, im, idx, w, h, cx - w * 8 * s, cy + 14 - h * 16 * s, s);
+        return true;
     }
 
     _drawArenaLot(ctx, T, i, j, cx, cy, r1, r2, now) {
@@ -586,19 +652,28 @@ class GameRenderer {
         ctx.strokeStyle = `rgba(${T.warm},.35)`;
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.ellipse(x, y + 72, 96, 32, 0, 0, Math.PI * 2); ctx.stroke();
-        ctx.fillStyle = '#4a3524';
-        ctx.beginPath();
-        ctx.moveTo(x - 16, y + 70); ctx.lineTo(x - 8, y - 40); ctx.lineTo(x + 8, y - 40); ctx.lineTo(x + 16, y + 70);
-        ctx.closePath(); ctx.fill();
-        const sway = Math.sin(now / 1500) * 4;
-        ctx.fillStyle = `rgb(${T.skin[2]})`;
-        for (const [ox, oy, r] of [[-52, -52, 46], [52, -46, 42], [0, -86, 52], [-22, -26, 40], [26, -22, 38]]) {
-            ctx.beginPath(); ctx.arc(x + ox + sway, y + oy, r, 0, Math.PI * 2); ctx.fill();
-        }
-        ctx.fillStyle = `rgba(${T.neon},.16)`;
-        for (const [ox, oy, r] of [[-30, -70, 26], [40, -60, 20], [4, -104, 24]]) {
-            ctx.beginPath(); ctx.arc(x + ox + sway, y + oy, r, 0, Math.PI * 2); ctx.fill();
-        }
+        const gim = this.sheets && this.sheets.urban;
+        if (gim && gim._ok) {
+            // Rừng linh thụ sprite (Kenney) phóng 5x, nhấp nhô theo gió
+            const sway = Math.sin(now / 1500) * 2;
+            this._block(ctx, gim, 235, 2, 3, x - 80 + sway, y + 70 - 240, 5);
+            ctx.fillStyle = `rgba(${T.neon},.10)`;
+            ctx.beginPath(); ctx.ellipse(x, y - 40, 110, 130, 0, 0, Math.PI * 2); ctx.fill();
+        } else {
+            ctx.fillStyle = '#4a3524';
+            ctx.beginPath();
+            ctx.moveTo(x - 16, y + 70); ctx.lineTo(x - 8, y - 40); ctx.lineTo(x + 8, y - 40); ctx.lineTo(x + 16, y + 70);
+            ctx.closePath(); ctx.fill();
+            const sway = Math.sin(now / 1500) * 4;
+            ctx.fillStyle = `rgb(${T.skin[2]})`;
+            for (const [ox, oy, r] of [[-52, -52, 46], [52, -46, 42], [0, -86, 52], [-22, -26, 40], [26, -22, 38]]) {
+                ctx.beginPath(); ctx.arc(x + ox + sway, y + oy, r, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.fillStyle = `rgba(${T.neon},.16)`;
+            for (const [ox, oy, r] of [[-30, -70, 26], [40, -60, 20], [4, -104, 24]]) {
+                ctx.beginPath(); ctx.arc(x + ox + sway, y + oy, r, 0, Math.PI * 2); ctx.fill();
+            }
+            }
         ctx.font = 'bold 13px Nunito, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillStyle = `rgba(${T.warm},.9)`;
@@ -683,45 +758,46 @@ class GameRenderer {
     }
 
     renderNPC(ctx, npc, now) {
-        // Vẽ NPC
+        const im = this.sheets && this.sheets.dungeon;
         ctx.save();
         ctx.translate(npc.x, npc.y);
-
-        // Vòng chân NPC
         ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
         ctx.beginPath();
-        ctx.ellipse(0, 16, 16, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 12, 18, 8, 0, 0, Math.PI * 2);
         ctx.fill();
-
-        // Thân NPC
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath();
-        ctx.arc(0, 0, 15, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Icon NPC
-        ctx.fillStyle = '#fff';
-        ctx.font = '14px Segoe UI';
+        let top = -20;
+        if (im && im._ok && npc.sprite !== undefined) {
+            const s = 3;
+            const bob = Math.sin(now / 500 + npc.x) * 1.5;
+            this._tile(ctx, im, npc.sprite, -8 * s, 10 - 16 * s + bob, s);
+            top = 10 - 16 * s;
+        } else {
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🧘', 0, 0);
+        }
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🧘', 0, 0);
-
-        // Tên & Danh hiệu
-        ctx.font = 'bold 12px Segoe UI';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = 'bold 12px Segoe UI, Nunito';
         ctx.fillStyle = '#ffd700';
-        ctx.fillText(npc.name, 0, -28);
-
-        ctx.font = '10px Segoe UI';
+        ctx.fillText(npc.name, 0, top - 16);
+        ctx.font = '10px Segoe UI, Nunito';
         ctx.fillStyle = '#cbd5e1';
-        ctx.fillText(`<${npc.title}>`, 0, -16);
-
+        ctx.fillText(`<${npc.title}>`, 0, top - 4);
         ctx.restore();
     }
 
     renderMonster(ctx, mob, now) {
+        const im = this.sheets && this.sheets.dungeon;
         ctx.save();
         ctx.translate(mob.x, mob.y);
 
@@ -742,46 +818,55 @@ class GameRenderer {
             ctx.stroke();
         }
 
-        // Thân quái
-        ctx.fillStyle = mob.isBoss ? '#b91c1c' : '#7f1d1d';
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = mob.isBoss ? '#ffd700' : '#ef4444';
-        ctx.lineWidth = mob.isBoss ? 3 : 1.5;
-        ctx.stroke();
+        let top = -radius;
+        if (im && im._ok && mob.sprite !== undefined) {
+            const s = mob.isBoss ? 5 : 3;
+            const bob = Math.sin(now / 280 + mob.homeX * 0.01) * 2;
+            this._tile(ctx, im, mob.sprite, -8 * s, radius * 0.8 - 16 * s + bob, s);
+            top = radius * 0.8 - 16 * s;
+        } else {
+            ctx.fillStyle = mob.isBoss ? '#b91c1c' : '#7f1d1d';
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = mob.isBoss ? '#ffd700' : '#ef4444';
+            ctx.lineWidth = mob.isBoss ? 3 : 1.5;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = mob.isBoss ? '22px Segoe UI' : '15px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(mob.isBoss ? '👑👹' : '🐺', 0, 0);
+        }
 
-        // Icon quái vật
-        ctx.fillStyle = '#fff';
-        ctx.font = mob.isBoss ? '22px Segoe UI' : '15px Segoe UI';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(mob.isBoss ? '👑👹' : '🐺', 0, 0);
-
-        // Tên quái vật
-        ctx.font = mob.isBoss ? 'bold 12px Segoe UI' : '11px Segoe UI';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = mob.isBoss ? 'bold 12px Segoe UI, Nunito' : '11px Segoe UI, Nunito';
         ctx.fillStyle = mob.isBoss ? '#ffd700' : '#fca5a5';
-        ctx.fillText((mob.element ? mob.element + ' · ' : '') + mob.name, 0, -radius - 14);
+        ctx.fillText((mob.element ? mob.element + ' · ' : '') + mob.name, 0, top - 10);
 
         // Thanh HP quái
-        const barW = radius * 2.2;
+        const barW = Math.max(radius * 2.2, 40);
         const barH = 5;
         const hpPercent = Math.max(0, mob.hp / mob.maxHp);
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(-barW / 2, -radius - 8, barW, barH);
+        ctx.fillRect(-barW / 2, top - 6, barW, barH);
         ctx.fillStyle = mob.isBoss ? '#ffd700' : '#ef4444';
-        ctx.fillRect(-barW / 2, -radius - 8, barW * hpPercent, barH);
+        ctx.fillRect(-barW / 2, top - 6, barW * hpPercent, barH);
 
         ctx.restore();
     }
 
     renderPlayer(ctx, p, isLocal, now) {
+        const im = this.sheets && this.sheets.urban;
+        const px = p.pos_x ?? p.x, py = p.pos_y ?? p.y;
         ctx.save();
-        ctx.translate(p.pos_x ?? p.x, p.pos_y ?? p.y);
+        ctx.translate(px, py);
 
         // Hào quang Chân Khí dưới chân (Aura xoay theo cảnh giới)
         const rot = (now / 1000) * 2;
         ctx.save();
+        ctx.translate(0, 8);
         ctx.rotate(rot);
         let auraColor = '#00e5ff';
         if (p.realm >= 3) auraColor = '#ffd700'; // Kim Đan
@@ -791,54 +876,80 @@ class GameRenderer {
         ctx.strokeStyle = auraColor;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 22, 11, 0, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
 
         // Bóng đổ
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.beginPath();
-        ctx.ellipse(0, 14, 14, 6, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 8, 15, 6, 0, 0, Math.PI * 2);
         ctx.fill();
+
+        // Hướng & khung hoạt ảnh đi theo độ dời thực tế giữa các frame
+        const st = this._pl[p.id] || (this._pl[p.id] = { x: px, y: py, dir: 1, mv: -1e9 });
+        const ddx = px - st.x, ddy = py - st.y;
+        if (ddx || ddy) {
+            st.mv = now;
+            if (Math.abs(ddx) > Math.abs(ddy)) st.dir = ddx > 0 ? 3 : 0; else st.dir = ddy > 0 ? 1 : 2;
+        }
+        st.x = px; st.y = py;
+        const moving = now - st.mv < 140;
+        const frame = moving ? [0, 1, 2, 1][Math.floor(now / 110) % 4] : 1;
 
         // Phi kiếm bay lơ lửng phía sau lưng
         const swordFloatY = Math.sin(now / 200) * 3;
-        ctx.fillStyle = '#00e5ff';
-        ctx.font = '16px Segoe UI';
-        ctx.fillText('🗡️', 14, -8 + swordFloatY);
+        const dm = this.sheets && this.sheets.dungeon;
+        if (dm && dm._ok) {
+            ctx.save();
+            ctx.translate(26, -18 + swordFloatY);
+            ctx.rotate(Math.PI / 4);
+            this._tile(ctx, dm, 104, -16, -16, 2);
+            ctx.restore();
+        }
 
-        // Thân người chơi
-        ctx.fillStyle = isLocal ? '#0284c7' : '#475569';
-        ctx.beginPath();
-        ctx.arc(0, 0, 16, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = isLocal ? '#00e5ff' : '#cbd5e1';
-        ctx.lineWidth = isLocal ? 2.5 : 1;
-        ctx.stroke();
+        let top = -24;
+        if (im && im._ok) {
+            const s = 3;
+            this._tile(ctx, im, this.charIndex(p.school, frame, st.dir), -8 * s, 8 - 16 * s, s);
+            top = 8 - 16 * s;
+            if (isLocal) {
+                ctx.strokeStyle = 'rgba(0,229,255,.9)';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(-6, top - 5); ctx.lineTo(0, top - 1); ctx.lineTo(6, top - 5); ctx.stroke();
+            }
+        } else {
+            ctx.fillStyle = isLocal ? '#0284c7' : '#475569';
+            ctx.beginPath();
+            ctx.arc(0, 0, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = isLocal ? '#00e5ff' : '#cbd5e1';
+            ctx.lineWidth = isLocal ? 2.5 : 1;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🧙‍♂️', 0, 0);
+        }
 
-        // Icon nhân vật
-        ctx.fillStyle = '#fff';
-        ctx.font = '16px Segoe UI';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🧙‍♂️', 0, 0);
-
-        // Tên & Danh hiệu
-        ctx.font = 'bold 12px Segoe UI';
-        ctx.fillStyle = isLocal ? '#00e5ff' : '#fff';
-        ctx.fillText(p.name, 0, -28);
-
-        ctx.font = '10px Segoe UI';
-        ctx.fillStyle = '#ffd700';
-        ctx.fillText(`[${p.title}]`, 0, -16);
-
+        ctx.textBaseline = 'alphabetic';
         // Thanh máu nhỏ
         const barW = 36;
         const hpPct = Math.max(0, p.hp / (p.max_hp ?? p.maxHp));
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(-barW / 2, -10, barW, 3);
+        ctx.fillRect(-barW / 2, top - 12, barW, 4);
         ctx.fillStyle = '#10b981';
-        ctx.fillRect(-barW / 2, -10, barW * hpPct, 3);
+        ctx.fillRect(-barW / 2, top - 12, barW * hpPct, 4);
+
+        // Tên & Danh hiệu
+        ctx.font = 'bold 12px Segoe UI, Nunito';
+        ctx.fillStyle = isLocal ? '#00e5ff' : '#fff';
+        ctx.fillText(p.name, 0, top - 28);
+        ctx.font = '10px Segoe UI, Nunito';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(`[${p.title}]`, 0, top - 16);
 
         ctx.restore();
     }
@@ -947,8 +1058,8 @@ const MAPS_DATA = {
             { targetMap: 'arena_heaven', x: 700, y: 100, label: 'Thiên Môn Đấu Trường (PvP)' }
         ],
         npcs: [
-            { id: 'npc_guide', name: 'Lý Linh Vân', title: 'Hiệp Hội Tu Sĩ Đô Thị', x: 500, y: 400 },
-            { id: 'npc_ceo', name: 'Vương Tổng', title: 'Chủ Tịch Tập Đoàn Vạn Linh', x: 800, y: 400 }
+            { id: 'npc_guide', name: 'Lý Linh Vân', title: 'Hiệp Hội Tu Sĩ Đô Thị', x: 500, y: 400, sprite: 99 },
+            { id: 'npc_ceo', name: 'Vương Tổng', title: 'Chủ Tịch Tập Đoàn Vạn Linh', x: 800, y: 400, sprite: 100 }
         ]
     },
     beast_forest: {
@@ -1013,7 +1124,7 @@ function mobTemplates() {
         id, name, element: el, isBoss: false, maxHp: hp, hp, atk, def, speed, x, y, homeX: x, homeY: y,
         realm, moves, isDead: false, isEnraged: false, nextEngage: 0, respawnAt: 0, ...extra
     });
-    return [
+    const list = [
         mk('mob_1', 'Thiết Giáp Sói', 'Kim', 260, 32, 14, 90, 800, 500, 1, wolf, { mapId: 'beast_forest' }),
         mk('mob_5', 'Thanh Mộc Sói', 'Mộc', 260, 30, 12, 90, 1100, 800, 1, wolf, { mapId: 'beast_forest' }),
         mk('mob_2', 'Lôi Đình Ưng', 'Lôi', 340, 42, 12, 110, 600, 300, 1, eagle, { mapId: 'beast_forest' }),
@@ -1021,7 +1132,26 @@ function mobTemplates() {
         mk('mob_3', 'Xích Viêm Cự Hùng (Thủ Lĩnh)', 'Hỏa', 2200, 80, 50, 75, 500, 600, 2, bear, { mapId: 'beast_forest', isBoss: true }),
         mk('mob_4', 'Hư Không Diệt Thế Ma Tôn (Thế Giới Boss)', 'Thủy', 12000, 300, 160, 85, 250, 1000, 3, demon, { mapId: 'beast_forest', isBoss: true })
     ];
+    // Ô sprite trong dungeon.png (Kenney Tiny Dungeon)
+    const SPR = { mob_1: 124, mob_5: 122, mob_2: 120, mob_6: 108, mob_3: 110, mob_4: 121 };
+    for (const m of list) m.sprite = SPR[m.id];
+    return list;
 }
+
+// Hiệu ứng chiến đấu: ảnh hạt Kenney (CC0) tô màu bằng mask, chồng lên thẻ nhân vật.
+const FX = {
+    attack: [['slash_03', '#e2e8f0', 1]],
+    sword_slash: [['slash_02', '#bfe9ff', 1]],
+    ten_thousand_swords: [['slash_01', '#ffffff', 1.3], ['star_04', '#7dd3fc', 1]],
+    elemental_burst: [['fire_01', '#ff6a2b', 1.3], ['flame_01', '#ffd24a', 1]],
+    thunder_wrath: [['spark_01', '#c084fc', 1.4], ['light_01', '#e9d5ff', 1.2]],
+    enemy_hit: [['slash_03', '#ff5a5a', 1]],
+    enemy_heavy: [['magic_03', '#ff3b3b', 1.4], ['flare_01', '#ffd24a', 1.2]],
+    bolt: [['spark_03', '#c084fc', 1.5], ['light_01', '#ffffff', 1.4]],
+    heal: [['magic_05', '#34d399', 1.2]],
+    guard: [['circle_03', '#67e8f9', 1.2]]
+};
+const PVP_SPRITES = [84, 86, 87, 96, 97, 98, 99, 100, 111, 112];
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1049,6 +1179,7 @@ class TuTienGame {
     initDOM() {
         const canvas = document.getElementById('gameCanvas');
         this.renderer = new GameRenderer(canvas);
+        this.renderer.onSheetsLoaded = () => { this.updateHUD(); if (this.battle) this.renderBattle(); };
 
         window.addEventListener('keydown', (e) => this.handleKeyDown(e));
         window.addEventListener('keyup', (e) => this.handleKeyUp(e));
@@ -1332,7 +1463,7 @@ class TuTienGame {
         const warn = this.character.realm < mob.realm;
         this.beginBattle({
             mode: 'pve', mob,
-            enemy: { name: mob.name, element: mob.element, hp: mob.hp, maxHp: mob.maxHp, atk: mob.atk, def: mob.def, moves: mob.moves, isBoss: mob.isBoss }
+            enemy: { name: mob.name, element: mob.element, hp: mob.hp, maxHp: mob.maxHp, atk: mob.atk, def: mob.def, moves: mob.moves, isBoss: mob.isBoss, sprite: mob.sprite }
         });
         this.logBattle(`⚔️ [${mob.name}] xuất hiện!` + (warn ? ' ⚠ Cảnh giới của ngươi thấp hơn nó rất nhiều.' : ''), 'warn');
     }
@@ -1350,7 +1481,7 @@ class TuTienGame {
             mode: 'pvp',
             enemy: {
                 name: pick(names), element: pick(els), hp, maxHp: hp,
-                atk: Math.round(c.atk * 0.95 * f), def: Math.round(c.def * f), isBoss: false,
+                atk: Math.round(c.atk * 0.95 * f), def: Math.round(c.def * f), isBoss: false, sprite: pick(PVP_SPRITES),
                 moves: [{ name: 'Kiếm Quyết', mult: 1, w: 3 }, { name: 'Pháp Thuật', mult: 1.3, w: 2 }, { name: 'Tuyệt Kỹ', mult: 2.0, w: 1, heavy: true }]
             }
         });
@@ -1425,6 +1556,7 @@ class TuTienGame {
             this.playerHit(s, false);
         } else if (type === 'guard') {
             b.player.guard = c.school === 'array' ? 0.75 : 0.6;
+            this.battleFx('player', 'guard');
             c.mp = Math.min(c.max_mp, c.mp + Math.max(6, Math.round(c.max_mp * 0.08)));
             this.logBattle('🛡️ Ngươi vận công phòng thủ, hồi chút linh lực.', 'good');
         } else if (type === 'ward' && trib) {
@@ -1432,6 +1564,7 @@ class TuTienGame {
             if (c.mp < cost) { this.showToast(`Cần ${cost} linh lực để Hộ Thể Linh Quang!`, 'danger'); return; }
             c.mp -= cost;
             b.player.guard = 0.85;
+            this.battleFx('player', 'guard');
             this.logBattle('✨ Hộ Thể Linh Quang bừng sáng!', 'good');
         } else if (type === 'pill') {
             if (!this.consumeItem(PILL_HEAL)) { this.showToast(`Hết ${PILL_HEAL}! Mua ở tab Tu Luyện.`, 'danger'); return; }
@@ -1440,6 +1573,7 @@ class TuTienGame {
             c.qi = Math.min(c.max_qi, c.qi + 30);
             audio.playMeditationQi();
             this.renderer.addFloatingText('+' + amt, c.pos_x, c.pos_y - 30, 'heal');
+            this.battleFx('player', 'heal');
             this.logBattle(`💊 Uống ${PILL_HEAL}, hồi ${amt} sinh lực.`, 'good');
         } else if (type === 'flee') {
             if (b.mode !== 'pve' || e.isBoss) { this.showToast('Không thể bỏ chạy trận này!', 'danger'); return; }
@@ -1465,6 +1599,7 @@ class TuTienGame {
         dmg = Math.max(1, Math.round(dmg - e.def * 0.5));
         e.hp = Math.max(0, e.hp - dmg);
         audio.playSlash();
+        this.battleFx('enemy', isBasic ? 'attack' : skill.id);
         let note = em > 1 ? ' (khắc chế!)' : em < 1 ? ' (bị kháng)' : '';
         this.logBattle(`${isBasic ? '🗡️' : '✨'} ${skill.name}: gây ${dmg} sát thương${crit ? ' BẠO KÍCH' : ''}${note}`, em > 1 || crit ? 'good' : '');
         this.hitFx('enemy', dmg, crit);
@@ -1555,6 +1690,7 @@ class TuTienGame {
         audio.playThunder();
         this.logBattle(`${mv.heavy ? '💥' : '🩸'} [${e.name}] dùng ${mv.name}: ngươi mất ${dmg} sinh lực${guardNote}`, 'bad');
         this.hitFx('player', dmg, !!mv.heavy);
+        this.battleFx('player', mv.heavy ? 'enemy_heavy' : 'enemy_hit');
         if (mv.burn && !b.player.guard) { b.player.burn = mv.burn; this.logBattle('🔥 Ngươi bốc cháy!', 'bad'); }
     }
 
@@ -1571,6 +1707,7 @@ class TuTienGame {
         this.renderer.addSkillVisual('thunder_wrath', c.pos_x, c.pos_y);
         this.logBattle(`⚡ Thiên Lôi giáng xuống: mất ${dmg} sinh lực! (còn ${b.boltsLeft} đạo)`, 'bad');
         this.hitFx('player', dmg, true);
+        this.battleFx('player', 'bolt');
         if (c.hp <= 0) { this.endBattle('lose'); return; }
         if (b.boltsLeft <= 0) this.endBattle('win');
     }
@@ -1666,6 +1803,21 @@ class TuTienGame {
         this.updateHUD();
     }
 
+    battleFx(side, kind) {
+        const box = document.getElementById(side === 'enemy' ? 'battle-enemy-fx' : 'battle-player-fx');
+        if (!box) return;
+        (FX[kind] || []).forEach(([name, color, size], i) => {
+            const d = document.createElement('div');
+            d.className = 'fx-sprite';
+            d.style.setProperty('--c', color);
+            d.style.setProperty('--img', `url(assets/tutien/img/fx/${name}.png)`);
+            d.style.setProperty('--sz', Math.round(110 * size) + 'px');
+            d.style.animationDelay = (i * 90) + 'ms';
+            box.appendChild(d);
+            setTimeout(() => d.remove(), 900 + i * 90);
+        });
+    }
+
     hitFx(side, dmg, strong) {
         const el = document.getElementById(side === 'enemy' ? 'battle-enemy-card' : 'battle-player-card');
         if (el) {
@@ -1694,6 +1846,10 @@ class TuTienGame {
 
         $('battle-title').textContent = trib ? '⚡ Độ Lôi Kiếp' : b.mode === 'pvp' ? '🏟️ Lôi Đài Thiên Môn' : '⚔️ Chiến Đấu';
         $('battle-enemy-name').textContent = e.name;
+        const es = $('battle-enemy-sprite');
+        es.style.display = e.sprite !== undefined ? '' : 'none';
+        if (e.sprite !== undefined) this.renderer.drawSpriteTo(es, 'dungeon', e.sprite);
+        this.renderer.drawSpriteTo($('battle-player-sprite'), 'urban', this.renderer.charIndex(c.school, 1, 1));
         const rel = elementMult(c.linh_can, e.element);
         $('battle-enemy-el').textContent = `${ELEMENT_ICON[e.element] || ''} ${e.element}` + (trib ? '' : rel > 1 ? ' · ta khắc' : rel < 1 ? ' · ta bị khắc' : '');
         $('battle-enemy-hp').style.width = pct(e.hp, e.maxHp) + '%';
@@ -1969,6 +2125,19 @@ class TuTienGame {
 
         document.getElementById('hud-gold').textContent = Number(c.gold).toLocaleString();
         document.getElementById('hud-stones').textContent = Number(c.spirit_stones).toLocaleString();
+
+        const av = document.getElementById('hud-avatar');
+        if (av) {
+            if (!av._cv) {
+                av.textContent = '';
+                const cv = document.createElement('canvas');
+                cv.width = cv.height = 48;
+                cv.style.cssText = 'width:44px;height:44px;image-rendering:pixelated;';
+                av.appendChild(cv);
+                av._cv = cv;
+            }
+            this.renderer.drawSpriteTo(av._cv, 'urban', this.renderer.charIndex(c.school, 1, 1));
+        }
 
         const bt = document.getElementById('bt-chance');
         if (bt) {
