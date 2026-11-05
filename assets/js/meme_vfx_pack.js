@@ -111,7 +111,7 @@
     const color = extraCardId ? '#c9a5ff' : '#9fe8ff';
     magicCircle(p, color, Math.min(170, p.w * 1.6));
     sparkleBurst(p, extraCardId ? '#e8d6ff' : '#ffe9a8', extraCardId ? 14 : 9, 80);
-    if (extraCardId) playSheet('thundersphere', p, { scale: 2.4, blend: 'screen' });
+    if (extraCardId) { particle('star_05', p, '#e8d6ff', { size: 150, from: .3, to: 1.3, spin: 90, ms: 800 }); particle('flare_01', p, '#c9a5ff', { size: 200, from: .2, to: 1.1, ms: 700 }); }
   }
 
   function onAttack(args, cardLookup) {
@@ -121,11 +121,12 @@
     const p = centerOf(dst); if (!p) return;
     let c = null;
     try { const slot = extra ? duel[side].extra : duel[side].monsters[index]; c = cardLookup(slot?.id); } catch { /* bỏ qua */ }
-    const sheet = ELEMENT_SHEET[c?.element] || pick(['spark', 'fireball']), color = colorOf(c);
-    if (sheet === 'lightning' || sheet === 'darkbolt') playSheet(sheet, p, { scale: 2.2, anchor: .8, blend: 'screen' });
-    else if (sheet === 'firebomb') playSheet(sheet, p, { scale: 2.6 });
-    else if (sheet === 'icespear' || sheet === 'thundersphere' || sheet === 'fireball') playSheet(sheet, p, { scale: 3 });
-    else playSheet('spark', p, { scale: 3.2, blend: 'screen' });
+    const color = colorOf(c);
+    // Hiệu ứng mượt (vector/alpha), không dùng sprite pixel-art cho tấn công.
+    const big = { Hỏa: ['flame_03', 'flame_05'], Thủy: ['magic_02', 'circle_03'], Phong: ['trace_02', 'spark_05'], Quang: ['star_06', 'light_02'], Ám: ['smoke_02', 'magic_04'], Cơ: ['circle_05', 'spark_03'] }[c?.element] || ['flare_01', 'spark_04'];
+    particle('flare_01', p, color, { size: 190, from: .3, to: 1.1, ms: 460 });
+    particle(big[0], p, color, { size: 150, from: .4, to: 1.25, spin: (Math.random() - .5) * 60, ms: 520 });
+    particle(big[1], p, '#ffffff', { size: 110, from: .3, to: 1.05, spin: (Math.random() - .5) * 120, ms: 440 });
     particle(pick(SLASH), p, color, { size: 110, from: .5, to: 1.15, spin: (Math.random() - .5) * 40, ms: 420 });
     sparkleBurst(p, color, 8, 70);
   }
@@ -138,7 +139,7 @@
 
   function onTrapFlip(side, index) {
     const p = centerOf(document.querySelectorAll('#' + side + 'Spells .field-slot')[index]); if (!p) return;
-    playSheet('lightning', p, { scale: 2, anchor: .85, blend: 'screen' });
+    particle('flare_01', p, '#ffd0dc', { size: 150, from: .3, to: 1.1, ms: 500 });
     magicCircle(p, '#ff9ab8', 110);
   }
 
