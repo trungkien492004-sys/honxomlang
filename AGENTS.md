@@ -201,3 +201,9 @@ Owned files: `assets/js/meme_saga.js`, `assets/js/meme_saga_data.js`, `assets/cs
 `assets/vfx/{kenney-particles,gothicvania-magic9,starsteel-spells}` (nguồn + giấy phép ở `assets/vfx/CREDITS.txt`).
 Chỉ thêm lớp hiệu ứng trong `#memeFxLayer`, tắt khi `memeFx.mode==='minimal'` hoặc reduced-motion, tối đa 28 phần tử cùng lúc.
 Sprite Kenney đã chuyển độ sáng → alpha để tô màu bằng CSS mask. Chỉ thêm asset có giấy phép CC0/tương đương và ghi vào CREDITS.txt. Test: `node scripts/test-vfx-pack.cjs`.
+
+## LOBBY MENU (memecard.html)
+
+`assets/js/meme_lobby_menu.js` + `assets/css/meme_lobby_menu.css` gom Truyền Kỳ, Hành trình, Bảng Xếp Hạng, Cửa hàng, Bộ bài vào nút `☰ Menu`.
+`Đấu Rank nhanh` (#rankPlayBtn) và `Vào trận` (#playBtn) giữ riêng ở footer. Nút được di chuyển (giữ id + handler), script khác thêm nút vào footer sau đó vẫn được gom.
+Thêm nút phụ mới: thêm id vào `MENU_IDS`. Test: `node scripts/test-lobby-menu.cjs`.

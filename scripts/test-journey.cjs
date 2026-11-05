@@ -14,7 +14,7 @@ try{
  assert.ok(initial.btn,'journey button sits in the HUD');assert.equal(initial.chapters,6);assert.equal(initial.floor,1);assert.equal(initial.cleared,0);
  assert.deepEqual(initial.stake,{wins:0,losses:0});
 
- await page.click('#journeyBtn');await page.waitForSelector('.journey-modal');
+ await page.evaluate(()=>document.getElementById('journeyBtn').click());await page.waitForSelector('.journey-modal');
  const story=await page.evaluate(()=>({
   tabs:[...document.querySelectorAll('.journey-tabs button')].map(n=>n.textContent),
   rows:document.querySelectorAll('.journey-row').length,
@@ -46,7 +46,7 @@ try{
  await page.screenshot({path:path.join(out,'journey-bounty-1366x768.png')});
  await page.click('#journeyClose');await page.waitForFunction(()=>$('modal').classList.contains('hidden'));
 
- await page.click('#journeyBtn');await page.waitForSelector('.journey-modal');
+ await page.evaluate(()=>document.getElementById('journeyBtn').click());await page.waitForSelector('.journey-modal');
  await page.click('[data-tab="story"]');
  await page.click('[data-story="c1"]');
  const started=await page.evaluate(()=>({duel:!$('duel').classList.contains('hidden'),lobby:$('lobby').classList.contains('hidden'),pending:memeJourney.pending}));
@@ -77,7 +77,7 @@ try{
  assert.equal(towerPersist.floor,2);assert.equal(towerPersist.cleared,1);assert.equal(towerPersist.xu,400);
 
  await page.evaluate(()=>memeProgress.addXu(1000));
- await page.click('#journeyBtn');await page.waitForSelector('.journey-modal');
+ await page.evaluate(()=>document.getElementById('journeyBtn').click());await page.waitForSelector('.journey-modal');
  await page.click('[data-tab="stake"]');
  const stakeReady=await page.evaluate(()=>[...document.querySelectorAll('.stake-card')].map(n=>n.disabled));
  assert.deepEqual(stakeReady,[false,false,false]);
@@ -135,7 +135,7 @@ try{
  await boot();
 
  await page.setViewport({width:390,height:844});
- await page.click('#journeyBtn');await page.waitForSelector('.journey-modal');
+ await page.evaluate(()=>document.getElementById('journeyBtn').click());await page.waitForSelector('.journey-modal');
  const mobile=await page.evaluate(()=>{const c=document.querySelector('#modal .modal-card');return {width:c.getBoundingClientRect().width,overflow:getComputedStyle(c).overflowY};});
  assert.ok(mobile.width<=390);assert.equal(mobile.overflow,'auto');
  await page.screenshot({path:path.join(out,'journey-story-390x844.png')});

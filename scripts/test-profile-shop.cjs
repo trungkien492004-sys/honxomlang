@@ -154,6 +154,7 @@ const base = () => `http://127.0.0.1:${server.address().port}`;
     await p.evaluate(() => closeModal());
     for (const [width, height] of [[360, 640], [390, 844], [1366, 768]]) {
       await p.setViewport({ width, height });
+      await p.evaluate(() => window.memeLobbyMenu.open());
       const boxes = await p.$$eval('#lobby .lobby-footer button', ns => ns.map(n => {
         const r = n.getBoundingClientRect();
         return { id: n.id, w: r.width, h: r.height, x: r.x, y: r.y, right: r.right, bottom: r.bottom };
@@ -163,8 +164,8 @@ const base = () => `http://127.0.0.1:${server.address().port}`;
       }
       assert.ok(boxes.every(r => r.w > 0 && r.h > 0 && r.x >= -1 && r.y >= -1 && r.right <= width + 1 && r.bottom <= height + 1), JSON.stringify({ width, height, boxes }));
       const journey = boxes.find(r => r.id === 'journeyBtn'), rank = boxes.find(r => r.id === 'rankPlayBtn');
-      assert.ok(journey.h >= rank.h - 1, 'journey button as tall as rank button');
-      assert.ok(journey.w >= rank.w * 0.8, 'journey button as wide as rank button');
+      assert.ok(journey.h >= rank.h - 4, 'journey button about as tall as rank button');
+      assert.ok(journey.w >= 100, 'menu item wide enough to tap');
       assert.ok(await p.evaluate(() => document.querySelector('#journeyBtn > span').offsetHeight > 0), 'journey label visible');
       await dismissPromo();
       await p.screenshot({ path: path.join(out, `lobby-${width}x${height}.png`) });

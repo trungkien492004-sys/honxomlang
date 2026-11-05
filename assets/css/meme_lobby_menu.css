@@ -1,0 +1,64 @@
+/* Footer sảnh: [Đấu Rank nhanh] [Vào trận] [☰ Menu]. Các nút phụ nằm trong #lobbyMenuPanel. */
+#lobby .lobby-footer.rank-actions {
+  position: relative !important;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.25fr) minmax(76px, .7fr) !important;
+}
+#lobby .lobby-footer.rank-actions > #rankPlayBtn { order: 1 !important; }
+#lobby .lobby-footer.rank-actions > #playBtn { order: 2 !important; }
+#lobby .lobby-footer.rank-actions > #lobbyMenuBtn {
+  order: 3 !important;
+  position: relative;
+  height: 44px !important; min-height: 44px !important; max-height: 44px !important;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  margin: 0; padding: 6px 10px; box-sizing: border-box;
+  border-radius: 11px; font: 900 14px/1 'Nunito', sans-serif; white-space: nowrap;
+  background: linear-gradient(135deg, #1e3a5f, #12263f);
+  border: 1.5px solid #7fb4d6; color: #eaf6ff;
+  box-shadow: 0 3px 12px rgba(30, 90, 140, .4);
+  cursor: pointer;
+}
+#lobby .lobby-footer.rank-actions > #lobbyMenuBtn.open { border-color: #fcd34d; background: linear-gradient(135deg, #2a4f7c, #173252); }
+#lobbyMenuBtn .ticket-badge { position: absolute; top: -5px; right: -5px; }
+
+#lobbyMenuPanel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  width: min(300px, 100%);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(8, 24, 38, .97);
+  border: 1.5px solid rgba(225, 189, 125, .7);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .6);
+  z-index: 40;
+  animation: lobbyMenuIn .16s ease-out;
+}
+#lobbyMenuPanel[hidden] { display: none; }
+@keyframes lobbyMenuIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Nút trong menu: đồng bộ kích thước, bỏ các quy tắc "child of footer" cũ */
+#lobbyMenuPanel > button {
+  position: relative;
+  height: 42px; min-height: 42px; max-height: 42px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  margin: 0; padding: 6px 8px; box-sizing: border-box;
+  border-radius: 10px; font: 900 13px/1.1 'Nunito', sans-serif; white-space: nowrap;
+  color: #fff; cursor: pointer; transform: none;
+  background: linear-gradient(135deg, #2a4f7c, #173252);
+  border: 1.5px solid rgba(127, 180, 214, .7);
+}
+#lobbyMenuPanel > #sagaBtn { background: linear-gradient(135deg, #0d9488, #115e59); border-color: #fcd34d; }
+#lobbyMenuPanel > #journeyBtn { background: linear-gradient(135deg, #7c3aed, #5b21b6); border-color: #c4b5fd; }
+#lobbyMenuPanel > #rankBoardBtn { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: #93c5fd; }
+#lobbyMenuPanel > #shopBigBtn { background: linear-gradient(135deg, #db2777, #9d174d); border-color: #f9a8d4; }
+#lobbyMenuPanel > #lobbyDeckBtn { background: linear-gradient(135deg, #334155, #1e293b); border-color: #94a3b8; }
+#lobbyMenuPanel > button .ticket-badge { position: absolute; top: -5px; right: -5px; }
+
+@media (max-width: 420px) {
+  #lobby .lobby-footer.rank-actions { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(64px, .6fr) !important; }
+  #lobbyMenuBtn > span { display: none; }
+  #lobbyMenuPanel { width: min(280px, calc(100vw - 24px)); }
+}
