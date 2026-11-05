@@ -89,12 +89,41 @@
 
 #lobby .lobby-roster.has-dial .roster-caption { display: none !important; }
 
-/* Sân đấu AI (thử nghiệm): assets/memecard/arena-duel.webp làm nền khung bàn đấu. Xóa khối này để quay về nền cũ. */
-body .duel .board-frame {
+/* Sân đấu AI: assets/memecard/arena-duel.webp. Xóa từ dòng này trở xuống để quay về nền cũ. */
+body .duel {
   background:
-    linear-gradient(rgba(4, 12, 26, .34), rgba(4, 12, 26, .34)),
-    url('../memecard/arena-duel.webp') center / cover no-repeat,
-    radial-gradient(circle at 50% 50%, #1e5962, #102f43 72%);
-  border-color: #e0bd62;
-  box-shadow: inset 0 0 38px #03101e, 0 0 26px rgba(62, 230, 255, .22);
+    radial-gradient(ellipse at 50% 38%, rgba(10, 40, 62, .35), rgba(3, 8, 18, .88) 78%),
+    linear-gradient(rgba(3, 9, 20, .72), rgba(3, 9, 20, .86)),
+    url('../memecard/arena-duel.webp') center / cover no-repeat fixed,
+    #050d1b;
 }
+body .duel .board-frame { position: relative; isolation: isolate; background: #06182a; border-color: #e0bd62; box-shadow: inset 0 0 38px #03101e, 0 0 30px rgba(62, 230, 255, .25), 0 10px 40px rgba(0, 0, 0, .6); }
+/* Ảnh sân được làm mờ nhẹ để các ô vẽ sẵn không lệch với ô bài thật; ô bài thật nằm đè lên. */
+body .duel .board-frame::before {
+  content: ''; position: absolute; inset: -6px; z-index: -2; pointer-events: none;
+  background: url('../memecard/arena-duel.webp') center / cover no-repeat;
+  filter: blur(2px) brightness(.9) saturate(1.15);
+}
+body .duel .board-frame::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(2, 8, 18, .42) 100%);
+}
+body .duel .board-frame .field-slot {
+  background: linear-gradient(160deg, rgba(10, 34, 56, .62), rgba(4, 14, 28, .78));
+  border: 1px solid rgba(62, 230, 255, .6);
+  box-shadow: inset 0 0 12px rgba(62, 230, 255, .18), 0 0 10px rgba(62, 230, 255, .18);
+}
+body .duel #enemyMonsters .field-slot, body .duel #enemySpells .field-slot {
+  border-color: rgba(242, 200, 110, .65); box-shadow: inset 0 0 12px rgba(242, 200, 110, .16), 0 0 10px rgba(242, 200, 110, .16);
+}
+body .duel .board-frame .special-zone, body .duel .board-frame .duelist-corner { backdrop-filter: none; }
+
+/* Nhân vật ảnh AI: nổi ra khỏi khung thẻ. */
+.hero-stage { overflow: visible; }
+.hero-stage .hs-card.has-custom { overflow: visible; background: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--c, #ffd28c), #0b1a30 62%), #07111f 80%); }
+.hero-stage .hs-card.has-custom .hs-art.custom {
+  inset: -30% -6% 2% -6% !important; width: auto !important; height: auto !important; aspect-ratio: auto !important;
+  background-size: contain !important; background-position: 50% 100% !important;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .6));
+}
+.hero-stage .hs-card.has-custom .hs-shine { border-radius: 12px; }
