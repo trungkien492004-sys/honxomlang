@@ -47,7 +47,7 @@
       max_copies: 1,
       fusion_materials: ['AN-blue_eyes_white_dragon', 'AN-blue_eyes_white_dragon'],
       contact: true,
-      traits: ['double_attack'],
+      traits: ['double_attack', 'battle_indestructible', 'banish_survivor'],
       effect_code: 'dl_twin_burst',
       effect_trigger: 'passive',
       description: 'Dung Hợp: 2x Rồng Trắng Mắt Xanh (có thể đưa 2 quái trên sân vào Mộ mà không cần Phép). Không bị tiêu diệt bởi chiến đấu. Tấn công quái vật 2 lần mỗi lượt. Sau khi tấn công quái không bị phá hủy: trục xuất quái đó.',

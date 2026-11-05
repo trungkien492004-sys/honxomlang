@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  const MENU_IDS = ['sagaBtn', 'journeyBtn', 'rankBoardBtn', 'shopBigBtn', 'lobbyDeckBtn'];
+  const MENU_IDS = ['sagaBtn', 'tournamentBtn', 'journeyBtn', 'rankBoardBtn', 'shopBigBtn', 'lobbyDeckBtn'];
   const footer = document.querySelector('#lobby .lobby-footer');
   if (!footer || document.getElementById('lobbyMenuBtn')) return;
 

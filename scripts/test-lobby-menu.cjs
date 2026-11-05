@@ -10,7 +10,7 @@ try{const p=await b.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.
   document.getElementById('journeyBtn').click();await new Promise(r=>setTimeout(r,50));const closedAfterPick=document.getElementById('lobbyMenuPanel').hidden;
   return{direct,panel,hidden0,open1,closedAfterPick,modal:!!document.querySelector('.journey-modal')};});
  assert.ok(r.direct.includes('rankPlayBtn')&&r.direct.includes('playBtn')&&r.direct.includes('lobbyMenuBtn'),'đấu nhanh + đấu rank vẫn tách: '+r.direct);
- assert.deepEqual([...r.panel].sort(),['journeyBtn','lobbyDeckBtn','rankBoardBtn','sagaBtn','shopBigBtn'],'5 nút phụ nằm trong menu');
+ assert.deepEqual([...r.panel].sort(),['journeyBtn','lobbyDeckBtn','rankBoardBtn','sagaBtn','shopBigBtn','tournamentBtn'],'6 nút phụ nằm trong menu');
  assert.ok(r.hidden0&&r.open1&&r.closedAfterPick,'menu mở/đóng đúng');assert.ok(r.modal,'nút trong menu vẫn chạy');
  assert.deepEqual(errors,[]);console.log('test-lobby-menu: OK');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);process.exitCode=1;server.close();});
