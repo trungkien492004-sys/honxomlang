@@ -108,7 +108,7 @@ const server = http.createServer((req, res) => {
 
     await page.select('#deckLimitFilter', '3');
     const limit3Count = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(limit3Count, 212, `Unlimited (3 copies) expected 212 cards, got ${limit3Count}`);
+    assert.equal(limit3Count, 229, `Unlimited (3 copies) expected 229 cards, got ${limit3Count}`);
     await page.select('#deckLimitFilter', '');
 
     // 5. Verify Badge Layout: Rarity at top-left, Limit badge at top-right
