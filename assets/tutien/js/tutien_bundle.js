@@ -1235,10 +1235,10 @@ class TuTienGame {
         if (c.hp === undefined || c.hp > c.max_hp) c.hp = c.max_hp;
         if (c.mp === undefined || c.mp > c.max_mp) c.mp = c.max_mp;
         if (c.school === undefined) c.school = 'sword';
-        this.skills = SKILLS_DATA.map(s => ({ ...s }));
         for (const it of this.inventory) {
             if (it.name === PILL_BREAK) it.type = 'pill_break';
         }
+        this.initG3();
     }
 
     loadProgress() {
@@ -1322,7 +1322,7 @@ class TuTienGame {
             { id: 'inv_1', name: 'Mộc Kiếm Khởi Đầu', type: 'weapon', rarity: 'common', quantity: 1 },
             { id: 'inv_2', name: PILL_HEAL, type: 'pill', rarity: 'spiritual', quantity: 5 }
         ];
-        this.skills = SKILLS_DATA.map(s => ({ ...s }));
+        this.initG3();
 
         this.saveProgress();
         document.getElementById('auth-screen').classList.remove('active');
@@ -1426,7 +1426,7 @@ class TuTienGame {
     addItem(spec, qty = 1) {
         const it = this.inventory.find(i => i.name === spec.name);
         if (it) it.quantity += qty;
-        else this.inventory.push({ id: 'inv_' + Date.now() + Math.floor(Math.random() * 999), name: spec.name, type: spec.type, rarity: spec.rarity, quantity: qty });
+        else this.inventory.push({ id: 'inv_' + Date.now() + Math.floor(Math.random() * 999), name: spec.name, type: spec.type, rarity: spec.rarity, gearId: spec.gearId, quantity: qty });
     }
     consumeItem(name) {
         const it = this.inventory.find(i => i.name === name);
@@ -1509,7 +1509,7 @@ class TuTienGame {
         };
         this.battle.intent = this.pickIntent();
         for (const k of Object.keys(this.keys)) this.keys[k] = false;
-        ['modal-cultivation', 'modal-inventory', 'modal-pvp', 'modal-leaderboard', 'modal-housing'].forEach(id => this.closeModal(id));
+        ['modal-cultivation', 'modal-inventory', 'modal-pvp', 'modal-leaderboard', 'modal-housing', 'modal-g3'].forEach(id => this.closeModal(id));
         this.openModal('modal-battle');
         audio.playThunder();
         this.renderBattle();
@@ -1553,7 +1553,7 @@ class TuTienGame {
             if (c.mp < s.mpCost) { this.showToast('Linh lực không đủ!', 'danger'); return; }
             c.mp -= s.mpCost;
             b.cds[s.id] = s.cd;
-            this.playerHit(s, false);
+            if (s.heal || s.guard) this.skillSupport(s); else this.playerHit(s, false);
         } else if (type === 'guard') {
             b.player.guard = c.school === 'array' ? 0.75 : 0.6;
             this.battleFx('player', 'guard');
@@ -1732,6 +1732,9 @@ class TuTienGame {
                 c.exp += expGain;
                 c.gold += goldGain;
                 c.spirit_stones += stoneGain;
+                this.rollMaterials(mob);
+                this.sectGain(mob.isBoss ? 5 : 1);
+                this.questEvent('kill', mob);
                 let drop = '';
                 if (Math.random() < (mob.isBoss ? 0.8 : 0.25)) {
                     const spec = Math.random() < (mob.isBoss ? 0.6 : 0.12) ? SHOP.break : SHOP.heal;
@@ -1755,9 +1758,11 @@ class TuTienGame {
             const win = result === 'win';
             const delta = win ? 24 : -16;
             c.pvp_elo = Math.max(0, c.pvp_elo + delta);
-            if (win) { c.pvp_wins++; c.gold += 300; audio.playHeavenlyChime(); }
+            if (win) { c.pvp_wins++; c.gold += 300; audio.playHeavenlyChime(); this.sectGain(2); this.questEvent('pvp'); }
             else { c.pvp_losses++; c.hp = Math.max(1, Math.round(c.max_hp * 0.5)); }
             this.logBattle(win ? `🏆 Thắng! +${delta} ELO, +300 Linh Tệ (ELO ${c.pvp_elo})` : `💀 Thua! ${delta} ELO (ELO ${c.pvp_elo})`, win ? 'good' : 'bad');
+        } else if (b.mode === 'secret') {
+            this.secretEnd(result);
         } else if (b.mode === 'tribulation') {
             if (result === 'win') {
                 this.logBattle('🌈 Vượt qua Lôi Kiếp! Thiên địa dị tượng!', 'good');
@@ -1801,6 +1806,7 @@ class TuTienGame {
             this.travelTo(MAPS_DATA.city_tan_hai);
         }
         this.updateHUD();
+        if (this._next) { const f = this._next; this._next = null; f(); }
     }
 
     battleFx(side, kind) {
@@ -1932,6 +1938,7 @@ class TuTienGame {
         }
         audio.playMeditationQi();
         this.renderer.addQiParticles(c.pos_x, c.pos_y, 16, '#10b981');
+        this.questEvent('meditate');
         this.showToast(`Đả tọa: +${qiGain} Linh Khí, +${expGain} Tu Vi, hồi phục sinh lực.${extra}`, extra ? 'danger' : 'success');
         this.updateHUD();
         this.saveProgress();
@@ -2007,6 +2014,7 @@ class TuTienGame {
         c.atk += Math.round(nextInfo.baseAtk * 0.3);
         c.def += Math.round(nextInfo.baseDef * 0.3);
         c.title = `${nextInfo.name} Tầng ${newStage}`;
+        this.recalcBonus();
 
         audio.playHeavenlyChime();
         this.renderer.addQiParticles(c.pos_x, c.pos_y, 40, '#ffd700');
@@ -2075,7 +2083,9 @@ class TuTienGame {
         if (k === 'b') { this.renderInventory(); this.toggleModal('modal-inventory'); }
         if (k === 'p') this.toggleModal('modal-pvp');
         if (k === 'l') { this.renderLeaderboards(); this.toggleModal('modal-leaderboard'); }
-        if (k === 'm') this.toggleModal('modal-market');
+        if (k === 'm') this.openHub('market');
+        if (k === 't') { const n = this.nearestNpc(); if (n) this.talkNpc(n); else this.openHub('tech'); }
+        if (k === 'k') this.openHub('quest');
         if (k === 'h') this.toggleModal('modal-housing');
     }
 
@@ -2086,6 +2096,7 @@ class TuTienGame {
     // Bấm vào yêu thú ở gần để khai chiến
     handleCanvasClick(e) {
         if (this.battle || !this.character) return;
+        if (this.clickNpc()) return;
         const now = Date.now();
         for (const mob of this.monsters) {
             if (mob.isDead || mob.mapId !== this.currentMap.id) continue;
@@ -2158,9 +2169,10 @@ class TuTienGame {
         this.inventory.forEach(item => {
             const slot = document.createElement('div');
             slot.className = `inv-slot rarity-${item.rarity}`;
-            slot.innerHTML = `<span>${item.type === 'pill' || item.type === 'pill_break' ? '💊' : '🗡️'}</span><span class="inv-qty">x${item.quantity}</span>`;
+            slot.innerHTML = `<span>${this.itemIcon(item)}</span><span class="inv-qty">x${item.quantity}</span>`;
             slot.title = item.type === 'pill' ? `${item.name}\nBấm để dùng.` : item.type === 'pill_break' ? `${item.name}\nTự dùng khi đột phá (+20%).` : item.name;
             slot.onclick = () => {
+                if (item.type === 'gear') { this.equipGear(item); return; }
                 if (item.type === 'pill') {
                     this.character.hp = Math.min(this.character.max_hp, this.character.hp + this.healPillAmount());
                     this.character.qi = Math.min(this.character.max_qi, this.character.qi + 30);
@@ -2199,6 +2211,614 @@ class TuTienGame {
         else el?.classList.add('open');
     }
 }
+
+// ===== GĐ3: CÔNG PHÁP, PHÁP BẢO, NHIỆM VỤ, TÔNG MÔN, CHỢ & LUYỆN ĐAN, BÍ CẢNH =====
+const sfx = (notes, type = 'sine', vol = 0.1) => {
+    try {
+        if (!audio.enabled) return;
+        audio.init();
+        const ctx = audio.ctx, t = ctx.currentTime;
+        notes.forEach((f, i) => {
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.type = type; o.frequency.value = f;
+            g.gain.setValueAtTime(vol, t + i * 0.09);
+            g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.09 + 0.22);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.25);
+        });
+    } catch (e) { /* âm thanh không được làm hỏng game */ }
+};
+const SFX = {
+    click: () => sfx([660], 'triangle', 0.06),
+    ok: () => sfx([523, 659, 784], 'sine', 0.1),
+    quest: () => sfx([523, 659, 784, 1047], 'triangle', 0.1),
+    forge: () => sfx([180, 140, 220], 'square', 0.07),
+    fail: () => sfx([300, 220, 150], 'sawtooth', 0.07)
+};
+
+const ITEM_SPEC = {
+    herb: { name: 'Linh Thảo', type: 'mat', rarity: 'common' },
+    iron: { name: 'Thiết Tinh', type: 'mat', rarity: 'spiritual' },
+    core: { name: 'Yêu Đan', type: 'mat', rarity: 'earth' },
+    ticket: { name: 'Bí Cảnh Lệnh', type: 'ticket', rarity: 'earth' },
+    heal: SHOP.heal,
+    breakPill: SHOP.break
+};
+const MAT_BASE_PRICE = { 'Linh Thảo': 40, 'Thiết Tinh': 70, 'Yêu Đan': 160 };
+
+// Công pháp: 4 kỹ năng gốc + kỹ năng mới. cost = Linh Thạch để học; realm = cảnh giới tối thiểu.
+const TECH_DATA = [
+    ...SKILLS_DATA.map(s => ({ ...s, cost: 0, realm: 1 })),
+    { id: 'frost_lance', name: 'Hàn Băng Tiễn', el: 'Thủy', mpCost: 25, cd: 1, dmgMult: 1.8, icon: '❄️', cost: 8, realm: 1 },
+    { id: 'wind_blade', name: 'Phong Nhận Liên Hoàn', el: 'Phong', mpCost: 25, cd: 1, dmgMult: 1.9, icon: '🌪️', cost: 8, realm: 1 },
+    { id: 'wood_spring', name: 'Xuân Hồi Đại Địa', el: 'Mộc', mpCost: 35, cd: 3, heal: 0.35, icon: '🌿', cost: 10, realm: 1 },
+    { id: 'earth_bell', name: 'Thổ Chung Tráo', el: 'Thổ', mpCost: 20, cd: 3, guard: 0.75, icon: '🔔', cost: 10, realm: 1 },
+    { id: 'heaven_fire', name: 'Thiên Hỏa Phần Thế', el: 'Hỏa', mpCost: 70, cd: 4, dmgMult: 3.4, burn: 4, icon: '☄️', cost: 40, realm: 2 },
+    { id: 'void_sword', name: 'Hư Không Nhất Kiếm', el: 'Kim', mpCost: 85, cd: 5, dmgMult: 4.4, icon: '🌌', cost: 120, realm: 3 }
+];
+const TECH_BY_ID = Object.fromEntries(TECH_DATA.map(t => [t.id, t]));
+const TECH_MAX_LV = 5;
+
+// Pháp bảo (trang bị). Luyện khí cần nguyên liệu rơi từ yêu thú / bí cảnh.
+const GEAR_DATA = [
+    { id: 'w1', slot: 'weapon', name: 'Thiết Kiếm Luyện Khí', rarity: 'spiritual', stats: { atk: 12 }, realm: 1, mats: { 'Thiết Tinh': 3 }, gold: 300 },
+    { id: 'w2', slot: 'weapon', name: 'Huyền Thiết Kiếm', rarity: 'earth', stats: { atk: 40, crit: 0.02 }, realm: 2, mats: { 'Thiết Tinh': 6, 'Yêu Đan': 2 }, gold: 1500 },
+    { id: 'w3', slot: 'weapon', name: 'Thiên Lôi Kiếm', rarity: 'heaven', stats: { atk: 110, crit: 0.04 }, realm: 3, mats: { 'Thiết Tinh': 10, 'Yêu Đan': 6 }, gold: 6000, stones: 20 },
+    { id: 'a1', slot: 'armor', name: 'Thanh Y Giáp', rarity: 'spiritual', stats: { def: 8, hp: 60 }, realm: 1, mats: { 'Thiết Tinh': 2, 'Linh Thảo': 3 }, gold: 300 },
+    { id: 'a2', slot: 'armor', name: 'Huyền Quy Giáp', rarity: 'earth', stats: { def: 28, hp: 260 }, realm: 2, mats: { 'Thiết Tinh': 5, 'Yêu Đan': 2 }, gold: 1500 },
+    { id: 'a3', slot: 'armor', name: 'Long Lân Bào', rarity: 'heaven', stats: { def: 75, hp: 900 }, realm: 3, mats: { 'Thiết Tinh': 9, 'Yêu Đan': 6 }, gold: 6000, stones: 20 },
+    { id: 'c1', slot: 'charm', name: 'Hộ Thân Phù', rarity: 'spiritual', stats: { mp: 80 }, realm: 1, mats: { 'Linh Thảo': 4 }, gold: 250 },
+    { id: 'c2', slot: 'charm', name: 'Ngọc Bội Tụ Linh', rarity: 'earth', stats: { mp: 220, crit: 0.03 }, realm: 2, mats: { 'Linh Thảo': 6, 'Yêu Đan': 2 }, gold: 1500 }
+];
+const GEAR_BY_ID = Object.fromEntries(GEAR_DATA.map(g => [g.id, g]));
+const SLOT_NAME = { weapon: '⚔️ Vũ Khí', armor: '🛡️ Giáp', charm: '📿 Bùa Hộ Thân' };
+const STAT_LABEL = { atk: 'Công', def: 'Thủ', hp: 'Sinh lực', mp: 'Linh lực', crit: 'Bạo kích' };
+const statText = (s) => Object.entries(s).map(([k, v]) => `${STAT_LABEL[k]} +${k === 'crit' ? Math.round(v * 100) + '%' : v}`).join(' · ');
+
+const SECTS = [
+    { id: 'thanhvan', name: 'Thanh Vân Kiếm Tông', icon: '🗡️', bonus: { atk: 0.06 }, desc: 'Kiếm đạo thuần túy. +6% Công.' },
+    { id: 'duocvuong', name: 'Dược Vương Cốc', icon: '🌿', bonus: { hp: 0.08 }, desc: 'Y đạo trường sinh. +8% Sinh lực.' },
+    { id: 'huyenthien', name: 'Huyền Thiên Các', icon: '🔮', bonus: { mp: 0.1, crit: 0.02 }, desc: 'Pháp thuật huyền ảo. +10% Linh lực, +2% Bạo kích.' }
+];
+const SECT_BY_ID = Object.fromEntries(SECTS.map(s => [s.id, s]));
+const SECT_RANKS = [[0, 'Ngoại Môn Đệ Tử'], [100, 'Nội Môn Đệ Tử'], [400, 'Chân Truyền Đệ Tử'], [1500, 'Trưởng Lão']];
+const SECT_SHOP = [
+    { name: 'Phá Cảnh Đan x1', cost: 50, give: [['breakPill', 1]] },
+    { name: 'Tụ Khí Đan x5', cost: 30, give: [['heal', 5]] },
+    { name: 'Bí Cảnh Lệnh x1', cost: 40, give: [['ticket', 1]] },
+    { name: 'Linh Thạch x5', cost: 60, stones: 5 }
+];
+
+const RECIPES = [
+    { id: 'r_heal', name: 'Luyện Tụ Khí Đan', out: ['heal', 2], mats: { 'Linh Thảo': 2 }, gold: 50, chance: 0.85 },
+    { id: 'r_break', name: 'Luyện Phá Cảnh Đan', out: ['breakPill', 1], mats: { 'Linh Thảo': 5, 'Yêu Đan': 1 }, stones: 3, chance: 0.55 },
+    { id: 'r_ticket', name: 'Khắc Bí Cảnh Lệnh', out: ['ticket', 1], mats: { 'Yêu Đan': 3 }, chance: 1 }
+];
+
+const NPC_TALK = {
+    npc_guide: 'Tu sĩ mới à? Yêu thú ngoại ô đang quấy phá, Hiệp Hội treo thưởng không ít đâu.',
+    npc_ceo: 'Vạn Linh Tập Đoàn trả công hậu hĩnh cho người biết việc. Làm tốt, ta không bạc đãi.'
+};
+const QUESTS = [
+    { id: 'q_kill5', npc: 'npc_guide', name: 'Thanh Trừ Yêu Thú', desc: 'Hạ 5 yêu thú ở Rừng Ngoại Ô.', type: 'kill', n: 5, reward: { exp: 150, gold: 400, contrib: 5 } },
+    { id: 'q_elem', npc: 'npc_guide', name: 'Khắc Chế Ngũ Hành', desc: 'Hạ 3 yêu thú hệ Kim hoặc Mộc.', type: 'kill', n: 3, el: ['Kim', 'Mộc'], reward: { stones: 3, contrib: 5 } },
+    { id: 'q_med', npc: 'npc_guide', name: 'Tĩnh Tâm Ngộ Đạo', desc: 'Đả tọa 5 lần.', type: 'meditate', n: 5, reward: { exp: 200, items: [['heal', 3]] } },
+    { id: 'q_boss', npc: 'npc_guide', name: 'Trảm Thủ Lĩnh', desc: 'Hạ 1 Thủ Lĩnh / Boss.', type: 'kill', n: 1, boss: true, prereq: 'q_kill5', reward: { stones: 8, items: [['breakPill', 1]], contrib: 20 } },
+    { id: 'q_alch', npc: 'npc_guide', name: 'Học Đòi Luyện Đan', desc: 'Luyện thành công 2 lò đan ở Chợ.', type: 'alchemy', n: 2, reward: { items: [['herb', 5]] } },
+    { id: 'q_forge', npc: 'npc_ceo', name: 'Đơn Hàng Pháp Bảo', desc: 'Luyện thành công 1 món pháp bảo.', type: 'forge', n: 1, reward: { gold: 1500 } },
+    { id: 'q_realm', npc: 'npc_ceo', name: 'Khảo Sát Bí Cảnh', desc: 'Vượt qua Bí Cảnh 1 lần.', type: 'secret', n: 1, prereq: 'q_forge', reward: { stones: 10, items: [['ticket', 2]], contrib: 15 } },
+    { id: 'q_pvp', npc: 'npc_ceo', name: 'Thể Diện Tập Đoàn', desc: 'Thắng 3 trận ở Đấu Trường.', type: 'pvp', n: 3, reward: { gold: 3000, stones: 5 } }
+];
+const QUEST_BY_ID = Object.fromEntries(QUESTS.map(q => [q.id, q]));
+
+Object.assign(TuTienGame.prototype, {
+    // ---------- khởi tạo / dữ liệu ----------
+    initG3() {
+        const c = this.character;
+        if (!c) return;
+        if (!c.techs) {
+            c.techs = {};
+            SKILLS_DATA.forEach(s => { c.techs[s.id] = 1; });
+            c.equipped = SKILLS_DATA.map(s => s.id);
+        }
+        c.quests = c.quests || {};
+        c.gear = c.gear || {};
+        c.applied = c.applied || { atk: 0, def: 0, hp: 0, mp: 0, crit: 0 };
+        c.sect = c.sect || null;
+        c.sect_contrib = c.sect_contrib || 0;
+        this.rebuildSkills();
+        this.recalcBonus();
+        this.g3Tab = this.g3Tab || 'tech';
+    },
+    scaleTech(t, lv) {
+        const s = { ...t, lv };
+        if (t.dmgMult) s.dmgMult = +(t.dmgMult * (1 + 0.18 * (lv - 1))).toFixed(2);
+        if (t.heal) s.heal = +(t.heal * (1 + 0.12 * (lv - 1))).toFixed(2);
+        return s;
+    },
+    rebuildSkills() {
+        const c = this.character;
+        this.skills = c.equipped.map(id => TECH_BY_ID[id] && this.scaleTech(TECH_BY_ID[id], c.techs[id] || 1)).filter(Boolean);
+        this.renderHotbar();
+    },
+    renderHotbar() {
+        const box = document.querySelector('.bottom-hotbar');
+        if (!box) return;
+        box.innerHTML = this.skills.map((s, i) =>
+            `<div class="skill-slot" onclick="window.gameApp.castSkill('${s.id}')" title="Phím ${i + 1}: ${s.name} (Lv${s.lv})"><span class="slot-key">${i + 1}</span><span class="slot-icon">${s.icon}</span></div>`).join('');
+    },
+    skillSupport(s) {
+        const b = this.battle, c = this.character;
+        if (s.heal) {
+            const amt = Math.round(c.max_hp * s.heal * (c.school === 'medicine' ? 1.3 : 1));
+            c.hp = Math.min(c.max_hp, c.hp + amt);
+            audio.playMeditationQi();
+            this.battleFx('player', 'heal');
+            this.renderer.addFloatingText('+' + amt, c.pos_x, c.pos_y - 30, 'heal');
+            this.logBattle(`${s.icon} ${s.name}: hồi ${amt} sinh lực.`, 'good');
+        }
+        if (s.guard) {
+            b.player.guard = Math.max(b.player.guard || 0, s.guard);
+            this.battleFx('player', 'guard');
+            this.logBattle(`${s.icon} ${s.name}: dựng kết giới, giảm ${Math.round(s.guard * 100)}% sát thương.`, 'good');
+        }
+    },
+
+    // ---------- chỉ số cộng thêm (pháp bảo + tông môn) ----------
+    gearStats() {
+        const c = this.character;
+        const t = { atk: 0, def: 0, hp: 0, mp: 0, crit: 0 };
+        for (const slot of Object.keys(c.gear)) {
+            const g = GEAR_BY_ID[c.gear[slot]];
+            if (g) for (const k in g.stats) t[k] += g.stats[k];
+        }
+        return t;
+    },
+    recalcBonus() {
+        const c = this.character;
+        const tot = this.gearStats();
+        const sect = SECT_BY_ID[c.sect];
+        const a = c.applied;
+        if (sect) {
+            const b = sect.bonus;
+            if (b.atk) tot.atk += Math.round((c.atk - a.atk) * b.atk);
+            if (b.hp) tot.hp += Math.round((c.max_hp - a.hp) * b.hp);
+            if (b.mp) tot.mp += Math.round((c.max_mp - a.mp) * b.mp);
+            if (b.crit) tot.crit += b.crit;
+        }
+        c.atk += tot.atk - a.atk;
+        c.def += tot.def - a.def;
+        c.max_hp += tot.hp - a.hp;
+        c.max_mp += tot.mp - a.mp;
+        c.crit_rate = +(c.crit_rate + tot.crit - a.crit).toFixed(4);
+        c.applied = tot;
+        c.hp = Math.min(c.hp, c.max_hp);
+        c.mp = Math.min(c.mp, c.max_mp);
+    },
+    itemIcon(it) {
+        return it.type === 'pill' || it.type === 'pill_break' ? '💊' : it.type === 'mat' ? '🔹' : it.type === 'ticket' ? '🎫' : it.type === 'gear' ? '⚔️' : '🗡️';
+    },
+    giveSpec(key, qty) { this.addItem(ITEM_SPEC[key], qty); },
+    giveReward(r) {
+        const c = this.character;
+        const parts = [];
+        if (r.exp) { c.exp += r.exp; parts.push(`${r.exp} Tu Vi`); }
+        if (r.gold) { c.gold += r.gold; parts.push(`${r.gold} Linh Tệ`); }
+        if (r.stones) { c.spirit_stones += r.stones; parts.push(`${r.stones} Linh Thạch`); }
+        (r.items || []).forEach(([k, n]) => { this.giveSpec(k, n); parts.push(`${ITEM_SPEC[k].name} x${n}`); });
+        if (r.contrib && c.sect) { c.sect_contrib += r.contrib; parts.push(`${r.contrib} Cống Hiến`); }
+        return parts.join(', ');
+    },
+    rollMaterials(mob) {
+        const got = [];
+        const roll = (key, p, lo, hi) => {
+            if (Math.random() < p) { const n = Math.floor(rand(lo, hi + 1)); this.giveSpec(key, n); got.push(`${ITEM_SPEC[key].name} x${n}`); }
+        };
+        roll('herb', 0.6, 1, 2);
+        roll('iron', mob.isBoss ? 1 : 0.4, mob.isBoss ? 2 : 1, mob.isBoss ? 4 : 1);
+        roll('core', mob.isBoss ? 1 : 0.15, 1, mob.isBoss ? 3 : 1);
+        if (got.length) this.logBattle('🔹 Thu được: ' + got.join(', '), 'good');
+    },
+    sectGain(n) {
+        const c = this.character;
+        if (c.sect) c.sect_contrib += n;
+    },
+    sectRank() {
+        const c = this.character;
+        let r = SECT_RANKS[0][1];
+        for (const [need, name] of SECT_RANKS) if (c.sect_contrib >= need) r = name;
+        return r;
+    },
+
+    // ---------- nhiệm vụ ----------
+    questState(id) { return (this.character.quests[id] || {}).state || 'none'; },
+    questAvailable(q) { return !q.prereq || this.questState(q.prereq) === 'claimed'; },
+    acceptQuest(id) {
+        const q = QUEST_BY_ID[id];
+        if (!q || this.questState(id) !== 'none' || !this.questAvailable(q)) return;
+        this.character.quests[id] = { state: 'active', prog: 0 };
+        SFX.click();
+        this.showToast(`Nhận nhiệm vụ [${q.name}]`, 'info');
+        this.saveProgress(); this.renderHub();
+    },
+    claimQuest(id) {
+        const q = QUEST_BY_ID[id];
+        const st = this.character.quests[id];
+        if (!q || !st || st.state !== 'done') return;
+        st.state = 'claimed';
+        const txt = this.giveReward(q.reward);
+        SFX.quest();
+        this.showToast(`Hoàn thành [${q.name}]: ${txt}`, 'gold');
+        this.updateHUD(); this.saveProgress(); this.renderHub();
+    },
+    questEvent(type, mob) {
+        const c = this.character;
+        if (!c) return;
+        for (const q of QUESTS) {
+            const st = c.quests[q.id];
+            if (!st || st.state !== 'active' || q.type !== type) continue;
+            if (q.el && !(mob && q.el.includes(mob.element))) continue;
+            if (q.boss && !(mob && mob.isBoss)) continue;
+            st.prog = Math.min(q.n, st.prog + 1);
+            if (st.prog >= q.n) {
+                st.state = 'done';
+                SFX.ok();
+                this.showToast(`📜 [${q.name}] đã xong — về NPC nhận thưởng!`, 'gold');
+            }
+        }
+    },
+    clickNpc() {
+        const m = this.currentMap;
+        if (!m.npcs) return false;
+        for (const npc of m.npcs) {
+            if (Math.hypot(npc.x - this.mousePos.x, npc.y - this.mousePos.y) < 40) {
+                this.talkNpc(npc);
+                return true;
+            }
+        }
+        return false;
+    },
+    nearestNpc() {
+        const c = this.character;
+        const list = (this.currentMap.npcs || []).filter(n => Math.hypot(n.x - c.pos_x, n.y - c.pos_y) < 140);
+        return list.sort((a, b) => Math.hypot(a.x - c.pos_x, a.y - c.pos_y) - Math.hypot(b.x - c.pos_x, b.y - c.pos_y))[0];
+    },
+    talkNpc(npc) {
+        const c = this.character;
+        if (Math.hypot(npc.x - c.pos_x, npc.y - c.pos_y) > 160) {
+            this.showToast(`Lại gần ${npc.name} hơn để trò chuyện!`, 'info');
+            return;
+        }
+        this.g3Npc = npc.id;
+        this.g3Tab = 'quest';
+        this.renderHub();
+        this.openModal('modal-g3');
+    },
+
+    // ---------- công pháp ----------
+    learnTech(id) {
+        const c = this.character, t = TECH_BY_ID[id];
+        if (!t || c.techs[id]) return;
+        if (c.realm < t.realm) { this.showToast(`Cần cảnh giới ${t.realm} trở lên!`, 'danger'); return; }
+        if (c.spirit_stones < t.cost) { this.showToast(`Cần ${t.cost} Linh Thạch!`, 'danger'); return; }
+        c.spirit_stones -= t.cost;
+        c.techs[id] = 1;
+        SFX.ok();
+        this.showToast(`Lĩnh ngộ công pháp [${t.name}]!`, 'gold');
+        this.afterG3();
+    },
+    techUpCost(t, lv) { return { stones: Math.round(((t.cost || 10) * 0.5 + 5) * lv), gold: 200 * lv }; },
+    upgradeTech(id) {
+        const c = this.character, t = TECH_BY_ID[id];
+        const lv = c.techs[id];
+        if (!t || !lv || lv >= TECH_MAX_LV) return;
+        const cost = this.techUpCost(t, lv);
+        if (c.spirit_stones < cost.stones || c.gold < cost.gold) { this.showToast(`Cần ${cost.stones} Linh Thạch và ${cost.gold} Linh Tệ!`, 'danger'); return; }
+        c.spirit_stones -= cost.stones;
+        c.gold -= cost.gold;
+        c.techs[id] = lv + 1;
+        SFX.ok();
+        this.showToast(`[${t.name}] đạt cấp ${lv + 1}!`, 'success');
+        this.afterG3();
+    },
+    toggleEquipTech(id) {
+        const c = this.character;
+        if (!c.techs[id]) return;
+        const i = c.equipped.indexOf(id);
+        if (i >= 0) {
+            if (c.equipped.length <= 1) { this.showToast('Phải giữ ít nhất 1 công pháp!', 'danger'); return; }
+            c.equipped.splice(i, 1);
+        } else {
+            if (c.equipped.length >= 4) { this.showToast('Chỉ mang được 4 công pháp — hãy gỡ bớt một cái!', 'danger'); return; }
+            c.equipped.push(id);
+        }
+        SFX.click();
+        this.afterG3();
+    },
+
+    // ---------- pháp bảo ----------
+    equipGear(item) {
+        const g = GEAR_BY_ID[item.gearId];
+        const c = this.character;
+        if (!g) return;
+        if (this.battle) return;
+        const old = c.gear[g.slot];
+        if (!this.consumeItem(item.name)) return;
+        if (old) this.addItem({ name: GEAR_BY_ID[old].name, type: 'gear', rarity: GEAR_BY_ID[old].rarity, gearId: old }, 1);
+        c.gear[g.slot] = g.id;
+        this.recalcBonus();
+        SFX.ok();
+        this.showToast(`Trang bị [${g.name}]: ${statText(g.stats)}`, 'success');
+        this.afterG3();
+        this.renderInventory();
+    },
+    unequipGear(slot) {
+        const c = this.character;
+        const id = c.gear[slot];
+        if (!id) return;
+        const g = GEAR_BY_ID[id];
+        delete c.gear[slot];
+        this.addItem({ name: g.name, type: 'gear', rarity: g.rarity, gearId: g.id }, 1);
+        this.recalcBonus();
+        SFX.click();
+        this.afterG3();
+    },
+    hasMats(mats) { return Object.entries(mats).every(([n, q]) => this.countItem(n) >= q); },
+    takeMats(mats, frac = 1) { for (const [n, q] of Object.entries(mats)) for (let i = 0; i < Math.ceil(q * frac); i++) this.consumeItem(n); },
+    forgeGear(id) {
+        const c = this.character, g = GEAR_BY_ID[id];
+        if (!g) return;
+        if (c.realm < g.realm) { this.showToast(`Cần cảnh giới ${g.realm}!`, 'danger'); return; }
+        if (!this.hasMats(g.mats) || c.gold < g.gold || c.spirit_stones < (g.stones || 0)) { this.showToast('Thiếu nguyên liệu / Linh Tệ / Linh Thạch!', 'danger'); return; }
+        c.gold -= g.gold;
+        c.spirit_stones -= g.stones || 0;
+        const p = Math.min(0.95, 0.7 + (c.school === 'array' ? 0.15 : 0) + (c.tam_canh - 50) * 0.002);
+        if (Math.random() < p) {
+            this.takeMats(g.mats);
+            this.addItem({ name: g.name, type: 'gear', rarity: g.rarity, gearId: g.id }, 1);
+            c.forged = (c.forged || 0) + 1;
+            SFX.forge();
+            this.showToast(`Luyện thành [${g.name}]!`, 'gold');
+            this.questEvent('forge');
+        } else {
+            this.takeMats(g.mats, 0.5);
+            SFX.fail();
+            this.showToast(`Luyện khí thất bại (tỷ lệ ${Math.round(p * 100)}%)! Mất một nửa nguyên liệu.`, 'danger');
+        }
+        this.afterG3();
+    },
+
+    // ---------- chợ & luyện đan ----------
+    marketIndex(name) {
+        const h = Math.floor(Date.now() / 3600000);
+        let x = 0;
+        for (const ch of name + h) x = (Math.imul(x, 31) + ch.charCodeAt(0)) | 0;
+        return 0.8 + 0.5 * (Math.abs(x) % 100) / 100;
+    },
+    sellPrice(name) { return Math.round(MAT_BASE_PRICE[name] * this.marketIndex(name)); },
+    sellMat(name) {
+        if (!this.consumeItem(name)) return;
+        this.character.gold += this.sellPrice(name);
+        audio.playCoin();
+        this.afterG3();
+    },
+    buyMat(name) {
+        const price = Math.round(this.sellPrice(name) * 1.6);
+        if (this.character.gold < price) { this.showToast(`Cần ${price} Linh Tệ!`, 'danger'); return; }
+        this.character.gold -= price;
+        const key = Object.keys(ITEM_SPEC).find(k => ITEM_SPEC[k].name === name);
+        this.giveSpec(key, 1);
+        audio.playCoin();
+        this.afterG3();
+    },
+    brew(id) {
+        const c = this.character, r = RECIPES.find(x => x.id === id);
+        if (!r) return;
+        if (!this.hasMats(r.mats) || c.gold < (r.gold || 0) || c.spirit_stones < (r.stones || 0)) { this.showToast('Thiếu nguyên liệu / chi phí!', 'danger'); return; }
+        c.gold -= r.gold || 0;
+        c.spirit_stones -= r.stones || 0;
+        const p = Math.min(1, r.chance + (c.school === 'medicine' ? 0.15 : 0));
+        if (Math.random() < p) {
+            this.takeMats(r.mats);
+            this.giveSpec(r.out[0], r.out[1]);
+            SFX.forge();
+            this.showToast(`Thành đan! +${ITEM_SPEC[r.out[0]].name} x${r.out[1]}`, 'gold');
+            if (r.id !== 'r_ticket') this.questEvent('alchemy');
+        } else {
+            this.takeMats(r.mats, 0.5);
+            SFX.fail();
+            this.showToast(`Nổ lò! (tỷ lệ ${Math.round(p * 100)}%) Mất một nửa nguyên liệu.`, 'danger');
+        }
+        this.afterG3();
+    },
+
+    // ---------- tông môn ----------
+    joinSect(id) {
+        const c = this.character;
+        if (c.sect || !SECT_BY_ID[id]) return;
+        c.sect = id;
+        c.sect_contrib = 0;
+        this.recalcBonus();
+        SFX.quest();
+        this.showToast(`Gia nhập [${SECT_BY_ID[id].name}]!`, 'gold');
+        this.afterG3();
+    },
+    leaveSect() {
+        const c = this.character;
+        if (!c.sect) return;
+        c.sect = null;
+        c.sect_contrib = 0;
+        this.recalcBonus();
+        this.showToast('Ngươi đã rời tông môn.', 'info');
+        this.afterG3();
+    },
+    sectBuy(i) {
+        const c = this.character, it = SECT_SHOP[i];
+        if (!it || !c.sect) return;
+        if (c.sect_contrib < it.cost) { this.showToast(`Cần ${it.cost} Cống Hiến!`, 'danger'); return; }
+        c.sect_contrib -= it.cost;
+        (it.give || []).forEach(([k, n]) => this.giveSpec(k, n));
+        if (it.stones) c.spirit_stones += it.stones;
+        SFX.ok();
+        this.showToast(`Đổi [${it.name}]`, 'success');
+        this.afterG3();
+    },
+
+    // ---------- bí cảnh ----------
+    enterSecretRealm() {
+        if (this.battle) return;
+        const c = this.character;
+        if (!this.consumeItem(ITEM_SPEC.ticket.name)) { this.showToast('Cần 1 Bí Cảnh Lệnh (khắc ở Chợ hoặc nhận từ nhiệm vụ)!', 'danger'); return; }
+        this.closeModal('modal-g3');
+        c.hp = Math.min(c.max_hp, c.hp + Math.round(c.max_hp * 0.3));
+        this.secretWave(1);
+    },
+    secretWave(wave) {
+        const c = this.character;
+        const boss = wave === 4;
+        const f = 0.7 + 0.15 * wave;
+        const hp = Math.round(c.max_hp * f * (boss ? 1.6 : 1));
+        const els = ['Kim', 'Mộc', 'Thủy', 'Hỏa', 'Thổ', 'Lôi', 'Phong'];
+        const names = ['Cổ Mộ Thạch Khôi', 'U Minh Quỷ Tướng', 'Thượng Cổ Hồn Thú', 'Bí Cảnh Chúa Tể'];
+        const moves = boss
+            ? [{ name: 'Cổ Pháp Trấn Áp', mult: 1, w: 2 }, { name: 'Hủy Diệt Ấn', mult: 2.3, w: 1, heavy: true }, { name: 'Ma Hỏa', mult: 1.2, w: 1, burn: 3 }]
+            : [{ name: 'Trọng Kích', mult: 1, w: 3 }, { name: 'Phá Thiên', mult: 1.8, w: 1, heavy: true }];
+        this.beginBattle({
+            mode: 'secret', wave,
+            enemy: {
+                name: `${names[wave - 1]} (Tầng ${wave}/4)`, element: pick(els), hp, maxHp: hp,
+                atk: Math.round(c.atk * (0.75 + 0.1 * wave) * (boss ? 1.1 : 1)), def: Math.round(c.def * 0.9),
+                isBoss: boss, sprite: pick([108, 110, 120, 121, 122, 124]), moves
+            }
+        });
+        this.logBattle(`🌀 Bí Cảnh tầng ${wave}/4 — ${boss ? 'Chúa Tể xuất hiện!' : 'yêu linh cổ đại chặn đường!'}`, 'warn');
+    },
+    secretEnd(result) {
+        const c = this.character, b = this.battle;
+        if (result === 'win') {
+            if (b.wave < 4) {
+                c.hp = Math.min(c.max_hp, c.hp + Math.round(c.max_hp * 0.15));
+                c.mp = Math.min(c.max_mp, c.mp + Math.round(c.max_mp * 0.25));
+                this.logBattle(`✅ Qua tầng ${b.wave}! Hồi phục một phần, tiến sâu hơn...`, 'good');
+                const next = b.wave + 1;
+                this._next = () => this.secretWave(next);
+            } else {
+                const realm = REALMS_DATA.find(r => r.id === c.realm) || REALMS_DATA[0];
+                const reward = {
+                    exp: Math.round(realm.expReq * 0.12), gold: 600 * c.realm, stones: 6 + c.realm * 2, contrib: 25,
+                    items: [['core', 2 + c.realm], ['iron', 3 + c.realm]]
+                };
+                const txt = this.giveReward(reward);
+                c.realms_cleared = (c.realms_cleared || 0) + 1;
+                this.questEvent('secret');
+                audio.playHeavenlyChime();
+                this.logBattle(`🏆 Phá đảo Bí Cảnh! Nhận: ${txt}`, 'good');
+                this.showToast('Phá đảo Bí Cảnh!', 'gold');
+            }
+        } else {
+            c.hp = Math.max(1, Math.round(c.max_hp * 0.5));
+            this.logBattle('💀 Bại trận trong Bí Cảnh, được truyền tống ra ngoài. Mất Bí Cảnh Lệnh.', 'bad');
+        }
+    },
+
+    // ---------- giao diện Tiên Duyên ----------
+    afterG3() {
+        this.rebuildSkills();
+        this.updateHUD();
+        this.saveProgress();
+        this.renderHub();
+    },
+    setHubTab(tab) { this.g3Tab = tab; this.g3Npc = null; SFX.click(); this.renderHub(); },
+    openHub(tab) {
+        if (this.battle || !this.character) return;
+        if (tab) { this.g3Tab = tab; this.g3Npc = null; }
+        this.renderHub();
+        this.toggleModal('modal-g3');
+    },
+    renderHub() {
+        const body = document.getElementById('g3-body');
+        const tabs = document.getElementById('g3-tabs');
+        if (!body || !tabs || !this.character) return;
+        const c = this.character;
+        const T = [['tech', '📖 Công Pháp'], ['gear', '⚔️ Pháp Bảo'], ['quest', '📜 Nhiệm Vụ'], ['sect', '🏯 Tông Môn'], ['market', '🏪 Chợ & Đan'], ['realm', '🌀 Bí Cảnh']];
+        tabs.innerHTML = T.map(([k, l]) => `<button class="g3-tab ${this.g3Tab === k ? 'on' : ''}" onclick="window.gameApp.setHubTab('${k}')">${l}</button>`).join('');
+        const res = `<div class="g3-res">💰 ${Number(c.gold).toLocaleString()} · 💎 ${c.spirit_stones}${c.sect ? ` · 🏯 ${c.sect_contrib} CH` : ''}</div>`;
+        const row = (main, sub, btns) => `<div class="g3-row"><div class="g3-info"><b>${main}</b><small>${sub}</small></div><div class="g3-btns">${btns}</div></div>`;
+        const btn = (label, fn, off = false) => `<button class="g3-btn" ${off ? 'disabled' : ''} onclick="${fn}">${label}</button>`;
+        const matTxt = (m) => Object.entries(m).map(([n, q]) => `<span class="${this.countItem(n) >= q ? 'ok' : 'no'}">${n} ${this.countItem(n)}/${q}</span>`).join(' ');
+        let h = res;
+
+        if (this.g3Tab === 'tech') {
+            h += `<div class="g3-hint">Mang tối đa 4 công pháp (phím 1-4 khi chiến đấu). Nâng cấp tăng sát thương / hồi phục.</div>`;
+            h += TECH_DATA.map(t => {
+                const lv = c.techs[t.id];
+                const eff = t.heal ? `Hồi ${Math.round(t.heal * 100)}% sinh lực` : t.guard ? `Giảm ${Math.round(t.guard * 100)}% sát thương` : `x${t.dmgMult} sát thương${t.burn ? ' · thiêu đốt' : ''}${t.stunChance ? ' · choáng' : ''}`;
+                const sub = `${ELEMENT_ICON[t.el]}${t.el} · ${t.mpCost} MP · hồi chiêu ${t.cd} · ${eff}${lv ? ` · <b>Lv${lv}</b>` : ''}`;
+                let b = '';
+                if (!lv) b = btn(`Học (${t.cost}💎)`, `window.gameApp.learnTech('${t.id}')`, c.realm < t.realm || c.spirit_stones < t.cost) + (c.realm < t.realm ? `<small class="no">Cần CG ${t.realm}</small>` : '');
+                else {
+                    const up = this.techUpCost(t, lv);
+                    b = btn(c.equipped.includes(t.id) ? 'Gỡ' : 'Mang', `window.gameApp.toggleEquipTech('${t.id}')`)
+                        + (lv < TECH_MAX_LV ? btn(`↑ ${up.stones}💎 ${up.gold}💰`, `window.gameApp.upgradeTech('${t.id}')`, c.spirit_stones < up.stones || c.gold < up.gold) : '<small>Tối đa</small>');
+                }
+                return row(`${t.icon} ${t.name}${c.equipped.includes(t.id) ? ' <span class="g3-tag">đang mang</span>' : ''}`, sub, b);
+            }).join('');
+        } else if (this.g3Tab === 'gear') {
+            h += `<div class="g3-hint">Đang mặc:</div>` + Object.keys(SLOT_NAME).map(s => {
+                const g = GEAR_BY_ID[c.gear[s]];
+                return row(`${SLOT_NAME[s]}: ${g ? g.name : '<i>trống</i>'}`, g ? statText(g.stats) : 'Luyện hoặc nhặt pháp bảo rồi bấm trong Túi Đồ để mặc', g ? btn('Tháo', `window.gameApp.unequipGear('${s}')`) : '');
+            }).join('');
+            const inBag = this.inventory.filter(i => i.type === 'gear');
+            if (inBag.length) h += `<div class="g3-hint">Trong túi:</div>` + inBag.map(i => row(`${i.name} x${i.quantity}`, statText(GEAR_BY_ID[i.gearId].stats), btn('Mặc', `window.gameApp.equipGearByName('${i.name}')`))).join('');
+            h += `<div class="g3-hint">Lò luyện khí (tỷ lệ cơ bản 70%, Trận Pháp +15%):</div>` + GEAR_DATA.map(g =>
+                row(`${SLOT_NAME[g.slot].split(' ')[0]} ${g.name}`, `${statText(g.stats)}<br>${matTxt(g.mats)} · ${g.gold}💰${g.stones ? ` · ${g.stones}💎` : ''} · CG ${g.realm}`,
+                    btn('Luyện', `window.gameApp.forgeGear('${g.id}')`, c.realm < g.realm))).join('');
+        } else if (this.g3Tab === 'quest') {
+            const npcs = { npc_guide: 'Lý Linh Vân — Hiệp Hội Tu Sĩ', npc_ceo: 'Vương Tổng — Vạn Linh Tập Đoàn' };
+            const ids = this.g3Npc ? [this.g3Npc] : Object.keys(npcs);
+            ids.forEach(nid => {
+                h += `<div class="g3-hint">💬 ${npcs[nid]}: “${NPC_TALK[nid]}”</div>`;
+                h += QUESTS.filter(q => q.npc === nid).map(q => {
+                    const st = c.quests[q.id];
+                    const state = st ? st.state : 'none';
+                    const rw = [q.reward.exp && `${q.reward.exp} Tu Vi`, q.reward.gold && `${q.reward.gold}💰`, q.reward.stones && `${q.reward.stones}💎`, ...(q.reward.items || []).map(([k, n]) => `${ITEM_SPEC[k].name} x${n}`), q.reward.contrib && c.sect && `${q.reward.contrib} CH`].filter(Boolean).join(', ');
+                    let b = '';
+                    if (state === 'none') b = this.questAvailable(q) ? btn('Nhận', `window.gameApp.acceptQuest('${q.id}')`) : `<small class="no">Cần xong: ${QUEST_BY_ID[q.prereq].name}</small>`;
+                    else if (state === 'active') b = `<small>${st.prog}/${q.n}</small>`;
+                    else if (state === 'done') b = btn('Nhận thưởng', `window.gameApp.claimQuest('${q.id}')`);
+                    else b = '<small class="ok">✔ Đã nhận</small>';
+                    return row(`${q.name}`, `${q.desc}<br>Thưởng: ${rw}`, b);
+                }).join('');
+            });
+            if (this.g3Npc) h += `<div class="g3-hint"><a href="#" onclick="window.gameApp.g3Npc=null;window.gameApp.renderHub();return false;">Xem nhiệm vụ của mọi NPC</a></div>`;
+        } else if (this.g3Tab === 'sect') {
+            if (!c.sect) {
+                h += `<div class="g3-hint">Gia nhập một tông môn để nhận thiên phú và tích Cống Hiến (hạ yêu thú, làm nhiệm vụ, phá bí cảnh).</div>`;
+                h += SECTS.map(s => row(`${s.icon} ${s.name}`, s.desc, btn('Gia nhập', `window.gameApp.joinSect('${s.id}')`))).join('');
+            } else {
+                const s = SECT_BY_ID[c.sect];
+                h += row(`${s.icon} ${s.name}`, `${s.desc}<br>Chức vị: <b>${this.sectRank()}</b> · Cống Hiến: <b>${c.sect_contrib}</b>`, btn('Rời tông', 'window.gameApp.leaveSect()'));
+                h += `<div class="g3-hint">Kho tông môn:</div>` + SECT_SHOP.map((it, i) => row(it.name, `${it.cost} Cống Hiến`, btn('Đổi', `window.gameApp.sectBuy(${i})`, c.sect_contrib < it.cost))).join('');
+            }
+        } else if (this.g3Tab === 'market') {
+            h += `<div class="g3-hint">Giá chợ đổi theo từng giờ. Bán nguyên liệu / mua bù thiếu:</div>`;
+            h += Object.keys(MAT_BASE_PRICE).map(n => {
+                const sell = this.sellPrice(n), buy = Math.round(sell * 1.6);
+                return row(`🔹 ${n} (có ${this.countItem(n)})`, `Bán ${sell}💰 · Mua ${buy}💰`, btn(`Bán ${sell}`, `window.gameApp.sellMat('${n}')`, this.countItem(n) <= 0) + btn(`Mua ${buy}`, `window.gameApp.buyMat('${n}')`, c.gold < buy));
+            }).join('');
+            h += `<div class="g3-hint">Lò luyện đan (Y Đạo +15% tỷ lệ):</div>` + RECIPES.map(r =>
+                row(r.name, `${matTxt(r.mats)}${r.gold ? ` · ${r.gold}💰` : ''}${r.stones ? ` · ${r.stones}💎` : ''} · tỷ lệ ${Math.round(Math.min(1, r.chance + (c.school === 'medicine' ? 0.15 : 0)) * 100)}%`, btn('Luyện', `window.gameApp.brew('${r.id}')`))).join('');
+        } else if (this.g3Tab === 'realm') {
+            h += `<div class="g3-hint">Bí Cảnh gồm 4 tầng liên tiếp, tầng cuối là Chúa Tể. Không thể bỏ chạy; hồi một ít giữa các tầng. Đã phá: ${c.realms_cleared || 0} lần.</div>`;
+            h += row('🌀 Thượng Cổ Bí Cảnh', `Phần thưởng: Tu Vi, Linh Tệ, Linh Thạch, Yêu Đan, Thiết Tinh, Cống Hiến.<br>Bí Cảnh Lệnh trong túi: <b>${this.countItem(ITEM_SPEC.ticket.name)}</b>`, btn('Tiến vào', 'window.gameApp.enterSecretRealm()', this.countItem(ITEM_SPEC.ticket.name) <= 0));
+        }
+        body.innerHTML = h;
+    },
+    equipGearByName(name) {
+        const it = this.inventory.find(i => i.name === name && i.type === 'gear');
+        if (it) this.equipGear(it);
+    }
+});
 
 window.addEventListener('DOMContentLoaded', () => {
     window.gameApp = new TuTienGame();

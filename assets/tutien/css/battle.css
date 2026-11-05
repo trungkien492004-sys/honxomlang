@@ -37,3 +37,22 @@
 .battle-card.enemy .bc-sprite { transform: scaleX(1); }
 .fx-sprite { position: absolute; left: 50%; top: 38%; width: var(--sz, 110px); height: var(--sz, 110px); transform: translate(-50%, -50%); background: var(--c, #fff); -webkit-mask: var(--img) center / contain no-repeat; mask: var(--img) center / contain no-repeat; mix-blend-mode: screen; opacity: 0; animation: fxPop .7s ease-out forwards; pointer-events: none; }
 @keyframes fxPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4) rotate(-20deg); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25) rotate(10deg); } }
+
+/* GĐ3: Tiên Duyên Lục */
+.g3-window { width: 720px; max-width: 96vw; }
+.g3-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.g3-tab { background: rgba(255,255,255,.06); color: #cbd5e1; border: 1px solid rgba(255,255,255,.15); border-radius: 8px; padding: 7px 10px; font-size: 12px; cursor: pointer; }
+.g3-tab.on { background: linear-gradient(135deg, #0f766e, #b45309); color: #fff; border-color: #f2c86e; }
+.g3-body { max-height: 56vh; overflow-y: auto; padding-right: 4px; }
+.g3-res { text-align: right; font-size: 12px; color: #f2c86e; margin-bottom: 6px; }
+.g3-hint { font-size: 12px; color: #94a3b8; margin: 10px 0 4px; }
+.g3-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; }
+.g3-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.g3-info b { font-size: 13px; color: #f1f5f9; }
+.g3-info small { font-size: 11px; color: #94a3b8; line-height: 1.4; }
+.g3-btns { display: flex; flex-direction: column; gap: 4px; align-items: stretch; flex-shrink: 0; }
+.g3-btn { background: #0f766e; color: #fff; border: 0; border-radius: 6px; padding: 6px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.g3-btn:disabled { opacity: .4; cursor: not-allowed; }
+.g3-tag { font-size: 10px; background: #b45309; color: #fff; border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+.g3-body .ok { color: #34d399; } .g3-body .no { color: #f87171; }
+@media (max-width: 600px) { .g3-row { flex-direction: column; align-items: stretch; } .g3-btns { flex-direction: row; } .g3-btn { flex: 1; } }

@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/tutien/css/style.css?v=20261101-sprites-v1">
     <link rel="stylesheet" href="assets/tutien/css/animations.css">
-    <link rel="stylesheet" href="assets/tutien/css/battle.css?v=20261105-sprites-v1">
+    <link rel="stylesheet" href="assets/tutien/css/battle.css?v=20261105-g3-v1">
     <style>
         * { font-family: 'Nunito', system-ui, sans-serif; }
         h1, h2, h3, h4, .brand-title, .modal-title, .auth-title { font-family: 'Baloo 2', sans-serif !important; }
@@ -193,6 +193,7 @@
                 <button class="menu-btn" onclick="window.gameApp.toggleModal('modal-pvp')">⚔️ Đấu Trường [P]</button>
                 <button class="menu-btn" onclick="window.gameApp.renderLeaderboards(); window.gameApp.toggleModal('modal-leaderboard')">🏆 Xếp Hạng [L]</button>
                 <button class="menu-btn" onclick="window.gameApp.toggleModal('modal-housing')">🏙️ Đô Thị [H]</button>
+                <button class="menu-btn" onclick="window.gameApp.openHub('tech')">📖 Tiên Duyên [T]</button>
             </div>
 
             <!-- BOTTOM CENTER: SKILL HOTBAR -->
@@ -213,6 +214,20 @@
                     <span class="slot-key">4</span>
                     <span class="slot-icon">⚡</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GĐ3: TIÊN DUYÊN (công pháp, pháp bảo, nhiệm vụ, tông môn, chợ, bí cảnh) -->
+    <div id="modal-g3" class="modal-overlay">
+        <div class="modal-window g3-window">
+            <div class="modal-header">
+                <div class="modal-title">📖 Tiên Duyên Lục</div>
+                <button class="modal-close" onclick="window.gameApp.closeModal('modal-g3')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="g3-tabs" class="g3-tabs"></div>
+                <div id="g3-body" class="g3-body"></div>
             </div>
         </div>
     </div>
@@ -376,7 +391,7 @@
         </div>
     </div>
 
-    <script src="assets/tutien/js/tutien_bundle.js?v=20261101-sprites-v1"></script>
+    <script src="assets/tutien/js/tutien_bundle.js?v=20261105-g3-v1"></script>
     <script>
         let selectedSchool = 'sword';
         document.querySelectorAll('.school-card').forEach(card => {
