@@ -1563,7 +1563,7 @@
 
     const tc = C(target.id);
     const mats = Array.isArray(tc?.fusion_materials) ? tc.fusion_materials : [];
-    const isCD = e => e.id === 'AN-cyber_dragon' || (e.zone === 'field' && e.id === 'AN-proto_cyber_dragon');
+    const isCD = e => window.memeNames.alias(e.id, e.zone === 'field' ? 'field' : e.zone) === 'AN-cyber_dragon';
     const cdOnly = mats.length > 0 && mats.every(m => m === 'AN-cyber_dragon');
     const materials = [
       ...E(n).filter(e => face(e.slot) && (isCyber(C(e.slot.id)) || e.slot.id === 'AN-cyber_dragon')).map(e => ({ ...e, id: e.slot.id, zone: 'field' })),
@@ -1676,7 +1676,7 @@
   // Cyber Repair Plant (Nhà Máy Sửa Chữa Cyber)
   register('DL-cyber_repair_plant', async (n, c, ctx) => {
     const s = S(n);
-    const hasCD = s.grave.some(id => id === 'AN-cyber_dragon' || id === 'DL-cyber_dragon_core' || id === 'AN-proto_cyber_dragon');
+    const hasCD = s.grave.some(id => id === 'AN-cyber_dragon' || id === 'AN-proto_cyber_dragon' || window.memeNames.alias(id, 'grave') === 'AN-cyber_dragon');
     if (!hasCD) return false;
     const targets = choices(s.deck, 'deck').filter(e => {
       const x = C(e.id);

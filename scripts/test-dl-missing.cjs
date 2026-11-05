@@ -45,6 +45,12 @@ try{
   fresh();duel.enemy.hand=['AN-kuriboh'];const idol=put('player','DL-golden_eyes_idol');
   const ok=await memeAnime.perform(()=>memeAnime.resolveEffect('player',card('DL-golden_eyes_idol'),{source:idol}));
   out.idolLog=duel.logs.some(l=>String(l.text||l).includes('tay đối thủ'));
+  // 7. Tên đổi theo vùng: Rồng Máy Nachster/Core/Vier là "Rồng Máy" trên sân; Core cũng ở Mộ
+  fresh();put('player','DL-cyber_dragon_nachster');put('player','AN-cyber_dragon',1);duel.player.hand=['AN-polymerization'];duel.player.extraDeck=['AN-cyber_twin_dragon'];
+  out.fuseAlias=!!(await memeAnime.perform(()=>memeAnime.fuse('player','AN-polymerization','AN-cyber_twin_dragon','fusion')));
+  out.alias=[memeNames.alias('DL-cyber_dragon_core','grave'),memeNames.alias('DL-cyber_dragon_core','hand'),memeNames.alias('AN-proto_cyber_dragon','grave'),memeNames.alias('DL-magician_of_chaos','grave')];
+  fresh();duel.player.grave=['DL-cyber_dragon_nachster'];duel.player.deck=['AN-cyber_dragon'];duel.player.hand=['DL-cyber_repair_plant'];
+  await memeAnime.perform(()=>memeAnime.playSpellFor('player',0));out.repairNachster=duel.player.hand.includes('AN-cyber_dragon');
   return out;});
  assert.equal(res.tbSurvives,true,'Twin Burst không bị phá bởi chiến đấu');
  assert.equal(res.banished,true,'quái sống sót bị trục xuất');assert.equal(res.attackerStays,true);
@@ -52,6 +58,9 @@ try{
  assert.equal(res.rampage,1,'phá 2 trong 3 Phép/Bẫy');
  assert.equal(res.direct,true,'Toon BLS đánh trực tiếp khi đối thủ không có Toon');assert.equal(res.blsBanished,1);
  assert.equal(res.idolLog,true);
+ assert.equal(res.fuseAlias,true,'Nachster dùng làm Rồng Máy khi Dung Hợp');
+ assert.deepEqual(res.alias,['AN-cyber_dragon','DL-cyber_dragon_core','AN-proto_cyber_dragon','AN-dark_magician'],'tên đổi theo vùng');
+ assert.equal(res.repairNachster,true,'Nachster trong Mộ tính là Rồng Máy');
  assert.deepEqual(errors,[]);
  console.log('DL missing-card tests passed');
 }finally{await browser.close();server.close();}

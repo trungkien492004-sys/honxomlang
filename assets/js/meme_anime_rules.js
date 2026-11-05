@@ -650,7 +650,10 @@
   const s=S(n);if(mode==='miracle')return [...E(n).map(e=>({...e,id:e.slot.id,zone:'field'})),...choices(s.grave,'grave').map(e=>({...e,zone:'grave'}))];
   return [...choices(s.hand,'hand').map(e=>({...e,zone:'hand'})),...E(n).map(e=>({...e,id:e.slot.id,zone:'field'}))];
  }
- function materialName(e){if(e.zone==='field'&&face(e.slot)&&has(e.slot,'proto_cyber'))return aid('Cyber Dragon');return e.zone!=='hand'&&card(e.id)?.traits?.includes('blue_eyes_name')?aid('Blue-Eyes White Dragon'):e.id;}
+ const NAME_FIELD={'AN-proto_cyber_dragon':'AN-cyber_dragon','DL-cyber_dragon_core':'AN-cyber_dragon','DL-cyber_dragon_nachster':'AN-cyber_dragon','DL-cyber_dragon_vier':'AN-cyber_dragon','DL-magician_of_chaos':'AN-dark_magician','AN-harpie_queen':'AN-harpie_lady','AN-harpie_lady_sisters':'AN-harpie_lady','AN-cyber_harpie_lady':'AN-harpie_lady'},NAME_GRAVE={'DL-cyber_dragon_core':'AN-cyber_dragon','DL-cyber_dragon_nachster':'AN-cyber_dragon','DL-cyber_dragon_vier':'AN-cyber_dragon','DL-magician_of_chaos':'AN-dark_magician','AN-harpie_queen':'AN-harpie_lady'};
+ function nameAlias(id,zone){const z=zone==='field'||zone==='extra'?NAME_FIELD:zone==='grave'||zone==='banished'?NAME_GRAVE:null;return z&&z[id]||id;}
+ window.memeNames={alias:nameAlias,field:NAME_FIELD,grave:NAME_GRAVE};
+ function materialName(e){if(e.zone==='field'&&face(e.slot)){const a=nameAlias(e.slot.id||e.id,'field');if(a!==(e.slot.id||e.id))return a;}if(e.zone==='grave'||e.zone==='banished'){const a=nameAlias(e.id,e.zone);if(a!==e.id)return a;}if(e.zone==='field'&&face(e.slot)&&has(e.slot,'proto_cyber'))return aid('Cyber Dragon');return e.zone!=='hand'&&card(e.id)?.traits?.includes('blue_eyes_name')?aid('Blue-Eyes White Dragon'):e.id;}
  function materialReq(req,e){if(typeof req==='string')return materialName(e)===req;const x=card(e.id);if(!x||x.card_type!=='Monster')return false;if(req.name&&x.name_en!==req.name)return false;if(req.hero&&!/\bHERO\b/.test(x.name_en||''))return false;if(req.levelMax&&(x.stars||0)>req.levelMax)return false;if(req.effectMonster&&x.monster_category==='Thường')return false;return true;}
  function fusionOptions(n,id,mode='fusion'){
   const c=card(id),s=S(n);if(!c||!c.fusion_materials&&!c.fusion_recipe||c.summon_type==='transformation')return[];if(mode==='miracle'&&!hero(c)||mode==='power'&&!machine(c))return[];
