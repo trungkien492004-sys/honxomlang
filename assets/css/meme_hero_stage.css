@@ -29,7 +29,7 @@
   border: 2px solid color-mix(in srgb, var(--c, #ffd28c), #fff 8%); background: #0b1a30;
   box-shadow: 0 10px 26px rgba(0, 0, 0, .6);
   transition: transform .45s cubic-bezier(.25, .9, .3, 1), opacity .35s, filter .35s;
-  will-change: transform; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
 }
 .hero-stage .hs-card.is-center { box-shadow: 0 14px 34px rgba(0, 0, 0, .7), 0 0 30px color-mix(in srgb, var(--c, #ffd28c), transparent 45%); border-color: var(--c, #ffd28c); }
 .hero-stage .hs-art {
@@ -141,7 +141,7 @@ body .duel .board-frame .special-zone, body .duel .board-frame .duelist-corner {
   background: var(--pc, #fff); box-shadow: 0 0 8px var(--pc, #fff); opacity: 0;
 }
 .hero-stage .hs-card.is-center .hs-portal i { animation: hsMote var(--pd) ease-out var(--pl) infinite; }
-.hero-stage .hs-card.has-custom .hs-art.custom { z-index: 2; inset: -30% -8% 2% -8% !important; }
+.hero-stage .hs-card.has-custom .hs-art.custom { z-index: 2; inset: -34% -22% 1% -22% !important; width: auto !important; height: auto !important; aspect-ratio: auto !important; }
 .hero-stage .hs-card.has-custom .hs-shine { display: none; }
 @keyframes hsRays { to { transform: translateY(-50%) rotate(360deg); } }
 @keyframes hsMote { 0% { opacity: 0; transform: translateY(0) scale(.5); } 15% { opacity: .95; } 100% { opacity: 0; transform: translateY(-170px) translateX(var(--dx, 6px)) scale(1.1); } }
