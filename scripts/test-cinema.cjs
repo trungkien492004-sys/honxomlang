@@ -95,7 +95,7 @@ const server = http.createServer((req, res) => { const f = path.resolve(pub, '.'
     return { codes: codes.length, full: codes.every(c => ['skill', 'summon', 'trap', 'attack', 'victory', 'defeat'].every(k => L[c][k])), badLines };
   });
   await new Promise(r => setTimeout(r, 300));
-  chk(voice.codes === 9 && voice.full && !voice.badLines.length, 'đủ 9 nhân vật, 6 ngữ cảnh, toàn tiếng Nhật ' + JSON.stringify(voice.badLines));
+  chk(voice.codes === 13 && voice.full && !voice.badLines.length, 'đủ 13 nhân vật, 6 ngữ cảnh, toàn tiếng Nhật ' + JSON.stringify(voice.badLines));
   chk(!reqs.some(u => !u.startsWith('ja/')), 'không gọi clip giọng cũ: ' + JSON.stringify(reqs.slice(0, 4)));
 
   if (errs.length) { bad++; console.log('pageerrors', errs.slice(0, 4)); }

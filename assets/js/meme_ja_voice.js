@@ -12,9 +12,13 @@
     zane: { skill: 'リスペクトを忘れるな。', summon: '現れろ、サイバー・ドラゴン！', trap: '罠発動。', attack: 'エターナル・エヴォリューション・バースト！', victory: 'これが帝王のデュエルだ。', defeat: '見事だ。' },
     mai: { skill: 'いくわよ！', summon: 'おいで、ハーピィ・レディ！', trap: '罠にかかったわね！', attack: 'お行きなさい！', victory: '私の勝ちね！', defeat: 'やるじゃない…。' },
     yuma: { skill: 'かっとビングだ、俺！', summon: '現れろ、希望皇ホープ！', trap: '罠カード発動！', attack: 'ホープ剣スラッシュ！', victory: 'やったぜ！', defeat: 'まだまだ、かっとビングだ！' },
+    marik: { skill: '闇のゲームの始まりだ！', summon: '出でよ、我がしもべ！', trap: '罠カード発動！', attack: 'やれ！', victory: '闇に沈むがいい！', defeat: 'この私が…！' },
+    jack: { skill: 'キングのデュエルは常にエンターテイメントでなければならない！', summon: '王者の鼓動、今ここに列を成す！', trap: '罠発動！', attack: 'アブソリュート・パワーフォース！', victory: 'これがキングのデュエルだ！', defeat: 'この俺が敗れるとは…！' },
+    shark: { skill: '俺のターン！', summon: '現れろ！', trap: '罠カード発動！', attack: '喰らいやがれ！', victory: '俺の勝ちだ！', defeat: 'くそっ…！' },
+    chazz: { skill: '一！十！百！千！万丈目サンダー！', summon: '来い！', trap: '罠発動！', attack: 'いけえ！', victory: '万丈目サンダーの勝利だ！', defeat: 'この俺が…！' },
     yusei: { skill: '俺のターン！', summon: '飛翔せよ、スターダスト・ドラゴン！', trap: '罠発動！', attack: 'シューティング・ソニック！', victory: '絆の力だ。', defeat: 'まだだ…！' }
   };
-  const TONE = { destiny: [.92, 1.02], kaiba: [.72, 1.05], joey: [1.02, 1.12], pegasus: [1.08, .96], jaden: [1.2, 1.12], zane: [.7, .94], mai: [1.42, 1.04], yuma: [1.38, 1.16], yusei: [.8, 1] };
+  const TONE = { destiny: [.92, 1.02], kaiba: [.72, 1.05], joey: [1.02, 1.12], pegasus: [1.08, .96], jaden: [1.2, 1.12], zane: [.7, .94], mai: [1.42, 1.04], yuma: [1.38, 1.16], yusei: [.8, 1], marik: [.74, .92], jack: [.76, 1.04], shark: [.9, 1.08], chazz: [1.04, 1.14] };
   const ACTIONS = ['skill', 'summon', 'trap', 'attack', 'victory', 'defeat'];
   const fileState = new Map(); // src -> Audio | false
   let current = null, jaCache = null;

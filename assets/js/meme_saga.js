@@ -17,7 +17,8 @@
   const $id = id => document.getElementById(id);
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const fmt = n => Number(n || 0).toLocaleString('vi-VN');
-  const heroes = () => window.MEME_HEROES || [];
+  // Chỉ nhân vật đã có cốt truyện mới hiện trong Truyền Kỳ.
+  const heroes = () => (window.MEME_HEROES || []).filter(h => SAGA[h.id]);
   const heroById = id => heroes().find(h => h.id === id);
   const cardById = id => (window.MEME_CARDS || []).find(c => c.id === id);
   const needFor = level => 60 + 20 * Math.min(MAX_LEVEL, Math.max(1, level));

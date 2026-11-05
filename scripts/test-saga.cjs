@@ -9,8 +9,8 @@ try{
  await page.waitForFunction(()=>window.memeSaga&&window.memeJourney&&window.memeProgress,{timeout:30000});
  await page.waitForSelector('#sagaBtn');
  // 1. dữ liệu: đủ 9 đấu sĩ x 6 hồi, bộ bài có thật, mỗi đấu sĩ có thẻ thưởng
- const data=await page.evaluate(()=>{const S=memeSaga,out={heroes:MEME_HEROES.length,missing:[],badLines:[],pools:[],acts:0};
-  for(const h of MEME_HEROES){const saga=S.SAGA[h.id];if(!saga){out.missing.push('saga '+h.id);continue;}
+ const data=await page.evaluate(()=>{const S=memeSaga,out={heroes:MEME_HEROES.filter(h=>S.SAGA[h.id]).length,missing:[],badLines:[],pools:[],acts:0};
+  for(const h of MEME_HEROES.filter(x=>S.SAGA[x.id])){const saga=S.SAGA[h.id];
    out.pools.push(S.heroPool(h.id).length);
    for(const a of saga.acts){out.acts++;if(!MEME_DECK_PRESETS[a[3]])out.missing.push(h.id+':'+a[3]);for(const l of [...a[4],a[5]])if(!/^[hen]:/.test(l))out.badLines.push(l);}
    if(saga.acts.length!==S.LEVELS.length)out.missing.push('acts '+h.id);}

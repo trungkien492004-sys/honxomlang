@@ -178,3 +178,9 @@ body .duel .board-frame .special-zone, body .duel .board-frame .duelist-corner {
 .hs-card[data-code="mai"] .hs-portal i { border-radius: 50% 0 50% 0; width: calc(7px * var(--ps)); height: calc(12px * var(--ps)); --dx: -14px; }
 .hs-card[data-code="yuma"] .hs-portal i { --dx: 12px; }
 .hs-card[data-code="yusei"] .hs-portal i { background: #ffb347; box-shadow: 0 0 10px #ff7a1a; --dx: 10px; }
+
+/* Chân dung nhân vật đợt mới. Có ảnh AI ở assets/characters/<code>.webp thì sân khấu tự dùng ảnh đó. */
+.hero-figure-marik, .hero-portrait-marik, .anime-portrait-marik { --portrait-pos: 50% 18%; background-image: url('../memecard/portraits/marik-v1.webp') !important; }
+.hero-figure-jack, .hero-portrait-jack, .anime-portrait-jack { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/jack-v1.webp') !important; }
+.hero-figure-shark, .hero-portrait-shark, .anime-portrait-shark { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/shark-v1.webp') !important; }
+.hero-figure-chazz, .hero-portrait-chazz, .anime-portrait-chazz { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/chazz-v1.webp') !important; }

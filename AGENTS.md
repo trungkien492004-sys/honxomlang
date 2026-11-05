@@ -215,3 +215,10 @@ Thêm nút phụ mới: thêm id vào `MENU_IDS`. Test: `node scripts/test-lobby
 `assets/js/meme_ja_voice.js`: giọng chỉ tiếng Nhật, không đọc tiếng khác khi máy thiếu giọng ja-JP. Không tải clip phim/lồng tiếng từ mạng về repo: site công khai, nội dung có bản quyền. File giọng do chủ repo tự cung cấp đặt ở `assets/audio/voices/ja/<code>_<ngữ cảnh>.mp3`.
 
 Che bài úp: `maskFaceDown()` trong `pick`/`pickMany` đặt `hidden` cho mọi bài úp của đối thủ. Handler không cần tự đặt `hidden`.
+
+## NHÂN VẬT ĐỢT MỚI (Marik, Jack, Shark, Chazz)
+
+`assets/js/meme_roster2_catalog.js` (lá, bộ bài, nhân vật) + `assets/js/meme_roster2_engine.js` (hiệu ứng). Test từng lá: `node scripts/test-roster2.cjs`.
+Chỉ thêm lá khi làm đúng được văn bản TCG; tra chỉ số/hiệu ứng từ db.ygoprodeck.com, không dựa trí nhớ. Mã hiệu ứng mới phải vào `memeRules.supported`.
+Thêm nhân vật cần: chân dung + CSS `hero-figure-<code>`, dải mắt, thoại `meme_ja_voice.js`, kỹ năng (`skillCandidates` + hai danh sách code), lọc `getCardHero` + `<option>` trong `meme_upgrade_phase1.js`, cập nhật số lượng trong test.
+Truyền Kỳ chỉ hiện nhân vật đã có dữ liệu trong `MEME_SAGA`.

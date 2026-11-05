@@ -47,8 +47,8 @@ const server = http.createServer((req, res) => {
 
     // 1. Verify Total Cards
     const totalCount = await page.$$eval('#deckGrid .deck-item', els => els.length);
-    assert.equal(totalCount, 305, 'Total cards in builder should be 305');
-    console.log('✓ Total 305 cards present');
+    assert.equal(totalCount, 327, 'Total cards in builder should be 327');
+    console.log('✓ Total 327 cards present');
 
     // 2. Verify 7 Characters + Staples Filter
     const characterCounts = {
@@ -61,6 +61,10 @@ const server = http.createServer((req, res) => {
       mai: 26,
       yusei: 20,
       yuma: 15,
+      marik: 5,
+      jack: 5,
+      shark: 5,
+      chazz: 7,
       staples: 36
     };
     for (const [hero, expected] of Object.entries(characterCounts)) {
