@@ -184,3 +184,20 @@ Multiple agents/sessions share this checkout. Before staging or committing:
 - Board regression test: `node scripts/test-race.cjs`.
 - "Push" for this project means: `git push` **and**
   `firebase deploy --only hosting`.
+
+## TRUYỀN KỲ (SAGA) — cốt truyện + cấp đấu sĩ
+
+Owned files: `assets/js/meme_saga.js`, `assets/js/meme_saga_data.js`, `assets/css/meme_saga.css`
+(loaded in `memecard.html` right after `meme_journey.js`). Test: `node scripts/test-saga.cjs`.
+
+- 9 đấu sĩ × 6 hồi, cần cấp 1/4/8/14/22/32; cấp tối đa 40; mốc thẻ ở cấp 2,5,8,12,16,20,25,30,35,40.
+- Tiến độ lưu ở `state.story.saga` (không thêm khóa gốc mới vì `normalize()` của meme_progress.js bỏ khóa lạ).
+- Kết quả trận gắn qua việc bọc `memeJourney.onDuelFinished`; không sửa meme_game.js.
+- Thêm hồi/đấu sĩ: sửa `meme_saga_data.js` (bộ bài đối thủ phải có trong `MEME_DECK_PRESETS`; test sẽ kiểm tra).
+
+## VFX PACK (CC0) — assets/vfx
+
+`assets/js/meme_vfx_pack.js` bọc `memeFx.summon/attack/cardActivation/flipTrap` để phát thêm sprite CC0 từ
+`assets/vfx/{kenney-particles,gothicvania-magic9,starsteel-spells}` (nguồn + giấy phép ở `assets/vfx/CREDITS.txt`).
+Chỉ thêm lớp hiệu ứng trong `#memeFxLayer`, tắt khi `memeFx.mode==='minimal'` hoặc reduced-motion, tối đa 28 phần tử cùng lúc.
+Sprite Kenney đã chuyển độ sáng → alpha để tô màu bằng CSS mask. Chỉ thêm asset có giấy phép CC0/tương đương và ghi vào CREDITS.txt. Test: `node scripts/test-vfx-pack.cjs`.

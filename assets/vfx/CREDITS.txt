@@ -1,0 +1,10 @@
+Hiệu ứng sprite dùng trong chế độ Duel (assets/js/meme_vfx_pack.js). Tất cả giấy phép CC0 (miền công cộng).
+
+1. kenney-particles/  — "Particle Pack" của Kenney Vleugels (Kenney.nl). CC0. Đã chọn lọc 56/80 sprite và thu nhỏ về tối đa 256px, chuyển độ sáng thành kênh alpha (nền đen trong suốt) để tô màu bằng CSS mask.
+   Nguồn: https://kenney.nl/assets/particle-pack (bản sao https://opengameart.org/content/particle-pack-80-sprites)
+2. gothicvania-magic9/ — "Gothicvania Magic Pack 9" của ansimuz. CC0. Dùng 4 spritesheet: Lightning, Dark-Bolt, Fire-bomb, spark.
+   Nguồn: https://opengameart.org/content/gothicvania-magic-pack-9
+3. starsteel-spells/   — "Spell effects" của StarsteelGaming. CC0. Các khung Fireball/Icespear/Thundersphere ghép thành dải ngang.
+   Nguồn: https://opengameart.org/content/spell-effects-by-starsteelgaming
+
+Không bắt buộc ghi công với CC0, nhưng giữ file này để biết nguồn gốc.
