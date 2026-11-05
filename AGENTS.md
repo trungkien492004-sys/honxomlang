@@ -207,3 +207,11 @@ Sprite Kenney đã chuyển độ sáng → alpha để tô màu bằng CSS mask
 `assets/js/meme_lobby_menu.js` + `assets/css/meme_lobby_menu.css` gom Truyền Kỳ, Hành trình, Bảng Xếp Hạng, Cửa hàng, Bộ bài vào nút `☰ Menu`.
 `Đấu Rank nhanh` (#rankPlayBtn) và `Vào trận` (#playBtn) giữ riêng ở footer. Nút được di chuyển (giữ id + handler), script khác thêm nút vào footer sau đó vẫn được gom.
 Thêm nút phụ mới: thêm id vào `MENU_IDS`. Test: `node scripts/test-lobby-menu.cjs`.
+
+## HIỆU ỨNG TRẬN ĐẤU + GIỌNG NÓI
+
+`assets/js/meme_fx_cinema.js` + `assets/css/meme_fx_cinema.css`: bài vỡ + bụi vào Mộ (móc trong `remove()` và `clearSpell()` của `meme_anime_rules.js`), lá core tấn công, cut-in mắt (`assets/characters/eyes/<code>.webp`, tỉ lệ 4:1, hai mắt nằm ngang). Thêm nhân vật mới phải có dải mắt riêng. Test: `node scripts/test-cinema.cjs`.
+
+`assets/js/meme_ja_voice.js`: giọng chỉ tiếng Nhật, không đọc tiếng khác khi máy thiếu giọng ja-JP. Không tải clip phim/lồng tiếng từ mạng về repo: site công khai, nội dung có bản quyền. File giọng do chủ repo tự cung cấp đặt ở `assets/audio/voices/ja/<code>_<ngữ cảnh>.mp3`.
+
+Che bài úp: `maskFaceDown()` trong `pick`/`pickMany` đặt `hidden` cho mọi bài úp của đối thủ. Handler không cần tự đặt `hidden`.
