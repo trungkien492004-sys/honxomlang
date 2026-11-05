@@ -1119,16 +1119,20 @@ function commitSpellSource(n,c,ctx){
  for(const e of E(other(n)))if(e.slot.snatchStolen&&e.slot.homeOwner===n)enqueue(async()=>{if(E(other(n)).some(x=>x.slot===e.slot)&&e.slot.homeOwner===n)await fx(n,card(aid('Snatch Steal')),'heal',[{name:n,type:'lp'}],()=>base.heal(n,500),{text:'Cướp Đoạt: chủ cũ hồi 500 LP.'});});
  if(window.memeAnime?.onStartTurn)enqueue(()=>window.memeAnime.onStartTurn(n));}
  async function endTurn(n){const s=S(n);
-  if(s.stardustReviveQueued===duel.round&&s.grave.includes(aid('Stardust Dragon'))&&free(n)>=0){
-    delete s.stardustReviveQueued;
-    const idx=s.grave.indexOf(aid('Stardust Dragon'));
+  // Rồng Tinh Tú có thể bị hiến tế vào lượt đối thủ: cờ nằm ở phe chủ nó, nên kiểm tra cả hai phe.
+  for(const m of [n,other(n)]){
+  const ms=S(m);
+  if(ms.stardustReviveQueued===duel.round&&ms.grave.includes(aid('Stardust Dragon'))&&(!ms.extra||free(m)>=0)){
+    delete ms.stardustReviveQueued;
+    const idx=ms.grave.indexOf(aid('Stardust Dragon'));
     if(idx>=0){
-      s.grave.splice(idx,1);
+      ms.grave.splice(idx,1);
       const slot={...monsterSlot(aid('Stardust Dragon')),properlySummoned:true};uid(slot);
-      s.monsters[free(n)]=slot;
+      placeOnField(m,slot);
       log('✦ Rồng Tinh Tú trở lại sân từ Mộ ở End Phase!');
-      enqueue(()=>postSummon(n,slot));
+      enqueue(()=>postSummon(m,slot));
     }
+  }
   }
   for(const e of [...E(n)])if(e.slot.returnExtraEnd){if(guardRemoval(n,e.slot,'effect')){delete e.slot.returnExtraEnd;continue;}await fx(n,card(e.slot.id),'fusion',[{name:n,index:e.index}],()=>{if(e.extra)s.extra=null;else s.monsters[e.index]=null;s.extraDeck.push(e.slot.id);});}
   if(s.powerBondDebt){const debt=s.powerBondDebt;s.powerBondDebt=0;await fx(n,card(aid('Power Bond')),'damage',[{name:n,type:'lp'}],()=>damage(n,debt),{text:`Power Bond: nhận ${debt} sát thương cuối lượt.`});}
