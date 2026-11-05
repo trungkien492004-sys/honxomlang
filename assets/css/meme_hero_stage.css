@@ -86,3 +86,5 @@
 
 .lobby-roster .hs-studio { display: block; text-align: center; font-size: 12px; color: #8fe8ff; opacity: .8; margin: 0 0 6px; text-decoration: none; }
 .lobby-roster .hs-studio:hover { opacity: 1; text-decoration: underline; }
+
+#lobby .lobby-roster.has-dial .roster-caption { display: none !important; }

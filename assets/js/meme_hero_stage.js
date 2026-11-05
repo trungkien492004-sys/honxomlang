@@ -29,9 +29,6 @@
     '<div class="hs-label" aria-live="polite"><b></b><small></small></div><div class="hs-dots"></div>';
   section.insertBefore(stage, picker);
   section.classList.add('has-dial');
-  const studio = document.createElement('a');
-  studio.className = 'hs-studio'; studio.href = 'art-studio.html'; studio.target = '_blank'; studio.rel = 'noopener'; studio.textContent = '🎨 Prompt vẽ ảnh nhân vật bằng AI';
-  stage.after(studio);
   const dial = stage.querySelector('.hs-dial'), fx = stage.querySelector('.hs-fx'), dots = stage.querySelector('.hs-dots');
   const label = stage.querySelector('.hs-label');
 
