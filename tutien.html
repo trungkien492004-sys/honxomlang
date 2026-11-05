@@ -6,8 +6,9 @@
     <title>Tu Tiên Kỷ Nguyên Hiện Đại — Hồn Xóm Làng</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/tutien/css/style.css?v=20261101-theme-v1">
+    <link rel="stylesheet" href="assets/tutien/css/style.css?v=20261101-combat-v1">
     <link rel="stylesheet" href="assets/tutien/css/animations.css">
+    <link rel="stylesheet" href="assets/tutien/css/battle.css?v=20261105-combat-v1">
     <style>
         * { font-family: 'Nunito', system-ui, sans-serif; }
         h1, h2, h3, h4, .brand-title, .modal-title, .auth-title { font-family: 'Baloo 2', sans-serif !important; }
@@ -237,10 +238,48 @@
                 </div>
                 <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 14px; text-align: left; font-size: 12px; color: #cbd5e1;">
                     <div style="color: var(--accent-gold); font-weight: bold; margin-bottom: 6px;">Quy Luật Thiên Đạo:</div>
-                    • Tâm cảnh ổn định (>50%) sẽ giúp đột phá an toàn, tránh Tẩu Hỏa Nhập Ma.<br>
-                    • Đột phá Kim Đan, Nguyên Anh sẽ giáng Cửu Thiên Lôi Kiếp thực sự!
+                    <div id="bt-chance" style="margin-bottom:8px;color:#e2e8f0;"></div>
+                    • Đả tọa có hồi chiêu 6s, hồi phục sinh lực/linh lực; 10% bị tâm ma.<br>
+                    • Đột phá thất bại: mất 20% tu vi, tâm cảnh -8. Tâm cảnh cao &amp; Phá Cảnh Đan tăng tỷ lệ.<br>
+                    • Đột phá đại cảnh giới Kim Đan trở lên phải độ Lôi Kiếp thật (trận theo lượt)!
+                </div>
+                <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+                    <button class="btn-primary" style="width:230px;font-size:12px;" onclick="window.gameApp.buyItem('heal')">💊 Mua Tụ Khí Đan (150 Tệ)</button>
+                    <button class="btn-primary" style="width:230px;font-size:12px;" onclick="window.gameApp.buyItem('break')">🌟 Mua Phá Cảnh Đan (10 Thạch)</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CHIẾN ĐẤU THEO LƯỢT -->
+    <div id="modal-battle" class="modal-overlay battle-overlay">
+        <div class="battle-window">
+            <div class="battle-head"><span id="battle-title">Chiến Đấu</span><span class="battle-keys">Phím: 1-4 kỹ năng · G phòng thủ · E uống đan</span></div>
+            <div class="battle-field">
+                <div class="battle-card enemy" id="battle-enemy-card">
+                    <div class="battle-fx" id="battle-enemy-fx"></div>
+                    <div class="bc-name" id="battle-enemy-name"></div>
+                    <div class="bc-el" id="battle-enemy-el"></div>
+                    <div class="bar-wrap"><div class="bar-fill bar-hp" id="battle-enemy-hp"></div></div>
+                    <div class="bc-num" id="battle-enemy-hp-text"></div>
+                    <div class="bc-status" id="battle-enemy-status"></div>
+                </div>
+                <div class="battle-vs">VS</div>
+                <div class="battle-card player" id="battle-player-card">
+                    <div class="battle-fx" id="battle-player-fx"></div>
+                    <div class="bc-name" id="battle-player-name"></div>
+                    <div class="bc-el" id="battle-player-el"></div>
+                    <div class="bar-wrap"><div class="bar-fill bar-hp" id="battle-player-hp"></div></div>
+                    <div class="bc-num" id="battle-player-hp-text"></div>
+                    <div class="bar-wrap" style="margin-top:6px;"><div class="bar-fill bar-mp" id="battle-player-mp"></div></div>
+                    <div class="bc-num" id="battle-player-mp-text"></div>
+                    <div class="bc-status" id="battle-player-status"></div>
+                </div>
+            </div>
+            <div class="battle-intent" id="battle-intent"></div>
+            <div class="battle-log" id="battle-log"></div>
+            <div class="battle-actions" id="battle-actions"></div>
+            <div class="battle-hint">Ngũ hành: Kim▸Mộc▸Thổ▸Thủy▸Hỏa▸Kim · Lôi khắc Thủy/Phong · Phong khắc Thổ. ▲ khắc (x1.5) ▼ bị kháng (x0.75).</div>
         </div>
     </div>
 
@@ -268,7 +307,7 @@
             <div class="modal-body">
                 <div id="pvp-arena-content">
                     <p style="color: var(--text-muted); margin-bottom: 16px;">
-                        Tỷ võ so tài với các cao thủ Tiên Giới thời gian thực. Bảng xếp hạng ELO chuẩn quốc tế.
+                        Tỷ võ theo lượt với ảnh tu sĩ cân bằng chỉ số. Thắng +24 ELO, +300 Linh Tệ; thua -16 ELO.
                     </p>
                     <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;">
                         <button class="btn-primary" style="width: 260px;" onclick="window.gameApp.startPvpQueue()">
@@ -335,7 +374,7 @@
         </div>
     </div>
 
-    <script src="assets/tutien/js/tutien_bundle.js?v=20261101-world-v1"></script>
+    <script src="assets/tutien/js/tutien_bundle.js?v=20261101-combat-v1"></script>
     <script>
         let selectedSchool = 'sword';
         document.querySelectorAll('.school-card').forEach(card => {

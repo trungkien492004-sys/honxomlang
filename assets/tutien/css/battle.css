@@ -1,0 +1,33 @@
+/* GĐ1: giao diện chiến đấu theo lượt (Tu Tiên) */
+.battle-overlay { z-index: 80; background: radial-gradient(ellipse at center, rgba(20,12,40,.82), rgba(0,0,0,.92)); }
+.battle-window { width: min(760px, 96vw); max-height: 94vh; overflow-y: auto; background: var(--bg-panel); border: 1px solid var(--accent-gold); border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 50px rgba(0,0,0,.85), 0 0 30px rgba(255,215,0,.15); }
+.battle-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-weight: 800; color: var(--accent-gold); font-size: 17px; margin-bottom: 10px; }
+.battle-keys { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+.battle-field { display: flex; align-items: stretch; gap: 10px; }
+.battle-card { position: relative; flex: 1; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; }
+.battle-card.enemy { border-color: rgba(239,68,68,.5); }
+.battle-card.player { border-color: rgba(0,229,255,.5); }
+.battle-card.hit { animation: battleShake .35s; }
+@keyframes battleShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); background: rgba(239,68,68,.3); } 60% { transform: translateX(5px); } }
+.bc-name { font-weight: 800; font-size: 14px; color: #fff; }
+.bc-el { font-size: 11px; color: var(--accent-gold); margin-bottom: 6px; }
+.bc-num { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+.bc-status { min-height: 15px; font-size: 11px; color: #fca5a5; margin-top: 4px; }
+.battle-vs { align-self: center; font-weight: 900; color: var(--accent-crimson); }
+.battle-fx { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.battle-dmg { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); font-weight: 900; font-size: 22px; color: #ef4444; text-shadow: 0 2px 6px #000; animation: battleFloat .9s ease-out forwards; }
+.battle-dmg.strong { color: #ffd700; font-size: 28px; }
+@keyframes battleFloat { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -48px); } }
+.battle-intent { margin: 10px 0 6px; min-height: 18px; text-align: center; font-size: 13px; font-weight: 700; color: #fde047; }
+.battle-log { height: 110px; overflow-y: auto; background: rgba(0,0,0,.4); border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #cbd5e1; }
+.battle-log .bl { margin-bottom: 3px; }
+.battle-log .bl.good { color: #6ee7b7; }
+.battle-log .bl.bad { color: #fca5a5; }
+.battle-log .bl.warn { color: #fde047; }
+.battle-actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+.battle-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(0,229,255,.4); background: linear-gradient(135deg, rgba(2,132,199,.35), rgba(15,23,42,.9)); color: #fff; font-weight: 800; font-size: 12px; cursor: pointer; text-align: left; }
+.battle-btn small { font-weight: 600; font-size: 10px; color: #94a3b8; }
+.battle-btn:hover:not(:disabled) { border-color: var(--accent-gold); transform: translateY(-1px); }
+.battle-btn:disabled { opacity: .4; cursor: not-allowed; }
+.battle-hint { margin-top: 8px; font-size: 10px; color: var(--text-muted); text-align: center; }
+@media (max-width: 560px) { .battle-field { flex-direction: column; } }

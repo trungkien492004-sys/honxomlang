@@ -216,26 +216,31 @@ class GameRenderer {
         ctx.save();
         ctx.translate(-Math.round(this.camera.x), -Math.round(this.camera.y));
 
+        // 1. RENDER MAP BACKGROUND & TILES
         this.renderMap(ctx, mapInfo, now);
 
+        // 2. RENDER PORTALS
         if (mapInfo && mapInfo.portals) {
             for (const portal of mapInfo.portals) {
                 this.renderPortal(ctx, portal, now);
             }
         }
 
+        // 3. RENDER NPCS
         if (mapInfo && mapInfo.npcs) {
             for (const npc of mapInfo.npcs) {
                 this.renderNPC(ctx, npc, now);
             }
         }
 
+        // 4. RENDER MONSTERS & BOSSES
         if (snapshot && snapshot.monsters) {
             for (const mob of snapshot.monsters) {
                 this.renderMonster(ctx, mob, now);
             }
         }
 
+        // 5. RENDER PLAYERS
         if (snapshot && snapshot.players) {
             for (const p of snapshot.players) {
                 const isLocal = (p.id === localPlayerId);
@@ -243,8 +248,13 @@ class GameRenderer {
             }
         }
 
+        // 6. RENDER SKILL VISUAL EFFECTS
         this.renderSkillVisuals(ctx, now);
+
+        // 7. RENDER PARTICLES
         this.renderParticles(ctx);
+
+        // 8. RENDER FLOATING DAMAGE / HEAL TEXTS
         this.renderFloatingTexts(ctx);
 
         ctx.restore();
@@ -649,6 +659,7 @@ class GameRenderer {
         ctx.save();
         ctx.translate(portal.x, portal.y);
 
+        // Vòng xoáy portal
         ctx.rotate(rot);
         ctx.strokeStyle = '#00e5ff';
         ctx.lineWidth = 3;
@@ -664,6 +675,7 @@ class GameRenderer {
 
         ctx.restore();
 
+        // Nhãn cổng dịch chuyển
         ctx.fillStyle = '#00e5ff';
         ctx.font = 'bold 11px Segoe UI, Nunito';
         ctx.textAlign = 'center';
@@ -671,14 +683,17 @@ class GameRenderer {
     }
 
     renderNPC(ctx, npc, now) {
+        // Vẽ NPC
         ctx.save();
         ctx.translate(npc.x, npc.y);
 
+        // Vòng chân NPC
         ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
         ctx.beginPath();
         ctx.ellipse(0, 16, 16, 8, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        // Thân NPC
         ctx.fillStyle = '#f59e0b';
         ctx.beginPath();
         ctx.arc(0, 0, 15, 0, Math.PI * 2);
@@ -687,17 +702,19 @@ class GameRenderer {
         ctx.lineWidth = 2;
         ctx.stroke();
 
+        // Icon NPC
         ctx.fillStyle = '#fff';
         ctx.font = '14px Segoe UI';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('🧘', 0, 0);
 
-        ctx.font = 'bold 12px Segoe UI, Nunito';
+        // Tên & Danh hiệu
+        ctx.font = 'bold 12px Segoe UI';
         ctx.fillStyle = '#ffd700';
         ctx.fillText(npc.name, 0, -28);
 
-        ctx.font = '10px Segoe UI, Nunito';
+        ctx.font = '10px Segoe UI';
         ctx.fillStyle = '#cbd5e1';
         ctx.fillText(`<${npc.title}>`, 0, -16);
 
@@ -710,11 +727,13 @@ class GameRenderer {
 
         const radius = mob.isBoss ? 28 : 16;
 
+        // Bóng đổ
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.beginPath();
         ctx.ellipse(0, radius, radius * 1.1, radius * 0.5, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        // Hào quang cuồng nộ Boss (Enrage Aura)
         if (mob.isEnraged) {
             ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
             ctx.lineWidth = 3;
@@ -723,6 +742,7 @@ class GameRenderer {
             ctx.stroke();
         }
 
+        // Thân quái
         ctx.fillStyle = mob.isBoss ? '#b91c1c' : '#7f1d1d';
         ctx.beginPath();
         ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -731,16 +751,19 @@ class GameRenderer {
         ctx.lineWidth = mob.isBoss ? 3 : 1.5;
         ctx.stroke();
 
+        // Icon quái vật
         ctx.fillStyle = '#fff';
         ctx.font = mob.isBoss ? '22px Segoe UI' : '15px Segoe UI';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(mob.isBoss ? '👑👹' : '🐺', 0, 0);
 
-        ctx.font = mob.isBoss ? 'bold 12px Segoe UI, Nunito' : '11px Segoe UI, Nunito';
+        // Tên quái vật
+        ctx.font = mob.isBoss ? 'bold 12px Segoe UI' : '11px Segoe UI';
         ctx.fillStyle = mob.isBoss ? '#ffd700' : '#fca5a5';
-        ctx.fillText(mob.name, 0, -radius - 14);
+        ctx.fillText((mob.element ? mob.element + ' · ' : '') + mob.name, 0, -radius - 14);
 
+        // Thanh HP quái
         const barW = radius * 2.2;
         const barH = 5;
         const hpPercent = Math.max(0, mob.hp / mob.maxHp);
@@ -754,15 +777,16 @@ class GameRenderer {
 
     renderPlayer(ctx, p, isLocal, now) {
         ctx.save();
-        ctx.translate(p.pos_x || p.x, p.pos_y || p.y);
+        ctx.translate(p.pos_x ?? p.x, p.pos_y ?? p.y);
 
+        // Hào quang Chân Khí dưới chân (Aura xoay theo cảnh giới)
         const rot = (now / 1000) * 2;
         ctx.save();
         ctx.rotate(rot);
         let auraColor = '#00e5ff';
-        if (p.realm >= 3) auraColor = '#ffd700';
-        if (p.realm >= 4) auraColor = '#a855f7';
-        if (p.realm >= 5) auraColor = '#ef4444';
+        if (p.realm >= 3) auraColor = '#ffd700'; // Kim Đan
+        if (p.realm >= 4) auraColor = '#a855f7'; // Nguyên Anh
+        if (p.realm >= 5) auraColor = '#ef4444'; // Hóa Thần
 
         ctx.strokeStyle = auraColor;
         ctx.lineWidth = 2;
@@ -771,16 +795,19 @@ class GameRenderer {
         ctx.stroke();
         ctx.restore();
 
+        // Bóng đổ
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.beginPath();
         ctx.ellipse(0, 14, 14, 6, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        // Phi kiếm bay lơ lửng phía sau lưng
         const swordFloatY = Math.sin(now / 200) * 3;
         ctx.fillStyle = '#00e5ff';
         ctx.font = '16px Segoe UI';
         ctx.fillText('🗡️', 14, -8 + swordFloatY);
 
+        // Thân người chơi
         ctx.fillStyle = isLocal ? '#0284c7' : '#475569';
         ctx.beginPath();
         ctx.arc(0, 0, 16, 0, Math.PI * 2);
@@ -789,22 +816,25 @@ class GameRenderer {
         ctx.lineWidth = isLocal ? 2.5 : 1;
         ctx.stroke();
 
+        // Icon nhân vật
         ctx.fillStyle = '#fff';
         ctx.font = '16px Segoe UI';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('🧙‍♂️', 0, 0);
 
-        ctx.font = 'bold 12px Segoe UI, Nunito';
+        // Tên & Danh hiệu
+        ctx.font = 'bold 12px Segoe UI';
         ctx.fillStyle = isLocal ? '#00e5ff' : '#fff';
         ctx.fillText(p.name, 0, -28);
 
-        ctx.font = '10px Segoe UI, Nunito';
+        ctx.font = '10px Segoe UI';
         ctx.fillStyle = '#ffd700';
         ctx.fillText(`[${p.title}]`, 0, -16);
 
+        // Thanh máu nhỏ
         const barW = 36;
-        const hpPct = Math.max(0, p.hp / p.max_hp);
+        const hpPct = Math.max(0, p.hp / (p.max_hp ?? p.maxHp));
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(-barW / 2, -10, barW, 3);
         ctx.fillStyle = '#10b981';
@@ -826,6 +856,7 @@ class GameRenderer {
             ctx.lineWidth = 3;
             ctx.stroke();
 
+            // Hiệu ứng lửa hoặc sấm
             if (fx.skillId === 'elemental_burst') {
                 ctx.fillStyle = `rgba(239, 68, 68, ${fx.life * 0.4})`;
                 ctx.fill();
@@ -871,7 +902,7 @@ class GameRenderer {
 
             ctx.save();
             ctx.globalAlpha = ft.alpha;
-            ctx.font = ft.type === 'crit' ? 'bold 18px Segoe UI, Nunito' : 'bold 14px Segoe UI, Nunito';
+            ctx.font = ft.type === 'crit' ? 'bold 18px Segoe UI' : 'bold 14px Segoe UI';
             ctx.textAlign = 'center';
 
             if (ft.type === 'crit') {
@@ -892,7 +923,8 @@ class GameRenderer {
     }
 }
 
-// --- 3. GAME SYSTEM & SIMULATION ENGINE ---
+// --- 3. GAME ENGINE ---
+// CẤU HÌNH CẢNH GIỚI & DỮ LIỆU
 const REALMS_DATA = [
     { id: 1, name: 'Luyện Khí', maxStages: 9, baseHp: 250, baseMp: 120, baseAtk: 30, baseDef: 18, expReq: 120, tribulation: false },
     { id: 2, name: 'Trúc Cơ', maxStages: 4, baseHp: 800, baseMp: 400, baseAtk: 95, baseDef: 60, expReq: 3500, tribulation: false },
@@ -908,6 +940,7 @@ const MAPS_DATA = {
         width: 1400,
         height: 1000,
         ambientQi: 1.0,
+        safe: true,
         spawns: { x: 450, y: 500 },
         portals: [
             { targetMap: 'beast_forest', x: 100, y: 500, label: 'Lối Ra Rừng Yêu Thú' },
@@ -935,12 +968,63 @@ const MAPS_DATA = {
         width: 1100,
         height: 800,
         ambientQi: 1.0,
+        safe: true,
         spawns: { x: 550, y: 700 },
         portals: [
             { targetMap: 'city_tan_hai', x: 550, y: 760, label: 'Về Đô Thị' }
         ]
     }
 };
+
+// ===== NGŨ HÀNH & KỸ NĂNG =====
+// beats[a] = các hệ mà a khắc (x1.5); bị khắc ngược lại thì x0.75.
+const ELEMENT_BEATS = {
+    'Kim': ['Mộc'], 'Mộc': ['Thổ'], 'Thổ': ['Thủy'], 'Thủy': ['Hỏa'], 'Hỏa': ['Kim'],
+    'Lôi': ['Thủy', 'Phong'], 'Phong': ['Thổ']
+};
+const ELEMENT_ICON = { 'Kim': '⚙️', 'Mộc': '🌿', 'Thủy': '💧', 'Hỏa': '🔥', 'Thổ': '⛰️', 'Lôi': '⚡', 'Phong': '🌪️' };
+function elementMult(att, def) {
+    if ((ELEMENT_BEATS[att] || []).includes(def)) return 1.5;
+    if ((ELEMENT_BEATS[def] || []).includes(att)) return 0.75;
+    return 1;
+}
+
+const SKILLS_DATA = [
+    { id: 'sword_slash', name: 'Thanh Phong Kiếm Khí', el: 'Kim', mpCost: 15, cd: 0, dmgMult: 1.4, icon: '🗡️' },
+    { id: 'ten_thousand_swords', name: 'Vạn Kiếm Quy Tông', el: 'Kim', mpCost: 45, cd: 3, dmgMult: 2.8, icon: '✨⚔️' },
+    { id: 'elemental_burst', name: 'Hỏa Cầu Diễm Bạo', el: 'Hỏa', mpCost: 30, cd: 2, dmgMult: 2.1, burn: 3, icon: '🔥' },
+    { id: 'thunder_wrath', name: 'Cửu Thiên Thần Lôi', el: 'Lôi', mpCost: 60, cd: 4, dmgMult: 3.2, stunChance: 0.5, icon: '⚡' }
+];
+
+const PILL_HEAL = 'Tụ Khí Đan';
+const PILL_BREAK = 'Phá Cảnh Đan';
+const SHOP = {
+    heal: { name: PILL_HEAL, type: 'pill', rarity: 'spiritual', currency: 'gold', price: 150 },
+    break: { name: PILL_BREAK, type: 'pill_break', rarity: 'earth', currency: 'spirit_stones', price: 10 }
+};
+
+// Quái theo bản đồ. `moves`: đòn của quái; heavy = báo trước 1 lượt, phòng thủ giảm mạnh.
+function mobTemplates() {
+    const wolf = [{ name: 'Cắn Xé', mult: 1, w: 3 }, { name: 'Vồ Mạnh', mult: 1.9, w: 1, heavy: true }];
+    const eagle = [{ name: 'Mổ', mult: 1, w: 2 }, { name: 'Lôi Điện Giáng', mult: 1.7, w: 1, heavy: true }];
+    const bear = [{ name: 'Vả', mult: 1, w: 2 }, { name: 'Hỏa Diễm Phun', mult: 1.2, w: 2, burn: 3 }, { name: 'Địa Chấn', mult: 2.1, w: 1, heavy: true }];
+    const demon = [{ name: 'Ma Trảo', mult: 1, w: 2 }, { name: 'Hư Không Thực', mult: 1.4, w: 2, burn: 3 }, { name: 'Diệt Thế', mult: 2.4, w: 1, heavy: true }];
+    const mk = (id, name, el, hp, atk, def, speed, x, y, realm, moves, extra = {}) => ({
+        id, name, element: el, isBoss: false, maxHp: hp, hp, atk, def, speed, x, y, homeX: x, homeY: y,
+        realm, moves, isDead: false, isEnraged: false, nextEngage: 0, respawnAt: 0, ...extra
+    });
+    return [
+        mk('mob_1', 'Thiết Giáp Sói', 'Kim', 260, 32, 14, 90, 800, 500, 1, wolf, { mapId: 'beast_forest' }),
+        mk('mob_5', 'Thanh Mộc Sói', 'Mộc', 260, 30, 12, 90, 1100, 800, 1, wolf, { mapId: 'beast_forest' }),
+        mk('mob_2', 'Lôi Đình Ưng', 'Lôi', 340, 42, 12, 110, 600, 300, 1, eagle, { mapId: 'beast_forest' }),
+        mk('mob_6', 'Hàn Thủy Xà', 'Thủy', 300, 36, 10, 95, 450, 900, 1, wolf, { mapId: 'beast_forest' }),
+        mk('mob_3', 'Xích Viêm Cự Hùng (Thủ Lĩnh)', 'Hỏa', 2200, 80, 50, 75, 500, 600, 2, bear, { mapId: 'beast_forest', isBoss: true }),
+        mk('mob_4', 'Hư Không Diệt Thế Ma Tôn (Thế Giới Boss)', 'Thủy', 12000, 300, 160, 85, 250, 1000, 3, demon, { mapId: 'beast_forest', isBoss: true })
+    ];
+}
+
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const rand = (a, b) => a + Math.random() * (b - a);
 
 class TuTienGame {
     constructor() {
@@ -952,7 +1036,10 @@ class TuTienGame {
         this.keys = {};
         this.mousePos = { x: 0, y: 0 };
         this.monsters = [];
-        this.pvpMatch = null;
+        this.battle = null;
+        this.meditateReadyAt = 0;
+        this._regenAcc = 0;
+        this._hudAcc = 0;
 
         this.initDOM();
         this.loadProgress();
@@ -971,14 +1058,16 @@ class TuTienGame {
         });
         canvas.addEventListener('mousedown', (e) => this.handleCanvasClick(e));
 
+        // Nút thoát về sảnh Hon Xom Lang
         const exitBtn = document.getElementById('btn-exit-honxomlang');
         if (exitBtn) {
             exitBtn.onclick = () => this.exitToHonXomLang();
         }
 
+        // Loop 60FPS
         let lastTime = Date.now();
         const loop = (now) => {
-            const dt = (Date.now() - lastTime) / 1000;
+            const dt = Math.min(0.1, (Date.now() - lastTime) / 1000);
             lastTime = Date.now();
 
             this.update(dt);
@@ -986,7 +1075,7 @@ class TuTienGame {
                 this.renderer.updateCamera(this.character.pos_x, this.character.pos_y);
                 const snapshot = {
                     players: [this.character],
-                    monsters: this.monsters.filter(m => !m.isDead)
+                    monsters: this.monsters.filter(m => !m.isDead && m.mapId === this.currentMap.id)
                 };
                 this.renderer.render(snapshot, this.character.id, this.currentMap, now);
             }
@@ -1004,12 +1093,21 @@ class TuTienGame {
     }
 
     initWorldMobs() {
-        this.monsters = [
-            { id: 'mob_1', name: 'Thiết Giáp Sói', isBoss: false, maxHp: 350, hp: 350, atk: 40, def: 20, speed: 90, x: 500, y: 600, realm: 1, isDead: false },
-            { id: 'mob_2', name: 'Lôi Đình Ưng', isBoss: false, maxHp: 480, hp: 480, atk: 55, def: 18, speed: 110, x: 800, y: 400, realm: 1, isDead: false },
-            { id: 'mob_3', name: 'Xích Viêm Cự Hùng (Thủ Lĩnh)', isBoss: true, maxHp: 3500, hp: 3500, atk: 120, def: 70, speed: 75, x: 1000, y: 700, realm: 2, isDead: false, isEnraged: false },
-            { id: 'mob_4', name: 'Hư Không Diệt Thế Ma Tôn (Thế Giới Boss)', isBoss: true, maxHp: 18000, hp: 18000, atk: 350, def: 180, speed: 85, x: 400, y: 300, realm: 3, isDead: false, isEnraged: false }
-        ];
+        this.monsters = mobTemplates();
+    }
+
+    // Bản lưu cũ thiếu trường mới / kỹ năng cũ: bù mặc định, giữ nguyên tiến trình.
+    migrateCharacter() {
+        const c = this.character;
+        if (!c) return;
+        if (c.max_mp === undefined) c.max_mp = 120;
+        if (c.hp === undefined || c.hp > c.max_hp) c.hp = c.max_hp;
+        if (c.mp === undefined || c.mp > c.max_mp) c.mp = c.max_mp;
+        if (c.school === undefined) c.school = 'sword';
+        this.skills = SKILLS_DATA.map(s => ({ ...s }));
+        for (const it of this.inventory) {
+            if (it.name === PILL_BREAK) it.type = 'pill_break';
+        }
     }
 
     loadProgress() {
@@ -1019,7 +1117,7 @@ class TuTienGame {
                 const data = JSON.parse(saved);
                 this.character = data.character;
                 this.inventory = data.inventory || [];
-                this.skills = data.skills || [];
+                this.migrateCharacter();
                 document.getElementById('auth-screen').classList.remove('active');
                 document.getElementById('game-screen').classList.add('active');
                 this.updateHUD();
@@ -1027,6 +1125,7 @@ class TuTienGame {
                 return;
             } catch (e) {}
         }
+        // Chưa có dữ liệu -> Mở màn hình đăng ký/tạo nhân vật
         document.getElementById('auth-screen').classList.add('active');
     }
 
@@ -1047,7 +1146,7 @@ class TuTienGame {
         }
 
         const elements = ['Kim', 'Mộc', 'Thủy', 'Hỏa', 'Thổ', 'Lôi', 'Phong'];
-        const randomEl = elements[Math.floor(Math.random() * elements.length)];
+        const randomEl = pick(elements);
 
         this.character = {
             id: 'char_' + Date.now(),
@@ -1079,18 +1178,20 @@ class TuTienGame {
             pvp_losses: 0,
             title: 'Luyện Khí Tu Sĩ'
         };
+        // Thiên phú theo trường phái
+        const c = this.character;
+        if (school === 'sword') { c.atk += 5; c.crit_rate = 0.14; }
+        else if (school === 'body') { c.max_hp += 90; c.hp = c.max_hp; c.def += 8; }
+        else if (school === 'spell') { c.max_mp += 70; c.mp = c.max_mp; c.atk += 3; }
+        else if (school === 'array') { c.def += 4; }
+        else if (school === 'demonic') { c.atk += 4; }
+        else if (school === 'medicine') { c.max_hp += 40; c.hp = c.max_hp; }
 
         this.inventory = [
             { id: 'inv_1', name: 'Mộc Kiếm Khởi Đầu', type: 'weapon', rarity: 'common', quantity: 1 },
-            { id: 'inv_2', name: 'Tụ Khí Đan', type: 'pill', rarity: 'spiritual', quantity: 5 }
+            { id: 'inv_2', name: PILL_HEAL, type: 'pill', rarity: 'spiritual', quantity: 5 }
         ];
-
-        this.skills = [
-            { id: 'sword_slash', name: 'Thanh Phong Kiếm Khí', mpCost: 15, dmgMult: 1.4 },
-            { id: 'ten_thousand_swords', name: 'Vạn Kiếm Quy Tông', mpCost: 45, dmgMult: 2.8 },
-            { id: 'elemental_burst', name: 'Hỏa Cầu Diễm Bạo', mpCost: 30, dmgMult: 2.1 },
-            { id: 'thunder_wrath', name: 'Cửu Thiên Thần Lôi', mpCost: 60, dmgMult: 3.2 }
-        ];
+        this.skills = SKILLS_DATA.map(s => ({ ...s }));
 
         this.saveProgress();
         document.getElementById('auth-screen').classList.remove('active');
@@ -1100,9 +1201,27 @@ class TuTienGame {
         audio.playMeditationQi();
     }
 
+    // ===== THẾ GIỚI =====
     update(dt) {
         if (!this.character) return;
+        const now = Date.now();
+        const inBattle = !!this.battle;
 
+        // Hồi sinh quái theo mốc thời gian (không dùng setTimeout)
+        for (const mob of this.monsters) {
+            if (mob.isDead && now >= mob.respawnAt) {
+                mob.isDead = false;
+                mob.hp = mob.maxHp;
+                mob.isEnraged = false;
+                mob.x = mob.homeX;
+                mob.y = mob.homeY;
+                mob.atk = mob.baseAtk || mob.atk;
+            }
+        }
+
+        if (inBattle) return;
+
+        // Di chuyển nhân vật
         let vx = 0;
         let vy = 0;
         const spd = 4;
@@ -1115,15 +1234,13 @@ class TuTienGame {
             this.character.pos_x = Math.max(30, Math.min(this.currentMap.width - 30, this.character.pos_x + vx));
             this.character.pos_y = Math.max(30, Math.min(this.currentMap.height - 30, this.character.pos_y + vy));
 
+            // Kiểm tra cổng dịch chuyển
             if (this.currentMap.portals) {
                 for (const portal of this.currentMap.portals) {
                     if (Math.hypot(this.character.pos_x - portal.x, this.character.pos_y - portal.y) < 50) {
                         const nextMap = MAPS_DATA[portal.targetMap];
                         if (nextMap) {
-                            this.currentMap = nextMap;
-                            this.character.pos_x = nextMap.spawns.x;
-                            this.character.pos_y = nextMap.spawns.y;
-                            this.showToast(`Dịch chuyển đến [${nextMap.name}]!`, 'gold');
+                            this.travelTo(nextMap);
                             break;
                         }
                     }
@@ -1131,10 +1248,28 @@ class TuTienGame {
             }
         }
 
+        // Hồi phục chậm ngoài chiến đấu (nhanh hơn ở khu an toàn)
+        this._regenAcc += dt;
+        if (this._regenAcc >= 1) {
+            const k = this.currentMap.safe ? 0.03 : 0.005;
+            const c = this.character;
+            const hp0 = c.hp, mp0 = c.mp;
+            c.hp = Math.min(c.max_hp, c.hp + Math.ceil(c.max_hp * k));
+            c.mp = Math.min(c.max_mp, c.mp + Math.ceil(c.max_mp * k));
+            this._regenAcc = 0;
+            if (c.hp !== hp0 || c.mp !== mp0) this.updateHUD();
+        }
+
+        // Quái vật AI: đuổi theo khi gần; chạm vào là khai chiến
         for (const mob of this.monsters) {
-            if (mob.isDead) continue;
+            if (mob.isDead || mob.mapId !== this.currentMap.id) continue;
             const dist = Math.hypot(this.character.pos_x - mob.x, this.character.pos_y - mob.y);
-            if (dist < 200 && dist > 40) {
+            const reach = mob.isBoss ? 56 : 42;
+            if (dist <= reach && now >= mob.nextEngage) {
+                this.startBattle(mob);
+                return;
+            }
+            if (dist < 200 && dist > reach - 6) {
                 const angle = Math.atan2(this.character.pos_y - mob.y, this.character.pos_x - mob.x);
                 mob.x += Math.cos(angle) * (mob.speed * dt);
                 mob.y += Math.sin(angle) * (mob.speed * dt);
@@ -1142,219 +1277,595 @@ class TuTienGame {
         }
     }
 
-    castSkill(skillId, targetX = null, targetY = null) {
-        if (!this.character) return;
-        const tx = targetX !== null ? targetX : this.mousePos.x;
-        const ty = targetY !== null ? targetY : this.mousePos.y;
+    travelTo(nextMap) {
+        this.currentMap = nextMap;
+        this.character.map_id = nextMap.id;
+        this.character.pos_x = nextMap.spawns.x;
+        this.character.pos_y = nextMap.spawns.y;
+        const t = Date.now() + 1500; // thời gian ân hạn, quái không vồ ngay lúc vừa tới
+        for (const m of this.monsters) m.nextEngage = Math.max(m.nextEngage, t);
+        this.showToast(`Dịch chuyển đến [${nextMap.name}]!`, 'gold');
+    }
 
-        if (this.pvpMatch) {
-            this.handlePvpSkillCast();
+    // ===== KHO ĐỒ =====
+    countItem(name) {
+        const it = this.inventory.find(i => i.name === name);
+        return it ? it.quantity : 0;
+    }
+    addItem(spec, qty = 1) {
+        const it = this.inventory.find(i => i.name === spec.name);
+        if (it) it.quantity += qty;
+        else this.inventory.push({ id: 'inv_' + Date.now() + Math.floor(Math.random() * 999), name: spec.name, type: spec.type, rarity: spec.rarity, quantity: qty });
+    }
+    consumeItem(name) {
+        const it = this.inventory.find(i => i.name === name);
+        if (!it || it.quantity <= 0) return false;
+        it.quantity--;
+        if (it.quantity <= 0) this.inventory = this.inventory.filter(i => i !== it);
+        return true;
+    }
+    buyItem(kind) {
+        const spec = SHOP[kind];
+        if (!spec || !this.character) return;
+        if (this.character[spec.currency] < spec.price) {
+            this.showToast(`Không đủ ${spec.currency === 'gold' ? 'Linh Tệ' : 'Linh Thạch'} (${spec.price})!`, 'danger');
+            return;
+        }
+        this.character[spec.currency] -= spec.price;
+        this.addItem(spec, 1);
+        audio.playCoin();
+        this.showToast(`Mua [${spec.name}] x1`, 'success');
+        this.updateHUD();
+        this.saveProgress();
+    }
+    healPillAmount() {
+        const bonus = this.character.school === 'medicine' ? 1.5 : 1;
+        return Math.round(this.character.max_hp * 0.35 * bonus);
+    }
+
+    // ===== CHIẾN ĐẤU THEO LƯỢT =====
+    // Quái thế giới (PvE)
+    startBattle(mob) {
+        if (this.battle || !this.character) return;
+        if (!mob.baseAtk) mob.baseAtk = mob.atk;
+        if (this.character.hp <= 0) this.character.hp = 1;
+        const warn = this.character.realm < mob.realm;
+        this.beginBattle({
+            mode: 'pve', mob,
+            enemy: { name: mob.name, element: mob.element, hp: mob.hp, maxHp: mob.maxHp, atk: mob.atk, def: mob.def, moves: mob.moves, isBoss: mob.isBoss }
+        });
+        this.logBattle(`⚔️ [${mob.name}] xuất hiện!` + (warn ? ' ⚠ Cảnh giới của ngươi thấp hơn nó rất nhiều.' : ''), 'warn');
+    }
+
+    // Đấu trường: đối thủ "ảnh tu sĩ" cân bằng theo chỉ số của người chơi
+    startPvpQueue() {
+        if (this.battle || !this.character) return;
+        const c = this.character;
+        const names = ['Tiêu Viêm', 'Hàn Lập', 'Bạch Tiểu Thuần', 'Lý Trường Thọ', 'Diệp Phàm', 'Cố Trường Ca'];
+        const els = ['Kim', 'Mộc', 'Thủy', 'Hỏa', 'Thổ', 'Lôi', 'Phong'];
+        const f = rand(0.9, 1.1);
+        const hp = Math.round(c.max_hp * 1.0 * f);
+        this.closeModal('modal-pvp');
+        this.beginBattle({
+            mode: 'pvp',
+            enemy: {
+                name: pick(names), element: pick(els), hp, maxHp: hp,
+                atk: Math.round(c.atk * 0.95 * f), def: Math.round(c.def * f), isBoss: false,
+                moves: [{ name: 'Kiếm Quyết', mult: 1, w: 3 }, { name: 'Pháp Thuật', mult: 1.3, w: 2 }, { name: 'Tuyệt Kỹ', mult: 2.0, w: 1, heavy: true }]
+            }
+        });
+        this.logBattle(`🏟️ Đối thủ [${this.battle.enemy.name}] hệ ${this.battle.enemy.element} bước lên lôi đài!`, 'warn');
+    }
+
+    startTribulation(onSuccess) {
+        const realm = REALMS_DATA.find(r => r.id === this.character.realm) || REALMS_DATA[0];
+        const bolts = realm.bolts || 3;
+        this.beginBattle({
+            mode: 'tribulation', onSuccess, boltsLeft: bolts,
+            enemy: { name: 'Cửu Thiên Lôi Kiếp', element: 'Lôi', hp: bolts, maxHp: bolts, atk: 0, def: 0, isBoss: true, moves: [] }
+        });
+        audio.playThunder();
+        this.logBattle(`⚡ ${bolts} đạo Thiên Lôi sắp giáng xuống! Phòng thủ và giữ vững sinh lực!`, 'warn');
+    }
+
+    beginBattle(b) {
+        this.battle = {
+            turn: 1, over: false, cds: {},
+            player: { guard: 0, burn: 0, stun: 0 },
+            foe: { burn: 0, stun: 0 },
+            log: [],
+            ...b
+        };
+        this.battle.intent = this.pickIntent();
+        for (const k of Object.keys(this.keys)) this.keys[k] = false;
+        ['modal-cultivation', 'modal-inventory', 'modal-pvp', 'modal-leaderboard', 'modal-housing'].forEach(id => this.closeModal(id));
+        this.openModal('modal-battle');
+        audio.playThunder();
+        this.renderBattle();
+    }
+
+    pickIntent() {
+        const b = this.battle;
+        if (!b || b.mode === 'tribulation') return null;
+        const moves = b.enemy.moves;
+        const total = moves.reduce((s, m) => s + m.w, 0);
+        let r = Math.random() * total;
+        for (const m of moves) { r -= m.w; if (r <= 0) return m; }
+        return moves[0];
+    }
+
+    logBattle(msg, cls = '') {
+        if (!this.battle) return;
+        this.battle.log.push({ msg, cls });
+        if (this.battle.log.length > 40) this.battle.log.shift();
+    }
+
+    // Hành động của người chơi. type: attack | skill | guard | pill | flee | ward
+    battleAction(type, skillId) {
+        const b = this.battle;
+        if (!b || b.over) return;
+        const c = this.character;
+        const e = b.enemy;
+        const trib = b.mode === 'tribulation';
+        b.player.guard = 0;
+
+        if (b.player.stun > 0) {
+            b.player.stun--;
+            this.logBattle('💫 Ngươi bị choáng, mất lượt!', 'bad');
+        } else if (type === 'attack' && !trib) {
+            this.playerHit({ name: 'Đánh Thường', el: c.linh_can, dmgMult: 1.0 }, true);
+            c.mp = Math.min(c.max_mp, c.mp + Math.max(4, Math.round(c.max_mp * 0.05)));
+        } else if (type === 'skill' && !trib) {
+            const s = this.skills.find(x => x.id === skillId);
+            if (!s) return;
+            if ((b.cds[s.id] || 0) > 0) { this.showToast(`${s.name} còn hồi chiêu ${b.cds[s.id]} lượt!`, 'danger'); return; }
+            if (c.mp < s.mpCost) { this.showToast('Linh lực không đủ!', 'danger'); return; }
+            c.mp -= s.mpCost;
+            b.cds[s.id] = s.cd;
+            this.playerHit(s, false);
+        } else if (type === 'guard') {
+            b.player.guard = c.school === 'array' ? 0.75 : 0.6;
+            c.mp = Math.min(c.max_mp, c.mp + Math.max(6, Math.round(c.max_mp * 0.08)));
+            this.logBattle('🛡️ Ngươi vận công phòng thủ, hồi chút linh lực.', 'good');
+        } else if (type === 'ward' && trib) {
+            const cost = Math.round(c.max_mp * 0.4);
+            if (c.mp < cost) { this.showToast(`Cần ${cost} linh lực để Hộ Thể Linh Quang!`, 'danger'); return; }
+            c.mp -= cost;
+            b.player.guard = 0.85;
+            this.logBattle('✨ Hộ Thể Linh Quang bừng sáng!', 'good');
+        } else if (type === 'pill') {
+            if (!this.consumeItem(PILL_HEAL)) { this.showToast(`Hết ${PILL_HEAL}! Mua ở tab Tu Luyện.`, 'danger'); return; }
+            const amt = this.healPillAmount();
+            c.hp = Math.min(c.max_hp, c.hp + amt);
+            c.qi = Math.min(c.max_qi, c.qi + 30);
+            audio.playMeditationQi();
+            this.renderer.addFloatingText('+' + amt, c.pos_x, c.pos_y - 30, 'heal');
+            this.logBattle(`💊 Uống ${PILL_HEAL}, hồi ${amt} sinh lực.`, 'good');
+        } else if (type === 'flee') {
+            if (b.mode !== 'pve' || e.isBoss) { this.showToast('Không thể bỏ chạy trận này!', 'danger'); return; }
+            if (Math.random() < 0.55) { this.endBattle('flee'); return; }
+            this.logBattle('🏃 Bỏ chạy thất bại!', 'bad');
+        } else {
             return;
         }
 
-        const skill = this.skills.find(s => s.id === skillId) || { id: 'sword_slash', mpCost: 10, dmgMult: 1.3 };
-        if (this.character.mp < skill.mpCost) {
-            this.showToast('Linh lực không đủ!', 'danger');
-            return;
+        if (this.checkEnemyDead()) return;
+        this.finishTurn();
+    }
+
+    playerHit(skill, isBasic) {
+        const b = this.battle;
+        const c = this.character;
+        const e = b.enemy;
+        const em = elementMult(skill.el, e.element);
+        const affinity = skill.el === c.linh_can ? 1.2 : 1;
+        let dmg = c.atk * skill.dmgMult * rand(0.9, 1.1) * em * affinity;
+        const crit = Math.random() < c.crit_rate;
+        if (crit) dmg *= 1.75;
+        dmg = Math.max(1, Math.round(dmg - e.def * 0.5));
+        e.hp = Math.max(0, e.hp - dmg);
+        audio.playSlash();
+        let note = em > 1 ? ' (khắc chế!)' : em < 1 ? ' (bị kháng)' : '';
+        this.logBattle(`${isBasic ? '🗡️' : '✨'} ${skill.name}: gây ${dmg} sát thương${crit ? ' BẠO KÍCH' : ''}${note}`, em > 1 || crit ? 'good' : '');
+        this.hitFx('enemy', dmg, crit);
+        if (c.school === 'demonic') {
+            const heal = Math.max(1, Math.round(dmg * 0.1));
+            c.hp = Math.min(c.max_hp, c.hp + heal);
+        }
+        if (skill.burn) { b.foe.burn = skill.burn; this.logBattle('🔥 Địch bốc cháy!', 'good'); }
+        if (skill.stunChance && Math.random() < skill.stunChance && !e.isBoss) {
+            b.foe.stun = 1;
+            this.logBattle('⚡ Địch bị sét đánh choáng!', 'good');
+        }
+    }
+
+    checkEnemyDead() {
+        const b = this.battle;
+        if (b.mode === 'tribulation') return false;
+        if (b.enemy.hp > 0) return false;
+        this.endBattle('win');
+        return true;
+    }
+
+    finishTurn() {
+        const b = this.battle;
+        const c = this.character;
+        const e = b.enemy;
+
+        // Sát thương theo thời gian lên địch
+        if (b.foe.burn > 0 && b.mode !== 'tribulation') {
+            const d = Math.max(1, Math.round(c.atk * 0.3));
+            e.hp = Math.max(0, e.hp - d);
+            b.foe.burn--;
+            this.logBattle(`🔥 Địch chịu ${d} sát thương thiêu đốt.`, 'good');
+            this.hitFx('enemy', d, false);
+            if (this.checkEnemyDead()) return;
         }
 
-        this.character.mp -= skill.mpCost;
-        this.renderer.addSkillVisual(skill.id, tx, ty);
-        if (skill.id === 'thunder_wrath') audio.playThunder();
-        else audio.playSlash();
+        // Lượt địch
+        if (b.mode === 'tribulation') {
+            this.boltStrike();
+        } else if (b.foe.stun > 0) {
+            b.foe.stun--;
+            this.logBattle(`💫 [${e.name}] bị choáng, mất lượt!`, 'good');
+        } else {
+            this.enemyAct();
+        }
+        if (b.over) return;
 
-        for (const mob of this.monsters) {
-            if (mob.isDead) continue;
-            const dist = Math.hypot(mob.x - tx, mob.y - ty);
-            if (dist < 90) {
-                let dmg = Math.round(this.character.atk * skill.dmgMult * (1 + Math.random() * 0.2));
-                let isCrit = Math.random() < this.character.crit_rate;
-                if (isCrit) dmg = Math.round(dmg * 1.75);
+        // Thiêu đốt lên người chơi
+        if (b.player.burn > 0) {
+            const d = Math.max(1, Math.round(e.atk * 0.2));
+            c.hp = Math.max(0, c.hp - d);
+            b.player.burn--;
+            this.logBattle(`🔥 Ngươi chịu ${d} sát thương thiêu đốt.`, 'bad');
+            this.hitFx('player', d, false);
+        }
+        if (c.hp <= 0) { this.endBattle('lose'); return; }
 
-                mob.hp = Math.max(0, mob.hp - dmg);
-                this.renderer.addFloatingText(dmg + (isCrit ? ' BẠO KÍCH!' : ''), mob.x, mob.y - 15, isCrit ? 'crit' : 'normal');
+        // Hồi chiêu
+        for (const k of Object.keys(b.cds)) if (b.cds[k] > 0) b.cds[k]--;
+        b.turn++;
+        b.intent = this.pickIntent();
+        // Boss cuồng nộ ở 50% máu
+        if (b.mode === 'pve' && e.isBoss && !b.mob.isEnraged && e.hp <= e.maxHp * 0.5) {
+            b.mob.isEnraged = true;
+            e.atk = Math.round(e.atk * 1.3);
+            this.logBattle('😡 Thủ Lĩnh Cuồng Nộ! Sát thương tăng vọt!', 'warn');
+        }
+        this.updateHUD();
+        this.renderBattle();
+    }
 
-                if (mob.isBoss && mob.hp <= (mob.maxHp * 0.5) && !mob.isEnraged) {
-                    mob.isEnraged = true;
-                    mob.atk = Math.round(mob.atk * 1.3);
-                    this.showToast(`Thủ Lĩnh Cuồng Nộ! Sát thương tăng vọt!`, 'danger');
+    enemyAct() {
+        const b = this.battle;
+        const c = this.character;
+        const e = b.enemy;
+        const mv = b.intent || e.moves[0];
+        let dmg = e.atk * mv.mult * rand(0.9, 1.1) * elementMult(e.element, c.linh_can);
+        dmg = Math.max(1, Math.round(dmg - c.def * 0.5));
+        let guardNote = '';
+        if (b.player.guard) {
+            // Đòn nặng bị phòng thủ giảm sâu hơn
+            const g = mv.heavy ? Math.min(0.9, b.player.guard + 0.15) : b.player.guard;
+            dmg = Math.max(1, Math.round(dmg * (1 - g)));
+            guardNote = ' (đã chặn)';
+        }
+        c.hp = Math.max(0, c.hp - dmg);
+        audio.playThunder();
+        this.logBattle(`${mv.heavy ? '💥' : '🩸'} [${e.name}] dùng ${mv.name}: ngươi mất ${dmg} sinh lực${guardNote}`, 'bad');
+        this.hitFx('player', dmg, !!mv.heavy);
+        if (mv.burn && !b.player.guard) { b.player.burn = mv.burn; this.logBattle('🔥 Ngươi bốc cháy!', 'bad'); }
+    }
+
+    boltStrike() {
+        const b = this.battle;
+        const c = this.character;
+        let dmg = c.max_hp * (0.2 + 0.02 * c.realm) * rand(0.9, 1.1);
+        if (b.player.guard) dmg *= (1 - b.player.guard);
+        dmg = Math.max(1, Math.round(dmg));
+        c.hp = Math.max(0, c.hp - dmg);
+        b.boltsLeft--;
+        b.enemy.hp = b.boltsLeft;
+        audio.playThunder();
+        this.renderer.addSkillVisual('thunder_wrath', c.pos_x, c.pos_y);
+        this.logBattle(`⚡ Thiên Lôi giáng xuống: mất ${dmg} sinh lực! (còn ${b.boltsLeft} đạo)`, 'bad');
+        this.hitFx('player', dmg, true);
+        if (c.hp <= 0) { this.endBattle('lose'); return; }
+        if (b.boltsLeft <= 0) this.endBattle('win');
+    }
+
+    endBattle(result) {
+        const b = this.battle;
+        if (!b || b.over) return;
+        b.over = true;
+        const c = this.character;
+        const e = b.enemy;
+        let closeDelay = 900;
+
+        if (b.mode === 'pve') {
+            const mob = b.mob;
+            if (result === 'win') {
+                mob.isDead = true;
+                mob.hp = 0;
+                mob.respawnAt = Date.now() + (mob.isBoss ? 45000 : 15000);
+                const expGain = Math.round(mob.maxHp * 0.25 + mob.realm * 20);
+                const goldGain = Math.round(mob.maxHp * 0.25);
+                const stoneGain = mob.isBoss ? 15 : 1;
+                c.exp += expGain;
+                c.gold += goldGain;
+                c.spirit_stones += stoneGain;
+                let drop = '';
+                if (Math.random() < (mob.isBoss ? 0.8 : 0.25)) {
+                    const spec = Math.random() < (mob.isBoss ? 0.6 : 0.12) ? SHOP.break : SHOP.heal;
+                    this.addItem(spec, 1);
+                    drop = `, rơi [${spec.name}]`;
                 }
-
-                if (mob.hp <= 0) {
-                    mob.isDead = true;
-                    audio.playCoin();
-                    const expGain = Math.round(mob.maxHp * 0.2);
-                    const goldGain = Math.round(mob.maxHp * 0.25);
-                    const stoneGain = mob.isBoss ? 15 : 1;
-
-                    this.character.exp += expGain;
-                    this.character.gold += goldGain;
-                    this.character.spirit_stones += stoneGain;
-
-                    this.showToast(`Hạ gục [${mob.name}]! +${expGain} Tu Vi, +${goldGain} Linh Tệ, +${stoneGain} Linh Thạch`, 'gold');
-                    this.saveProgress();
-
-                    setTimeout(() => {
-                        mob.isDead = false;
-                        mob.hp = mob.maxHp;
-                        mob.isEnraged = false;
-                    }, 15000);
-                }
+                audio.playCoin();
+                this.logBattle(`🏆 Hạ gục [${mob.name}]! +${expGain} Tu Vi, +${goldGain} Linh Tệ, +${stoneGain} Linh Thạch${drop}`, 'good');
+                this.showToast(`Hạ gục [${mob.name}]! +${expGain} Tu Vi`, 'gold');
+            } else if (result === 'flee') {
+                mob.hp = e.hp;
+                mob.nextEngage = Date.now() + 3500;
+                this.showToast('Ngươi chạy thoát!', 'info');
+                closeDelay = 0;
+            } else {
+                mob.hp = mob.maxHp;
+                mob.nextEngage = Date.now() + 5000;
+                this.defeatPenalty();
+            }
+        } else if (b.mode === 'pvp') {
+            const win = result === 'win';
+            const delta = win ? 24 : -16;
+            c.pvp_elo = Math.max(0, c.pvp_elo + delta);
+            if (win) { c.pvp_wins++; c.gold += 300; audio.playHeavenlyChime(); }
+            else { c.pvp_losses++; c.hp = Math.max(1, Math.round(c.max_hp * 0.5)); }
+            this.logBattle(win ? `🏆 Thắng! +${delta} ELO, +300 Linh Tệ (ELO ${c.pvp_elo})` : `💀 Thua! ${delta} ELO (ELO ${c.pvp_elo})`, win ? 'good' : 'bad');
+        } else if (b.mode === 'tribulation') {
+            if (result === 'win') {
+                this.logBattle('🌈 Vượt qua Lôi Kiếp! Thiên địa dị tượng!', 'good');
+                const cb = b.onSuccess;
+                setTimeout(() => cb && cb(), 1000);
+            } else {
+                const lost = Math.round(c.exp * 0.4);
+                c.exp = Math.max(0, c.exp - lost);
+                c.tam_canh = Math.max(0, c.tam_canh - 15);
+                c.hp = Math.max(1, Math.round(c.max_hp * 0.2));
+                this.logBattle(`💀 Độ kiếp thất bại! Mất ${lost} tu vi, tâm cảnh tổn thương.`, 'bad');
             }
         }
 
+        this.renderBattle();
+        this.updateHUD();
+        this.saveProgress();
+        if (closeDelay) setTimeout(() => this.closeBattle(), closeDelay + 1200);
+        else this.closeBattle();
+    }
+
+    defeatPenalty() {
+        const c = this.character;
+        const lostGold = Math.round(c.gold * 0.1);
+        const lostExp = Math.round(c.exp * 0.2);
+        c.gold -= lostGold;
+        c.exp -= lostExp;
+        c.tam_canh = Math.max(0, c.tam_canh - 5);
+        c.hp = Math.max(1, Math.round(c.max_hp * 0.5));
+        c.mp = Math.round(c.max_mp * 0.5);
+        this.logBattle(`💀 Trọng thương! Mất ${lostGold} Linh Tệ, ${lostExp} Tu Vi. Được đưa về Đô Thị.`, 'bad');
+        this._respawnCity = true;
+    }
+
+    closeBattle() {
+        if (!this.battle) return;
+        this.battle = null;
+        this.closeModal('modal-battle');
+        if (this._respawnCity) {
+            this._respawnCity = false;
+            this.travelTo(MAPS_DATA.city_tan_hai);
+        }
         this.updateHUD();
     }
 
+    hitFx(side, dmg, strong) {
+        const el = document.getElementById(side === 'enemy' ? 'battle-enemy-card' : 'battle-player-card');
+        if (el) {
+            el.classList.remove('hit');
+            void el.offsetWidth;
+            el.classList.add('hit');
+        }
+        const fx = document.getElementById(side === 'enemy' ? 'battle-enemy-fx' : 'battle-player-fx');
+        if (fx) {
+            const n = document.createElement('div');
+            n.className = 'battle-dmg' + (strong ? ' strong' : '');
+            n.textContent = '-' + dmg;
+            fx.appendChild(n);
+            setTimeout(() => n.remove(), 900);
+        }
+    }
+
+    renderBattle() {
+        const b = this.battle;
+        if (!b) return;
+        const c = this.character;
+        const e = b.enemy;
+        const $ = (id) => document.getElementById(id);
+        const trib = b.mode === 'tribulation';
+        const pct = (v, m) => Math.max(0, Math.min(100, (v / m) * 100));
+
+        $('battle-title').textContent = trib ? '⚡ Độ Lôi Kiếp' : b.mode === 'pvp' ? '🏟️ Lôi Đài Thiên Môn' : '⚔️ Chiến Đấu';
+        $('battle-enemy-name').textContent = e.name;
+        const rel = elementMult(c.linh_can, e.element);
+        $('battle-enemy-el').textContent = `${ELEMENT_ICON[e.element] || ''} ${e.element}` + (trib ? '' : rel > 1 ? ' · ta khắc' : rel < 1 ? ' · ta bị khắc' : '');
+        $('battle-enemy-hp').style.width = pct(e.hp, e.maxHp) + '%';
+        $('battle-enemy-hp-text').textContent = trib ? `Còn ${b.boltsLeft} đạo lôi` : `${Math.round(e.hp)}/${e.maxHp}`;
+        $('battle-player-name').textContent = c.name;
+        $('battle-player-el').textContent = `${ELEMENT_ICON[c.linh_can] || ''} ${c.linh_can}`;
+        $('battle-player-hp').style.width = pct(c.hp, c.max_hp) + '%';
+        $('battle-player-hp-text').textContent = `${Math.round(c.hp)}/${c.max_hp}`;
+        $('battle-player-mp').style.width = pct(c.mp, c.max_mp) + '%';
+        $('battle-player-mp-text').textContent = `${Math.round(c.mp)}/${c.max_mp}`;
+
+        let intent = '';
+        if (trib) intent = '⚡ Thiên Lôi sẽ giáng mỗi lượt — hãy phòng thủ!';
+        else if (b.foe.stun > 0) intent = '💫 Địch đang choáng';
+        else if (b.intent) intent = (b.intent.heavy ? '⚠️ ' : '👁 ') + `Địch chuẩn bị: ${b.intent.name}${b.intent.heavy ? ' (đòn nặng — nên phòng thủ!)' : ''}`;
+        $('battle-intent').textContent = intent;
+        const st = [];
+        if (b.foe.burn > 0) st.push(`🔥 Cháy ${b.foe.burn}`);
+        if (b.foe.stun > 0) st.push('💫 Choáng');
+        $('battle-enemy-status').textContent = st.join('  ');
+        const pst = [];
+        if (b.player.burn > 0) pst.push(`🔥 Cháy ${b.player.burn}`);
+        if (b.player.stun > 0) pst.push('💫 Choáng');
+        $('battle-player-status').textContent = pst.join('  ');
+
+        // Nút hành động
+        const box = $('battle-actions');
+        const disabled = b.over;
+        const btn = (label, sub, on, off = false, cls = '') =>
+            `<button class="battle-btn ${cls}" ${disabled || off ? 'disabled' : ''} onclick="${on}"><span>${label}</span><small>${sub}</small></button>`;
+        let html = '';
+        if (trib) {
+            html += btn('🛡️ Phòng Thủ', 'Giảm 60% sát thương', "window.gameApp.battleAction('guard')");
+            html += btn('✨ Hộ Thể Linh Quang', `Giảm 85% · ${Math.round(c.max_mp * 0.4)} MP`, "window.gameApp.battleAction('ward')", c.mp < c.max_mp * 0.4);
+            html += btn(`💊 ${PILL_HEAL}`, `Hồi ${this.healPillAmount()} · còn ${this.countItem(PILL_HEAL)}`, "window.gameApp.battleAction('pill')", this.countItem(PILL_HEAL) <= 0);
+        } else {
+            html += btn('🗡️ Đánh Thường', `Hệ ${c.linh_can} · +MP`, "window.gameApp.battleAction('attack')");
+            this.skills.forEach((s, i) => {
+                const cd = b.cds[s.id] || 0;
+                const rel2 = elementMult(s.el, e.element);
+                const tag = rel2 > 1 ? ' ▲' : rel2 < 1 ? ' ▼' : '';
+                html += btn(`${s.icon} ${s.name}${tag}`, cd > 0 ? `Hồi chiêu ${cd}` : `[${i + 1}] ${ELEMENT_ICON[s.el]}${s.el} · ${s.mpCost} MP`, `window.gameApp.battleAction('skill','${s.id}')`, cd > 0 || c.mp < s.mpCost);
+            });
+            html += btn('🛡️ Phòng Thủ', 'Giảm 60% · +MP', "window.gameApp.battleAction('guard')");
+            html += btn(`💊 ${PILL_HEAL}`, `Hồi ${this.healPillAmount()} · còn ${this.countItem(PILL_HEAL)}`, "window.gameApp.battleAction('pill')", this.countItem(PILL_HEAL) <= 0);
+            html += btn('🏃 Bỏ Chạy', b.mode === 'pve' && !e.isBoss ? '55% thành công' : 'Không thể', "window.gameApp.battleAction('flee')", b.mode !== 'pve' || e.isBoss);
+        }
+        box.innerHTML = html;
+
+        const log = $('battle-log');
+        log.innerHTML = b.log.map(l => `<div class="bl ${l.cls}">${l.msg}</div>`).join('');
+        log.scrollTop = log.scrollHeight;
+    }
+
+    // ===== ĐẢ TỌA & ĐỘT PHÁ =====
     meditate() {
-        if (!this.character) return;
-        const qiGain = Math.round(20 * (this.currentMap.ambientQi || 1.0));
-        const expGain = Math.round(35 * (this.currentMap.ambientQi || 1.0));
+        if (!this.character || this.battle) return;
+        const now = Date.now();
+        if (now < this.meditateReadyAt) {
+            this.showToast(`Tâm chưa tĩnh, đợi ${Math.ceil((this.meditateReadyAt - now) / 1000)}s nữa.`, 'danger');
+            return;
+        }
+        this.meditateReadyAt = now + 6000;
+        const c = this.character;
+        const q = this.currentMap.ambientQi || 1.0;
+        const purity = (c.linh_can_purity || 80) / 100;
+        const qiGain = Math.round(20 * q);
+        const expGain = Math.round((20 + c.realm * 15) * q * purity);
 
-        this.character.qi = Math.min(this.character.max_qi, this.character.qi + qiGain);
-        this.character.exp += expGain;
-        this.character.tam_canh = Math.min(100, this.character.tam_canh + 1);
+        c.qi = Math.min(c.max_qi, c.qi + qiGain);
+        c.exp += expGain;
+        c.hp = Math.min(c.max_hp, c.hp + Math.round(c.max_hp * 0.1));
+        c.mp = Math.min(c.max_mp, c.mp + Math.round(c.max_mp * 0.2));
+        c.tam_canh = Math.min(100, c.tam_canh + 1);
 
+        let extra = '';
+        if (Math.random() < 0.1) {
+            c.tam_canh = Math.max(0, c.tam_canh - 6);
+            extra = ' Tâm ma quấy nhiễu, tâm cảnh -6!';
+        }
         audio.playMeditationQi();
-        this.renderer.addQiParticles(this.character.pos_x, this.character.pos_y, 16, '#10b981');
-        this.showToast(`Đả tọa hấp thu +${qiGain} Linh Khí, lĩnh ngộ +${expGain} Tu Vi!`, 'success');
+        this.renderer.addQiParticles(c.pos_x, c.pos_y, 16, '#10b981');
+        this.showToast(`Đả tọa: +${qiGain} Linh Khí, +${expGain} Tu Vi, hồi phục sinh lực.${extra}`, extra ? 'danger' : 'success');
         this.updateHUD();
         this.saveProgress();
     }
 
+    breakthroughInfo() {
+        const c = this.character;
+        const realm = REALMS_DATA.find(r => r.id === c.realm) || REALMS_DATA[0];
+        const major = c.realm_stage >= realm.maxStages;
+        const peak = major && c.realm >= REALMS_DATA.length;
+        const hasPill = this.countItem(PILL_BREAK) > 0;
+        let p = major ? 0.65 - 0.07 * (c.realm - 1) : 0.9;
+        p += (c.tam_canh - 50) * 0.004;
+        p += ((c.linh_can_purity || 80) - 80) * 0.002;
+        if (hasPill) p += 0.2;
+        p = Math.max(0.1, Math.min(0.97, p));
+        return { realm, major, peak, hasPill, chance: p, tribulation: major && realm.tribulation };
+    }
+
     breakthrough() {
-        if (!this.character) return;
-        if (this.character.exp < this.character.max_exp) {
-            this.showToast(`Tu vi chưa viên mãn (${this.character.exp}/${this.character.max_exp}). Chưa thể đột phá!`, 'danger');
+        if (!this.character || this.battle) return;
+        const c = this.character;
+        if (c.exp < c.max_exp) {
+            this.showToast(`Tu vi chưa viên mãn (${c.exp}/${c.max_exp}). Chưa thể đột phá!`, 'danger');
             return;
         }
+        const info = this.breakthroughInfo();
+        if (info.peak) {
+            this.showToast('Đã đạt đỉnh phong Hóa Thần, chờ phiên bản sau để phi thăng!', 'gold');
+            return;
+        }
+        const usedPill = info.hasPill && this.consumeItem(PILL_BREAK);
+        const ok = Math.random() < info.chance;
 
-        if (this.character.tam_canh < 50 && Math.random() < 0.4) {
+        if (!ok) {
             audio.playThunder();
-            const lostExp = Math.round(this.character.exp * 0.2);
-            this.character.exp = Math.max(0, this.character.exp - lostExp);
-            this.showToast(`Tẩu Hỏa Nhập Ma! Đột phá thất bại, tổn thất ${lostExp} tu vi!`, 'danger');
+            const lost = Math.round(c.exp * 0.2);
+            c.exp = Math.max(0, c.exp - lost);
+            c.tam_canh = Math.max(0, c.tam_canh - 8);
+            c.hp = Math.max(1, Math.round(c.hp * 0.6));
+            this.showToast(`Tẩu Hỏa Nhập Ma! Đột phá thất bại (tỷ lệ ${Math.round(info.chance * 100)}%), mất ${lost} tu vi, tâm cảnh -8.${usedPill ? ' Phá Cảnh Đan đã tiêu hao.' : ''}`, 'danger');
             this.updateHUD();
             this.saveProgress();
             return;
         }
-
-        const currentRealm = REALMS_DATA.find(r => r.id === this.character.realm) || REALMS_DATA[0];
-        const isUpgradingRealm = (this.character.realm_stage >= currentRealm.maxStages);
-
-        if (isUpgradingRealm && currentRealm.tribulation) {
-            audio.playThunder();
-            this.showToast(`⚡ Cửu Thiên Lôi Kiếp Giáng Thế!`, 'gold');
-            this.renderer.addSkillVisual('thunder_wrath', this.character.pos_x, this.character.pos_y);
+        if (info.tribulation) {
+            this.closeModal('modal-cultivation');
+            this.showToast('⚡ Cửu Thiên Lôi Kiếp giáng thế! Hãy phòng thủ cẩn thận!', 'gold');
+            this.startTribulation(() => this.applyBreakthrough());
+            return;
         }
+        this.applyBreakthrough();
+    }
 
-        let newStage = this.character.realm_stage + 1;
-        let newRealm = this.character.realm;
+    applyBreakthrough() {
+        const c = this.character;
+        const currentRealm = REALMS_DATA.find(r => r.id === c.realm) || REALMS_DATA[0];
+        let newStage = c.realm_stage + 1;
+        let newRealm = c.realm;
         if (newStage > currentRealm.maxStages) {
-            newRealm = Math.min(5, newRealm + 1);
+            newRealm = Math.min(REALMS_DATA.length, newRealm + 1);
             newStage = 1;
         }
-
         const nextInfo = REALMS_DATA.find(r => r.id === newRealm) || currentRealm;
-        this.character.realm = newRealm;
-        this.character.realm_stage = newStage;
-        this.character.exp = 0;
-        this.character.max_exp = Math.round(nextInfo.expReq * (1 + newStage * 0.3));
-        this.character.max_hp += Math.round(nextInfo.baseHp * 0.3);
-        this.character.hp = this.character.max_hp;
-        this.character.atk += Math.round(nextInfo.baseAtk * 0.3);
-        this.character.def += Math.round(nextInfo.baseDef * 0.3);
-        this.character.title = `${nextInfo.name} Tầng ${newStage}`;
+        c.realm = newRealm;
+        c.realm_stage = newStage;
+        c.exp = 0;
+        c.max_exp = Math.round(nextInfo.expReq * (1 + newStage * 0.3));
+        c.max_hp += Math.round(nextInfo.baseHp * 0.3);
+        c.max_mp += Math.round(nextInfo.baseMp * 0.3);
+        c.hp = c.max_hp;
+        c.mp = c.max_mp;
+        c.atk += Math.round(nextInfo.baseAtk * 0.3);
+        c.def += Math.round(nextInfo.baseDef * 0.3);
+        c.title = `${nextInfo.name} Tầng ${newStage}`;
 
         audio.playHeavenlyChime();
-        this.renderer.addQiParticles(this.character.pos_x, this.character.pos_y, 40, '#ffd700');
-        this.showToast(`Thiên Địa Dị Tượng! Đột phá thành công [${this.character.title}]!`, 'gold');
+        this.renderer.addQiParticles(c.pos_x, c.pos_y, 40, '#ffd700');
+        this.showToast(`Thiên Địa Dị Tượng! Đột phá thành công [${c.title}]!`, 'gold');
         this.updateHUD();
         this.saveProgress();
     }
 
-    startPvpQueue() {
-        this.showToast('Đang tìm kiếm cao thủ Tiên Giới...', 'gold');
-        setTimeout(() => {
-            const botNames = ['Tiêu Viêm', 'Hàn Lập', 'Bạch Tiểu Thuần', 'Lý Trường Thọ', 'Diệp Phàm', 'Cố Trường Ca'];
-            const botName = botNames[Math.floor(Math.random() * botNames.length)];
-            const botElo = this.character.pvp_elo + Math.floor((Math.random() - 0.5) * 80);
-
-            this.pvpMatch = {
-                opponent: { name: botName, elo: botElo },
-                yourHp: 2000,
-                opponentHp: 2000
-            };
-
-            this.openModal('modal-pvp');
-            this.renderPvpView();
-            audio.playThunder();
-            this.showToast(`Đối thủ xuất hiện: [${botName}]! Khai chiến!`, 'danger');
-        }, 800);
+    // Tương thích HTML cũ
+    castSkill(skillId) {
+        if (this.battle) this.battleAction('skill', skillId);
+        else this.showToast('Kỹ năng chỉ dùng được trong chiến đấu — chạm vào yêu thú để khai chiến!', 'info');
     }
 
-    handlePvpSkillCast() {
-        if (!this.pvpMatch) return;
-        audio.playSlash();
-
-        const yourDmg = Math.round(180 + Math.random() * 80);
-        this.pvpMatch.opponentHp = Math.max(0, this.pvpMatch.opponentHp - yourDmg);
-
-        const botDmg = Math.round(160 + Math.random() * 70);
-        this.pvpMatch.yourHp = Math.max(0, this.pvpMatch.yourHp - botDmg);
-
-        this.renderPvpView();
-
-        if (this.pvpMatch.opponentHp <= 0 || this.pvpMatch.yourHp <= 0) {
-            const isWin = this.pvpMatch.opponentHp <= 0;
-            const delta = isWin ? 24 : -16;
-            this.character.pvp_elo = Math.max(0, this.character.pvp_elo + delta);
-            if (isWin) this.character.pvp_wins++;
-            else this.character.pvp_losses++;
-
-            if (isWin) {
-                audio.playHeavenlyChime();
-                this.showToast(`Chiến Thắng! +${delta} ELO (Hiện tại: ${this.character.pvp_elo})`, 'gold');
-            } else {
-                this.showToast(`Thất Bại! ${delta} ELO (Hiện tại: ${this.character.pvp_elo})`, 'danger');
-            }
-
-            this.pvpMatch = null;
-            this.saveProgress();
-            setTimeout(() => this.closeModal('modal-pvp'), 2000);
-        }
-    }
-
-    renderPvpView() {
-        const box = document.getElementById('pvp-arena-content');
-        if (!this.pvpMatch) return;
-
-        box.innerHTML = `
-            <div class="pvp-vs-box">
-                <div class="pvp-fighter-card">
-                    <h3 style="color: #00e5ff;">${this.character.name}</h3>
-                    <p style="font-size: 12px; color: #cbd5e1;">ELO: ${this.character.pvp_elo}</p>
-                    <div class="bar-wrap" style="margin-top: 10px; height: 12px;">
-                        <div class="bar-fill bar-hp" style="width: ${(this.pvpMatch.yourHp / 2000) * 100}%;"></div>
-                    </div>
-                    <div style="font-size: 11px; margin-top: 4px;">HP: ${this.pvpMatch.yourHp}/2000</div>
-                </div>
-                <div style="font-size: 28px; font-weight: 800; color: #ef4444;">VS</div>
-                <div class="pvp-fighter-card">
-                    <h3 style="color: #ef4444;">${this.pvpMatch.opponent.name}</h3>
-                    <p style="font-size: 12px; color: #cbd5e1;">ELO: ${this.pvpMatch.opponent.elo}</p>
-                    <div class="bar-wrap" style="margin-top: 10px; height: 12px;">
-                        <div class="bar-fill bar-hp" style="width: ${(this.pvpMatch.opponentHp / 2000) * 100}%;"></div>
-                    </div>
-                    <div style="font-size: 11px; margin-top: 4px;">HP: ${this.pvpMatch.opponentHp}/2000</div>
-                </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-primary" style="width: 220px;" onclick="window.gameApp.handlePvpSkillCast()">⚔️ Xuất Chiêu Lôi Đài!</button>
-            </div>
-        `;
-    }
-
+    // BẢNG XẾP HẠNG
     renderLeaderboards(cat = 'cultivation') {
         const tbody = document.getElementById('leaderboard-tbody');
         tbody.innerHTML = '';
@@ -1378,6 +1889,7 @@ class TuTienGame {
         });
     }
 
+    // BẤT ĐỘNG SẢN & ĐÔ THỊ
     buyHousing(cost, name, qiBonus, income) {
         if (this.character.gold < cost) {
             this.showToast(`Không đủ Linh Tệ (${this.character.gold}/${cost})!`, 'danger');
@@ -1391,52 +1903,84 @@ class TuTienGame {
         this.saveProgress();
     }
 
+    // UI CONTROLS
     handleKeyDown(e) {
-        this.keys[e.key.toLowerCase()] = true;
-        if (e.key === 'c' || e.key === 'C') this.toggleModal('modal-cultivation');
-        if (e.key === 'b' || e.key === 'B') { this.renderInventory(); this.toggleModal('modal-inventory'); }
-        if (e.key === 'p' || e.key === 'P') this.toggleModal('modal-pvp');
-        if (e.key === 'l' || e.key === 'L') { this.renderLeaderboards(); this.toggleModal('modal-leaderboard'); }
-        if (e.key === 'm' || e.key === 'M') this.toggleModal('modal-market');
-        if (e.key === 'h' || e.key === 'H') this.toggleModal('modal-housing');
-
-        if (['1', '2', '3', '4'].includes(e.key)) {
-            const idx = parseInt(e.key) - 1;
-            if (this.skills[idx]) this.castSkill(this.skills[idx].id);
+        const k = e.key.toLowerCase();
+        if (this.battle) {
+            const idx = ['1', '2', '3', '4'].indexOf(e.key);
+            if (idx >= 0 && this.skills[idx] && this.battle.mode !== 'tribulation') this.battleAction('skill', this.skills[idx].id);
+            else if (k === 'g') this.battleAction('guard');
+            else if (k === 'e') this.battleAction('pill');
+            return;
         }
+        this.keys[k] = true;
+        if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+        if (k === 'c') { this.updateHUD(); this.toggleModal('modal-cultivation'); }
+        if (k === 'b') { this.renderInventory(); this.toggleModal('modal-inventory'); }
+        if (k === 'p') this.toggleModal('modal-pvp');
+        if (k === 'l') { this.renderLeaderboards(); this.toggleModal('modal-leaderboard'); }
+        if (k === 'm') this.toggleModal('modal-market');
+        if (k === 'h') this.toggleModal('modal-housing');
     }
 
     handleKeyUp(e) {
         this.keys[e.key.toLowerCase()] = false;
     }
 
+    // Bấm vào yêu thú ở gần để khai chiến
     handleCanvasClick(e) {
-        this.castSkill('sword_slash', this.mousePos.x, this.mousePos.y);
+        if (this.battle || !this.character) return;
+        const now = Date.now();
+        for (const mob of this.monsters) {
+            if (mob.isDead || mob.mapId !== this.currentMap.id) continue;
+            if (Math.hypot(mob.x - this.mousePos.x, mob.y - this.mousePos.y) < (mob.isBoss ? 50 : 34)) {
+                if (Math.hypot(mob.x - this.character.pos_x, mob.y - this.character.pos_y) < 160) {
+                    mob.nextEngage = 0;
+                    this.startBattle(mob);
+                } else {
+                    this.showToast('Lại gần hơn để khai chiến!', 'info');
+                }
+                return;
+            }
+        }
     }
 
     updateHUD() {
         if (!this.character) return;
-        document.getElementById('hud-char-name').textContent = this.character.name;
-        document.getElementById('hud-char-title').textContent = this.character.title;
-        document.getElementById('hud-char-realm').textContent = `Cảnh Giới ${this.character.realm}`;
+        const c = this.character;
+        document.getElementById('hud-char-name').textContent = c.name;
+        document.getElementById('hud-char-title').textContent = c.title;
+        document.getElementById('hud-char-realm').textContent = `Cảnh Giới ${c.realm}`;
 
-        const hpPct = Math.max(0, (this.character.hp / this.character.max_hp) * 100);
-        const mpPct = Math.max(0, (this.character.mp / this.character.max_mp) * 100);
-        const qiPct = Math.max(0, (this.character.qi / this.character.max_qi) * 100);
-        const expPct = Math.max(0, (this.character.exp / this.character.max_exp) * 100);
+        const hpPct = Math.max(0, (c.hp / c.max_hp) * 100);
+        const mpPct = Math.max(0, (c.mp / c.max_mp) * 100);
+        const qiPct = Math.max(0, (c.qi / c.max_qi) * 100);
+        const expPct = Math.min(100, Math.max(0, (c.exp / c.max_exp) * 100));
 
         document.getElementById('hud-hp-bar').style.width = `${hpPct}%`;
         document.getElementById('hud-mp-bar').style.width = `${mpPct}%`;
         document.getElementById('hud-qi-bar').style.width = `${qiPct}%`;
         document.getElementById('hud-exp-bar').style.width = `${expPct}%`;
 
-        document.getElementById('hud-hp-text').textContent = `${this.character.hp}/${this.character.max_hp}`;
-        document.getElementById('hud-mp-text').textContent = `${this.character.mp}/${this.character.max_mp}`;
-        document.getElementById('hud-qi-text').textContent = `${this.character.qi}/${this.character.max_qi}`;
-        document.getElementById('hud-exp-text').textContent = `${this.character.exp}/${this.character.max_exp}`;
+        document.getElementById('hud-hp-text').textContent = `${Math.round(c.hp)}/${c.max_hp}`;
+        document.getElementById('hud-mp-text').textContent = `${Math.round(c.mp)}/${c.max_mp}`;
+        document.getElementById('hud-qi-text').textContent = `${c.qi}/${c.max_qi}`;
+        document.getElementById('hud-exp-text').textContent = `${c.exp}/${c.max_exp}`;
 
-        document.getElementById('hud-gold').textContent = Number(this.character.gold).toLocaleString();
-        document.getElementById('hud-stones').textContent = Number(this.character.spirit_stones).toLocaleString();
+        document.getElementById('hud-gold').textContent = Number(c.gold).toLocaleString();
+        document.getElementById('hud-stones').textContent = Number(c.spirit_stones).toLocaleString();
+
+        const bt = document.getElementById('bt-chance');
+        if (bt) {
+            const info = this.breakthroughInfo();
+            bt.innerHTML = info.peak
+                ? 'Đã đạt đỉnh phong.'
+                : `Tỷ lệ đột phá: <b>${Math.round(info.chance * 100)}%</b>` +
+                  (info.major ? ' (đại cảnh giới)' : ' (tiểu cảnh giới)') +
+                  (info.tribulation ? ' · <b style="color:#a855f7">có Lôi Kiếp</b>' : '') +
+                  (info.hasPill ? ' · <span style="color:#10b981">+20% Phá Cảnh Đan</span>' : '') +
+                  `<br>Tâm cảnh: ${c.tam_canh}/100 · Phá Cảnh Đan: ${this.countItem(PILL_BREAK)} · ${PILL_HEAL}: ${this.countItem(PILL_HEAL)}`;
+        }
     }
 
     renderInventory() {
@@ -1445,16 +1989,13 @@ class TuTienGame {
         this.inventory.forEach(item => {
             const slot = document.createElement('div');
             slot.className = `inv-slot rarity-${item.rarity}`;
-            slot.innerHTML = `<span>${item.type === 'pill' ? '💊' : '🗡️'}</span><span class="inv-qty">x${item.quantity}</span>`;
-            slot.title = `${item.name}\nBấm để dùng.`;
+            slot.innerHTML = `<span>${item.type === 'pill' || item.type === 'pill_break' ? '💊' : '🗡️'}</span><span class="inv-qty">x${item.quantity}</span>`;
+            slot.title = item.type === 'pill' ? `${item.name}\nBấm để dùng.` : item.type === 'pill_break' ? `${item.name}\nTự dùng khi đột phá (+20%).` : item.name;
             slot.onclick = () => {
                 if (item.type === 'pill') {
-                    this.character.hp = Math.min(this.character.max_hp, this.character.hp + 100);
+                    this.character.hp = Math.min(this.character.max_hp, this.character.hp + this.healPillAmount());
                     this.character.qi = Math.min(this.character.max_qi, this.character.qi + 30);
-                    item.quantity--;
-                    if (item.quantity <= 0) {
-                        this.inventory = this.inventory.filter(i => i.id !== item.id);
-                    }
+                    this.consumeItem(item.name);
                     audio.playMeditationQi();
                     this.showToast(`Sử dụng [${item.name}]: Hồi phục sinh lực & linh khí!`, 'success');
                     this.updateHUD();
@@ -1483,6 +2024,7 @@ class TuTienGame {
         document.getElementById(id)?.classList.remove('open');
     }
     toggleModal(id) {
+        if (this.battle) return;
         const el = document.getElementById(id);
         if (el?.classList.contains('open')) el.classList.remove('open');
         else el?.classList.add('open');

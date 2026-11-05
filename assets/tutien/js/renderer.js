@@ -538,7 +538,7 @@ export class GameRenderer {
 
         // Nhãn cổng dịch chuyển
         ctx.fillStyle = '#00e5ff';
-        ctx.font = 'bold 11px Segoe UI';
+        ctx.font = 'bold 11px Segoe UI, Nunito';
         ctx.textAlign = 'center';
         ctx.fillText(`🌀 ${portal.label}`, portal.x, portal.y - 36);
     }
@@ -622,7 +622,7 @@ export class GameRenderer {
         // Tên quái vật
         ctx.font = mob.isBoss ? 'bold 12px Segoe UI' : '11px Segoe UI';
         ctx.fillStyle = mob.isBoss ? '#ffd700' : '#fca5a5';
-        ctx.fillText(mob.name, 0, -radius - 14);
+        ctx.fillText((mob.element ? mob.element + ' · ' : '') + mob.name, 0, -radius - 14);
 
         // Thanh HP quái
         const barW = radius * 2.2;
@@ -638,7 +638,7 @@ export class GameRenderer {
 
     renderPlayer(ctx, p, isLocal, now) {
         ctx.save();
-        ctx.translate(p.x, p.y);
+        ctx.translate(p.pos_x ?? p.x, p.pos_y ?? p.y);
 
         // Hào quang Chân Khí dưới chân (Aura xoay theo cảnh giới)
         const rot = (now / 1000) * 2;
@@ -695,7 +695,7 @@ export class GameRenderer {
 
         // Thanh máu nhỏ
         const barW = 36;
-        const hpPct = Math.max(0, p.hp / p.maxHp);
+        const hpPct = Math.max(0, p.hp / (p.max_hp ?? p.maxHp));
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(-barW / 2, -10, barW, 3);
         ctx.fillStyle = '#10b981';
