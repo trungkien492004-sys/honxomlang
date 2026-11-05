@@ -1,5 +1,5 @@
 // Vòng xoay chọn đấu sĩ (kiểu mặt đồng hồ Omnitrix): vuốt/kéo ngang, mũi tên ‹ ›, phím ←/→ hoặc cuộn chuột.
-// Thẻ ở giữa = nhân vật đang chọn (gọi chooseHero). Ảnh AI tuỳ chỉnh: assets/characters/<code>.png (xem art-studio.html).
+// Thẻ ở giữa = nhân vật đang chọn (gọi chooseHero). Ảnh AI tuỳ chỉnh: assets/characters/<code>.webp hoặc .png (xem art-studio.html).
 (() => {
   if (window.memeHeroStage) return;
   const roster = document.getElementById('heroRoster');
@@ -9,13 +9,13 @@
 
   const CHAR_DIR = 'assets/characters/';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const cache = new Map();
-  const probe = code => cache.has(code) ? Promise.resolve(cache.get(code)) : new Promise(res => {
-    const i = new Image();
-    i.onload = () => { cache.set(code, true); res(true); };
-    i.onerror = () => { cache.set(code, false); res(false); };
-    i.src = CHAR_DIR + code + '.png';
-  });
+  const cache = new Map(); // code -> url ảnh (webp hoặc png) hoặc false
+  const tryLoad = u => new Promise(res => { const i = new Image(); i.onload = () => res(true); i.onerror = () => res(false); i.src = u; });
+  const probe = code => cache.has(code) ? Promise.resolve(cache.get(code)) : (async () => {
+    let found = false;
+    for (const ext of ['webp', 'png']) { const u = CHAR_DIR + code + '.' + ext; if (await tryLoad(u)) { found = u; break; } }
+    cache.set(code, found); return found;
+  })();
 
   const stage = document.createElement('div');
   stage.className = 'hero-stage';
@@ -54,6 +54,10 @@
       const h = heroOf(btn), src = btn.querySelector('.hero-figure');
       const el = document.createElement('div');
       el.className = 'hs-card'; el.dataset.i = i;
+      el.dataset.code = h?.code || '';
+      const portal = document.createElement('div'); portal.className = 'hs-portal';
+      portal.innerHTML = '<span class="hs-rays"></span>' + Array.from({ length: 9 }, (_, k) => `<i style="--px:${8 + ((k * 37) % 84)}%;--pd:${(2.4 + (k * 0.47) % 2.2).toFixed(2)}s;--pl:${((k * 0.61) % 3).toFixed(2)}s;--ps:${(0.6 + (k % 4) * 0.25).toFixed(2)}"></i>`).join('');
+      el.appendChild(portal);
       const art = src ? src.cloneNode(false) : document.createElement('span');
       art.className = (src ? src.className : '') + ' hs-art'; art.removeAttribute('aria-hidden');
       el.appendChild(art);
@@ -61,7 +65,7 @@
       el.style.setProperty('--c', h?.color || '#ffd28c');
       dial.appendChild(el);
       const dot = document.createElement('i'); dots.appendChild(dot);
-      if (h?.code) probe(h.code).then(ok => { if (ok) { el.classList.add('has-custom'); art.classList.add('custom'); art.style.setProperty('background-image', `url(${CHAR_DIR}${h.code}.png)`, 'important'); const f = btn.querySelector('.hero-figure'); f?.style.setProperty('background-image', `url(${CHAR_DIR}${h.code}.png)`, 'important'); } });
+      if (h?.code) probe(h.code).then(url => { if (url) { el.classList.add('has-custom'); art.classList.add('custom'); art.style.setProperty('background-image', `url(${url})`, 'important'); const f = btn.querySelector('.hero-figure'); f?.style.setProperty('background-image', `url(${url})`, 'important'); } });
       return { id: Number(btn.dataset.hero), btn, h, el, dot };
     });
     const sel = tags.findIndex(b => b.classList.contains('selected'));

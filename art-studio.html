@@ -67,7 +67,7 @@
   </div>
 
   <h2>3. Nhân vật (sảnh chọn đấu sĩ)</h2>
-  <p>Lưu vào <b>assets/characters/&lt;code&gt;.png</b>. Ảnh toàn thân hoặc nửa người, nhân vật ở giữa, chừa chút khoảng trống quanh đầu.</p>
+  <p>Lưu vào <b>assets/characters/&lt;code&gt;.webp</b> (hoặc .png). Ảnh toàn thân hoặc nửa người, nhân vật ở giữa, chừa chút khoảng trống quanh đầu.</p>
   <div class="grid" id="chars"></div>
 
   <h2>4. Ảnh bài (tự tạo prompt)</h2>
@@ -135,8 +135,8 @@
   }
   document.getElementById('chars').innerHTML = CHARS.map(([code, name, d]) =>
     `<div class="item"><h3>${esc(name)} <small>${code}</small></h3>
-      <div class="preview" style="background-image:url(assets/characters/${code}.png)">chưa có ảnh AI</div>
-      <div class="file">assets/characters/${code}.png · 768×1024, nền trong suốt</div>
+      <div class="preview" style="background-image:url(assets/characters/${code}.webp)">chưa có ảnh AI</div>
+      <div class="file">assets/characters/${code}.webp (hoặc .png) · ~768×1024, nền trong suốt</div>
       <pre>${esc(STYLE + ', full-body character portrait of ' + name + ', ' + d + ', centered, plain flat bright green (#00ff00) background, vertical 3:4')}</pre>
       <div class="row"><button class="copy" data-text="${esc(STYLE + ', full-body character portrait of ' + name + ', ' + d + ', centered, plain flat bright green (#00ff00) background, vertical 3:4')}">Sao chép prompt</button></div></div>`).join('');
   document.getElementById('arenas').innerHTML = ARENAS.map(a => item(a[0], '', a[1], a[3], a[2])).join('');
