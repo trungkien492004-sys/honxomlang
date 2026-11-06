@@ -76,6 +76,24 @@
     spell('Chazz', 'ojama_delta_hurricane', 'Ojama Delta Hurricane!!', 'Cuồng Phong Tam Giác Ojama!!', 'Thường', 'Chỉ kích hoạt khi "Ojama Xanh", "Ojama Vàng" và "Ojama Đen" đều ngửa trên sân bạn. Phá hủy tất cả lá bài trên sân đối thủ.', { rarity: 'UR', max_copies: 1, art: C }),
     spell('Chazz', 'ojamagic', 'Ojamagic', 'Phép Ojama', 'Thường', 'Nếu lá này bị đưa từ tay hoặc sân vào Mộ: lấy mỗi loại 1 lá "Ojama Xanh", "Ojama Vàng" và "Ojama Đen" từ Bộ bài lên tay.', { effect_code: '', effect_trigger: 'passive', activation_rules: 'Không kích hoạt trực tiếp; hiệu ứng xảy ra khi lá bị đưa vào Mộ.', art: C })
   );
+  const pictures = window.MEME_CARD_PICTURES ||= {};
+  const details = window.MEME_CARD_DETAILS ||= {};
+  for (const c of cards) {
+    const full = 'assets/memecard/pictures/' + c.id + '.webp';
+    const thumb = 'assets/memecard/pictures/thumbs/' + c.id + '.webp';
+    c.custom_image = full;
+    pictures[c.id] = { full, thumb, width: 256, height: 256, fallback: full };
+    if (!details[c.id]) {
+      details[c.id] = {
+        condition: c.activation_rules || 'Theo mô tả lá bài.',
+        cost: 'Theo mô tả lá bài.',
+        limit: c.activation_rules || 'Theo mô tả lá bài.',
+        combo: [],
+        counters: [],
+        origin: 'TCG / Anime'
+      };
+    }
+  }
   const known = new Set((window.MEME_CARDS || []).map(c => c.id));
   window.MEME_CARDS = [...(window.MEME_CARDS || []), ...cards.filter(c => !known.has(c.id))];
   if (typeof CARDS !== 'undefined') { CARDS.splice(0, CARDS.length, ...window.MEME_CARDS.filter(c => !c.uncollectible)); CARD_BY_ID.clear(); for (const c of window.MEME_CARDS) CARD_BY_ID.set(c.id, c); }
