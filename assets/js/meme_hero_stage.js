@@ -65,7 +65,7 @@
       el.style.setProperty('--c', h?.color || '#ffd28c');
       dial.appendChild(el);
       const dot = document.createElement('i'); dots.appendChild(dot);
-      if (h?.code) probe(h.code).then(url => { if (url) { el.classList.add('has-custom'); art.classList.add('custom'); art.style.setProperty('background-image', `url(${url})`, 'important'); const f = btn.querySelector('.hero-figure'); f?.style.setProperty('background-image', `url(${url})`, 'important'); } });
+      if (h?.code) probe(h.code).then(url => { if (url) { el.classList.add('has-custom'); art.classList.add('custom'); art.style.setProperty('background-image', `url(${url})`, 'important'); } });
       return { id: Number(btn.dataset.hero), btn, h, el, dot };
     });
     const sel = tags.findIndex(b => b.classList.contains('selected'));

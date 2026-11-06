@@ -86,6 +86,10 @@
     <div class="row"><button class="copy" data-copy="#cardPrompt">Sao chép prompt</button><span class="file" id="cardFile"></span></div>
   </div>
 
+  <h2>4b. Ảnh bài cho nhân vật mới</h2>
+  <p>Các lá của Marik, Jack, Shark, Chazz chưa có ảnh. Vẽ tỉ lệ 4:3, ghi đúng mã lá khi gửi lại. Có <b id="newCardCount">0</b> lá.</p>
+  <div class="grid" id="newCards"></div>
+
   <h2>5. Sân đấu và nền</h2>
   <div class="grid" id="arenas"></div>
 
@@ -94,6 +98,7 @@
   <div class="grid" id="icons"></div>
 </div>
 
+<script src="assets/js/meme_roster2_catalog.js"></script>
 <script>
 (() => {
   const STYLE = document.getElementById('styleText').textContent.trim();
@@ -151,6 +156,13 @@
       <div class="file">assets/characters/${code}.webp (hoặc .png) · ~768×1024, nền trong suốt</div>
       <pre>${esc(STYLE + ', full-body character portrait of ' + name + ', ' + d + ', centered, plain flat bright green (#00ff00) background, vertical 3:4')}</pre>
       <div class="row"><button class="copy" data-text="${esc(STYLE + ', full-body character portrait of ' + name + ', ' + d + ', centered, plain flat bright green (#00ff00) background, vertical 3:4')}">Sao chép prompt</button></div></div>`).join('');
+  const KIND = { 'Ám': 'dark', 'Quang': 'light', 'Hỏa': 'fire', 'Thủy': 'water', 'Phong': 'wind', 'Địa': 'earth' };
+  const fresh = (window.MEME_CARDS || []).filter(c => c.catalogue_version === 'roster2-v1');
+  document.getElementById('newCardCount').textContent = fresh.length;
+  document.getElementById('newCards').innerHTML = fresh.map(c => {
+    const body = c.card_type === 'Spell' ? `a magical effect illustration for the spell "${c.name_en}", symbolic scene with glowing energy` : `the monster "${c.name_en}", a ${KIND[c.element] || 'mystic'}-attribute ${c.tribe === 'Rồng' ? 'dragon' : 'creature'}, dynamic pose filling the frame`;
+    return item(c.name, c.archetype, c.id, body + ', horizontal 4:3 illustration for a card art window, no card border', '1024×768');
+  }).join('');
   document.getElementById('arenas').innerHTML = ARENAS.map(a => item(a[0], '', a[1], a[3], a[2])).join('');
   document.getElementById('icons').innerHTML = ICONS.map(a => item(a[0], '', a[1], a[2], '')).join('');
 
