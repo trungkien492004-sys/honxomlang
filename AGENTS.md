@@ -222,3 +222,7 @@ Che bài úp: `maskFaceDown()` trong `pick`/`pickMany` đặt `hidden` cho mọi
 Chỉ thêm lá khi làm đúng được văn bản TCG; tra chỉ số/hiệu ứng từ db.ygoprodeck.com, không dựa trí nhớ. Mã hiệu ứng mới phải vào `memeRules.supported`.
 Thêm nhân vật cần: chân dung + CSS `hero-figure-<code>`, dải mắt, thoại `meme_ja_voice.js`, kỹ năng (`skillCandidates` + hai danh sách code), lọc `getCardHero` + `<option>` trong `meme_upgrade_phase1.js`, cập nhật số lượng trong test.
 Truyền Kỳ chỉ hiện nhân vật đã có dữ liệu trong `MEME_SAGA`.
+
+## ẢNH THEO NHÂN VẬT
+
+`assets/characters/<code>.png` (ảnh toàn thân, không nén mất dữ liệu, không thu nhỏ: bản webp nén từng bị người dùng chê mờ). `assets/memecard/arenas/<code>.webp` là khung cảnh cho cổng vòm và nền bàn đấu; `assets/memecard/backs/*.webp` là mặt sau bài, gán trong `BACKS` ở `meme_hero_stage.js`. Biến CSS chứa ảnh phải dùng đường dẫn đầy đủ vì trình duyệt tính theo file CSS.

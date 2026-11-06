@@ -13,7 +13,7 @@
   const tryLoad = u => new Promise(res => { const i = new Image(); i.onload = () => res(true); i.onerror = () => res(false); i.src = u; });
   const probe = code => cache.has(code) ? Promise.resolve(cache.get(code)) : (async () => {
     let found = false;
-    for (const ext of ['webp', 'png']) { const u = CHAR_DIR + code + '.' + ext; if (await tryLoad(u)) { found = u; break; } }
+    for (const ext of ['png', 'webp']) { const u = CHAR_DIR + code + '.' + ext; if (await tryLoad(u)) { found = u; break; } }
     cache.set(code, found); return found;
   })();
 
@@ -179,5 +179,17 @@
   new MutationObserver(() => { build(); paintLabel(); }).observe(roster, { childList: true });
 
   build(); paintLabel();
-  window.memeHeroStage = { go: i => go(i), get index() { return index; }, refresh: () => { build(); paintLabel(); }, probe };
+  // Nền bàn đấu theo đấu sĩ của người chơi; mặt sau bài theo đấu sĩ từng bên.
+  const BACKS = {"destiny": "star", "kaiba": "ice", "joey": "fire", "pegasus": "gold", "jaden": "wings", "zane": "ice", "mai": "sakura", "yuma": "galaxy", "yusei": "crimson", "marik": "shadow", "jack": "fire", "shark": "ice", "chazz": "dragon"};
+  const abs = p => new URL(p, location.href).href; // biến CSS tính đường dẫn theo file CSS, nên dùng đường dẫn đầy đủ
+  function applyDuelArt() {
+    if (typeof duel === 'undefined' || !duel?.player) return;
+    const code = id => { try { return getHero(id)?.code; } catch { return null; } }, me = code(duel.player.heroId), foe = code(duel.enemy?.heroId), root = document.documentElement.style;
+    if (me) { root.setProperty('--arena-img', `url(${abs(`assets/memecard/arenas/${me}.webp`)})`); root.setProperty('--back-player', `url(${abs(`assets/memecard/backs/${BACKS[me] || 'star'}.webp`)})`); }
+    if (foe) root.setProperty('--back-enemy', `url(${abs(`assets/memecard/backs/${BACKS[foe] || 'star'}.webp`)})`);
+  }
+  const duelEl = document.getElementById('duel');
+  if (duelEl) new MutationObserver(applyDuelArt).observe(duelEl, { attributes: true, attributeFilter: ['class'] });
+
+  window.memeHeroStage = { go: i => go(i), get index() { return index; }, refresh: () => { build(); paintLabel(); }, probe, applyDuelArt };
 })();

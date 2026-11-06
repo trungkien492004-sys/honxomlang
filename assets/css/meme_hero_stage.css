@@ -94,14 +94,14 @@ body .duel {
   background:
     radial-gradient(ellipse at 50% 38%, rgba(10, 40, 62, .35), rgba(3, 8, 18, .88) 78%),
     linear-gradient(rgba(3, 9, 20, .72), rgba(3, 9, 20, .86)),
-    url('../memecard/arena-duel.webp') center / cover no-repeat fixed,
+    var(--arena-img, url('../memecard/arena-duel.webp')) center / cover no-repeat fixed,
     #050d1b;
 }
 body .duel .board-frame { position: relative; isolation: isolate; background: #06182a; border-color: #e0bd62; box-shadow: inset 0 0 38px #03101e, 0 0 30px rgba(62, 230, 255, .25), 0 10px 40px rgba(0, 0, 0, .6); }
 /* Ảnh sân được làm mờ nhẹ để các ô vẽ sẵn không lệch với ô bài thật; ô bài thật nằm đè lên. */
 body .duel .board-frame::before {
   content: ''; position: absolute; inset: -6px; z-index: -2; pointer-events: none;
-  background: url('../memecard/arena-duel.webp') center / cover no-repeat;
+  background: var(--arena-img, url('../memecard/arena-duel.webp')) center / cover no-repeat;
   filter: blur(2px) brightness(.9) saturate(1.15);
 }
 body .duel .board-frame::after {
@@ -184,3 +184,27 @@ body .duel .board-frame .special-zone, body .duel .board-frame .duelist-corner {
 .hero-figure-jack, .hero-portrait-jack, .anime-portrait-jack { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/jack-v1.webp') !important; }
 .hero-figure-shark, .hero-portrait-shark, .anime-portrait-shark { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/shark-v1.webp') !important; }
 .hero-figure-chazz, .hero-portrait-chazz, .anime-portrait-chazz { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/chazz-v1.webp') !important; }
+.hs-card[data-code="marik"] { --b1: #4a1f7a; --b2: #120620; --ac: #f2c86e; --glow: rgba(170, 90, 255, .55); --ray: rgba(255, 214, 120, .18); --pc: #d9a6ff; }
+.hs-card[data-code="jack"]  { --b1: #8c1a12; --b2: #1c0406; --ac: #ffcf6a; --glow: rgba(255, 110, 40, .6); --ray: rgba(255, 190, 90, .2); --pc: #ffb347; }
+.hs-card[data-code="shark"] { --b1: #0f4f93; --b2: #03122a; --ac: #6fd8ff; --glow: rgba(60, 170, 255, .6); --ray: rgba(140, 220, 255, .22); --pc: #9fe4ff; }
+.hs-card[data-code="chazz"] { --b1: #1f5a3c; --b2: #06140f; --ac: #b8e986; --glow: rgba(130, 220, 110, .5); --ray: rgba(190, 240, 150, .18); --pc: #c8f59a; }
+.hs-card[data-code="zane"]  { --b1: #17506a; --b2: #050f1a; --ac: #c9d8e6; --glow: rgba(150, 210, 240, .5); --ray: rgba(200, 230, 245, .2); --pc: #d8eefa; }
+
+/* Khung cảnh riêng trong cổng vòm + mặt sau bài theo nhân vật. */
+.hero-stage .hs-portal .hs-rays { opacity: .45; }
+.hero-stage .hs-card.has-custom[data-code="destiny"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/destiny.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="kaiba"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/kaiba.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="joey"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/joey.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="pegasus"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/pegasus.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="jaden"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/jaden.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="zane"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/zane.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="mai"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/mai.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="yuma"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/yuma.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="yusei"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/yusei.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="marik"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/marik.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="jack"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/jack.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="shark"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/shark.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="chazz"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/chazz.webp') center / cover no-repeat; }
+#playerMonsters .card-back-art, #playerSpells .card-back-art { background: var(--back-player, none) center / cover no-repeat !important; }
+#enemyMonsters .card-back-art, #enemySpells .card-back-art { background: var(--back-enemy, none) center / cover no-repeat !important; }
+.card-back-art i { opacity: 0; }
