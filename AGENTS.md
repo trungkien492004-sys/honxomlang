@@ -226,3 +226,7 @@ Truyền Kỳ chỉ hiện nhân vật đã có dữ liệu trong `MEME_SAGA`.
 ## ẢNH THEO NHÂN VẬT
 
 `assets/characters/<code>.png` (ảnh toàn thân, không nén mất dữ liệu, không thu nhỏ: bản webp nén từng bị người dùng chê mờ). `assets/memecard/arenas/<code>.webp` là khung cảnh cho cổng vòm và nền bàn đấu; `assets/memecard/backs/*.webp` là mặt sau bài, gán trong `BACKS` ở `meme_hero_stage.js`. Biến CSS chứa ảnh phải dùng đường dẫn đầy đủ vì trình duyệt tính theo file CSS.
+
+## NỀN SÂN VÀ MẶT SAU BÀI TRONG SHOP
+
+Trong khung ô bài là sàn vector `assets/memecard/board-floor.svg` để luôn nét và dễ nhìn; đừng đặt ảnh AI vào đó (ô cảnh trong ảnh ghép chỉ ~300px, bị người dùng chê). Ảnh màu chỉ dùng cho vùng ngoài (`--arena-img`) và cổng vòm. `assets/js/meme_cosmetics.js` bán 25 nền + 18 mặt sau; ghi trong `themes.owned` dạng `arena:`/`back:`/`backon:` vì `normalize()` bỏ khóa lạ. Giao diện sân cũ (`data-theme`) tự thắng nền ảnh. Test: `node scripts/test-cosmetics.cjs`.

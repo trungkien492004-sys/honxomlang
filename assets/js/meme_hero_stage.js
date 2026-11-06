@@ -185,7 +185,9 @@
   function applyDuelArt() {
     if (typeof duel === 'undefined' || !duel?.player) return;
     const code = id => { try { return getHero(id)?.code; } catch { return null; } }, me = code(duel.player.heroId), foe = code(duel.enemy?.heroId), root = document.documentElement.style;
-    if (me) { root.setProperty('--arena-img', `url(${abs(`assets/memecard/arenas/${me}.webp`)})`); root.setProperty('--back-player', `url(${abs(`assets/memecard/backs/${BACKS[me] || 'star'}.webp`)})`); }
+    const cos = window.memeCosmetics, arena = cos?.arenaFile() || (me && `assets/memecard/arenas/${me}.webp`), mine = cos?.backFile() || (me && `assets/memecard/backs/${BACKS[me] || 'star'}.webp`);
+    if (arena) root.setProperty('--arena-img', `url(${abs(arena)})`);
+    if (mine) root.setProperty('--back-player', `url(${abs(mine)})`);
     if (foe) root.setProperty('--back-enemy', `url(${abs(`assets/memecard/backs/${BACKS[foe] || 'star'}.webp`)})`);
   }
   const duelEl = document.getElementById('duel');

@@ -57,6 +57,21 @@
     </article>`;
   }
 
+  // Nền sân đấu + mặt sau bài: lưới ảnh xem trước, gấp theo mục vì danh sách dài.
+  function cosCard(item, isOn, kind) {
+    const st = P.state, owned = st.themes.owned.includes(item.id), afford = st.xu >= item.price;
+    let action;
+    if (isOn) action = '<button type="button" class="secondary-btn cos-btn" disabled>Đang dùng</button>';
+    else if (owned) action = `<button type="button" class="primary-btn cos-btn" data-cos-equip="${item.id}">Dùng</button>`;
+    else action = `<button type="button" class="primary-btn cos-btn" data-cos-buy="${item.id}" ${afford ? '' : 'disabled'}>🪙 ${fmt(item.price)}</button>`;
+    return `<article class="cos-item ${kind}${isOn ? ' on' : ''}"><img src="${item.file}" alt="${esc(item.name)}" loading="lazy" /><b>${esc(item.name)}</b>${action}</article>`;
+  }
+  function cosSection(title, kind, items, activeKey, autoAttr) {
+    const count = items.filter(x => P.state.themes.owned.includes(x.id)).length;
+    const auto = `<article class="cos-item ${kind} auto${activeKey ? '' : ' on'}"><span class="cos-auto">Theo đấu sĩ</span><b>Miễn phí</b>${activeKey ? `<button type="button" class="primary-btn cos-btn" ${autoAttr}>Dùng</button>` : '<button type="button" class="secondary-btn cos-btn" disabled>Đang dùng</button>'}</article>`;
+    return `<details class="shop-section cos-section"><summary>${title} <small>Đã có ${count}/${items.length}</small></summary><div class="cos-grid ${kind}">${auto}${items.map(x => cosCard(x, activeKey === x.key, kind)).join('')}</div></details>`;
+  }
+
   function open() {
     const st = P.state;
     const themes = window.memeThemes?.THEMES || [];
@@ -65,6 +80,7 @@
         <div class="shop-wallet"><span>🪙 ${fmt(st.xu)} Xu</span><span>✦ ${fmt(st.dust)} bụi</span><span>🎟️ ${st.tickets.p1}/${st.tickets.p2}/${st.tickets.p3}</span></div></div>
       <div class="shop-grid">${ITEMS.map(itemCard).join('')}</div>
       ${themes.length > 1 ? `<div class="shop-section"><h3>🎨 Giao diện sân đấu</h3><div class="shop-grid">${themes.map(themeCard).join('')}</div></div>` : ''}
+      ${window.memeCosmetics ? cosSection('Nền ngoài sân đấu', 'cos-arena', memeCosmetics.ARENAS, memeCosmetics.activeArena(), 'data-cos-equip="arena:auto"') + cosSection('Mặt sau lá bài', 'cos-back', memeCosmetics.BACKS, memeCosmetics.activeBack(), 'data-cos-back-auto') : ''}
       <div class="shop-foot">
         <button type="button" class="secondary-btn" id="shopPackBtn">📦 Mở Pack</button>
         <button type="button" class="secondary-btn" id="shopProfileBtn">👤 Hồ sơ · túi đồ</button>
@@ -94,6 +110,23 @@
         open();
       };
     });
+    const reopen = sectionIdx => { open(); document.querySelectorAll('.cos-section')[sectionIdx]?.setAttribute('open', ''); };
+    const secOf = el => [...document.querySelectorAll('.cos-section')].indexOf(el.closest('.cos-section'));
+    document.querySelectorAll('[data-cos-buy]').forEach(btn => {
+      btn.onclick = () => {
+        const i = secOf(btn), result = memeCosmetics.buy(btn.dataset.cosBuy);
+        if (!result.ok) return window.showActionNotice(result.error, 'Chưa mua được');
+        memeCosmetics.equip(btn.dataset.cosBuy); reopen(i);
+      };
+    });
+    document.querySelectorAll('[data-cos-equip]').forEach(btn => {
+      btn.onclick = () => {
+        const i = secOf(btn), result = memeCosmetics.equip(btn.dataset.cosEquip);
+        if (!result.ok) return window.showActionNotice(result.error, 'Không dùng được');
+        reopen(i);
+      };
+    });
+    document.querySelectorAll('[data-cos-back-auto]').forEach(btn => { btn.onclick = () => { const i = secOf(btn); memeCosmetics.equipBackAuto(); reopen(i); }; });
     $id('shopPackBtn').onclick = () => window.memePacks?.openShop?.();
     $id('shopProfileBtn').onclick = () => window.memeProfile?.open();
     $id('shopClose').onclick = () => window.closeModal();

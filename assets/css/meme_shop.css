@@ -82,3 +82,21 @@
 @media (prefers-reduced-motion: reduce) {
   #lobby .lobby-footer.rank-actions > #journeyBtn.has-actions { animation: none !important; }
 }
+
+/* Nền sân đấu và mặt sau bài: lưới ảnh xem trước. */
+.cos-section { border: 1px solid rgba(127, 182, 212, .28); border-radius: 12px; padding: 8px 12px; }
+.cos-section > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 700; color: #eaf7ff; }
+.cos-section > summary small { font-weight: 400; color: #7fb6d4; }
+.cos-section > summary:focus-visible { outline: 2px solid #67e8f9; outline-offset: 2px; border-radius: 8px; }
+.cos-grid { display: grid; gap: 8px; padding: 8px 0 4px; }
+.cos-grid.cos-arena { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cos-grid.cos-back { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cos-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 4px; border: 1px solid rgba(127, 182, 212, .25); border-radius: 8px; background: rgba(4, 16, 30, .6); }
+.cos-item.on { border-color: #f2c86e; box-shadow: 0 0 0 1px #f2c86e; }
+.cos-item img, .cos-auto { display: block; width: 100%; border-radius: 4px; object-fit: cover; background: #0b1a30; }
+.cos-item.cos-arena img, .cos-item.cos-arena .cos-auto { aspect-ratio: 4 / 3; }
+.cos-item.cos-back img, .cos-item.cos-back .cos-auto { aspect-ratio: 5 / 7; }
+.cos-auto { display: grid; place-items: center; padding: 4px; text-align: center; font-size: 12px; color: #cfe6f5; background: linear-gradient(150deg, #173a55, #0a1a2e); }
+.cos-item b { font-size: 12px; line-height: 1.35; color: #eaf7ff; overflow-wrap: anywhere; }
+.cos-btn { margin-top: auto; min-height: 44px; padding: 4px; font-size: 12px; }
+@media (max-width: 420px) { .cos-grid.cos-arena { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cos-grid.cos-back { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
