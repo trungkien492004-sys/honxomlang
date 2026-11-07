@@ -47,11 +47,11 @@
    if(c.id===H('the_shining'))value+=300*s.banished.filter(id=>isElemental(C(id))).length;
    if(c.id===H('escuridao'))value+=100*s.grave.filter(id=>isElemental(C(id))).length;
    if(c.id==='MGX-masked_hero_koga')value+=500*E(other(n)).length;
-   if(window.memeDlMissing?.isCyberDragon(c)&&E(n).some(e=>face(e.slot)&&e.slot.id==='DL-cyber_dragon_vier'))value+=500;
    if(slot.favoriteHero&&s.field)value+=c.def||0;
    if(slot.babyEquipAtk)value+=slot.babyEquipAtk;
    if(E(n).some(e=>face(e.slot)&&C(e.slot.id)?.effect_code==='dl_hero_sunrise'))value+=200*new Set(E(n).filter(e=>face(e.slot)).map(e=>C(e.slot.id)?.element)).size;
   }
+  if(E(n).some(e=>face(e.slot)&&(e.slot.id==='DL-cyber_dragon_vier'||C(e.slot.id)?.effect_code==='dl_cyber_vier'))&&core.treatedName(slot.id,'field',true)===core.aid('Cyber Dragon'))value+=500;
   for(const e of [...spellList(n),...spellList(other(n))]){const x=C(entryId(e));if(e.slot.faceDown)continue;if(x.id==='MGX-umi'){if(['Cá','Hải Long','Sấm','Thủy Tộc'].includes(c.tribe))value+=200;if(['Máy','Hỏa Tộc'].includes(c.tribe))value-=200;}if(e.slot.equippedTo&&e.slot.equippedTo===slot.uid){if(x.id==='AN-megamorph'&&kind==='atk'){}else if(kind==='atk')value+=e.slot.equipValue??x.effect_value??0;else value+=e.slot.equipDef||0;}}
   if(kind==='atk')value+=window.memeEquipRules?.megamorphDelta(n,slot)||0;
   value+=kind==='atk'?(slot.tcgAtkDelta||0)+(slot.powerAtk||0)+(slot.attackBonus||0)+(slot.equip||0):(slot.tcgDefDelta||0)+(slot.equipDef||0);

@@ -206,7 +206,6 @@
    if(c.effect_code==='p3_escuridao')value+=100*s.grave.filter(id=>hero(card(id))).length;
    if(c.effect_code==='masked_koga')value+=500*E(other(n)).length;
    if(c.effect_code==='dl_brave_neos')value+=100*s.grave.filter(id=>/\bHERO\b/.test(card(id)?.name_en||'')||/Neo-Spacian/.test(card(id)?.name_en||'')).length;
-   if(window.memeDlMissing?.isCyberDragon(c)&&E(n).some(e=>face(e.slot)&&e.slot.id==='DL-cyber_dragon_vier'))value+=500;
    if(E(n).some(e=>face(e.slot)&&card(e.slot.id)?.effect_code==='dl_hero_sunrise'))value+=200*new Set(E(n).filter(e=>face(e.slot)).map(e=>card(e.slot.id)?.element)).size;
    if(slot.favoriteHero&&s.field)value+=card(slot.id)?.def||0;
    value+=(slot.mangaAtkDelta||0)+(slot.mangaTempRound===duel.round?slot.mangaTempAtk||0:0);
@@ -640,7 +639,7 @@
         }
       }
     }
-  if(!slot||!E(n).some(e=>e.slot===slot)||duel.finished)return;const c=card(slot.id);await window.memeTcgEngine?.onSummon(n,slot,kind);await window.memeDlMissing?.onSummon(n,slot);await window.memeRoster2?.onSummon(n,slot);if(kind==='flip'){if(c.effect_trigger==='on_flip'||c.effect_code==='search_gazelle')await resolveEffect(n,c,{source:slot,kind});}else if(c.effect_trigger==='on_summon')await resolveEffect(n,c,{source:slot,kind});
+  if(!slot||!E(n).some(e=>e.slot===slot)||duel.finished)return;const c=card(slot.id);await window.memeTcgEngine?.onSummon(n,slot,kind);await window.memeRoster2?.onSummon(n,slot);if(kind==='flip'){if(c.effect_trigger==='on_flip'||c.effect_code==='search_gazelle')await resolveEffect(n,c,{source:slot,kind});}else if(c.effect_trigger==='on_summon')await resolveEffect(n,c,{source:slot,kind});
   if(kind!=='flip'&&window.memeAnime?.onSummoned)await window.memeAnime.onSummoned(n,slot,kind);
   if(c.traits.includes('bubbleman')&&S(n).bubbleDrawRound!==duel.round&&E(n).length===1&&!S(n).hand.length&&!S(n).spells.some(Boolean)&&!S(n).field){S(n).bubbleDrawRound=duel.round;await fx(n,c,'draw',[],()=>drawCards(n,2),{text:'Bọt Biển: rút 2 lá vì tay trống và không còn lá nào khác.'});}
   if(kind==='special'&&c.effect_code==='p3_shadow_mist')enqueue(()=>shadowMist(n,true));
