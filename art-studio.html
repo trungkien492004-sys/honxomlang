@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Xưởng Vẽ · Hóm Xóm Làng</title>
+<meta name="robots" content="noindex" />
+<style>
+  :root { --bg: #060b18; --panel: #0f1c33; --line: #1f3a5c; --gold: #f2c86e; --teal: #3ee6ff; --text: #e8f1ff; --mut: #8fa6c4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.55 system-ui, "Segoe UI", sans-serif; color: var(--text); background: radial-gradient(1200px 600px at 50% -10%, #12335a, var(--bg) 60%) fixed; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 18px 16px 60px; }
+  h1 { margin: 6px 0 2px; font-size: 26px; color: var(--gold); }
+  h2 { margin: 34px 0 10px; font-size: 19px; color: var(--teal); border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  p { margin: 6px 0; color: var(--mut); }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  a.tool, button { font: inherit; cursor: pointer; text-decoration: none; color: var(--text); background: #14305a; border: 1px solid var(--line); padding: 7px 12px; border-radius: 9px; }
+  a.tool:hover, button:hover { border-color: var(--teal); }
+  button.copy { background: linear-gradient(#e4b650, #b8862a); color: #1a1100; font-weight: 700; border-color: #f2c86e; }
+  button.copy.done { background: #2f9e6a; color: #fff; border-color: #2f9e6a; }
+  .steps { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px 10px 34px; color: var(--mut); }
+  .steps li { margin: 4px 0; } .steps b { color: var(--text); }
+  .style { background: #0b1830; border: 1px dashed var(--gold); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
+  .style code { color: var(--gold); white-space: pre-wrap; display: block; font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .item { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .item h3 { margin: 0; font-size: 16px; } .item h3 small { color: var(--mut); font-weight: 400; }
+  .item .file { font-size: 12px; color: var(--teal); word-break: break-all; }
+  .item pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.5 ui-monospace, Consolas, monospace; background: #081226; border: 1px solid var(--line); border-radius: 8px; padding: 8px; color: #cfe0f7; flex: 1; }
+  .item .row { display: flex; gap: 8px; align-items: center; }
+  .item .preview { height: 120px; border-radius: 8px; background: #081226 center/contain no-repeat; border: 1px solid var(--line); display: grid; place-items: center; color: var(--mut); font-size: 12px; }
+  label { display: block; margin: 8px 0 4px; color: var(--mut); font-size: 13px; }
+  input, select { font: inherit; color: var(--text); background: #081226; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; width: 100%; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 560px) { .two { grid-template-columns: 1fr; } h1 { font-size: 22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎨 Xưởng Vẽ · Hóm Xóm Làng</h1>
+  <p>Trang này gom sẵn prompt để nhờ AI vẽ nhân vật, ảnh bài, sân đấu và icon. Bấm <b>Sao chép prompt</b>, dán vào công cụ vẽ, rồi đưa ảnh về game.</p>
+  <p>Link trang này: <b id="selfLink"></b></p>
+
+  <h2>1. Công cụ vẽ AI (mở trong tab mới)</h2>
+  <div class="tools">
+    <a class="tool" target="_blank" rel="noopener" href="https://chatgpt.com/">ChatGPT (tạo ảnh)</a>
+    <a class="tool" target="_blank" rel="noopener" href="https://gemini.google.com/">Gemini</a>
+    <a class="tool" target="_blank" rel="noopener" href="https://www.bing.com/images/create">Bing Image Creator</a>
+    <a class="tool" target="_blank" rel="noopener" href="https://leonardo.ai/">Leonardo</a>
+    <a class="tool" target="_blank" rel="noopener" href="https://ideogram.ai/">Ideogram</a>
+    <a class="tool" target="_blank" rel="noopener" href="https://www.remove.bg/">remove.bg (xóa nền)</a>
+    <a class="tool" target="_blank" rel="noopener" href="https://squoosh.app/">Squoosh (nén ảnh)</a>
+  </div>
+
+  <h2>2. Quy trình</h2>
+  <ol class="steps">
+    <li><b>Dán "Phong cách chung"</b> (bên dưới) vào đầu mỗi prompt để các ảnh cùng một nét vẽ.</li>
+    <li><b>Nhân vật:</b> vẽ nền xanh lá phẳng, dùng remove.bg xóa nền, lưu PNG trong suốt, khoảng 768×1024.</li>
+    <li><b>Đặt đúng tên file</b> vào đúng thư mục (ghi trên mỗi thẻ). Game tự dùng ảnh mới, không cần sửa code: nhân vật hiện ngay ở sân khấu xoay trong sảnh.</li>
+    <li>Nén ảnh (Squoosh, WebP/PNG dưới ~400 KB) rồi gửi cho Claude hoặc tự bỏ vào repo, sau đó deploy.</li>
+  </ol>
+
+  <div class="style">
+    <b style="color:var(--gold)">Phong cách chung (dán vào đầu mọi prompt)</b>
+    <code id="styleText">premium anime trading-card-game key art, clean cel-shaded linework with painterly lighting, rich teal and gold colour palette, dramatic rim light, deep navy background tones, glowing magical particles, crisp details, high contrast, no text, no watermark, no logo</code>
+    <div class="row" style="margin-top:8px"><button class="copy" data-copy="#styleText">Sao chép phong cách chung</button></div>
+  </div>
+
+  <h2>3. Nhân vật (sảnh chọn đấu sĩ)</h2>
+  <p>Lưu vào <b>assets/characters/&lt;code&gt;.webp</b> (hoặc .png). Ảnh toàn thân hoặc nửa người, nhân vật ở giữa, chừa chút khoảng trống quanh đầu.</p>
+  <div class="grid" id="chars"></div>
+
+  <h2>4. Ảnh bài (tự tạo prompt)</h2>
+  <p>Điền tên bài và hệ để ra prompt. Ảnh bài nằm ở <b>assets/memecard/art/&lt;ID bài&gt;.png</b> (ID dạng AN-dark_magician, xem trong game hoặc file danh mục).</p>
+  <div class="item">
+    <div class="two">
+      <div><label for="cName">Tên bài (tiếng Anh)</label><input id="cName" value="Dark Magician" /></div>
+      <div><label for="cId">ID bài</label><input id="cId" value="AN-dark_magician" /></div>
+    </div>
+    <div class="two">
+      <div><label for="cEl">Hệ</label><select id="cEl"><option>dark</option><option>light</option><option>fire</option><option>water</option><option>wind</option><option>earth</option><option>machine</option></select></div>
+      <div><label for="cKind">Loại</label><select id="cKind"><option value="monster">Quái vật</option><option value="spell">Phép</option><option value="trap">Bẫy</option></select></div>
+    </div>
+    <label for="cNote">Chi tiết thêm (tuỳ chọn)</label><input id="cNote" placeholder="vd: wearing purple armor, holding a staff" />
+    <pre id="cardPrompt"></pre>
+    <div class="row"><button class="copy" data-copy="#cardPrompt">Sao chép prompt</button><span class="file" id="cardFile"></span></div>
+  </div>
+
+  <h2>4b. Ảnh bài cho nhân vật mới</h2>
+  <p>Các lá của Marik, Jack, Shark, Chazz chưa có ảnh. Vẽ tỉ lệ 4:3, ghi đúng mã lá khi gửi lại. Có <b id="newCardCount">0</b> lá.</p>
+  <div class="grid" id="newCards"></div>
+
+  <h2>5. Sân đấu và nền</h2>
+  <div class="grid" id="arenas"></div>
+
+  <h2>6. Icon</h2>
+  <p>Vẽ từng bộ icon trên nền trong suốt hoặc nền phẳng (xóa nền sau), cắt thành từng ảnh vuông 256×256.</p>
+  <div class="grid" id="icons"></div>
+</div>
+
+<script src="assets/js/meme_roster2_catalog.js"></script>
+<script>
+(() => {
+  const STYLE = document.getElementById('styleText').textContent.trim();
+  const SITE = location.origin && location.origin !== 'null' ? location.origin : 'https://honxomlang-e6974.web.app';
+  document.getElementById('selfLink').textContent = SITE + '/art-studio.html';
+
+  const CHARS = [
+    ['destiny', 'Yugi Muto / Atem', 'tri-colour spiky star-shaped hair with golden bangs, Millennium Puzzle pendant, school uniform jacket worn open, confident duelist pose holding a card, golden eyes'],
+    ['kaiba', 'Seto Kaiba', 'brown hair, long white coat with blue trim and high collar, arms crossed, arrogant smirk, Duel Disk on wrist, a white-blue dragon silhouette glowing behind'],
+    ['joey', 'Joey Wheeler', 'messy blond hair, open green jacket over a white shirt, headband-free, fighting-spirit grin, fist raised, holding a card, red-and-black dragon silhouette behind'],
+    ['pegasus', 'Maximillion Pegasus', 'long silver hair covering the left eye, elegant red suit, wine glass, Millennium Eye glowing gold on the forehead, mysterious smile, cartoon-toon motifs floating around'],
+    ['jaden', 'Jaden Yuki / Judai', 'spiky brown hair with orange tips, red-and-white academy jacket, cheerful grin, thumbs-up pose, small furry Winged Kuriboh spirit floating beside him, hero-themed elemental sparks'],
+    ['zane', 'Zane Truesdale / Ryo', 'dark teal-black hair, black academy coat with a high collar, calm cold expression, one hand holding a card, sleek metallic silver dragon coiled behind with cyan lights'],
+    ['mai', 'Mai Valentine / Mai Kujaku', 'long wavy blonde hair, purple dress with open top, gold jewelry, confident smile, elegant hand gesture, bird-winged harpie silhouette behind her, purple and pink glow'],
+    ['yuma', 'Yuma Tsukumo', 'red-black spiky hair with a yellow streak, red jacket, big determined grin, fist pump, Key necklace glowing, blue spirit aura'],
+    ['yusei', 'Yusei Fudo', 'black spiky hair with golden streaks, red gloves, face marker, dark red riding jacket, intense determined look, red dragon wing glowing on the arm, engine sparks and a speed-streak background'],
+    ['marik', 'Marik Ishtar', 'tan skin, wild spiky pale-blonde hair, glowing golden eye mark on the forehead, dark purple sleeveless robe, gold neck ring and earrings, sinister smile, holding a golden rod, dark purple shadow aura'],
+    ['jack', 'Jack Atlas', 'tall, spiky blonde hair with a raised fringe, long white coat with a high collar and dark blue trim, arrogant proud pose, one hand pointing forward, huge red dragon wings of flame behind him'],
+    ['shark', 'Reginald Kastle Shark', 'teen with dark purple spiky hair, black leather jacket with a purple shirt, chains, cold scowl, hand in pocket, swirling deep-sea water and a shark silhouette behind him'],
+    ['chazz', 'Chazz Princeton', 'black spiky hair, long black academy coat with a high collar, smug confident grin, pointing at the viewer, three tiny comical Ojama spirits (yellow, green, black) floating around him, a green armored dragon behind'],
+    ['alexis', 'Alexis Rhodes', 'long straight blonde hair, white and blue academy jacket with a short skirt, calm confident pose holding a card, ice-blue and silver sparkling ribbons around her'],
+    ['aster', 'Aster Phoenix', 'silver-white hair, slim light grey suit, cool composed smile, holding a card, dark destiny-themed clock gears and black feathers behind him'],
+    ['jesse', 'Jesse Anderson', 'spiky teal hair, blue academy jacket over a white shirt, cheerful grin, thumbs up, a rainbow arc and seven glowing gem beasts behind him'],
+    ['bakura', 'Yami Bakura', 'long messy white hair, striped blue shirt with a dark coat, sly menacing smirk, golden Millennium Ring pendant with spikes, dark occult purple smoke and a ghostly board behind him'],
+    ['akiza', 'Akiza Izinski', 'long wine-red hair with a side bang and a hair clip, dark red corset dress with a long open coat, cool expression, a swirl of black-red rose petals and thorny vines around her'],
+    ['crow', 'Crow Hogan', 'spiky orange hair with a headband, face marker tattoos, sleeveless jacket, confident grin, arm raised, a storm of black feathers and black-winged birds behind him'],
+    ['kite', 'Kite Tenjo', 'blond spiky hair with a dark fringe, long dark trench coat, cold focused stare, one hand raised, glowing cyan-blue photon energy and a galaxy-eyed dragon silhouette behind him'],
+    ['zane', 'Zane Truesdale', 'long dark teal hair, black academy coat with a high collar and silver trim, cold calm expression, holding a card, sleek silver mechanical dragon coiled behind him with cyan lights']
+  ];
+  const ARENAS = [
+    ['Sân đấu chính', 'assets/memecard/arena-duel.png', '1920×1080', 'top-down-ish fantasy duel arena table, dark teal stone floor with glowing gold rune circles, three monster slots and three spell slots lit softly, ornate gold border, empty center, no characters, no text'],
+    ['Nền sảnh', 'assets/memecard/lobby-bg.png', '1920×1080', 'grand night-time fantasy village square lit by gold lanterns, distant glowing city skyline, magical fireflies, teal-navy sky, wide empty centre for UI, no characters, no text'],
+    ['Nền giải đấu', 'assets/memecard/tournament-bg.png', '1920×1080', 'huge colosseum duel stadium at night, crowd silhouettes, giant glowing banners with abstract emblems, spotlight beams, gold and teal lighting, empty arena floor'],
+    ['Mặt sau lá bài', 'assets/memecard/card-back.png', '744×1039', 'trading card back design, intricate gold filigree frame, central glowing teal magic circle with a star, dark navy leather texture, symmetrical, no text'],
+    ['Khung lá bài (hiếm)', 'assets/memecard/frame-rare.png', '744×1039', 'empty ornate trading card frame with transparent centre, gold and teal metallic border, small corner gems, art window and text box areas clearly separated, no text']
+  ];
+  const ICONS = [
+    ['Icon 6 hệ', 'assets/memecard/icons/elements.png', 'a set of 6 glossy round emblem icons on a flat plain background: fire, water, wind, light, dark, machine, each with a gold ring, consistent size and lighting, game UI style'],
+    ['Icon tộc quái', 'assets/memecard/icons/tribes.png', 'a set of 8 small emblem icons on a flat plain background: dragon, warrior, spellcaster, machine, beast, fairy, fiend, zombie, gold-ringed round badges, game UI style'],
+    ['Icon giao diện', 'assets/memecard/icons/ui.png', 'a set of 12 game UI icons on a flat plain background: deck, graveyard, banished, extra deck, shield, life points heart, coin, shop bag, trophy, quest scroll, settings gear, menu, rounded gold-teal glossy style'],
+    ['Huy hiệu hạng', 'assets/memecard/icons/ranks.png', 'a set of 6 rank badges on a flat plain background: bronze, silver, gold, platinum, diamond, legend, ornate winged shields with gems, increasing grandeur']
+  ];
+
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function item(title, sub, file, prompt, size) {
+    const full = STYLE + ', ' + prompt;
+    return `<div class="item"><h3>${esc(title)} <small>${esc(sub || '')}</small></h3>
+      <div class="file">${esc(file)}${size ? ' · ' + esc(size) : ''}</div>
+      <pre>${esc(full)}</pre>
+      <div class="row"><button class="copy" data-text="${esc(full)}">Sao chép prompt</button></div></div>`;
+  }
+  document.getElementById('chars').innerHTML = CHARS.map(([code, name, d]) =>
+    `<div class="item"><h3>${esc(name)} <small>${code}</small></h3>
+      <div class="preview" style="background-image:url(assets/characters/${code}.webp)">chưa có ảnh AI</div>
+      <div class="file">assets/characters/${code}.webp (hoặc .png) · ~768×1024, nền trong suốt</div>
+      <pre>${esc(STYLE + ', full-body character portrait of ' + name + ', ' + d + ', centered, plain flat bright green (#00ff00) background, vertical 3:4')}</pre>
+      <div class="row"><button class="copy" data-text="${esc(STYLE + ', full-body character portrait of ' + name + ', ' + d + ', centered, plain flat bright green (#00ff00) background, vertical 3:4')}">Sao chép prompt</button></div></div>`).join('');
+  const KIND = { 'Ám': 'dark', 'Quang': 'light', 'Hỏa': 'fire', 'Thủy': 'water', 'Phong': 'wind', 'Địa': 'earth' };
+  const fresh = (window.MEME_CARDS || []).filter(c => c.catalogue_version === 'roster2-v1');
+  document.getElementById('newCardCount').textContent = fresh.length;
+  document.getElementById('newCards').innerHTML = fresh.map(c => {
+    const body = c.card_type === 'Spell' ? `a magical effect illustration for the spell "${c.name_en}", symbolic scene with glowing energy` : `the monster "${c.name_en}", a ${KIND[c.element] || 'mystic'}-attribute ${c.tribe === 'Rồng' ? 'dragon' : 'creature'}, dynamic pose filling the frame`;
+    return item(c.name, c.archetype, c.id, body + ', horizontal 4:3 illustration for a card art window, no card border', '1024×768');
+  }).join('');
+  document.getElementById('arenas').innerHTML = ARENAS.map(a => item(a[0], '', a[1], a[3], a[2])).join('');
+  document.getElementById('icons').innerHTML = ICONS.map(a => item(a[0], '', a[1], a[2], '')).join('');
+
+  // Ảnh nhân vật chưa có thì ẩn khung "preview" gọn lại.
+  document.querySelectorAll('.preview').forEach(p => {
+    const u = p.style.backgroundImage.slice(5, -2), i = new Image();
+    i.onload = () => { p.textContent = ''; }; i.onerror = () => { p.style.backgroundImage = 'none'; };
+    i.src = u;
+  });
+
+  const nameEl = document.getElementById('cName'), idEl = document.getElementById('cId'), elEl = document.getElementById('cEl'), kindEl = document.getElementById('cKind'), noteEl = document.getElementById('cNote');
+  function card() {
+    const k = kindEl.value, n = nameEl.value.trim() || 'Unnamed', note = noteEl.value.trim();
+    const body = k === 'monster'
+      ? `a ${elEl.value}-attribute monster named "${n}", dynamic hero shot, creature or character filling the frame, ${note}`
+      : k === 'spell'
+        ? `a magical effect illustration for the spell "${n}", glowing runes and energy, symbolic scene, ${note}`
+        : `a mysterious trap illustration for the trap "${n}", ominous glowing seals and chains, symbolic scene, ${note}`;
+    document.getElementById('cardPrompt').textContent = `${STYLE}, ${body.replace(/, $/, '')}, horizontal 4:3 illustration for a card art window, no card border`;
+    document.getElementById('cardFile').textContent = `assets/memecard/art/${idEl.value.trim() || 'ID'}.png · 1024×768`;
+  }
+  [nameEl, idEl, elEl, kindEl, noteEl].forEach(e => e.addEventListener('input', card)); card();
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button.copy'); if (!b) return;
+    const text = b.dataset.text || document.querySelector(b.dataset.copy)?.textContent || '';
+    const done = () => { const t = b.textContent; b.textContent = 'Đã sao chép ✓'; b.classList.add('done'); setTimeout(() => { b.textContent = t; b.classList.remove('done'); }, 1400); };
+    (navigator.clipboard?.writeText(text) || Promise.reject()).then(done).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch { /* bỏ qua */ } ta.remove();
+    });
+  });
+})();
+</script>
+</body>
+</html>

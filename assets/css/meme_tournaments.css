@@ -1,0 +1,23 @@
+/* Giải đấu: danh sách kỳ giải + thông báo khi vào game. */
+.tour-modal { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.modal-card:has(.tour-modal) { width: min(760px, 96vw); text-align: left; padding: 16px 18px 14px; }
+.tour-list { display: grid; gap: 8px; max-height: 52dvh; overflow-y: auto; padding-right: 2px; }
+.tour-card { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--c); background: linear-gradient(135deg, rgba(12, 36, 56, .9), rgba(18, 52, 72, .8)); display: grid; gap: 6px; }
+.tour-top { display: flex; gap: 10px; align-items: center; }
+.tour-top i { font-style: normal; font-size: 30px; }
+.tour-top strong { display: block; font: 900 15px/1.2 'Baloo 2', sans-serif; color: #fff2cf; }
+.tour-top small { font: 800 10.5px/1.3 'Nunito', sans-serif; color: #9fc6da; }
+.tour-rounds { display: flex; flex-wrap: wrap; gap: 4px; }
+.tour-rounds span { padding: 2px 8px; border-radius: 99px; background: rgba(255, 255, 255, .06); color: #cfe5ee; font: 800 10px/1.5 'Nunito', sans-serif; }
+.tour-rounds span.done { background: rgba(52, 211, 153, .22); color: #bff5dd; }
+.tour-rounds span.cur { background: rgba(252, 211, 77, .25); color: #ffe9b0; }
+.tour-prize { font: 800 10.5px/1.4 'Nunito', sans-serif; color: #ffe3ac; }
+.tour-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tour-foot small { font: 800 10.5px/1.35 'Nunito', sans-serif; color: #b8d8e8; }
+
+.tour-announce { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 99998; width: min(420px, calc(100vw - 24px)); padding: 10px 12px; border-radius: 12px; background: rgba(8, 24, 38, .97); border: 1.5px solid #fcd34d; box-shadow: 0 10px 30px rgba(0, 0, 0, .55); color: #f2f9ff; animation: lobbyMenuIn .2s ease-out; }
+.tour-announce b { font: 900 13px/1.2 'Baloo 2', sans-serif; color: #ffd98a; }
+.tour-announce p { margin: 4px 0 8px; font: 800 12px/1.45 'Nunito', sans-serif; }
+.tour-announce div { display: flex; gap: 6px; justify-content: flex-end; }
+.tour-announce button { padding: 5px 12px; border-radius: 8px; border: 1px solid #4f7385; background: #122e41; color: #d9e6e9; font: 900 11px/1.2 'Nunito', sans-serif; cursor: pointer; }
+.tour-announce button#tourAnnOpen { border-color: #fcd34d; color: #ffe3ac; }

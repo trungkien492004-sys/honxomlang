@@ -11,3 +11,7 @@ Theo quyết định mới nhất của người chơi ngày 26/10/2026, thay th
 - Giữ bước chọn → xem thông tin → xác nhận và luồng chọn quái → Tấn công → chọn mục tiêu.
 
 Quyết định này áp dụng cho cả 156 lá cũ lẫn các nhóm HERO/Mặt Nạ đang mở rộng. Việc đổi mô tả hoặc dữ liệu nguồn không đủ để tuyên bố chuyển TCG xong; cần chuyển logic và kiểm thử tương ứng.
+
+## Cập nhật 05/11/2026: hòa trộn TCG
+
+Catalogue TCG đã bật (`ready: true`) theo kiểu hòa trộn: lá có bản TCG dùng text/chỉ số/logic TCG; lá không có bản TCG (Duel Links, mở rộng) giữ nguyên hiệu ứng cũ. Độ hiếm, tranh, tên, bộ bài và `traits` cũ được giữ. Xem `docs/CARD_AUDIT.md` và `node scripts/audit-cards.cjs`.

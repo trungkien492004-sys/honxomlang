@@ -54,8 +54,32 @@
       { uid: 'bot-zane', name: 'Zane Truesdale', bot: true, heroId: 5, rating: 1450, wins: 12, losses: 4, draws: 0, played: 16, online: true, title: 'Rồng Máy Tận Diệt · Cyber' },
       { uid: 'bot-jaden', name: 'Jaden Yuki', bot: true, heroId: 4, rating: 1350, wins: 10, losses: 5, draws: 0, played: 15, online: true, title: 'Anh Hùng Tối Thượng · HERO' },
       { uid: 'bot-pegasus', name: 'Pegasus J. Crawford', bot: true, heroId: 3, rating: 1250, wins: 8, losses: 6, draws: 0, played: 14, online: true, title: 'Vương Quốc Hoạt Hình · Toon' },
-      { uid: 'bot-joey', name: 'Joey Wheeler', bot: true, heroId: 2, rating: 1150, wins: 7, losses: 7, draws: 0, played: 14, online: true, title: 'Rồng Đen Bất Diệt · May Mắn' }
+      { uid: 'bot-joey', name: 'Joey Wheeler', bot: true, heroId: 2, rating: 1150, wins: 7, losses: 7, draws: 0, played: 14, online: true, title: 'Rồng Đen Bất Diệt · May Mắn' },
+      // Đợt mở rộng: Đấu Sĩ Máy luôn có người "ngồi sảnh" để bảng xếp hạng không bao giờ vắng. Vẫn ghi rõ là AI Máy.
+      { uid: 'bot-mai', name: 'Mai Valentine', bot: true, heroId: 6, rating: 1500, wins: 13, losses: 4, draws: 0, played: 17, title: 'Vũ Điệu Yêu Điểu · Harpie', deck: 'Mai · Kinh điển' },
+      { uid: 'bot-yusei', name: 'Yusei Fudo', bot: true, heroId: 8, rating: 1480, wins: 12, losses: 4, draws: 0, played: 16, title: 'Rồng Tinh Tú · Đồng Bộ', deck: 'Yusei · Kinh điển' },
+      { uid: 'bot-yuma', name: 'Yuma Tsukumo', bot: true, heroId: 7, rating: 1300, wins: 9, losses: 6, draws: 0, played: 15, title: 'Kattobingu · XYZ', deck: 'Yuma · Kinh điển' },
+      { uid: 'bot-yugi2', name: 'Yugi · Đấu Sĩ Phản Công', bot: true, heroId: 0, rating: 1420, wins: 11, losses: 5, draws: 0, played: 16, title: 'Phản Công Ma Thuật', deck: 'Yugi · Phản công' },
+      { uid: 'bot-kaiba2', name: 'Kaiba · Đấu Sĩ Phản Công', bot: true, heroId: 1, rating: 1390, wins: 11, losses: 6, draws: 0, played: 17, title: 'Phản Công Mắt Xanh', deck: 'Kaiba · Phản công' },
+      { uid: 'bot-zane2', name: 'Zane · Đấu Sĩ Phản Công', bot: true, heroId: 5, rating: 1330, wins: 9, losses: 6, draws: 0, played: 15, title: 'Phản Công Rồng Máy', deck: 'Zane · Phản công' },
+      { uid: 'bot-jaden2', name: 'Jaden · Đấu Sĩ Phản Công', bot: true, heroId: 4, rating: 1260, wins: 8, losses: 6, draws: 0, played: 14, title: 'Phản Công HERO', deck: 'Jaden · Phản công' },
+      { uid: 'bot-joey2', name: 'Joey · Đấu Sĩ Phản Công', bot: true, heroId: 2, rating: 1100, wins: 6, losses: 7, draws: 0, played: 13, title: 'Phản Công May Mắn', deck: 'Joey · Phản công' },
+      { uid: 'bot-pegasus2', name: 'Pegasus · Đấu Sĩ Phản Công', bot: true, heroId: 3, rating: 1050, wins: 5, losses: 7, draws: 0, played: 12, title: 'Phản Công Hoạt Hình', deck: 'Pegasus · Phản công' },
+      { uid: 'bot-yugi3', name: 'Yugi · Tập Sự', bot: true, heroId: 0, rating: 980, wins: 4, losses: 6, draws: 0, played: 10, title: 'Bộ Kinh Điển', deck: 'Yugi · Kinh điển' },
+      { uid: 'bot-kaiba3', name: 'Kaiba · Tập Sự', bot: true, heroId: 1, rating: 960, wins: 4, losses: 7, draws: 0, played: 11, title: 'Bộ Kinh Điển', deck: 'Kaiba · Kinh điển' },
+      { uid: 'bot-mai2', name: 'Mai · Phản Công', bot: true, heroId: 6, rating: 1210, wins: 8, losses: 7, draws: 0, played: 15, title: 'Phản Công Yêu Điểu', deck: 'Mai · Phản công' },
+      { uid: 'bot-yusei2', name: 'Yusei · Phản Công', bot: true, heroId: 8, rating: 1240, wins: 8, losses: 6, draws: 0, played: 14, title: 'Phản Công Đồng Bộ', deck: 'Yusei · Phản công' },
+      { uid: 'bot-zane3', name: 'Zane · Cyberdark', bot: true, heroId: 5, rating: 1360, wins: 10, losses: 6, draws: 0, played: 16, title: 'Cyberdark Hắc Ám', deck: 'Zane · Cyberdark' }
     ];
+    // Trạng thái hiện diện giả lập, đổi liên tục theo thời gian (xác định theo uid + đồng hồ nên không giật khi vẽ lại).
+    const botHash = text => { let h = 2166136261; for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619); return h >>> 0; };
+    function botStatus(bot, now = Date.now()) {
+      const slot = Math.floor(now / 45000), h = botHash(bot.uid + ':' + slot) % 100;
+      if (h < 62) return 'online';
+      if (h < 86) return 'dueling';
+      return 'away';
+    }
+    const BOT_STATUS_TEXT = { online: 'AI Máy · Online', dueling: 'AI Máy · Đang đấu', away: 'AI Máy · Vừa rời' };
     const botMap = new Map();
     for (const b of LEGEND_BOTS) botMap.set(b.uid, { ...b });
 
@@ -117,7 +141,7 @@
                 Đấu Sĩ AI huyền thoại mô phỏng đối kháng anime DM/GX. Trận đấu máy là đấu tập, <b>KHÔNG</b> cộng/trừ điểm Elo Rank chính thức.
               </p>
             </div>
-            <span style="font-size:11px;background:#1e293b;border:1px solid rgba(253,224,71,0.4);color:#fde047;padding:3px 10px;border-radius:12px;font-weight:700;">6 Đấu Sĩ Máy</span>
+            <span style="font-size:11px;background:#1e293b;border:1px solid rgba(253,224,71,0.4);color:#fde047;padding:3px 10px;border-radius:12px;font-weight:700;"><span id="rankBotCount">${LEGEND_BOTS.length} Đấu Sĩ Máy</span></span>
           </div>
           <table class="rank-table" style="margin-top:8px;">
             <thead>
@@ -193,8 +217,8 @@
             <td class="rank-num" style="text-align:center;"><span class="rank-bot-badge">BOSS #${index + 1}</span></td>
             <td class="rank-col-player">
               <div class="rank-player-row-top">
-                <span class="rank-presence is-online">
-                  <i aria-hidden="true"></i><span class="rank-presence-label">AI Máy</span>
+                <span class="rank-presence ${botStatus(bot) === 'away' ? 'is-offline' : 'is-online'}">
+                  <i aria-hidden="true"></i><span class="rank-presence-label">${BOT_STATUS_TEXT[botStatus(bot)]}</span>
                 </span>
                 <span class="rank-player-name" style="color:#fde047;font-weight:800;">${esc(bot.name)}</span>
               </div>
@@ -212,6 +236,11 @@
             <td class="rank-col-action">${challengeBtn}</td>
           </tr>`;
         }).join('');
+        const countNode = overlay.querySelector('#rankBotCount');
+        if (countNode) {
+          const live = LEGEND_BOTS.filter(bot => botStatus(bot) !== 'away').length;
+          countNode.textContent = `🟢 ${live}/${LEGEND_BOTS.length} Đấu Sĩ Máy online`;
+        }
       }
     }
 
@@ -232,7 +261,7 @@
             'bot-jaden': 'Jaden · Anh Hùng Tối Thượng',
             'bot-zane': 'Zane · Rồng Máy Tận Diệt'
           };
-          const preset = presets[targetUid] || 'Kaiba · Đỉnh Cao Mắt Xanh';
+          const preset = presets[targetUid] || botMap.get(targetUid)?.deck || 'Kaiba · Đỉnh Cao Mắt Xanh';
           if (typeof startGame === 'function') {
             startGame({ customBotDeck: preset, ghost: null, isPractice: true });
           } else {
@@ -277,6 +306,8 @@
     const botSectionEl = overlay.querySelector('#rankLegendBotsSection');
     if (botSectionEl) botSectionEl.onclick = handleChallengeClick;
     paint();
+    // Máy ra/vào sảnh liên tục: vẽ lại danh sách máy mỗi 15 giây khi bảng xếp hạng còn mở.
+    const botTimer = setInterval(() => { if (!overlay.isConnected) { clearInterval(botTimer); return; } paint(); }, 15000);
 
     const subscriptions = [];
     function listen(query, onRows) {
@@ -292,7 +323,7 @@
       if (snapshot.docs.length === 0 && !ranked.length) { paint(); return; }
       paint();
     });
-    stopLive = () => { subscriptions.forEach(unsubscribe => unsubscribe?.()); stopLive = null; };
+    stopLive = () => { clearInterval(botTimer); subscriptions.forEach(unsubscribe => unsubscribe?.()); stopLive = null; };
   }
 
   window.siteRankPlayers = { render, challenge, stop() { stopLive?.(); } };

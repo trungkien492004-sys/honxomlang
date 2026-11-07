@@ -18,7 +18,7 @@
     const el = document.getElementById('duel');
     if (!el) return;
     const active = P.state.themes.active;
-    if (active && active !== 'default') el.dataset.theme = active;
+    if (active && active !== 'default' && !active.startsWith('arena:')) el.dataset.theme = active;
     else delete el.dataset.theme;
   }
 

@@ -506,8 +506,8 @@
     window.memeAudioSfx?.playHeroCall(hId ?? 0);
 
     // 2. Play Authentic Anime Voice clip
-    const target = cardId || voiceAction || 'skill';
-    const playedRealVoice = playAuthenticVoice(hId ?? 0, target);
+    window.memeJaVoice?.say(hId ?? 0, voiceAction, cardId);
+    const playedRealVoice = true;
 
     // 3. Fallback to Web Speech if authentic voice is unavailable
     if (!playedRealVoice) {

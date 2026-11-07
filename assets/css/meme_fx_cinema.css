@@ -1,0 +1,29 @@
+/* Lớp hiệu ứng điện ảnh trận đấu (meme_fx_cinema.js). Không nhận chuột, không chặn thao tác. */
+#fxCinema { position: fixed; inset: 0; z-index: 9500; pointer-events: none; overflow: hidden; }
+#fxCinema > * { position: absolute; }
+.cin-flash-card, .cin-shard { background-size: cover; background-position: center; border-radius: 3px; }
+.cin-shard { box-shadow: 0 0 6px rgba(255, 240, 200, .6); will-change: transform, opacity; }
+.cin-dust { border-radius: 50%; box-shadow: 0 0 6px rgba(255, 226, 170, .9); will-change: transform, opacity; }
+.cin-crack { position: absolute; overflow: visible; filter: drop-shadow(0 0 3px #fff); }
+.cin-grave-glow { width: 68px; height: 68px; border-radius: 50%; opacity: 0; background: radial-gradient(closest-side, rgba(255, 233, 184, .95), rgba(209, 140, 255, .5) 55%, transparent 75%); }
+.cin-flash { inset: 0; opacity: 0; mix-blend-mode: screen; }
+
+.cin-cut { inset: 0; --cc: #ffd28c; --sh: min(25vw, 30vh); background: rgba(0, 0, 0, .42); }
+.cin-cut .cin-bar { position: absolute; left: 0; right: 0; height: 14vh; background: #02050c; }
+.cin-cut .cin-bar.top { top: 0; transform-origin: top; }
+.cin-cut .cin-bar.bot { bottom: 0; transform-origin: bottom; }
+.cin-cut .cin-strip {
+  position: absolute; left: -2%; right: -2%; top: 50%; height: var(--sh); margin-top: calc(var(--sh) / -2);
+  overflow: hidden; transform: scaleY(0); background: #050a14;
+  border-top: 3px solid var(--cc); border-bottom: 3px solid var(--cc);
+  box-shadow: 0 0 34px var(--cc), 0 0 90px color-mix(in srgb, var(--cc), transparent 55%);
+}
+.cin-cut .cin-eyes { position: absolute; inset: -3% -6%; background-size: cover; background-position: center; }
+.cin-cut .cin-lines {
+  position: absolute; inset: 0; mix-blend-mode: screen; opacity: .5;
+  background: repeating-linear-gradient(90deg, transparent 0 58px, rgba(255, 255, 255, .22) 58px 60px, transparent 60px 150px, rgba(255, 255, 255, .12) 150px 151px);
+}
+.cin-cut .cin-tag { position: absolute; right: 5vw; bottom: calc(50% - var(--sh) / 2 - 58px); text-align: right; color: #fff; opacity: 0; text-shadow: 0 0 14px var(--cc), 0 3px 8px #000; }
+.cin-cut .cin-tag b { display: block; font-size: clamp(26px, 5vw, 46px); font-weight: 900; letter-spacing: 2px; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; }
+.cin-cut .cin-tag small { display: block; font-size: clamp(13px, 2vw, 17px); color: var(--cc); }
+@media (prefers-reduced-motion: reduce) { #fxCinema { display: none; } }

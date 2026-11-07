@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="base" cx=".5" cy=".5" r=".75">
+      <stop offset="0" stop-color="#14465a"/>
+      <stop offset=".6" stop-color="#0c2a3e"/>
+      <stop offset="1" stop-color="#071826"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6dc96"/>
+      <stop offset=".5" stop-color="#d9ab55"/>
+      <stop offset="1" stop-color="#f2c86e"/>
+    </linearGradient>
+    <pattern id="tile" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M50 0H0V50" fill="none" stroke="#7fd6e6" stroke-opacity=".07" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="300" fill="url(#base)"/>
+  <rect width="800" height="300" fill="url(#tile)"/>
+  <g fill="none" stroke="url(#gold)" stroke-opacity=".5">
+    <rect x="10" y="10" width="780" height="280" rx="8" stroke-width="1.5"/>
+    <rect x="16" y="16" width="768" height="268" rx="6" stroke-width=".75"/>
+    <path d="M10 150H300M500 150H790" stroke-width="1"/>
+    <g transform="translate(400 150)">
+      <circle r="132" stroke-width="1.5"/>
+      <circle r="124" stroke-width=".75"/>
+      <circle r="92" stroke-width="1"/>
+      <circle r="56" stroke-width="1"/>
+      <path d="M0-124 18-18 124 0 18 18 0 124-18 18-124 0-18-18Z" stroke-width="1.25"/>
+      <path d="M0-92 13-13 92 0 13 13 0 92-13 13-92 0-13-13Z" stroke-width=".75" transform="rotate(45)"/>
+      <g stroke-width="1">
+        <path d="M0-132v8M0 124v8M-132 0h8M124 0h8"/>
+        <path d="M-93-93l6 6M87 87l6 6M93-93l-6 6M-87 87l-6 6"/>
+      </g>
+    </g>
+  </g>
+  <g fill="#3ee6ff" fill-opacity=".55">
+    <circle cx="10" cy="150" r="3"/><circle cx="790" cy="150" r="3"/><circle cx="400" cy="18" r="2.5"/><circle cx="400" cy="282" r="2.5"/>
+  </g>
+</svg>

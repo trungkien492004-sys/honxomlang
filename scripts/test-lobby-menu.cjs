@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),http=require('http'),puppeteer=require('puppeteer');
+const pub=path.resolve(__dirname,'..','dist');
+const server=http.createServer((req,res)=>{const f=path.resolve(pub,'.'+new URL(req.url,'http://l').pathname.replace(/^\/$/,'/memecard.html'));if(!f.startsWith(pub+path.sep))return res.writeHead(403).end();fs.readFile(f,(e,b)=>{if(e)return res.writeHead(404).end();res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(f)]||'application/octet-stream');res.end(b);});});
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const b=await puppeteer.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',args:['--no-sandbox']});
+try{const p=await b.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ await p.goto(`http://127.0.0.1:${server.address().port}/memecard.html`);await p.waitForFunction(()=>window.memeLobbyMenu&&window.memeSaga&&window.memeJourney,{timeout:30000});
+ const r=await p.evaluate(async()=>{await new Promise(r=>setTimeout(r,1500));const f=document.querySelector('#lobby .lobby-footer'),direct=[...f.children].map(n=>n.id).filter(Boolean),panel=[...document.querySelectorAll('#lobbyMenuPanel > button')].map(n=>n.id);
+  const hidden0=document.getElementById('lobbyMenuPanel').hidden;memeLobbyMenu.open();const open1=!document.getElementById('lobbyMenuPanel').hidden;
+  document.getElementById('journeyBtn').click();await new Promise(r=>setTimeout(r,50));const closedAfterPick=document.getElementById('lobbyMenuPanel').hidden;
+  return{direct,panel,hidden0,open1,closedAfterPick,modal:!!document.querySelector('.journey-modal')};});
+ assert.ok(r.direct.includes('rankPlayBtn')&&r.direct.includes('playBtn')&&r.direct.includes('lobbyMenuBtn'),'đấu nhanh + đấu rank vẫn tách: '+r.direct);
+ assert.deepEqual([...r.panel].sort(),['journeyBtn','lobbyDeckBtn','rankBoardBtn','sagaBtn','shopBigBtn','tournamentBtn'],'6 nút phụ nằm trong menu');
+ assert.ok(r.hidden0&&r.open1&&r.closedAfterPick,'menu mở/đóng đúng');assert.ok(r.modal,'nút trong menu vẫn chạy');
+ assert.deepEqual(errors,[]);console.log('test-lobby-menu: OK');
+}finally{await b.close();server.close();}})().catch(e=>{console.error(e);process.exitCode=1;server.close();});

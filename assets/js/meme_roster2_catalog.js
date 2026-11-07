@@ -1,0 +1,125 @@
+// Đợt 1 nhân vật mới: Marik (DM), Jack (5D's), Shark (ZEXAL), Chazz (GX). Chỉ số và hiệu ứng tra từ dữ liệu TCG.
+// Hiệu ứng nằm ở meme_roster2_engine.js. Lá nào chưa làm đúng được thì không đưa vào.
+(() => {
+  const note = 'Theo văn bản TCG, sân H5: 3 ô quái, 4000 LP.';
+  const mon = (arch, id, en, vi, el, tribe, stars, atk, def, extra = {}) => ({
+    id: 'AN-' + id, name: vi, name_vi: vi, name_en: en, archetype: arch, element: el, tribe, card_type: 'Monster',
+    stars, atk, def, monster_category: 'Hiệu ứng', rarity: 'R', max_copies: 3, deck_zone: 'Main', effect_code: '', effect_value: 0,
+    effect_trigger: 'passive', traits: [], catalogue_version: 'roster2-v1', activation_rules: 'Theo mô tả lá bài.', engine_notes: note,
+    art: { emoji: '✦', c1: '#7d5cff', c2: '#141a33' }, ...extra
+  });
+  const art = (emoji, c1, c2 = '#141a33') => ({ emoji, c1, c2 });
+  const onBattleDeath = { effect_trigger: 'on_destroy' };
+  const M = art('👁', '#b08a2e'), J = art('🔥', '#c8281e'), S = art('🦈', '#1f8fd6'), C = art('🟡', '#3fa34d');
+  const cards = [
+    // Marik
+    mon('Marik', 'gil_garth', 'Gil Garth', 'Gil Garth', 'Ám', 'Quỷ', 4, 1800, 1200, { monster_category: 'Thường', description: 'Cỗ máy khủng bố bọc thép, chém gục kẻ thù bằng thanh katana khổng lồ.', art: M }),
+    mon('Marik', 'newdoria', 'Newdoria', 'Newdoria', 'Ám', 'Quỷ', 4, 1200, 800, { ...onBattleDeath, effect_code: 'r2_newdoria', rarity: 'SR', description: 'Nếu lá này bị phá hủy trong chiến đấu và đưa vào Mộ: chọn 1 quái trên sân; phá hủy nó.', art: M }),
+    mon('Marik', 'mystic_tomato', 'Mystic Tomato', 'Cà Chua Thần Bí', 'Ám', 'Thực Vật', 4, 1400, 1100, { ...onBattleDeath, effect_code: 'r2_tomato', rarity: 'SR', description: 'Khi lá này bị phá hủy trong chiến đấu và đưa vào Mộ: bạn có thể Triệu hồi Đặc biệt 1 quái ÁM có ATK từ 1500 trở xuống từ Bộ bài ở thế tấn công.', art: art('🍅', '#b3261e') }),
+    mon('Marik', 'giant_germ', 'Giant Germ', 'Vi Khuẩn Khổng Lồ', 'Ám', 'Quỷ', 2, 1000, 100, { ...onBattleDeath, effect_code: 'r2_germ', description: 'Khi lá này bị phá hủy trong chiến đấu và đưa vào Mộ: gây 500 sát thương cho đối thủ, sau đó bạn có thể Triệu hồi Đặc biệt bao nhiêu lá "Vi Khuẩn Khổng Lồ" tùy ý từ Bộ bài ở thế tấn công.', art: M }),
+    mon('Marik', 'mask_of_darkness', 'Mask of Darkness', 'Mặt Nạ Bóng Tối', 'Ám', 'Quỷ', 2, 900, 400, { effect_code: 'r2_mask', effect_trigger: 'on_flip', monster_category: 'Lật', description: 'LẬT: chọn 1 Bẫy trong Mộ của bạn; đưa lá đó lên tay.', art: art('🎭', '#6a3fb5') }),
+    // Jack
+    mon('Jack', 'red_dragon_archfiend', 'Red Dragon Archfiend', 'Rồng Quỷ Đỏ', 'Ám', 'Rồng', 8, 3000, 2000, { deck_zone: 'Extra', monster_category: 'Đồng Bộ', rarity: 'UR', max_copies: 1, traits: ['r2_rda'], synchro_requirement: { tuners: 1, minNonTuners: 1, level: 8 }, description: '1 Tuner + 1 hoặc nhiều quái không phải Tuner. Sau tính sát thương, nếu lá này tấn công quái thế thủ của đối thủ: phá hủy tất cả quái thế thủ đối thủ điều khiển. Trong End Phase của bạn: phá hủy tất cả quái khác của bạn không tuyên bố tấn công lượt này. Lá này phải ngửa trên sân để kích hoạt.', activation_rules: 'Đồng Bộ từ bộ bài phụ.', art: art('🐲', '#c8281e') }),
+    mon('Jack', 'red_resonator', 'Red Resonator', 'Cộng Hưởng Đỏ', 'Hỏa', 'Quỷ', 2, 600, 200, { is_tuner: true, effect_code: 'r2_red_reso', effect_trigger: 'on_summon', rarity: 'SR', description: 'Khi lá này được Triệu hồi Thường: bạn có thể Triệu hồi Đặc biệt 1 quái Cấp 4 trở xuống từ tay. Khi lá này được Triệu hồi Đặc biệt: bạn có thể chọn 1 quái ngửa trên sân; nhận LP bằng ATK của nó. Mỗi lượt chỉ dùng được hiệu ứng này một lần.', art: J }),
+    mon('Jack', 'dark_resonator', 'Dark Resonator', 'Cộng Hưởng Bóng Tối', 'Ám', 'Quỷ', 3, 1300, 300, { is_tuner: true, traits: ['gogogo_guard'], description: 'Lần đầu lá này sắp bị phá hủy trong chiến đấu mỗi lượt, nó không bị phá hủy.', art: J }),
+    mon('Jack', 'mad_archfiend', 'Mad Archfiend', 'Quỷ Điên', 'Ám', 'Quỷ', 4, 1800, 0, { traits: ['piercing', 'r2_mad'], description: 'Nếu lá này tấn công quái thế thủ, gây sát thương xuyên giáp cho đối thủ. Nếu lá này đang ngửa thế tấn công bị chọn làm mục tiêu tấn công: chuyển nó sang thế thủ.', art: J }),
+    mon('Jack', 'power_invader', 'Power Invader', 'Kẻ Xâm Lăng Sức Mạnh', 'Ám', 'Quỷ', 5, 2200, 0, { rarity: 'SR', description: 'Nếu đối thủ điều khiển từ 2 quái trở lên, bạn có thể Triệu hồi Thường lá này không cần Hiến tế.', art: J }),
+    // Shark
+    mon('Shark', 'big_jaws', 'Big Jaws', 'Hàm Lớn', 'Thủy', 'Cá', 3, 1800, 300, { traits: ['r2_big_jaws'], description: 'Vào cuối Battle Phase, nếu lá này đã tấn công: trục xuất nó.', art: S, engine_notes: 'Game gộp Battle Phase vào cuối lượt, nên lá bị trục xuất ở End Phase của lượt đó.' }),
+    mon('Shark', 'hammer_shark', 'Hammer Shark', 'Cá Mập Búa', 'Thủy', 'Cá', 4, 1700, 1500, { effect_code: 'r2_hammer', effect_trigger: 'activated', rarity: 'SR', description: 'Một lần mỗi lượt: bạn có thể giảm 1 Cấp của lá này, và nếu làm vậy, Triệu hồi Đặc biệt 1 quái THỦY Cấp 3 trở xuống từ tay.', art: S }),
+    mon('Shark', 'shark_stickers', 'Shark Stickers', 'Cá Bám', 'Thủy', 'Cá', 3, 200, 1000, { traits: ['r2_stickers', 'no_synchro_material'], description: 'Khi một quái tộc Cá, Hải Long hoặc Thủy được Triệu hồi Thường hoặc Đặc biệt lên sân bạn: bạn có thể Triệu hồi Đặc biệt lá này từ tay. Lá này không thể dùng làm nguyên liệu Đồng Bộ.', art: S }),
+    mon('Shark', 'black_ray_lancer', 'Black Ray Lancer', 'Thương Thủ Cá Đuối Đen', 'Ám', 'Thú Chiến Binh', 0, 2100, 600, { deck_zone: 'Extra', monster_category: 'Xyz', rank: 3, rarity: 'SR', max_copies: 2, effect_code: 'r2_lancer', effect_trigger: 'activated', xyz_requirement: { materials: 2, rank: 3, element: 'Thủy' }, description: '2 quái THỦY Cấp 3. Một lần mỗi lượt: bạn có thể tách 1 nguyên liệu Xyz khỏi lá này, chọn 1 quái ngửa trên sân; vô hiệu hóa hiệu ứng của nó đến End Phase.', activation_rules: 'Triệu hồi Xyz từ bộ bài phụ.', art: art('🗡', '#2b3f8c') }),
+    mon('Shark', 'number_32_shark_drake', 'Number 32: Shark Drake', 'Số 32: Rồng Cá Mập', 'Thủy', 'Hải Long', 0, 2800, 2100, { deck_zone: 'Extra', monster_category: 'Xyz', rank: 4, rarity: 'UR', max_copies: 1, traits: ['r2_drake'], xyz_requirement: { materials: 3, rank: 4 }, description: '3 quái Cấp 4. Một lần mỗi lượt, khi lá này tấn công và phá hủy quái đối thủ trong chiến đấu rồi đưa vào Mộ: bạn có thể tách 1 nguyên liệu; Triệu hồi Đặc biệt quái bị phá lên sân đối thủ ở thế tấn công (nó mất 1000 ATK), và nếu làm vậy, lá này có thể tấn công lần thứ hai trong Battle Phase này.', activation_rules: 'Triệu hồi Xyz từ bộ bài phụ.', art: art('🐉', '#0f6ea8') }),
+    // Chazz
+    mon('Chazz', 'ojama_yellow', 'Ojama Yellow', 'Ojama Vàng', 'Quang', 'Thú', 2, 0, 1000, { monster_category: 'Thường', description: 'Một thành viên của bộ ba Ojama, chen vào bằng mọi giá.', art: art('🟡', '#d6b21f') }),
+    mon('Chazz', 'ojama_green', 'Ojama Green', 'Ojama Xanh', 'Quang', 'Thú', 2, 0, 1000, { monster_category: 'Thường', description: 'Một thành viên của bộ ba Ojama, chen vào bằng mọi giá.', art: C }),
+    mon('Chazz', 'ojama_black', 'Ojama Black', 'Ojama Đen', 'Quang', 'Thú', 2, 0, 1000, { monster_category: 'Thường', description: 'Một thành viên của bộ ba Ojama, chen vào bằng mọi giá.', art: art('⚫', '#3c3c46') }),
+    mon('Chazz', 'armed_dragon_lv3', 'Armed Dragon LV3', 'Rồng Vũ Trang LV3', 'Phong', 'Rồng', 3, 1200, 900, { traits: ['r2_lv3'], rarity: 'SR', description: 'Trong Standby Phase của bạn: bạn có thể đưa lá này vào Mộ; Triệu hồi Đặc biệt 1 "Rồng Vũ Trang LV5" từ tay hoặc Bộ bài.', art: art('🐉', '#4b8f5a') }),
+    mon('Chazz', 'armed_dragon_lv5', 'Armed Dragon LV5', 'Rồng Vũ Trang LV5', 'Phong', 'Rồng', 5, 2400, 1700, { effect_code: 'r2_lv5', effect_trigger: 'activated', traits: ['r2_lv5'], rarity: 'SR', max_copies: 2, description: 'Bạn có thể đưa 1 quái từ tay vào Mộ, rồi chọn 1 quái đối thủ có ATK nhỏ hơn hoặc bằng ATK của quái vừa đưa vào Mộ; phá hủy nó. Trong End Phase, nếu lá này đã phá hủy quái trong chiến đấu lượt này: bạn có thể đưa lá này vào Mộ; Triệu hồi Đặc biệt 1 "Rồng Vũ Trang LV7" từ tay hoặc Bộ bài.', art: art('🐉', '#2f7d6b') }),
+    mon('Chazz', 'armed_dragon_lv7', 'Armed Dragon LV7', 'Rồng Vũ Trang LV7', 'Phong', 'Rồng', 7, 2800, 1000, { effect_code: 'r2_lv7', effect_trigger: 'activated', special_only: true, rarity: 'UR', max_copies: 2, description: 'Không thể Triệu hồi Thường hoặc Úp. Chỉ Triệu hồi Đặc biệt bằng "Rồng Vũ Trang LV5". Bạn có thể đưa 1 quái từ tay vào Mộ; phá hủy tất cả quái đối thủ có ATK nhỏ hơn hoặc bằng ATK của quái vừa đưa vào Mộ.', art: art('🐉', '#1f6f8b') }),
+    mon('Chazz', 'chthonian_soldier', 'Chthonian Soldier', 'Chiến Sĩ Âm Phủ', 'Ám', 'Chiến Binh', 4, 1200, 1400, { traits: ['r2_chthonian'], description: 'Khi lá này bị quái tấn công của đối thủ phá hủy và đưa vào Mộ, sát thương chiến đấu bạn nhận từ trận này cũng gây cho đối thủ.', art: art('⚔', '#5a4a6a') })
+  ];
+  // ----- Đợt thêm lá anime + meta -----
+  const spell = (arch, id, en, vi, cat, description, extra = {}) => ({
+    id: 'AN-' + id, name: vi, name_vi: vi, name_en: en, archetype: arch, element: 'Hỗ Trợ', tribe: 'Hỗ Trợ', card_type: 'Spell', spell_category: cat, rarity: 'SR', max_copies: 3,
+    deck_zone: 'Main', effect_code: 'r2_' + id, effect_value: 0, effect_trigger: 'activated', traits: [], catalogue_version: 'roster2-v1', description,
+    activation_rules: 'Dùng trong MAIN.', engine_notes: note, art: art('✦', '#3d6fb5'), ...extra
+  });
+  cards.push(
+    // Marik
+    mon('Marik', 'bowganian', 'Bowganian', 'Cung Thủ Máy', 'Ám', 'Máy', 3, 1300, 1000, { traits: ['r2_bowganian'], description: 'Một lần mỗi lượt, trong Standby Phase của bạn: gây 600 sát thương cho đối thủ.', art: M }),
+    mon('Marik', 'drillago', 'Drillago', 'Drillago', 'Ám', 'Máy', 4, 1600, 1100, { traits: ['r2_drillago'], description: 'Nếu các lá đối thủ điều khiển chỉ gồm quái ngửa có ATK từ 1600 trở lên, lá này có thể tấn công trực tiếp đối thủ.', art: M }),
+    mon('Marik', 'legendary_fiend', 'Legendary Fiend', 'Quỷ Huyền Thoại', 'Ám', 'Quỷ', 6, 1500, 1800, { traits: ['r2_legend'], rarity: 'SR', description: 'Một lần mỗi lượt, trong Standby Phase của bạn: lá này nhận thêm 700 ATK.', art: M }),
+    mon('Marik', 'worm_drake', 'Worm Drake', 'Giun Rồng', 'Địa', 'Bò Sát', 4, 1400, 1500, { monster_category: 'Thường', description: 'Một khi đã quấn lấy nạn nhân, không ai thoát được.', art: M }),
+    mon('Marik', 'humanoid_slime', 'Humanoid Slime', 'Chất Nhờn Hình Người', 'Thủy', 'Thủy', 4, 800, 2000, { monster_category: 'Thường', description: 'Chất nhờn này dường như mang gen người trong cấu trúc của nó.', art: M }),
+    mon('Marik', 'humanoid_worm_drake', 'Humanoid Worm Drake', 'Giun Rồng Hình Người', 'Thủy', 'Thủy', 7, 2200, 2000, { deck_zone: 'Extra', monster_category: 'Dung Hợp', rarity: 'SR', fusion_materials: ['AN-worm_drake', 'AN-humanoid_slime'], description: '"Giun Rồng" + "Chất Nhờn Hình Người".', activation_rules: 'Dung Hợp từ bộ bài phụ bằng đúng nguyên liệu trên tay/sân và Phép Dung Hợp.', art: M }),
+    spell('Marik', 'tribute_to_the_doomed', 'Tribute to the Doomed', 'Vật Tế Kẻ Bị Kết Án', 'Thường', 'Bỏ 1 lá bài, sau đó chọn 1 quái trên sân; phá hủy nó.', { max_copies: 2, art: M }),
+    // Jack
+    mon('Jack', 'red_sprinter', 'Red Sprinter', 'Quỷ Đỏ Nước Rút', 'Hỏa', 'Quỷ', 4, 1700, 1200, { effect_code: 'r2_sprinter', effect_trigger: 'on_summon', rarity: 'SR', description: 'Khi lá này được Triệu hồi Thường hoặc Đặc biệt trong lúc bạn không điều khiển quái nào khác: bạn có thể Triệu hồi Đặc biệt 1 Tuner tộc Quỷ Cấp 3 trở xuống từ tay hoặc Mộ. Mỗi lượt chỉ dùng được hiệu ứng này một lần.', art: J }),
+    mon('Jack', 'creation_resonator', 'Creation Resonator', 'Cộng Hưởng Sáng Tạo', 'Phong', 'Quỷ', 3, 800, 600, { is_tuner: true, traits: ['r2_special'], description: 'Nếu bạn điều khiển quái Đồng Bộ Cấp 8 trở lên, bạn có thể Triệu hồi Đặc biệt lá này từ tay.', art: J }),
+    mon('Jack', 'hot_red_dragon_archfiend', 'Hot Red Dragon Archfiend', 'Rồng Quỷ Đỏ Rực', 'Ám', 'Rồng', 8, 3000, 2000, { deck_zone: 'Extra', monster_category: 'Đồng Bộ', rarity: 'UR', max_copies: 1, effect_code: 'r2_hot_red', effect_trigger: 'activated', synchro_requirement: { tuners: 1, minNonTuners: 1, level: 8 }, description: '1 Tuner + 1 hoặc nhiều quái không phải Tuner. Một lần mỗi lượt, trong Main Phase 1: bạn có thể phá hủy tất cả quái ngửa thế tấn công khác trên sân. Các quái khác không thể tấn công trong lượt bạn kích hoạt hiệu ứng này.', activation_rules: 'Đồng Bộ từ bộ bài phụ.', art: art('🐲', '#e0562a') }),
+    spell('Jack', 'resonator_call', 'Resonator Call', 'Tiếng Gọi Cộng Hưởng', 'Thường', 'Lấy 1 quái "Cộng Hưởng" từ Bộ bài lên tay.', { art: J }),
+    spell('Jack', 'scarlet_security', 'Scarlet Security', 'Hàng Rào Đỏ Thẫm', 'Thường', 'Nếu bạn điều khiển "Rồng Quỷ Đỏ": phá hủy tất cả Phép và Bẫy đối thủ điều khiển.', { art: J }),
+    // Shark
+    mon('Shark', 'bahamut_shark', 'Bahamut Shark', 'Cá Mập Bahamut', 'Thủy', 'Hải Long', 0, 2600, 2100, { deck_zone: 'Extra', monster_category: 'Xyz', rank: 4, rarity: 'UR', max_copies: 1, effect_code: 'r2_bahamut', effect_trigger: 'activated', xyz_requirement: { materials: 2, rank: 4, element: 'Thủy' }, description: '2 quái THỦY Cấp 4. Một lần mỗi lượt: bạn có thể tách 1 nguyên liệu khỏi lá này; Triệu hồi Đặc biệt 1 quái Xyz THỦY Bậc 3 trở xuống từ bộ bài phụ. Lá này không thể tấn công trong phần còn lại của lượt.', activation_rules: 'Triệu hồi Xyz từ bộ bài phụ.', art: art('🐉', '#1f6fd6') }),
+    mon('Shark', 'number_47_nightmare_shark', 'Number 47: Nightmare Shark', 'Số 47: Cá Mập Ác Mộng', 'Thủy', 'Hải Long', 0, 2000, 2000, { deck_zone: 'Extra', monster_category: 'Xyz', rank: 3, rarity: 'UR', max_copies: 1, effect_code: 'r2_n47', effect_trigger: 'activated', xyz_requirement: { materials: 2, rank: 3 }, description: '2 quái Cấp 3. Khi lá này được Triệu hồi Đặc biệt: bạn có thể gắn 1 quái THỦY Cấp 3 từ tay hoặc sân bạn làm nguyên liệu Xyz cho lá này. Một lần mỗi lượt: bạn có thể tách 1 nguyên liệu, chọn 1 quái THỦY bạn điều khiển; lượt này quái đó có thể tấn công trực tiếp, các quái khác không thể tấn công.', activation_rules: 'Triệu hồi Xyz từ bộ bài phụ.', art: art('🦈', '#5a3fb5') }),
+    mon('Shark', 'spear_shark', 'Spear Shark', 'Cá Mập Giáo', 'Thủy', 'Cá', 4, 1600, 1400, { effect_code: 'r2_spear', effect_trigger: 'on_summon', traits: ['piercing'], description: 'Khi lá này được Triệu hồi Thường: bạn có thể tăng 1 Cấp cho tất cả quái tộc Cá Cấp 3 bạn đang điều khiển. Nếu lá này tấn công quái thế thủ, gây sát thương xuyên giáp cho đối thủ.', art: S }),
+    mon('Shark', 'double_shark', 'Double Shark', 'Cá Mập Kép', 'Thủy', 'Cá', 4, 1200, 1600, { effect_code: 'r2_double', effect_trigger: 'on_summon', traits: ['double_attack'], rarity: 'SR', description: 'Khi lá này được Triệu hồi Thường: bạn có thể giảm 1 Cấp của tất cả quái tộc Cá Cấp 4 bạn đang điều khiển. Lá này có thể tấn công hai lần trong mỗi Battle Phase.', art: S }),
+    mon('Shark', 'deep_sea_diva', 'Deep Sea Diva', 'Ca Sĩ Biển Sâu', 'Thủy', 'Hải Long', 2, 200, 400, { is_tuner: true, effect_code: 'r2_diva', effect_trigger: 'on_summon', rarity: 'SR', description: 'Khi lá này được Triệu hồi Thường: bạn có thể Triệu hồi Đặc biệt 1 quái tộc Hải Long Cấp 3 trở xuống từ Bộ bài.', art: S }),
+    spell('Shark', 'moray_of_greed', 'Moray of Greed', 'Lươn Tham Lam', 'Thường', 'Xáo 2 quái THỦY từ tay vào Bộ bài, sau đó rút 3 lá.', { rarity: 'UR', max_copies: 2, art: S }),
+    spell('Shark', 'aqua_jet', 'Aqua Jet', 'Tên Lửa Nước', 'Thường', 'Chọn 1 quái ngửa tộc Cá, Hải Long hoặc Thủy bạn điều khiển; nó nhận thêm 1000 ATK.', { art: S }),
+    // Chazz
+    mon('Chazz', 'armed_dragon_lv10', 'Armed Dragon LV10', 'Rồng Vũ Trang LV10', 'Phong', 'Rồng', 10, 3000, 2000, { effect_code: 'r2_lv10', effect_trigger: 'activated', special_only: true, traits: ['r2_special'], rarity: 'UR', max_copies: 1, description: 'Không thể Triệu hồi Thường hoặc Úp. Chỉ Triệu hồi Đặc biệt từ tay bằng cách Hiến tế 1 "Rồng Vũ Trang LV7". Bạn có thể đưa 1 lá từ tay vào Mộ; phá hủy tất cả quái ngửa đối thủ điều khiển.', art: art('🐉', '#14586f') }),
+    mon('Chazz', 'v_tiger_jet', 'V-Tiger Jet', 'Phi Cơ V', 'Quang', 'Máy', 4, 1600, 1800, { monster_category: 'Thường', description: 'Phi công át chủ bất khả chiến bại trong không chiến, có thể kết hợp với quái khác để tấn công vây hãm.', art: art('✈', '#3d6fb5') }),
+    spell('Chazz', 'level_up', 'Level Up!', 'Lên Cấp!', 'Thường', 'Đưa 1 quái "LV" ngửa bạn điều khiển vào Mộ; Triệu hồi Đặc biệt 1 quái được ghi trong văn bản của quái đó từ tay hoặc Bộ bài, bỏ qua điều kiện triệu hồi.', { rarity: 'UR', max_copies: 2, art: C }),
+    spell('Chazz', 'level_modulation', 'Level Modulation', 'Điều Biến Cấp', 'Thường', 'Đối thủ rút 2 lá. Triệu hồi Đặc biệt 1 quái "LV" từ Mộ của bạn, bỏ qua điều kiện triệu hồi. Quái đó không thể tấn công, kích hoạt hay áp dụng hiệu ứng trong lượt này.', { art: C }),
+    spell('Chazz', 'ojama_delta_hurricane', 'Ojama Delta Hurricane!!', 'Cuồng Phong Tam Giác Ojama!!', 'Thường', 'Chỉ kích hoạt khi "Ojama Xanh", "Ojama Vàng" và "Ojama Đen" đều ngửa trên sân bạn. Phá hủy tất cả lá bài trên sân đối thủ.', { rarity: 'UR', max_copies: 1, art: C }),
+    spell('Chazz', 'ojamagic', 'Ojamagic', 'Phép Ojama', 'Thường', 'Nếu lá này bị đưa từ tay hoặc sân vào Mộ: lấy mỗi loại 1 lá "Ojama Xanh", "Ojama Vàng" và "Ojama Đen" từ Bộ bài lên tay.', { effect_code: '', effect_trigger: 'passive', activation_rules: 'Không kích hoạt trực tiếp; hiệu ứng xảy ra khi lá bị đưa vào Mộ.', art: C })
+  );
+  const pictures = window.MEME_CARD_PICTURES ||= {};
+  const details = window.MEME_CARD_DETAILS ||= {};
+  for (const c of cards) {
+    const full = 'assets/memecard/pictures/' + c.id + '.webp';
+    const thumb = 'assets/memecard/pictures/thumbs/' + c.id + '.webp';
+    c.custom_image = full;
+    pictures[c.id] = { full, thumb, width: 256, height: 256, fallback: full };
+    if (!details[c.id]) {
+      details[c.id] = {
+        condition: c.activation_rules || 'Theo mô tả lá bài.',
+        cost: 'Theo mô tả lá bài.',
+        limit: c.activation_rules || 'Theo mô tả lá bài.',
+        combo: [],
+        counters: [],
+        origin: 'TCG / Anime'
+      };
+    }
+  }
+  const known = new Set((window.MEME_CARDS || []).map(c => c.id));
+  window.MEME_CARDS = [...(window.MEME_CARDS || []), ...cards.filter(c => !known.has(c.id))];
+  if (typeof CARDS !== 'undefined') { CARDS.splice(0, CARDS.length, ...window.MEME_CARDS.filter(c => !c.uncollectible)); CARD_BY_ID.clear(); for (const c of window.MEME_CARDS) CARD_BY_ID.set(c.id, c); }
+
+  const staples = ['AN-pot_of_greed', 'AN-monster_reborn', 'AN-mirror_force', 'AN-magic_cylinder', 'AN-mystical_space_typhoon', 'AN-mystical_space_typhoon', 'AN-swords_of_revealing_light', 'AN-waboku', 'AN-waboku'];
+  const x3 = (...ids) => ids.flatMap(i => ['AN-' + i, 'AN-' + i, 'AN-' + i]);
+  const DECK = window.MEME_DECK_PRESETS ||= {}, EXTRA = window.MEME_EXTRA_PRESETS ||= {};
+  const x2 = (...ids) => ids.flatMap(i => ['AN-' + i, 'AN-' + i]);
+  const set = (name, main, extra = []) => { DECK[name] = main; EXTRA[name] = extra; };
+  const xyzParts = ['AN-x_head_cannon', 'AN-y_dragon_head', 'AN-z_metal_tank'];
+  set('Marik · Kinh điển', [...x3('newdoria', 'mystic_tomato', 'giant_germ'), ...x2('gil_garth', 'mask_of_darkness', 'worm_drake', 'humanoid_slime'), 'AN-polymerization', 'AN-polymerization', ...staples], ['AN-humanoid_worm_drake', 'AN-humanoid_worm_drake']);
+  set('Marik · Meta', [...x3('bowganian', 'drillago', 'gil_garth', 'newdoria', 'mystic_tomato'), ...x2('legendary_fiend', 'tribute_to_the_doomed'), ...staples]);
+  set('Jack · Kinh điển', [...x3('red_resonator', 'dark_resonator', 'mad_archfiend', 'power_invader'), ...x2('resonator_call'), 'AN-scarlet_security', ...staples], ['AN-red_dragon_archfiend']);
+  set('Jack · Meta', [...x3('red_sprinter', 'red_resonator', 'dark_resonator', 'power_invader', 'resonator_call'), ...x2('creation_resonator', 'scarlet_security'), ...staples], ['AN-red_dragon_archfiend', 'AN-hot_red_dragon_archfiend']);
+  set('Shark · Kinh điển', [...x3('big_jaws', 'hammer_shark', 'shark_stickers', 'spear_shark', 'double_shark'), ...staples], ['AN-black_ray_lancer', 'AN-black_ray_lancer', 'AN-number_47_nightmare_shark', 'AN-number_32_shark_drake']);
+  set('Shark · Meta', [...x3('deep_sea_diva', 'hammer_shark', 'spear_shark', 'double_shark', 'shark_stickers'), ...x2('moray_of_greed', 'aqua_jet'), ...staples], ['AN-bahamut_shark', 'AN-black_ray_lancer', 'AN-black_ray_lancer', 'AN-number_47_nightmare_shark', 'AN-number_32_shark_drake']);
+  set('Chazz · Kinh điển', [...x3('armed_dragon_lv3', 'chthonian_soldier'), ...x2('armed_dragon_lv5', 'armed_dragon_lv7', 'ojama_yellow', 'ojama_green', 'ojama_black'), 'AN-ojama_delta_hurricane', 'AN-ojamagic', ...staples]);
+  set('Chazz · Meta', [...x3('armed_dragon_lv3', 'chthonian_soldier', 'v_tiger_jet'), ...x2('armed_dragon_lv5', 'armed_dragon_lv7', 'level_up', 'level_modulation'), 'AN-armed_dragon_lv10', ...xyzParts, ...staples], ['AN-xyz_dragon_cannon']);
+
+  const add = (id, name, skill, code, description, color, icon, title) => ({ id, name, skill, code, description, tile: 0, color, icon, title, group: title, primaryDeck: title + ' · Kinh điển', position: '0%', value: 0, figure: true });
+  const HEROES = window.MEME_HEROES ||= [];
+  if (!HEROES.some(h => h.code === 'marik')) HEROES.push(
+    add(9, 'Marik Ishtar', 'Thần Hầu Bóng Tối', 'marik', 'Trả 500 LP: đổi 1 lá trên tay lấy Cà Chua Thần Bí hoặc Newdoria từ bộ bài.', '#e0b84a', '👁', 'Marik'),
+    add(10, 'Jack Atlas', 'Vua Tốc Độ', 'jack', 'Trả 500 LP: đổi 1 lá trên tay lấy Cộng Hưởng Đỏ hoặc Kẻ Xâm Lăng Sức Mạnh từ bộ bài.', '#ff5a4a', '🔥', 'Jack'),
+    add(11, 'Reginald Kastle / Shark', 'Răng Cá Mập', 'shark', 'Trả 500 LP: đổi 1 lá trên tay lấy Cá Mập Búa hoặc Hàm Lớn từ bộ bài.', '#4ab6ff', '🦈', 'Shark'),
+    add(12, 'Chazz Princeton / Manjoume', 'Manjoume Thunder', 'chazz', 'Trả 500 LP: đổi 1 lá trên tay lấy Rồng Vũ Trang LV3 hoặc LV5 từ bộ bài.', '#8bd17c', '⚡', 'Chazz')
+  );
+  if (window.ARCANA_CATALOGUE) window.ARCANA_CATALOGUE.cardCount = (window.ARCANA_CATALOGUE.cardCount || 0) + cards.filter(c => !known.has(c.id)).length;
+})();

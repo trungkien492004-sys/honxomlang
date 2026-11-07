@@ -40,5 +40,19 @@
   if(['cyber_shield','rose_whip'].includes(code))return v.self.monsters.some(x=>x&&!x.hidden&&(get(x.id)?.name_en==='Harpie Lady'||(get(x.id)?.traits||[]).includes('harpie_name')))?2200:0;
   if(code==='amazon_spellcaster')return v.self.monsters.some(x=>x&&!x.hidden&&/\bAmazoness\b/.test(get(x.id)?.name_en||''))&&v.foe.monsters.some(x=>x&&!x.hidden)?2400:0;
   return 1000;}
- root.memePhase2Tactics={view,value,choice,trapScore,autoTrap,attack,spellScore,clamp};
+
+ // Thứ tự tấn công cho máy khó: chỉ dùng bài của máy + thông tin công khai (số lá úp, quái ngửa).
+ // - Có thể kết liễu: đánh quái mạnh nhất trước.
+ // - Đối thủ úp >=2 lá mà chưa kết liễu được: cho quái yếu đi trước để "nhử" bẫy, giữ quái chủ lực.
+ function attackOrder(state,n,list,get,stat,difficulty='normal'){
+  if(difficulty==='easy'||list.length<2)return list;
+  const foe=n==='player'?'enemy':'player',f=state[foe],hiddenSpells=f.spells.filter(x=>x&&x.faceDown).length,
+   open=f.monsters.filter(x=>x&&x.position!=='def_down').length,
+   power=e=>stat(n,e.slot),total=list.reduce((a,e)=>a+power(e),0),
+   lethal=open===0&&total>=f.lp+(f.shield||0);
+  const sorted=[...list].sort((a,b)=>power(b)-power(a));
+  if(lethal||difficulty!=='hard'||hiddenSpells<2)return sorted;
+  return sorted.reverse();
+ }
+ root.memePhase2Tactics={view,value,choice,trapScore,autoTrap,attack,attackOrder,spellScore,clamp};
 })(typeof window==='undefined'?globalThis:window);

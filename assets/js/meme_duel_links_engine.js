@@ -1533,7 +1533,13 @@
   register('DL-cybernetic_fusion_support', async (n, c, ctx) => {
     const s = S(n);
     if (s.cyberFusionSupportRound === duel.round) return false;
-    if (s.lp < 2) return false;
+    if (s.lp < 2 || s.noSpecialRound === duel.round) return false;
+    // Chỉ kích hoạt khi thật sự có quái Dung Hợp tộc Máy triệu hồi được với nguyên liệu từ Tay/Sân/Mộ.
+    const prev = s.cyberFusionSupportRound;
+    s.cyberFusionSupportRound = duel.round;
+    const viable = s.extraDeck.some(id => C(id)?.tribe === 'Máy' && window.memeAnime.fusionOptions(n, id, 'fusion').length);
+    s.cyberFusionSupportRound = prev;
+    if (!viable) { if (n === 'player') window.showActionNotice?.('Không đủ nguyên liệu để Dung Hợp quái Máy.', 'Chưa đủ điều kiện'); return false; }
 
     return fx(n, c, 'cost', [{ name: n, type: 'lp' }], () => {
       if (!commitSpellSource(n, c, ctx)) return;
@@ -1554,27 +1560,34 @@
       const mats = Array.isArray(x?.fusion_materials) ? x.fusion_materials : [];
       return mats.includes('AN-cyber_dragon') || x?.flex_machine;
     };
-    const fusions = choices(s.extraDeck, 'extra').filter(e => {
-      const x = C(e.id);
-      return x?.card_type === 'Monster' && isCyber(x) && listsCyberDragon(x);
-    });
-    if (!fusions.length || !extraOpen(n)) return false;
-    const target = await pick(n, 'Dung Hợp Nạp Mạng: chọn quái Extra', fusions);
-    if (!target) return false;
-
-    const tc = C(target.id);
-    const mats = Array.isArray(tc?.fusion_materials) ? tc.fusion_materials : [];
     const isCD = e => isCyberDragon(e);
-    const cdOnly = mats.length > 0 && mats.every(m => m === 'AN-cyber_dragon');
     const materials = [
       ...E(n).filter(e => face(e.slot) && (isCyber(C(e.slot.id)) || e.slot.id === 'AN-cyber_dragon')).map(e => ({ ...e, id: e.slot.id, zone: 'field' })),
       ...choices(s.banished, 'banished').filter(e => C(e.id)?.card_type === 'Monster' && (isCyber(C(e.id)) || e.id === 'AN-cyber_dragon')).map(e => ({ ...e, zone: 'banished' }))
     ];
-    const pool = tc?.flex_machine
-      ? materials.filter(e => C(e.id)?.tribe === 'Máy')
-      : cdOnly ? materials.filter(isCD) : materials;
-    const min = tc?.flex_machine ? 2 : Math.max(2, mats.length);
-    const max = tc?.flex_machine || tc?.flex_cyber ? Math.min(3, pool.length) : min;
+    // Mỗi quái Extra có bộ nguyên liệu riêng; chỉ liệt kê quái thật sự đủ nguyên liệu.
+    const plan = tc => {
+      const mats = Array.isArray(tc?.fusion_materials) ? tc.fusion_materials : [];
+      const cdOnly = mats.length > 0 && mats.every(m => m === 'AN-cyber_dragon');
+      const pool = tc?.flex_machine ? materials.filter(e => C(e.id)?.tribe === 'Máy') : cdOnly ? materials.filter(isCD) : materials;
+      const min = tc?.flex_machine ? 2 : Math.max(2, mats.length);
+      const max = tc?.flex_machine || tc?.flex_cyber ? Math.min(3, pool.length) : min;
+      const enough = pool.length >= min && (!tc?.flex_machine || pool.some(isCD)) && (!cdOnly || pool.filter(isCD).length >= min);
+      return { pool, min, max, enough };
+    };
+    const fusions = choices(s.extraDeck, 'extra').filter(e => {
+      const x = C(e.id);
+      return x?.card_type === 'Monster' && isCyber(x) && listsCyberDragon(x) && plan(x).enough;
+    });
+    if (!fusions.length || (!extraOpen(n) && !materials.some(m => m.zone === 'field'))) {
+      if (n === 'player') window.showActionNotice?.('Không đủ nguyên liệu Rồng Máy để Dung Hợp.', 'Chưa đủ điều kiện');
+      return false;
+    }
+    const target = await pick(n, 'Dung Hợp Nạp Mạng: chọn quái Extra', fusions);
+    if (!target) return false;
+
+    const tc = C(target.id);
+    const { pool, min, max } = plan(tc);
     if (pool.length < min) return false;
     const picked = await pickMany(n, 'Dung Hợp Nạp Mạng: chọn nguyên liệu', pool, {
       min, max, text: `Chọn ${min === max ? min : `${min}–${max}`} nguyên liệu từ Sân hoặc đã bị trục xuất.`

@@ -74,8 +74,10 @@
  let manualTraps=false;
  // Old saved preferences must not bring back the removed trap-mode switch.
  localStorage.removeItem('meme-manual-traps');
+ function maskFaceDown(n,options){const f=S(other(n));for(const o of options||[]){const x=o?.slot;if(!x||typeof x!=='object'||o.hidden)continue;if(!(x.faceDown||x.position==='def_down'))continue;if(f.monsters.includes(x)||f.extra===x||f.spells.includes(x)||f.field===x)o.hidden=true;}return options;}
  async function pick(n,title,options,{optional=false,cheap=false,reaction=false,remote=false,previewIndex=null,text='Chọn một lá để tiếp tục.'}={}){
   if(!options.length||!duel||duel.finished||window.memeTurnClock?.expired()&&!window.memeTurnClock?.forcing)return null;
+  maskFaceDown(n,options);
   if(window.memeServerChoice)return window.memeServerChoice(n,title,options,{optional,cheap,reaction,text});
   if(reaction)return window.memePhase2?memePhase2.choose(n,title,options,{reaction:true}):options[0];
   if(n==='enemy'&&!auto&&!remote&&window.memeOnlineIsPlaying?.()&&window.memeDecision){const match=duel,key=await window.memeDecision.request({title,text,reaction,options:options.map((e,key)=>({key,id:e.hidden?null:e.id,hidden:!!e.hidden,label:e.label,zone:e.zone,priorityScore:e.priorityScore,location:choiceLocation(e,n)}))});return duel===match&&!duel.finished&&Number.isInteger(key)?options[key]||null:null;}
@@ -107,6 +109,7 @@
  }
  async function pickMany(n,title,options,{min=1,max=options.length,validSets=null,levelAtLeast=0,requireField=false,optional=false,cheap=false,remote=false,text='Chọn các lá cần dùng, rồi xác nhận một lần.'}={}){
   max=Math.min(max,options.length);if(!duel||duel.finished||!options.length||max<min)return null;
+  maskFaceDown(n,options);
   const match=duel,config={multiple:true,min,max,validSets,levelAtLeast,requireField,optional,cheap,text};
   const valid=keys=>Array.isArray(keys)&&new Set(keys).size===keys.length&&keys.length>=min&&keys.length<=max&&keys.every(k=>Number.isInteger(k)&&k>=0&&k<options.length)&&(!validSets||validSets.some(set=>set.length===keys.length&&keys.every(k=>set.includes(k))))&&(!levelAtLeast||keys.reduce((sum,k)=>sum+(card(options[k].id)?.stars||0),0)>=levelAtLeast)&&(!requireField||keys.some(k=>options[k].zone==='field'));
   const fallback=()=>{if(validSets)return validSets.find(valid)||null;const pool=options.map((e,key)=>({e,key})).sort((a,b)=>(cheap?1:-1)*((card(a.e.id)?.atk||0)-(card(b.e.id)?.atk||0))),keys=[];for(const x of pool){if(keys.length>=max)break;keys.push(x.key);if(valid(keys)&&keys.length>=Math.max(min,levelAtLeast?min:max))return keys;}return valid(keys)?keys:null;};
@@ -166,7 +169,7 @@
  function drawCards(n,count){for(let i=0;i<count&&!duel.finished;i++)if(!draw(n))break;}
  const checkBase=checkWin;checkWin=()=>{checkBase();if(!duel||duel.finished)return;const parts=CARDS.filter(c=>c.traits?.includes('exodia')).map(c=>c.id);for(const n of ['player','enemy'])if(!duel.exodiaQueued&&parts.length===5&&parts.every(id=>S(n).hand.includes(id))){duel.exodiaQueued=true;duel.exodiaWinner=n;deathQueue.push(()=>fx(n,card(aid('Exodia the Forbidden One')),'exodia',[],()=>finish(n,'EXODIA — đủ 5 phần trên tay!'),{materials:parts}));break;}};
  function stat(n,slot,kind='atk'){
-  if(window.memeTcgEngine?.active())return window.memeTcgEngine.stat(n,slot,kind);
+  if(window.memeTcgEngine?.active()&&(window.MEME_TCG_CATALOG.idSet||(window.MEME_TCG_CATALOG.idSet=new Set(window.MEME_TCG_CATALOG.cards.map(t=>t.id)))).has(slot?.id))return window.memeTcgEngine.stat(n,slot,kind);
   if(!slot)return 0;const c=card(slot.id),s=S(n),foe=S(other(n));if(!c)return 0;
   let value=base.stat(n,slot,kind);
    if(kind==='atk'&&(has(slot,'speed_boost')||slot.id===aid('Speed Warrior'))&&slot.summonedRound===duel.round&&slot.normalSummoned&&duel.phase==='BATTLE')value=1800;
@@ -203,6 +206,7 @@
    if(c.effect_code==='p3_escuridao')value+=100*s.grave.filter(id=>hero(card(id))).length;
    if(c.effect_code==='masked_koga')value+=500*E(other(n)).length;
    if(c.effect_code==='dl_brave_neos')value+=100*s.grave.filter(id=>/\bHERO\b/.test(card(id)?.name_en||'')||/Neo-Spacian/.test(card(id)?.name_en||'')).length;
+   if(window.memeDlMissing?.isCyberDragon(c)&&E(n).some(e=>face(e.slot)&&e.slot.id==='DL-cyber_dragon_vier'))value+=500;
    if(E(n).some(e=>face(e.slot)&&card(e.slot.id)?.effect_code==='dl_hero_sunrise'))value+=200*new Set(E(n).filter(e=>face(e.slot)).map(e=>card(e.slot.id)?.element)).size;
    if(slot.favoriteHero&&s.field)value+=card(slot.id)?.def||0;
    value+=(slot.mangaAtkDelta||0)+(slot.mangaTempRound===duel.round?slot.mangaTempAtk||0:0);
@@ -215,7 +219,7 @@
  function levelOf(slot){const c=card(slot?.id);if(!c)return 0;if(slot.levelFixed!=null)return slot.levelFixed;if(slot.levelOverrideRound===duel.round)return slot.levelOverride??(c.stars||0);return c.stars||0;}
  function xyzReq(id){return card(id)?.xyz_requirement||null;}
  function xyzPool(n,id){const req=xyzReq(id);if(!req)return[];const rank=req.rank??card(id)?.rank;return E(n).filter(e=>face(e.slot)&&card(e.slot.id)?.card_type==='Monster'&&card(e.slot.id)?.monster_category!=='Xyz'&&levelOf(e.slot)===rank);}
- function xyzOptions(n,id){const req=xyzReq(id);if(!req)return[];const pool=xyzPool(n,id),count=Math.max(1,req.materials||2),options=[];const walk=(start,chosen)=>{if(chosen.length===count){options.push(chosen);return;}for(let i=start;i<pool.length;i++)walk(i+1,[...chosen,pool[i]]);};walk(0,[]);return options;}
+ function xyzOptions(n,id){const req=xyzReq(id);if(!req)return[];const pool=xyzPool(n,id).filter(e=>!req.element||card(e.slot?.id||e.id)?.element===req.element),count=Math.max(1,req.materials||2),options=[];const walk=(start,chosen)=>{if(chosen.length===count){options.push(chosen);return;}for(let i=start;i<pool.length;i++)walk(i+1,[...chosen,pool[i]]);};walk(0,[]);return options;}
  function xyzDetach(n,slot,index=0){if(!slot?.materials?.length)return null;const id=slot.materials.splice(Math.max(0,Math.min(index,slot.materials.length-1)),1)[0];S(n).grave.push(id);sentToGrave(n,id,true,'material');return id;}
  function xyzDump(n,slot){if(!slot?.materials?.length)return;for(const id of slot.materials.splice(0)){S(n).grave.push(id);sentToGrave(n,id,true,'material');}}
  async function xyzSummon(n,id){const s=S(n),c=card(id),req=xyzReq(id);if(!c||!req||s.noSpecialRound===duel.round)return false;const combos=xyzOptions(n,id);if(!combos.length)return false;
@@ -240,7 +244,7 @@
  function attackLimit(slot){const n=ownerOf(slot);return (slot?.rampageBoostRound===duel.round?slot.rampageExtraAttacks||0:0)+(has(slot,'double_attack')?2:has(slot,'chimeratech')?E(other(n)).length?slot.materialCount||2:1:has(slot,'attack_all')?slot.attackAllLimit||Math.max(1,E(other(n)).length):1);}
  function canAttack(slot){if(!slot||!duel||duel.round<=1)return false;const n=ownerOf(slot);if(S(n).noBattleRound===duel.round)return false;if(window.memeTcgEngine?.attackProblem(n,slot))return false;if(has(slot,'rampart')&&slot.position==='def'&&E(other(n)).length)return false;if((slot.position!=='atk'&&!(has(slot,'rampart')&&slot.position==='def'))||(slot.frozenUntil??-1)>=duel.round)return false;if(allFields().some(e=>face(e.slot)&&has(e.slot,'restrict')&&e.slot!==slot))return false;if(spellList(other(n)).some(e=>e.slot.turnsLeft>0&&card(e.id)?.effect_code==='swords'))return false;return (slot.attacksUsed||0)<attackLimit(slot);}
  function damage(n,amount){if(duel.battleContext){const c=duel.battleContext;if(S(n).battleShieldRound===duel.round||S(n).battleDamageShieldRound===duel.round||c.owner===n&&has(c.attacker,'rocket')||has(c.attacker,'exploder')||c.defender&&has(c.defender,'exploder')||c.owner===n&&has(c.attacker,'amazon_fighter')||c.defender&&has(c.defender,'amazon_fighter')&&n!==c.owner)return 0;}return base.damage(n,amount);}
- function clearSpell(n,index){const s=S(n),slot=index===-1?s.field:s.spells[index];if(!slot)return;if(!slot.banishOnLeave&&guardRemoval(n,slot,'effect'))return;if(index===-1)s.field=null;else s.spells[index]=null;(slot.banishOnLeave?S(slot.originalOwner||n).banished:S(slot.originalOwner||n).grave).push(slot.id);if(!slot.banishOnLeave)sentToGrave(slot.originalOwner||n,slot.id,true,'effect');if(card(slot.id)?.effect_code==='toon_world')for(const e of [...E(n)])if(has(e.slot,'toon'))remove(n,e,'effect');if((slot.id==='DL-eternal_soul'||card(slot.id)?.effect_code==='dl_eternal_soul')&&!slot.faceDown){for(const e of [...E(n)])remove(n,e,'effect');log('💀 Linh Hồn Vĩnh Cửu rời sân: Toàn bộ quái thú của bạn bị tiêu diệt!');}if((slot.id==='DL-eternal_soul'||card(slot.id)?.effect_code==='dl_eternal_soul')&&!slot.faceDown){for(const e of [...E(n)])remove(n,e,'effect');log('💀 Linh Hồn Vĩnh Cửu rời sân: Toàn bộ quái thú của bạn bị tiêu diệt!');}if(slot.absorbedTo){const source=allFields().find(e=>e.slot.uid===slot.absorbedTo)?.slot;if(source){source.absorbAtk=0;source.absorbDef=0;}}if(slot.revivalUid){const e=E(n).find(e=>e.slot.uid===slot.revivalUid);if(e)remove(n,e,'effect');}
+ function clearSpell(n,index){const s=S(n),slot=index===-1?s.field:s.spells[index];if(!slot)return;if(!slot.banishOnLeave&&guardRemoval(n,slot,'effect'))return;window.memeFxCinema?.shatterSpell(n,index,slot,!!slot.banishOnLeave);if(index===-1)s.field=null;else s.spells[index]=null;(slot.banishOnLeave?S(slot.originalOwner||n).banished:S(slot.originalOwner||n).grave).push(slot.id);if(!slot.banishOnLeave)sentToGrave(slot.originalOwner||n,slot.id,true,'effect');if(card(slot.id)?.effect_code==='toon_world')for(const e of [...E(n)])if(has(e.slot,'toon'))remove(n,e,'effect');if((slot.id==='DL-eternal_soul'||card(slot.id)?.effect_code==='dl_eternal_soul')&&!slot.faceDown){for(const e of [...E(n)])remove(n,e,'effect');log('💀 Linh Hồn Vĩnh Cửu rời sân: Toàn bộ quái thú của bạn bị tiêu diệt!');}if((slot.id==='DL-eternal_soul'||card(slot.id)?.effect_code==='dl_eternal_soul')&&!slot.faceDown){for(const e of [...E(n)])remove(n,e,'effect');log('💀 Linh Hồn Vĩnh Cửu rời sân: Toàn bộ quái thú của bạn bị tiêu diệt!');}if(slot.absorbedTo){const source=allFields().find(e=>e.slot.uid===slot.absorbedTo)?.slot;if(source){source.absorbAtk=0;source.absorbDef=0;}}if(slot.revivalUid){const e=E(n).find(e=>e.slot.uid===slot.revivalUid);if(e)remove(n,e,'effect');}
  if(card(slot.id)?.effect_code==='snatch_steal'){const e=allFields().find(x=>x.slot.uid===slot.equippedTo&&x.slot.snatchStolen&&x.slot.homeOwner);if(e){const original=e.slot.homeOwner;delete e.slot.snatchStolen;delete e.slot.homeOwner;if(e.extra)S(e.name).extra=null;else S(e.name).monsters[e.index]=null;if(free(original)>=0)S(original).monsters[free(original)]=e.slot;else{S(original).grave.push(e.slot.id);sentToGrave(original,e.slot.id,true,'effect');}log(`🔙 Cướp Đoạt hết hiệu lực: ${card(e.slot.id).name} trở về với chủ cũ.`);}}}
  function remove(n,entry,reason='effect'){
   if(!entry?.slot)return false;const s=S(n),slot=entry.slot,c=card(slot.id);if(!E(n).some(e=>e.slot===slot))return false;
@@ -268,10 +272,11 @@
   if(reason==='battle'&&has(slot,'gogogo_guard')&&slot.gogogoRound!==duel.round){
    slot.gogogoRound=duel.round;
    log(`🛡 ${c.name} chặn lần phá hủy chiến đấu trong lượt này.`);
-   window.showEffectNotice?.({cardId:slot.id,title:'🛡 Người Đá Gogogo: '+c.name,text:c.name+' không thể bị phá hủy bởi chiến đấu một lần mỗi lượt!',owner:n,icon:'🛡'});
+   window.showEffectNotice?.({cardId:slot.id,title:'🛡 Chặn phá hủy: '+c.name,text:c.name+' không thể bị phá hủy bởi chiến đấu một lần mỗi lượt!',owner:n,icon:'🛡'});
    return false;
   }
   if(reason==='battle'&&(s.battleShieldRound===duel.round||has(slot,'rocket')&&duel.battleContext?.attacker===slot))return false;
+  if(reason==='battle'&&has(slot,'battle_indestructible'))return false;
   if(reason==='battle'&&has(slot,'legacy_guard')&&!slot.legacyGuardUsed){
    slot.legacyGuardUsed=true;
    log(`🛡 ${c.name} chặn lần phá hủy chiến đấu đầu tiên.`);
@@ -311,6 +316,7 @@
    return false;
   }
   if(['battle','effect'].includes(reason)&&guardRemoval(n,slot,reason))return false;
+  if(reason==='battle'||reason==='effect')window.memeFxCinema?.shatter(n,entry.extra?'extra':entry.index,slot,!!slot.banishOnLeave);
   if(entry.extra)s.extra=null;else s.monsters[entry.index]=null;const destination=slot.originalOwner||slot.homeOwner||n;if(!slot.token)(slot.banishOnLeave?S(destination).banished:S(destination).grave).push(slot.id);
   if(!slot.token&&!slot.banishOnLeave)sentToGrave(destination,slot.id,['effect','material','effect_cost'].includes(reason),reason);
   if(slot.xyzSummoned&&slot.materials?.length)xyzDump(destination,slot);
@@ -387,7 +393,7 @@
   });
   if(['battle','effect'].includes(reason)&&!slot.banishOnLeave&&!slot.token){
    if(has(slot,'winged_kuriboh'))s.battleDamageShieldRound=duel.round;
-   if(c.effect_trigger==='on_destroy'&&(!['Cyber Phoenix','Amazoness Chain Master'].includes(c.name_en)||reason==='battle'))deathQueue.push(()=>resolveEffect(n,c,{source:slot}));
+   if(c.effect_trigger==='on_destroy'&&(!['Cyber Phoenix','Amazoness Chain Master','Newdoria','Mystic Tomato','Giant Germ'].includes(c.name_en)||reason==='battle'))deathQueue.push(()=>resolveEffect(n,c,{source:slot}));
    if(has(slot,'chimera'))deathQueue.push(async()=>{const t=await pick(n,'Chimera: hồi sinh Gazelle hoặc Berfomet',choices(s.grave,'grave').filter(e=>[aid('Berfomet'),aid('Gazelle the King of Mythical Beasts')].includes(e.id)));if(t&&free(n)>=0){const position=await revivalPosition(n,c,t.id);if(!position)return;let slot;await fx(n,c,'revive',[],()=>{slot=revive(n,n,t.id,position);});if(slot)await postSummon(n,slot);}});
    if(has(slot,'darkbright'))deathQueue.push(()=>destroyChoice(n,c));
    if(reason==='battle'&&has(slot,'exploder')){const opponent=duel.battleContext?.attacker===slot?duel.battleContext?.defender:duel.battleContext?.attacker;deathQueue.push(async()=>{const x=allFields().find(e=>e.slot===opponent);if(x)await fx(n,c,'destroy',[x],()=>remove(x.name,x,'effect'));});}
@@ -634,7 +640,7 @@
         }
       }
     }
-  if(!slot||!E(n).some(e=>e.slot===slot)||duel.finished)return;const c=card(slot.id);await window.memeTcgEngine?.onSummon(n,slot,kind);if(kind==='flip'){if(c.effect_trigger==='on_flip'||c.effect_code==='search_gazelle')await resolveEffect(n,c,{source:slot,kind});}else if(c.effect_trigger==='on_summon')await resolveEffect(n,c,{source:slot,kind});
+  if(!slot||!E(n).some(e=>e.slot===slot)||duel.finished)return;const c=card(slot.id);await window.memeTcgEngine?.onSummon(n,slot,kind);await window.memeDlMissing?.onSummon(n,slot);await window.memeRoster2?.onSummon(n,slot);if(kind==='flip'){if(c.effect_trigger==='on_flip'||c.effect_code==='search_gazelle')await resolveEffect(n,c,{source:slot,kind});}else if(c.effect_trigger==='on_summon')await resolveEffect(n,c,{source:slot,kind});
   if(kind!=='flip'&&window.memeAnime?.onSummoned)await window.memeAnime.onSummoned(n,slot,kind);
   if(c.traits.includes('bubbleman')&&S(n).bubbleDrawRound!==duel.round&&E(n).length===1&&!S(n).hand.length&&!S(n).spells.some(Boolean)&&!S(n).field){S(n).bubbleDrawRound=duel.round;await fx(n,c,'draw',[],()=>drawCards(n,2),{text:'Bọt Biển: rút 2 lá vì tay trống và không còn lá nào khác.'});}
   if(kind==='special'&&c.effect_code==='p3_shadow_mist')enqueue(()=>shadowMist(n,true));
@@ -650,8 +656,11 @@
   const s=S(n);if(mode==='miracle')return [...E(n).map(e=>({...e,id:e.slot.id,zone:'field'})),...choices(s.grave,'grave').map(e=>({...e,zone:'grave'}))];
   return [...choices(s.hand,'hand').map(e=>({...e,zone:'hand'})),...E(n).map(e=>({...e,id:e.slot.id,zone:'field'}))];
  }
+ const NAME_FIELD={'AN-proto_cyber_dragon':'AN-cyber_dragon','DL-cyber_dragon_core':'AN-cyber_dragon','DL-cyber_dragon_nachster':'AN-cyber_dragon','DL-cyber_dragon_vier':'AN-cyber_dragon','DL-magician_of_chaos':'AN-dark_magician','AN-harpie_queen':'AN-harpie_lady','AN-harpie_lady_sisters':'AN-harpie_lady','AN-cyber_harpie_lady':'AN-harpie_lady'},NAME_GRAVE={'DL-cyber_dragon_core':'AN-cyber_dragon','DL-cyber_dragon_nachster':'AN-cyber_dragon','DL-cyber_dragon_vier':'AN-cyber_dragon','DL-magician_of_chaos':'AN-dark_magician','AN-harpie_queen':'AN-harpie_lady'};
+ function nameAlias(id,zone){const z=zone==='field'||zone==='extra'?NAME_FIELD:zone==='grave'||zone==='banished'?NAME_GRAVE:null;return z&&z[id]||id;}
+ window.memeNames={alias:nameAlias,field:NAME_FIELD,grave:NAME_GRAVE};
  const NAME_TREATMENTS=[{trait:'proto_cyber',name:'Cyber Dragon',zones:['field']},{trait:'dl_cyber_name',name:'Cyber Dragon',zones:['field','grave']},{trait:'blue_eyes_name',name:'Blue-Eyes White Dragon',zones:['field','grave','banished','deck','extra']}];
- function treatedName(id,zone='field',faceUp=true){const c=card(id);if(!c||zone==='hand'||!zone)return id;for(const t of NAME_TREATMENTS){if(!c.traits?.includes(t.trait))continue;if(!t.zones.includes(zone))continue;if(zone==='field'&&!faceUp)continue;return aid(t.name);}return id;}
+ function treatedName(id,zone='field',faceUp=true){const c=card(id);if(!c||zone==='hand'||!zone)return id;if(zone==='field'&&!faceUp)return id;const alias=nameAlias(id,zone);if(alias!==id)return alias;for(const t of NAME_TREATMENTS){if(!c.traits?.includes(t.trait))continue;if(!t.zones.includes(zone))continue;return aid(t.name);}return id;}
  function zoneName(entry){return treatedName(entry?.id??entry?.slot?.id,entry?.zone,entry?.zone==='field'?!!face(entry.slot):true);}
  function fieldName(slot){if(!slot)return '';return card(treatedName(slot.id,'field',!!face(slot)))?.name||card(slot.id)?.name||'';}
  function materialName(e){return zoneName(e);}
@@ -673,7 +682,7 @@
     const c = card(id);
     if (!c) return [];
     const req = c.synchro_requirement || {};
-    const pool = E(n).filter(e => face(e.slot));
+    const pool = E(n).filter(e => face(e.slot) && !has(e.slot, 'no_synchro_material'));
     const tuners = pool.filter(e => {
       const mc = card(e.slot.id);
       if (!mc?.is_tuner) return false;
@@ -801,8 +810,8 @@
   if(success&&position==='def_down'&&summoned&&S(n).monsters.includes(summoned)){const trap=await chooseTrap(other(n),['shadow_of_eyes'],()=>true,card(summoned.id).name+' vừa được Úp.',{kind:'set',atk:stat(n,summoned)});if(trap){const flipped=await trapUse(other(n),trap,[{name:n,index:S(n).monsters.indexOf(summoned)}],()=>{summoned.position='atk';});if(flipped&&E(n).some(e=>e.slot===summoned)){const fc=card(summoned.id);if(fc?.effect_trigger==='on_flip'||fc?.effect_code==='search_gazelle')await resolveEffect(n,fc,{source:summoned,kind:'flip'});}}}
   return success;
  }
- function specialMode(n,c){const s=S(n);if(s.noSpecialRound===duel.round)return null;if(c.traits.includes('valkyrion')&&['Alpha The Magnet Warrior','Beta The Magnet Warrior','Gamma The Magnet Warrior'].every(name=>materialPool(n).some(e=>e.id===aid(name))))return 'valkyrion';if(c.traits.includes('shining_dragon')&&E(n).some(e=>e.slot.id===aid('Blue-Eyes Ultimate Dragon')))return 'shining';if(free(n)<0)return null;if(c.traits.includes('cyber_special')&&!E(n).length&&E(other(n)).length)return 'free';if((c.traits.includes('junk_forward')||c.id===aid('Junk Forward'))&&!E(n).length)return 'free';if(c.traits.includes('bubbleman')&&s.hand.length===1&&s.bubbleSpecialRound!==duel.round)return 'bubbleman';if(c.traits.includes('gagaga_special')&&E(n).some(e=>face(e.slot)&&has(e.slot,'gagaga')))return 'gagaga';if(c.traits.includes('kagetokage_special')&&E(n).some(e=>face(e.slot)&&levelOf(e.slot)===4))return 'kagetokage';return null;}
- async function specialSummon(n,index){const s=S(n),c=card(s.hand[index]),mode=c&&specialMode(n,c);if(!mode)return false;const mats=mode==='valkyrion'?['Alpha The Magnet Warrior','Beta The Magnet Warrior','Gamma The Magnet Warrior'].map(name=>materialPool(n).find(e=>e.id===aid(name))):mode==='shining'?[materialPool(n).find(e=>e.zone==='field'&&e.id===aid('Blue-Eyes Ultimate Dragon'))]:[];
+ function specialMode(n,c){const s=S(n);if(s.noSpecialRound===duel.round)return null;{const rm=window.memeRoster2?.specialMode(n,c);if(rm)return rm;}if(c.traits.includes('valkyrion')&&['Alpha The Magnet Warrior','Beta The Magnet Warrior','Gamma The Magnet Warrior'].every(name=>materialPool(n).some(e=>e.id===aid(name))))return 'valkyrion';if(c.traits.includes('shining_dragon')&&E(n).some(e=>e.slot.id===aid('Blue-Eyes Ultimate Dragon')))return 'shining';if(free(n)<0)return null;if(c.traits.includes('toon')&&c.special_only&&spellList(n).some(e=>!e.slot.faceDown&&card(e.id).effect_code==='toon_world'))return 'free';if(c.traits.includes('cyber_special')&&!E(n).length&&E(other(n)).length)return 'free';if((c.traits.includes('junk_forward')||c.id===aid('Junk Forward'))&&!E(n).length)return 'free';if(c.traits.includes('bubbleman')&&s.hand.length===1&&s.bubbleSpecialRound!==duel.round)return 'bubbleman';if(c.traits.includes('gagaga_special')&&E(n).some(e=>face(e.slot)&&has(e.slot,'gagaga')))return 'gagaga';if(c.traits.includes('kagetokage_special')&&E(n).some(e=>face(e.slot)&&levelOf(e.slot)===4))return 'kagetokage';return null;}
+ async function specialSummon(n,index){const s=S(n),c=card(s.hand[index]),mode=c&&specialMode(n,c);if(!mode)return false;const mats=mode==='valkyrion'?['Alpha The Magnet Warrior','Beta The Magnet Warrior','Gamma The Magnet Warrior'].map(name=>materialPool(n).find(e=>e.id===aid(name))):mode==='shining'?[materialPool(n).find(e=>e.zone==='field'&&e.id===aid('Blue-Eyes Ultimate Dragon'))]:mode==='r2_lv10'?[materialPool(n).find(e=>e.zone==='field'&&e.id==='AN-armed_dragon_lv7')]:[];
   const success=await fx(n,c,'summon',[],()=>{for(const e of mats){if(e.zone==='hand')takeDiscard(n,e);else remove(n,e,'tribute');}s.hand.splice(s.hand.indexOf(c.id),1);const slot=monsterSlot(c.id);uid(slot);if(c.traits.includes('gagaga_child_four'))slot.levelFixed=4;s.monsters[free(n)]=slot;if(mode==='bubbleman')s.bubbleSpecialRound=duel.round;log(`✦ Gọi đặc biệt ${c.name}.`);},{materials:mats.map(e=>e.id)});if(success){const slot=E(n).find(e=>e.slot.id===c.id)?.slot;if(slot)await postSummon(n,slot);}return success;
  }
  async function ritual(n,spell,fromSet=null){const s=S(n),candidates=choices(s.hand,'hand').filter(e=>card(e.id)?.ritual_spell===spell.id),target=await pick(n,'Chọn quái Nghi Lễ',candidates);if(!target)return false;const c=card(target.id),pool=materialPool(n).filter(e=>e.id!==target.id&&!card(e.id)?.uncollectible&&card(e.id)?.card_type==='Monster'),picked=await pickMany(n,'Chọn nguyên liệu Nghi Lễ',pool,{min:1,max:pool.length,levelAtLeast:c.ritual_level,requireField:free(n)<0,cheap:true});if(!picked)return false;
@@ -1099,7 +1108,7 @@ function commitSpellSource(n,c,ctx){
   }
   return false;
  }
- function transformationOptions(n,spellId,forcedId=null){const spell=card(spellId),s=S(n);if(!['mask_change','mask_change_ii'].includes(spell?.effect_code))return[];const options=[];for(const source of E(n).map(e=>({...e,id:e.slot.id,name:n,zone:'field'}))){const c=card(source.id);if(!face(source.slot)||!/^Masked HERO /.test(c?.name_en||''))continue;for(const target of choices(s.extraDeck,'extra')){const x=card(target.id);if(x?.summon_type!=='transformation'||x.element!==c.element||forcedId&&x.id!==forcedId)continue;const legal=spell.effect_code==='mask_change_ii'?x.stars===8:x.stars>c.stars&&x.stars<=c.stars+2;if(legal)options.push({source,target});}}return options;}
+ function transformationOptions(n,spellId,forcedId=null){const spell=card(spellId),s=S(n);if(!['mask_change','mask_change_ii'].includes(spell?.effect_code))return[];const options=[];for(const source of E(n).map(e=>({...e,id:e.slot.id,name:n,zone:'field'}))){const c=card(source.id);if(!face(source.slot)||!/^Masked HERO /.test(c?.name_en||''))continue;for(const target of choices(s.extraDeck,'extra')){const x=card(target.id);if(x?.summon_type!=='transformation'||x.element!==c.element||forcedId&&x.id!==forcedId)continue;const tcgOn=!!window.MEME_TCG_CATALOG,legal=tcgOn?(spell.effect_code==='mask_change_ii'?x.stars>c.stars:true):(spell.effect_code==='mask_change_ii'?x.stars===8:x.stars>c.stars&&x.stars<=c.stars+2);if(legal)options.push({source,target});}}return options;}
  async function transform(n,spellId,fromSet=null,forcedId=null){const match=duel,s=S(n),spell=card(spellId);if(duel.turn!==n||!['MAIN1','MAIN2'].includes(duel.phase)||!spell||s.noSpecialRound===duel.round)return false;const ii=spell.effect_code==='mask_change_ii';if(ii&&s.hand.length-(fromSet?0:1)<1)return false;const options=transformationOptions(n,spellId,forcedId),sources=[...new Set(options.map(o=>o.source))];const source=await pick(n,'Biến Đổi: chọn quái Mặt Nạ của bạn',sources);if(!source)return false;const target=await pick(n,'Biến Đổi: chọn quái từ Extra',options.filter(o=>o.source===source).map(o=>o.target));if(!target)return false;
   const spellIndex=fromSet?-1:s.hand.indexOf(spellId),cost=ii?await pick(n,'Biến Đổi II: bỏ 1 lá làm chi phí',choices(s.hand,'hand').filter(e=>e.index!==spellIndex),{cheap:true}):null;if(ii&&!cost||duel!==match||duel.finished)return false;let paid=false;
   await fx(n,spell,'cost',[source],()=>{if(!E(n).some(e=>e.slot===source.slot)||!s.extraDeck.includes(target.id)||!spendSpellSource(n,spellId,fromSet))return;if(cost)takeDiscard(n,cost);paid=remove(n,source,'effect_cost');},{materials:[source.id,...(cost?[cost.id]:[])],text:'Gửi quái Mặt Nạ xuống Mộ để biến đổi.'});if(!paid)return false;
@@ -1118,16 +1127,20 @@ function commitSpellSource(n,c,ctx){
  for(const e of E(other(n)))if(e.slot.snatchStolen&&e.slot.homeOwner===n)enqueue(async()=>{if(E(other(n)).some(x=>x.slot===e.slot)&&e.slot.homeOwner===n)await fx(n,card(aid('Snatch Steal')),'heal',[{name:n,type:'lp'}],()=>base.heal(n,500),{text:'Cướp Đoạt: chủ cũ hồi 500 LP.'});});
  if(window.memeAnime?.onStartTurn)enqueue(()=>window.memeAnime.onStartTurn(n));}
  async function endTurn(n){const s=S(n);
-  if(s.stardustReviveQueued===duel.round&&s.grave.includes(aid('Stardust Dragon'))&&free(n)>=0){
-    delete s.stardustReviveQueued;
-    const idx=s.grave.indexOf(aid('Stardust Dragon'));
+  // Rồng Tinh Tú có thể bị hiến tế vào lượt đối thủ: cờ nằm ở phe chủ nó, nên kiểm tra cả hai phe.
+  for(const m of [n,other(n)]){
+  const ms=S(m);
+  if(ms.stardustReviveQueued===duel.round&&ms.grave.includes(aid('Stardust Dragon'))&&(!ms.extra||free(m)>=0)){
+    delete ms.stardustReviveQueued;
+    const idx=ms.grave.indexOf(aid('Stardust Dragon'));
     if(idx>=0){
-      s.grave.splice(idx,1);
+      ms.grave.splice(idx,1);
       const slot={...monsterSlot(aid('Stardust Dragon')),properlySummoned:true};uid(slot);
-      s.monsters[free(n)]=slot;
+      placeOnField(m,slot);
       log('✦ Rồng Tinh Tú trở lại sân từ Mộ ở End Phase!');
-      enqueue(()=>postSummon(n,slot));
+      enqueue(()=>postSummon(m,slot));
     }
+  }
   }
   for(const e of [...E(n)])if(e.slot.returnExtraEnd){if(guardRemoval(n,e.slot,'effect')){delete e.slot.returnExtraEnd;continue;}await fx(n,card(e.slot.id),'fusion',[{name:n,index:e.index}],()=>{if(e.extra)s.extra=null;else s.monsters[e.index]=null;s.extraDeck.push(e.slot.id);});}
   if(s.powerBondDebt){const debt=s.powerBondDebt;s.powerBondDebt=0;await fx(n,card(aid('Power Bond')),'damage',[{name:n,type:'lp'}],()=>damage(n,debt),{text:`Power Bond: nhận ${debt} sát thương cuối lượt.`});}
@@ -1137,7 +1150,7 @@ function commitSpellSource(n,c,ctx){
   if(window.memeAnime?.onEndTurn)await window.memeAnime.onEndTurn(n);
   await window.memeCardMotion?.flush();
  }
- function directAllowed(n,slot){if(has(slot,'leviathan')&&!(slot.materials||[]).length)return false;const foe=other(n);if(slot.id==='AN-alligators_sword_dragon'){if(!E(foe).length)return true;if(E(foe).some(e=>!face(e.slot)))return false;const allowed=['Địa','Đất','EARTH','Thủy','Nước','WATER','Hỏa','Lửa','FIRE'];return E(foe).every(e=>allowed.includes(card(e.slot.id)?.element));}return !E(foe).length||(has(slot,'direct')&&slot.id!=='AN-alligators_sword_dragon')||has(slot,'direct_half')||slot.mangaDirectRound===duel.round||card(slot.id)?.effect_code==='p3_ocean'&&[S(n).field,S(foe).field].some(s=>s&&card(s.id)?.name_en==='Umi')||has(slot,'rampart')&&slot.position==='def'||has(slot,'toon')&&spellList(n).some(e=>card(e.id).effect_code==='toon_world')&&!E(foe).some(e=>has(e.slot,'toon'));}
+ function directAllowed(n,slot){if(window.memeRoster2?.directOk(n,slot))return true;if(has(slot,'leviathan')&&!(slot.materials||[]).length)return false;const foe=other(n);if(slot.id==='AN-alligators_sword_dragon'){if(!E(foe).length)return true;if(E(foe).some(e=>!face(e.slot)))return false;const allowed=['Địa','Đất','EARTH','Thủy','Nước','WATER','Hỏa','Lửa','FIRE'];return E(foe).every(e=>allowed.includes(card(e.slot.id)?.element));}return !E(foe).length||(card(slot.id)?.effect_code==='dl_toon_bls'&&!E(foe).some(e=>has(e.slot,'toon')))||(has(slot,'direct')&&slot.id!=='AN-alligators_sword_dragon')||has(slot,'direct_half')||slot.mangaDirectRound===duel.round||card(slot.id)?.effect_code==='p3_ocean'&&[S(n).field,S(foe).field].some(s=>s&&card(s.id)?.name_en==='Umi')||has(slot,'rampart')&&slot.position==='def'||has(slot,'toon')&&spellList(n).some(e=>card(e.id).effect_code==='toon_world')&&!E(foe).some(e=>has(e.slot,'toon'));}
  async function attackReactions(owner,attacker,defender,targetIndex,targetExtra){const opponent=other(owner),s=S(opponent),immune=has(attacker,'trap_immune')||has(attacker,'god')||attacker.sparkRound===duel.round;
   if(defender&&has(defender,'toon')&&spellList(opponent).some(e=>card(e.id).effect_code==='toon_world')&&defender.dodgeRound!==duel.round){await fx(opponent,card(defender.id),'dodge',[],()=>{defender.dodgeRound=duel.round;},{text:'Toon né đòn và trốn vào Thế Giới Hoạt Hình!'});return {cancel:true};}
   if(defender&&face(defender)&&has(defender,'cyber_valley')){await fx(opponent,card(defender.id),'negate',[],()=>{defender.banishOnLeave=true;remove(opponent,{slot:defender,index:targetIndex,extra:targetExtra},'cost');drawCards(opponent,1);duel.phase='MAIN2';});return {cancel:true};}
@@ -1338,7 +1351,8 @@ function commitSpellSource(n,c,ctx){
    }
   }
  }
- async function battle(owner,index,extra,targetIndex,targetExtra=false){const match=duel,s=S(owner),foe=other(owner),attacker=extra?s.extra:s.monsters[index];
+ async function battle(owner,index,extra,targetIndex,targetExtra=false){const _a=extra?S(owner).extra:S(owner).monsters[index],_f=other(owner),_d=targetExtra?S(_f).extra:targetIndex==null?null:S(_f).monsters[targetIndex];const _rc=window.memeRoster2?.beforeBattle(owner,_a,_d);const _r=await battleCore(owner,index,extra,targetIndex,targetExtra);await window.memeRoster2?.afterBattle(owner,_a,_d,_rc);try{if(_a&&_d&&has(_a,'banish_survivor')&&E(owner).some(e=>e.slot===_a)){const e=E(_f).find(x=>x.slot===_d);if(e){_d.banishOnLeave=true;remove(_f,e,'effect');log('🌌 '+card(_a.id).name+' trục xuất quái sống sót.');}}}catch(x){console.warn(x);}return _r;}
+ async function battleCore(owner,index,extra,targetIndex,targetExtra=false){const match=duel,s=S(owner),foe=other(owner),attacker=extra?s.extra:s.monsters[index];
   if(duel.phase==='BATTLE'&&s.favoriteFieldRound!==duel.round&&spellList(owner).some(p=>p.id==='DL-favorite_hero'&&p.slot.equippedTo&&E(owner).some(e=>e.slot.uid===p.slot.equippedTo&&face(e.slot)))){s.favoriteFieldRound=duel.round;const fields=[...choices(s.hand,'hand').map(e=>({...e,zone:'hand'})),...choices(s.deck,'deck').map(e=>({...e,zone:'deck'}))].filter(e=>card(e.id)?.spell_category==='Môi Trường');if(fields.length){const t=await pick(owner,'Anh Hùng Tâm Đắc: kích hoạt 1 Phép Môi Trường',fields,{optional:true});if(t)await fx(owner,card(t.id),'spell',[],()=>{const src=t.zone==='hand'?s.hand:s.deck,i=src.indexOf(t.id);if(i<0)return;src.splice(i,1);if(t.zone==='deck')s.deck=shuffle(s.deck);if(s.field){s.grave.push(s.field.id);sentToGrave(owner,s.field.id,true,'effect');}s.field={id:t.id};log(`🌐 Anh Hùng Tâm Đắc kích hoạt ${card(t.id).name}.`);});}}if(!canAttack(attacker))return false;
   let defender=targetExtra?S(foe).extra:targetIndex==null?null:S(foe).monsters[targetIndex];if(!defender&&!directAllowed(owner,attacker))return false;
   const taunt=defender?E(foe).find(e=>e.slot!==defender&&face(e.slot)&&has(e.slot,'amazon_tiger')):E(foe).find(e=>face(e.slot)&&has(e.slot,'amazon_tiger'));
@@ -1880,15 +1894,15 @@ function commitSpellSource(n,c,ctx){
    const trap=s.hand.find(id=>card(id).card_type==='Trap');if(trap&&s.spells.includes(null)){await fx('enemy',null,'set',[],()=>{s.hand.splice(s.hand.indexOf(trap),1);s.spells[s.spells.indexOf(null)]={id:trap,faceDown:true,setRound:duel.round};},{title:'Đối thủ úp bài',text:'Một lá bài được đặt úp.'});}
    if(!skillProblem('enemy',true))await skillFor('enemy');
   });if(duel!==match||duel.finished)return;duel.phase=duel.round===1?'MAIN1':'BATTLE';render();
-  for(const e of [...E('enemy')])for(let i=0;i<3&&canAttack(e.slot);i++){if(duel!==match||duel.finished||duel.phase!=='BATTLE')break;const targets=targetList('player').filter(t=>!has(e.slot,'attack_all')||!e.slot.attackTargets?.includes(t.slot.uid)),target=window.memePhase2?memePhase2.attack('enemy',e.slot,targets):targets.find(t=>stat('enemy',e.slot)>(t.slot.position==='atk'?stat('player',t.slot):stat('player',t.slot,'def')));if(targets.length&&!target&&!directAllowed('enemy',e.slot))break;await perform(()=>battle('enemy',e.index,e.extra,target?.index??null,target?.extra||false));}
+  for(const e of (window.memePhase2?.attackOrder?memePhase2.attackOrder('enemy',[...E('enemy')]):[...E('enemy')]))for(let i=0;i<3&&canAttack(e.slot);i++){if(duel!==match||duel.finished||duel.phase!=='BATTLE')break;const targets=targetList('player').filter(t=>!has(e.slot,'attack_all')||!e.slot.attackTargets?.includes(t.slot.uid)),target=window.memePhase2?memePhase2.attack('enemy',e.slot,targets):targets.find(t=>stat('enemy',e.slot)>(t.slot.position==='atk'?stat('player',t.slot):stat('player',t.slot,'def')));if(targets.length&&!target&&!directAllowed('enemy',e.slot))break;await perform(()=>battle('enemy',e.index,e.extra,target?.index??null,target?.extra||false));}
   if(duel!==match||duel.finished)return;await perform(async()=>{await endTurn('enemy');if(duel.finished)return;duel.turn='player';duel.phase='MAIN1';duel.round++;duel.normalSummoned=false;beginTurn('player');await fx('player',null,'draw',[],()=>drawCards('player',1),{title:'Lượt của bạn',text:'Rút 1 lá từ Deck.'});});
  };
- function skillCandidates(n,h){if(h.code==='destiny')return choices(S(n).deck,'deck').slice(0,5);if(h.code==='jaden')return choices(S(n).deck,'deck').filter(e=>['fusion_summon','miracle_fusion','mask_change','mask_change_ii'].includes(card(e.id)?.effect_code));return choices(S(n).deck,'deck').filter(e=>h.code==='destiny'||({kaiba:['Blue-Eyes White Dragon'],joey:['Time Wizard','Red-Eyes Black Dragon'],pegasus:['Toon World','Black Illusion Ritual'],jaden:['Polymerization','Miracle Fusion'],zane:['Cyber Dragon','Power Bond'],mai:['Harpie Lady','Elegant Egotist'],yusei:['Junk Synchron','Stardust Dragon']}[h.code]||[]).map(aid).includes(e.id));}
+ function skillCandidates(n,h){if(h.code==='destiny')return choices(S(n).deck,'deck').slice(0,5);if(h.code==='jaden')return choices(S(n).deck,'deck').filter(e=>['fusion_summon','miracle_fusion','mask_change','mask_change_ii'].includes(card(e.id)?.effect_code));return choices(S(n).deck,'deck').filter(e=>h.code==='destiny'||({kaiba:['Blue-Eyes White Dragon'],joey:['Time Wizard','Red-Eyes Black Dragon'],pegasus:['Toon World','Black Illusion Ritual'],jaden:['Polymerization','Miracle Fusion'],zane:['Cyber Dragon','Power Bond'],mai:['Harpie Lady','Elegant Egotist'],yusei:['Junk Synchron','Stardust Dragon'],marik:['Mystic Tomato','Newdoria'],jack:['Red Resonator','Power Invader'],shark:['Hammer Shark','Big Jaws'],chazz:['Armed Dragon LV3','Armed Dragon LV5']}[h.code]||[]).map(aid).includes(e.id));}
  function yumaXyzSlots(n){return targetList(n,slot=>!!slot.rank);}
  function yumaOverlayUnits(n){return choices(S(n).grave,'grave').filter(e=>{const c=card(e.id);return c?.card_type==='Monster'&&c.monster_category!=='Xyz'&&c.stars===4&&!c.uncollectible;});}
  async function yumaSkill(n,h,s){const target=await pick(n,'Kattobingu!: chọn quái XYZ nhận nguyên liệu',yumaXyzSlots(n));if(!target)return false;const unit=await pick(n,'Kattobingu!: gắn 1 quái Cấp 4 từ Mộ làm nguyên liệu XYZ',yumaOverlayUnits(n),{text:'Nguyên liệu gắn thêm dùng được cho hiệu ứng XYZ; khi tách hoặc khi lá rời sân, nó về Mộ.'});if(!unit)return false;return fx(n,null,'skill',[],()=>{const gi=s.grave.indexOf(unit.id);if(gi<0||!E(n).some(e=>e.slot===target.slot))return;s.grave.splice(gi,1);target.slot.materials=[...(target.slot.materials||[]),unit.id];target.slot.xyzSummoned=true;s.skillUsed=true;log(`✦ ${h.name}: ${h.skill}! Gắn ${card(unit.id).name} làm nguyên liệu XYZ cho ${card(target.slot.id).name}.`);if(has(target.slot,'utopia')){drawCards(n,1);log('✦ Number 39: Utopia: rút 1 lá.');}},{heroId:h.id,title:h.skill,text:h.description});}
- function skillProblem(n,internal=false){if(window.memeOpening?.pending())return 'Chờ tung xu chọn lượt.';if(!duel||duel.finished)return 'Trận đấu đã kết thúc.';const s=S(n),h=getHero(s.heroId);if(s.skillUsed)return 'Đã dùng kỹ năng trong trận này.';if(duel.turn!==n||!['MAIN1','MAIN2'].includes(duel.phase))return 'Dùng trong MAIN của bạn.';if(duel.mode)return 'Hoàn tất thao tác chọn bài trước.';if(!internal&&(busy||window.memeFx?.busy))return 'Chờ hoạt ảnh hiện tại hoàn tất.';if(h.code==='destiny'&&s.lp>2000)return 'Trái Tim Lá Bài cần LP từ 2000 trở xuống.';if(['kaiba','zane','pegasus','mai','yusei'].includes(h.code)&&s.lp<=lpFee(1000))return `Cần ít nhất ${lpFee(1000)} LP để trả phí kỹ năng.`;if(['kaiba','zane','yusei'].includes(h.code)&&!s.hand.length)return 'Cần 1 lá trên tay làm chi phí.';if(h.code==='jaden'&&!E(n).some(e=>face(e.slot)&&/\bHERO\b/.test(card(e.slot.id)?.name_en||'')))return 'Cần 1 HERO đang ngửa trên sân.';if(h.code==='yuma'){if(!yumaXyzSlots(n).length)return 'Cần 1 quái XYZ ngửa trên sân để gắn nguyên liệu.';if(!yumaOverlayUnits(n).length)return 'Mộ cần 1 quái Cấp 4 để gắn làm nguyên liệu XYZ.';return '';}if(!skillCandidates(n,h).length&&!(h.code==='pegasus'&&S(other(n)).hand.length))return 'Không còn lá phù hợp trong Deck.';return '';}
- async function skillFor(n){const problem=skillProblem(n,true);if(problem)return false;const s=S(n),h=getHero(s.heroId);if(h.code==='yuma')return yumaSkill(n,h,s);const discardGroup=['kaiba','zane','yusei'].includes(h.code),payGroup=['kaiba','zane','pegasus','mai','yusei'].includes(h.code),cost=discardGroup?await discard(n,'Đổi 1 lá trên tay làm chi phí kỹ năng'):null;if(discardGroup&&!cost)return false;
+ function skillProblem(n,internal=false){if(window.memeOpening?.pending())return 'Chờ tung xu chọn lượt.';if(!duel||duel.finished)return 'Trận đấu đã kết thúc.';const s=S(n),h=getHero(s.heroId);if(s.skillUsed)return 'Đã dùng kỹ năng trong trận này.';if(duel.turn!==n||!['MAIN1','MAIN2'].includes(duel.phase))return 'Dùng trong MAIN của bạn.';if(duel.mode)return 'Hoàn tất thao tác chọn bài trước.';if(!internal&&(busy||window.memeFx?.busy))return 'Chờ hoạt ảnh hiện tại hoàn tất.';if(h.code==='destiny'&&s.lp>2000)return 'Trái Tim Lá Bài cần LP từ 2000 trở xuống.';if(['kaiba','zane','pegasus','mai','yusei','marik','jack','shark','chazz'].includes(h.code)&&s.lp<=lpFee(1000))return `Cần ít nhất ${lpFee(1000)} LP để trả phí kỹ năng.`;if(['kaiba','zane','yusei','marik','jack','shark','chazz'].includes(h.code)&&!s.hand.length)return 'Cần 1 lá trên tay làm chi phí.';if(h.code==='jaden'&&!E(n).some(e=>face(e.slot)&&/\bHERO\b/.test(card(e.slot.id)?.name_en||'')))return 'Cần 1 HERO đang ngửa trên sân.';if(h.code==='yuma'){if(!yumaXyzSlots(n).length)return 'Cần 1 quái XYZ ngửa trên sân để gắn nguyên liệu.';if(!yumaOverlayUnits(n).length)return 'Mộ cần 1 quái Cấp 4 để gắn làm nguyên liệu XYZ.';return '';}if(!skillCandidates(n,h).length&&!(h.code==='pegasus'&&S(other(n)).hand.length))return 'Không còn lá phù hợp trong Deck.';return '';}
+ async function skillFor(n){const problem=skillProblem(n,true);if(problem)return false;const s=S(n),h=getHero(s.heroId);if(h.code==='yuma')return yumaSkill(n,h,s);const discardGroup=['kaiba','zane','yusei','marik','jack','shark','chazz'].includes(h.code),payGroup=['kaiba','zane','pegasus','mai','yusei','marik','jack','shark','chazz'].includes(h.code),cost=discardGroup?await discard(n,'Đổi 1 lá trên tay làm chi phí kỹ năng'):null;if(discardGroup&&!cost)return false;
   if(h.code==='pegasus'&&S(other(n)).hand.length)await pick(n,'Con Mắt Ngàn Năm: xem tay đối thủ',choices(S(other(n)).hand,'hand'),{optional:true,text:'Chọn một lá hoặc bấm Bỏ qua để tiếp tục; không lấy lá đối thủ.'});
   const target=await pick(n,'Kỹ năng '+h.name+': chọn lá trong Deck',skillCandidates(n,h),{optional:h.code==='pegasus'});if(!target&&h.code!=='pegasus')return false;
   return fx(n,null,'skill',[],()=>{if(payGroup&&!payLp(n,1000,'skill'))return;takeDiscard(n,cost);if(target){const i=s.deck.indexOf(target.id);if(i>=0){window.memeCardMotion?.record('search',n,target.id);s.hand.push(s.deck.splice(i,1)[0]);}s.deck=shuffle(s.deck);}s.skillUsed=true;log(`✦ ${h.name}: ${h.skill}!`);},{heroId:h.id,title:h.skill,text:h.description,cost:payGroup?lpFee(1000)+' LP':null});
@@ -1903,9 +1917,9 @@ function commitSpellSource(n,c,ctx){
      actions.innerHTML='';
      if(c.ritual_spell)addAction(actions,'🕯 Dùng Nghi Lễ trên tay',()=>{const i=s.hand.indexOf(c.ritual_spell);if(i>=0)playSpell(i);else {const msg='Cần '+card(c.ritual_spell).name+' trên tay.';window.showActionNotice(msg);log(msg);}});
    }
-   if(specialMode('player',c)){
-     addAction(actions,'✦ Triệu hồi đặc biệt',()=>perform(()=>specialSummon('player',sel.index)));
-   } else if(c.special_only || c.traits?.some(t => ['cyber_special','bubbleman','valkyrion','shining_dragon','harpie_name','gagaga_special','kagetokage_special'].includes(t)) || c.id === 'DL-blue_eyes_alternative_white_dragon'){
+   if((window.memeAnime?.specialMode||specialMode)('player',c)){
+     addAction(actions,'✦ Triệu hồi đặc biệt',()=>perform(()=>(window.memeAnime?.specialSummon||specialSummon)('player',sel.index)));
+   } else if(c.special_only || c.traits?.some(t => ['cyber_special','bubbleman','valkyrion','shining_dragon','harpie_name','gagaga_special','kagetokage_special','r2_special'].includes(t)) || c.id === 'DL-blue_eyes_alternative_white_dragon'){
      const prob = cardSpecialProblem('player', c);
      addAction(actions,'✦ Triệu hồi đặc biệt',()=>window.showActionNotice(prob, 'Chưa thể Triệu hồi ĐB'), true);
    }

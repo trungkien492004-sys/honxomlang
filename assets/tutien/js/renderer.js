@@ -10,9 +10,54 @@ export class GameRenderer {
         this.particles = [];
         this.floatingTexts = [];
         this.skillVisuals = [];
+        this._pl = {};
+        this._loadSprites();
 
         this.resize();
         window.addEventListener('resize', () => this.resize());
+    }
+
+    // Kenney (CC0): urban.png = RPG Urban Pack, dungeon.png = Tiny Dungeon. Ô 16x16.
+    _loadSprites() {
+        this.sheets = {};
+        for (const [k, f] of [['urban', 'urban.png'], ['dungeon', 'dungeon.png']]) {
+            const im = new Image();
+            im.onload = () => { im._ok = true; if (this.onSheetsLoaded) this.onSheetsLoaded(); };
+            im.src = 'assets/tutien/img/' + f;
+            this.sheets[k] = im;
+        }
+    }
+
+    _tile(ctx, im, idx, dx, dy, s) {
+        const cols = Math.floor(im.width / 16);
+        ctx.drawImage(im, (idx % cols) * 16, Math.floor(idx / cols) * 16, 16, 16, dx, dy, 16 * s, 16 * s);
+    }
+
+    _block(ctx, im, idx, w, h, dx, dy, s) {
+        const cols = Math.floor(im.width / 16);
+        for (let r = 0; r < h; r++) {
+            for (let c = 0; c < w; c++) this._tile(ctx, im, idx + r * cols + c, dx + c * 16 * s, dy + r * 16 * s, s);
+        }
+    }
+
+    // Chỉ số ô nhân vật Urban: nhóm g (3 hàng khung đi) x 4 hướng (cột 23..26).
+    static charGroup(school) {
+        return { sword: 0, body: 3, spell: 2, array: 4, demonic: 1, medicine: 5 }[school] ?? 0;
+    }
+    charIndex(school, frame, dir) {
+        return (GameRenderer.charGroup(school) * 3 + frame) * 27 + 23 + dir;
+    }
+
+    // Vẽ 1 ô sprite lên canvas phụ (chân dung trong khung chiến đấu / HUD).
+    drawSpriteTo(canvas, sheet, idx) {
+        const im = this.sheets && this.sheets[sheet];
+        if (!canvas || !im || !im._ok) return false;
+        const c = canvas.getContext('2d');
+        c.imageSmoothingEnabled = false;
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        const cols = Math.floor(im.width / 16);
+        c.drawImage(im, (idx % cols) * 16, Math.floor(idx / cols) * 16, 16, 16, 0, 0, canvas.width, canvas.height);
+        return true;
     }
 
     resize() {
@@ -73,6 +118,7 @@ export class GameRenderer {
         this._mapW = mapInfo?.width || 1400;
         this._mapH = mapInfo?.height || 1000;
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.imageSmoothingEnabled = false;
 
         ctx.save();
         ctx.translate(-Math.round(this.camera.x), -Math.round(this.camera.y));
@@ -274,10 +320,15 @@ export class GameRenderer {
         cy += (this._hash(i, j, 5) - .5) * 22;
         if (r1 < 0.5) {
             if (r1 > 0.4) { // bồn cây ven đường
+                const im = this.sheets && this.sheets.urban;
                 ctx.fillStyle = 'rgba(0,0,0,.4)';
                 ctx.beginPath(); ctx.ellipse(cx + 4, cy + 12, 15, 7, 0, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = `rgb(${T.skin[2]})`;
-                ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI * 2); ctx.fill();
+                if (im && im._ok) {
+                    this._tile(ctx, im, (this._hash(i, j, 8) > 0.5 ? 367 : 286) + (r2 > 0.5 ? 1 : 0), cx - 24, cy - 32, 3);
+                } else {
+                    ctx.fillStyle = `rgb(${T.skin[2]})`;
+                    ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI * 2); ctx.fill();
+                }
             }
             return;
         }
@@ -310,7 +361,9 @@ export class GameRenderer {
     _drawForestLot(ctx, T, i, j, cx, cy, r1, r2, r3, now) {
         cx += (this._hash(i, j, 4) - .5) * 56;
         cy += (this._hash(i, j, 5) - .5) * 48;
-        if (r1 > 0.42) {
+        if (r1 > 0.42 && this._spriteTree(ctx, i, j, r2, r3, cx, cy)) {
+            // cây sprite đã vẽ
+        } else if (r1 > 0.42) {
             const big = r2 > 0.72;
             const rr = (big ? 27 : 17) * (0.8 + r3 * 0.5);
             ctx.fillStyle = 'rgba(0,0,0,.45)';
@@ -344,6 +397,19 @@ export class GameRenderer {
             ctx.fillStyle = `rgba(${T.warm},.75)`;
             ctx.beginPath(); ctx.arc(cx + 18, fy, 2, 0, Math.PI * 2); ctx.fill();
         }
+    }
+
+    _spriteTree(ctx, i, j, r2, r3, cx, cy) {
+        const im = this.sheets && this.sheets.urban;
+        if (!im || !im._ok) return false;
+        const o = this._hash(i, j, 6) > 0.5 ? 81 : 0; // biến thể lá cam
+        let idx, w, h;
+        if (r2 > 0.8) { idx = 235 + o; w = 2; h = 3; } else if (r3 > 0.5) { idx = 232 + o; w = 1; h = 2; } else { idx = 233 + o; w = 1; h = 2; }
+        const s = 3;
+        ctx.fillStyle = 'rgba(0,0,0,.4)';
+        ctx.beginPath(); ctx.ellipse(cx, cy + 14, w * 8 * s * 0.75, 9, 0, 0, Math.PI * 2); ctx.fill();
+        this._block(ctx, im, idx, w, h, cx - w * 8 * s, cy + 14 - h * 16 * s, s);
+        return true;
     }
 
     _drawArenaLot(ctx, T, i, j, cx, cy, r1, r2, now) {
@@ -447,19 +513,28 @@ export class GameRenderer {
         ctx.strokeStyle = `rgba(${T.warm},.35)`;
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.ellipse(x, y + 72, 96, 32, 0, 0, Math.PI * 2); ctx.stroke();
-        ctx.fillStyle = '#4a3524';
-        ctx.beginPath();
-        ctx.moveTo(x - 16, y + 70); ctx.lineTo(x - 8, y - 40); ctx.lineTo(x + 8, y - 40); ctx.lineTo(x + 16, y + 70);
-        ctx.closePath(); ctx.fill();
-        const sway = Math.sin(now / 1500) * 4;
-        ctx.fillStyle = `rgb(${T.skin[2]})`;
-        for (const [ox, oy, r] of [[-52, -52, 46], [52, -46, 42], [0, -86, 52], [-22, -26, 40], [26, -22, 38]]) {
-            ctx.beginPath(); ctx.arc(x + ox + sway, y + oy, r, 0, Math.PI * 2); ctx.fill();
-        }
-        ctx.fillStyle = `rgba(${T.neon},.16)`;
-        for (const [ox, oy, r] of [[-30, -70, 26], [40, -60, 20], [4, -104, 24]]) {
-            ctx.beginPath(); ctx.arc(x + ox + sway, y + oy, r, 0, Math.PI * 2); ctx.fill();
-        }
+        const gim = this.sheets && this.sheets.urban;
+        if (gim && gim._ok) {
+            // Rừng linh thụ sprite (Kenney) phóng 5x, nhấp nhô theo gió
+            const sway = Math.sin(now / 1500) * 2;
+            this._block(ctx, gim, 235, 2, 3, x - 80 + sway, y + 70 - 240, 5);
+            ctx.fillStyle = `rgba(${T.neon},.10)`;
+            ctx.beginPath(); ctx.ellipse(x, y - 40, 110, 130, 0, 0, Math.PI * 2); ctx.fill();
+        } else {
+            ctx.fillStyle = '#4a3524';
+            ctx.beginPath();
+            ctx.moveTo(x - 16, y + 70); ctx.lineTo(x - 8, y - 40); ctx.lineTo(x + 8, y - 40); ctx.lineTo(x + 16, y + 70);
+            ctx.closePath(); ctx.fill();
+            const sway = Math.sin(now / 1500) * 4;
+            ctx.fillStyle = `rgb(${T.skin[2]})`;
+            for (const [ox, oy, r] of [[-52, -52, 46], [52, -46, 42], [0, -86, 52], [-22, -26, 40], [26, -22, 38]]) {
+                ctx.beginPath(); ctx.arc(x + ox + sway, y + oy, r, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.fillStyle = `rgba(${T.neon},.16)`;
+            for (const [ox, oy, r] of [[-30, -70, 26], [40, -60, 20], [4, -104, 24]]) {
+                ctx.beginPath(); ctx.arc(x + ox + sway, y + oy, r, 0, Math.PI * 2); ctx.fill();
+            }
+            }
         ctx.font = 'bold 13px Nunito, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillStyle = `rgba(${T.warm},.9)`;
@@ -538,51 +613,52 @@ export class GameRenderer {
 
         // Nhãn cổng dịch chuyển
         ctx.fillStyle = '#00e5ff';
-        ctx.font = 'bold 11px Segoe UI';
+        ctx.font = 'bold 11px Segoe UI, Nunito';
         ctx.textAlign = 'center';
         ctx.fillText(`🌀 ${portal.label}`, portal.x, portal.y - 36);
     }
 
     renderNPC(ctx, npc, now) {
-        // Vẽ NPC
+        const im = this.sheets && this.sheets.dungeon;
         ctx.save();
         ctx.translate(npc.x, npc.y);
-
-        // Vòng chân NPC
         ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
         ctx.beginPath();
-        ctx.ellipse(0, 16, 16, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 12, 18, 8, 0, 0, Math.PI * 2);
         ctx.fill();
-
-        // Thân NPC
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath();
-        ctx.arc(0, 0, 15, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Icon NPC
-        ctx.fillStyle = '#fff';
-        ctx.font = '14px Segoe UI';
+        let top = -20;
+        if (im && im._ok && npc.sprite !== undefined) {
+            const s = 3;
+            const bob = Math.sin(now / 500 + npc.x) * 1.5;
+            this._tile(ctx, im, npc.sprite, -8 * s, 10 - 16 * s + bob, s);
+            top = 10 - 16 * s;
+        } else {
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🧘', 0, 0);
+        }
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🧘', 0, 0);
-
-        // Tên & Danh hiệu
-        ctx.font = 'bold 12px Segoe UI';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = 'bold 12px Segoe UI, Nunito';
         ctx.fillStyle = '#ffd700';
-        ctx.fillText(npc.name, 0, -28);
-
-        ctx.font = '10px Segoe UI';
+        ctx.fillText(npc.name, 0, top - 16);
+        ctx.font = '10px Segoe UI, Nunito';
         ctx.fillStyle = '#cbd5e1';
-        ctx.fillText(`<${npc.title}>`, 0, -16);
-
+        ctx.fillText(`<${npc.title}>`, 0, top - 4);
         ctx.restore();
     }
 
     renderMonster(ctx, mob, now) {
+        const im = this.sheets && this.sheets.dungeon;
         ctx.save();
         ctx.translate(mob.x, mob.y);
 
@@ -603,46 +679,55 @@ export class GameRenderer {
             ctx.stroke();
         }
 
-        // Thân quái
-        ctx.fillStyle = mob.isBoss ? '#b91c1c' : '#7f1d1d';
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = mob.isBoss ? '#ffd700' : '#ef4444';
-        ctx.lineWidth = mob.isBoss ? 3 : 1.5;
-        ctx.stroke();
+        let top = -radius;
+        if (im && im._ok && mob.sprite !== undefined) {
+            const s = mob.isBoss ? 5 : 3;
+            const bob = Math.sin(now / 280 + mob.homeX * 0.01) * 2;
+            this._tile(ctx, im, mob.sprite, -8 * s, radius * 0.8 - 16 * s + bob, s);
+            top = radius * 0.8 - 16 * s;
+        } else {
+            ctx.fillStyle = mob.isBoss ? '#b91c1c' : '#7f1d1d';
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = mob.isBoss ? '#ffd700' : '#ef4444';
+            ctx.lineWidth = mob.isBoss ? 3 : 1.5;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = mob.isBoss ? '22px Segoe UI' : '15px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(mob.isBoss ? '👑👹' : '🐺', 0, 0);
+        }
 
-        // Icon quái vật
-        ctx.fillStyle = '#fff';
-        ctx.font = mob.isBoss ? '22px Segoe UI' : '15px Segoe UI';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(mob.isBoss ? '👑👹' : '🐺', 0, 0);
-
-        // Tên quái vật
-        ctx.font = mob.isBoss ? 'bold 12px Segoe UI' : '11px Segoe UI';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = mob.isBoss ? 'bold 12px Segoe UI, Nunito' : '11px Segoe UI, Nunito';
         ctx.fillStyle = mob.isBoss ? '#ffd700' : '#fca5a5';
-        ctx.fillText(mob.name, 0, -radius - 14);
+        ctx.fillText((mob.element ? mob.element + ' · ' : '') + mob.name, 0, top - 10);
 
         // Thanh HP quái
-        const barW = radius * 2.2;
+        const barW = Math.max(radius * 2.2, 40);
         const barH = 5;
         const hpPercent = Math.max(0, mob.hp / mob.maxHp);
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(-barW / 2, -radius - 8, barW, barH);
+        ctx.fillRect(-barW / 2, top - 6, barW, barH);
         ctx.fillStyle = mob.isBoss ? '#ffd700' : '#ef4444';
-        ctx.fillRect(-barW / 2, -radius - 8, barW * hpPercent, barH);
+        ctx.fillRect(-barW / 2, top - 6, barW * hpPercent, barH);
 
         ctx.restore();
     }
 
     renderPlayer(ctx, p, isLocal, now) {
+        const im = this.sheets && this.sheets.urban;
+        const px = p.pos_x ?? p.x, py = p.pos_y ?? p.y;
         ctx.save();
-        ctx.translate(p.x, p.y);
+        ctx.translate(px, py);
 
         // Hào quang Chân Khí dưới chân (Aura xoay theo cảnh giới)
         const rot = (now / 1000) * 2;
         ctx.save();
+        ctx.translate(0, 8);
         ctx.rotate(rot);
         let auraColor = '#00e5ff';
         if (p.realm >= 3) auraColor = '#ffd700'; // Kim Đan
@@ -652,54 +737,80 @@ export class GameRenderer {
         ctx.strokeStyle = auraColor;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 22, 11, 0, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
 
         // Bóng đổ
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.beginPath();
-        ctx.ellipse(0, 14, 14, 6, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 8, 15, 6, 0, 0, Math.PI * 2);
         ctx.fill();
+
+        // Hướng & khung hoạt ảnh đi theo độ dời thực tế giữa các frame
+        const st = this._pl[p.id] || (this._pl[p.id] = { x: px, y: py, dir: 1, mv: -1e9 });
+        const ddx = px - st.x, ddy = py - st.y;
+        if (ddx || ddy) {
+            st.mv = now;
+            if (Math.abs(ddx) > Math.abs(ddy)) st.dir = ddx > 0 ? 3 : 0; else st.dir = ddy > 0 ? 1 : 2;
+        }
+        st.x = px; st.y = py;
+        const moving = now - st.mv < 140;
+        const frame = moving ? [0, 1, 2, 1][Math.floor(now / 110) % 4] : 1;
 
         // Phi kiếm bay lơ lửng phía sau lưng
         const swordFloatY = Math.sin(now / 200) * 3;
-        ctx.fillStyle = '#00e5ff';
-        ctx.font = '16px Segoe UI';
-        ctx.fillText('🗡️', 14, -8 + swordFloatY);
+        const dm = this.sheets && this.sheets.dungeon;
+        if (dm && dm._ok) {
+            ctx.save();
+            ctx.translate(26, -18 + swordFloatY);
+            ctx.rotate(Math.PI / 4);
+            this._tile(ctx, dm, 104, -16, -16, 2);
+            ctx.restore();
+        }
 
-        // Thân người chơi
-        ctx.fillStyle = isLocal ? '#0284c7' : '#475569';
-        ctx.beginPath();
-        ctx.arc(0, 0, 16, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = isLocal ? '#00e5ff' : '#cbd5e1';
-        ctx.lineWidth = isLocal ? 2.5 : 1;
-        ctx.stroke();
+        let top = -24;
+        if (im && im._ok) {
+            const s = 3;
+            this._tile(ctx, im, this.charIndex(p.school, frame, st.dir), -8 * s, 8 - 16 * s, s);
+            top = 8 - 16 * s;
+            if (isLocal) {
+                ctx.strokeStyle = 'rgba(0,229,255,.9)';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(-6, top - 5); ctx.lineTo(0, top - 1); ctx.lineTo(6, top - 5); ctx.stroke();
+            }
+        } else {
+            ctx.fillStyle = isLocal ? '#0284c7' : '#475569';
+            ctx.beginPath();
+            ctx.arc(0, 0, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = isLocal ? '#00e5ff' : '#cbd5e1';
+            ctx.lineWidth = isLocal ? 2.5 : 1;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🧙‍♂️', 0, 0);
+        }
 
-        // Icon nhân vật
-        ctx.fillStyle = '#fff';
-        ctx.font = '16px Segoe UI';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🧙‍♂️', 0, 0);
-
-        // Tên & Danh hiệu
-        ctx.font = 'bold 12px Segoe UI';
-        ctx.fillStyle = isLocal ? '#00e5ff' : '#fff';
-        ctx.fillText(p.name, 0, -28);
-
-        ctx.font = '10px Segoe UI';
-        ctx.fillStyle = '#ffd700';
-        ctx.fillText(`[${p.title}]`, 0, -16);
-
+        ctx.textBaseline = 'alphabetic';
         // Thanh máu nhỏ
         const barW = 36;
-        const hpPct = Math.max(0, p.hp / p.maxHp);
+        const hpPct = Math.max(0, p.hp / (p.max_hp ?? p.maxHp));
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(-barW / 2, -10, barW, 3);
+        ctx.fillRect(-barW / 2, top - 12, barW, 4);
         ctx.fillStyle = '#10b981';
-        ctx.fillRect(-barW / 2, -10, barW * hpPct, 3);
+        ctx.fillRect(-barW / 2, top - 12, barW * hpPct, 4);
+
+        // Tên & Danh hiệu
+        ctx.font = 'bold 12px Segoe UI, Nunito';
+        ctx.fillStyle = isLocal ? '#00e5ff' : '#fff';
+        ctx.fillText(p.name, 0, top - 28);
+        ctx.font = '10px Segoe UI, Nunito';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(`[${p.title}]`, 0, top - 16);
 
         ctx.restore();
     }

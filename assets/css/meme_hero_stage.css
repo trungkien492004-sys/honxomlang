@@ -1,0 +1,204 @@
+/* Vòng xoay chọn đấu sĩ (kiểu Omnitrix): thẻ xếp trên vòng tròn 3D, vuốt/kéo/mũi tên để xoay. */
+.lobby-roster.has-dial .hero-picker,
+.lobby-roster.has-dial .roster-caption { display: none !important; }
+.hero-stage {
+  --hs-color: #ffd28c;
+  position: relative; width: 100%; height: 292px; margin: 0 auto 4px;
+  perspective: 900px; perspective-origin: 50% 40%; isolation: isolate; user-select: none; -webkit-user-select: none;
+  touch-action: pan-y; outline: none; overflow: hidden;
+}
+.hero-stage:focus-visible { box-shadow: 0 0 0 2px var(--hs-color) inset; border-radius: 14px; }
+.hero-stage .hs-glow {
+  position: absolute; left: 50%; top: 44%; width: 300px; height: 230px; transform: translate(-50%, -50%); border-radius: 50%; z-index: 0;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--hs-color), transparent 52%), transparent 72%);
+  filter: blur(6px); transition: background .4s;
+}
+.hero-stage .hs-ring {
+  position: absolute; left: 50%; top: 44%; width: 250px; height: 250px; margin: -125px 0 0 -125px; border-radius: 50%; z-index: 0; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 18%, var(--hs-color) 24%, transparent 32% 58%, #3ee6ff 66%, transparent 74%);
+  -webkit-mask: radial-gradient(closest-side, transparent 86%, #000 88% 94%, transparent 96%);
+  mask: radial-gradient(closest-side, transparent 86%, #000 88% 94%, transparent 96%);
+  animation: hsSpin 9s linear infinite; opacity: .85;
+}
+.hero-stage .hs-ring.r2 { width: 296px; height: 296px; margin: -148px 0 0 -148px; animation-duration: 15s; animation-direction: reverse; opacity: .5; }
+.hero-stage.dragging .hs-ring { animation-duration: 2.2s; }
+.hero-stage .hs-dial { position: absolute; inset: 0; transform-style: preserve-3d; z-index: 2; cursor: grab; }
+.hero-stage.dragging .hs-dial { cursor: grabbing; }
+.hero-stage .hs-card {
+  position: absolute; left: 50%; top: 44%; width: 124px; height: 178px; border-radius: 14px; overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--c, #ffd28c), #fff 8%); background: #0b1a30;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .6);
+  transition: transform .45s cubic-bezier(.25, .9, .3, 1), opacity .35s, filter .35s;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.hero-stage .hs-card.is-center { box-shadow: 0 14px 34px rgba(0, 0, 0, .7), 0 0 30px color-mix(in srgb, var(--c, #ffd28c), transparent 45%); border-color: var(--c, #ffd28c); }
+.hero-stage .hs-art {
+  position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; display: block !important;
+  border: 0 !important; border-radius: 0 !important; margin: 0 !important; box-shadow: none !important;
+  background-repeat: no-repeat;
+}
+.hero-stage .hs-art[class*="hero-figure-"] { background-size: cover !important; background-position: var(--portrait-pos, 50% 14%) !important; }
+.hero-stage .hs-art.custom { background-size: contain !important; background-position: 50% 100% !important; }
+.hero-stage .hs-shine {
+  position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .5) 46%, transparent 60%); background-size: 250% 100%; background-position: 130% 0;
+}
+.hero-stage .hs-card.is-center .hs-shine { animation: hsShine 3.4s ease-in-out infinite; }
+.hero-stage .hs-label { position: absolute; left: 0; right: 0; bottom: 22px; z-index: 5; text-align: center; pointer-events: none; text-shadow: 0 2px 8px #000; }
+.hero-stage .hs-label b { display: block; font-size: 15px; color: #fff6d0; }
+.hero-stage .hs-label small { display: block; font-size: 12px; color: var(--hs-color); }
+.hero-stage .hs-dots { position: absolute; left: 0; right: 0; bottom: 6px; z-index: 5; display: flex; justify-content: center; gap: 6px; }
+.hero-stage .hs-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .28); cursor: pointer; transition: all .25s; }
+.hero-stage .hs-dots i.on { width: 20px; border-radius: 6px; background: var(--hs-color); box-shadow: 0 0 8px var(--hs-color); }
+.hero-stage .hs-arrow {
+  position: absolute; top: 44%; z-index: 6; width: 40px; height: 40px; margin-top: -20px; border-radius: 50%; padding: 0;
+  display: grid; place-items: center; font-size: 26px; line-height: 1; color: #fff6d0; cursor: pointer;
+  background: rgba(8, 22, 42, .82); border: 2px solid var(--hs-color); box-shadow: 0 0 14px color-mix(in srgb, var(--hs-color), transparent 55%);
+  transition: transform .15s, background .15s;
+}
+.hero-stage .hs-arrow:hover { background: color-mix(in srgb, var(--hs-color), #000 55%); }
+.hero-stage .hs-arrow:active { transform: scale(.9); }
+.hero-stage .hs-prev { left: 8px; } .hero-stage .hs-next { right: 8px; }
+.hero-stage .hs-fx { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.hero-stage .hs-fx i {
+  position: absolute; left: 50%; top: 54%; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--hs-color); box-shadow: 0 0 10px var(--hs-color); opacity: 0;
+  animation: hsRise var(--d, 3.2s) ease-out var(--dl, 0s) infinite;
+}
+.hero-stage.swap::after {
+  content: ''; position: absolute; left: 50%; top: 44%; width: 210px; height: 210px; margin: -105px 0 0 -105px; z-index: 4; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .9), color-mix(in srgb, var(--hs-color), transparent 40%) 45%, transparent 72%);
+  animation: hsFlash .5s ease-out 1 forwards;
+}
+@keyframes hsSpin { to { transform: rotate(360deg); } }
+@keyframes hsShine { 0%, 55% { opacity: 0; background-position: 130% 0; } 70% { opacity: .6; } 100% { opacity: 0; background-position: -30% 0; } }
+@keyframes hsFlash { 0% { opacity: .85; transform: scale(.35); } 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes hsRise { 0% { opacity: 0; transform: translate(0, 0) scale(.4); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x, 0), -150px) scale(1); } }
+@media (max-height: 560px), (max-width: 420px) {
+  .hero-stage { height: 236px; }
+  .hero-stage .hs-card { width: 100px; height: 144px; }
+  .hero-stage .hs-ring { width: 200px; height: 200px; margin: -100px 0 0 -100px; } .hero-stage .hs-ring.r2 { width: 236px; height: 236px; margin: -118px 0 0 -118px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-stage .hs-ring, .hero-stage .hs-fx i, .hero-stage .hs-shine, .hero-stage.swap::after { animation: none !important; }
+  .hero-stage .hs-card { transition: none; }
+}
+
+.lobby-roster .hs-studio { display: block; text-align: center; font-size: 12px; color: #8fe8ff; opacity: .8; margin: 0 0 6px; text-decoration: none; }
+.lobby-roster .hs-studio:hover { opacity: 1; text-decoration: underline; }
+
+#lobby .lobby-roster.has-dial .roster-caption { display: none !important; }
+
+/* Sân đấu AI: assets/memecard/arena-duel.webp. Xóa từ dòng này trở xuống để quay về nền cũ. */
+/* Ngoài khung: ảnh màu theo đấu sĩ hoặc mua ở shop. Trong khung: sàn vector luôn nét, tối để nổi bài. */
+body .duel:not([data-theme]) {
+  background:
+    linear-gradient(rgba(3, 9, 20, .34), rgba(3, 9, 20, .52)),
+    var(--arena-img, url('../memecard/arena-duel.webp')) center / cover no-repeat fixed,
+    #050d1b;
+}
+body .duel:not([data-theme]) .board-frame { position: relative; isolation: isolate; background: #071826; border-color: #e0bd62; box-shadow: inset 0 0 18px rgba(3, 16, 30, .7), 0 0 30px rgba(62, 230, 255, .25), 0 10px 40px rgba(0, 0, 0, .6); }
+body .duel:not([data-theme]) .board-frame::before {
+  content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none; border-radius: inherit;
+  background: url('../memecard/board-floor.svg') center / cover no-repeat;
+}
+body .duel .board-frame .field-slot {
+  background: linear-gradient(160deg, rgba(10, 34, 56, .62), rgba(4, 14, 28, .78));
+  border: 1px solid rgba(62, 230, 255, .6);
+  box-shadow: inset 0 0 12px rgba(62, 230, 255, .18), 0 0 10px rgba(62, 230, 255, .18);
+}
+body .duel #enemyMonsters .field-slot, body .duel #enemySpells .field-slot {
+  border-color: rgba(242, 200, 110, .65); box-shadow: inset 0 0 12px rgba(242, 200, 110, .16), 0 0 10px rgba(242, 200, 110, .16);
+}
+body .duel .board-frame .special-zone, body .duel .board-frame .duelist-corner { backdrop-filter: none; }
+
+/* Nhân vật ảnh AI: không dùng khung thẻ chữ nhật; thay bằng cổng vòm có nền và hiệu ứng riêng từng người, nhân vật nổi ra khỏi cổng. */
+.hero-stage { overflow: visible; }
+.hero-stage .hs-portal { display: none; }
+.hero-stage .hs-card.has-custom { overflow: visible; background: none !important; border: 0 !important; box-shadow: none !important; width: 132px; height: 188px; }
+.hero-stage .hs-card.has-custom .hs-portal {
+  display: block; position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  border-radius: 70px 70px 12px 12px / 54px 54px 12px 12px;
+  background: linear-gradient(180deg, var(--b1, #1a2a55), var(--b2, #0a1226));
+  border: 2px solid var(--ac, #ffd28c);
+  box-shadow: inset 0 0 22px rgba(0, 0, 0, .55), inset 0 -26px 38px var(--glow, rgba(255, 210, 140, .25)), 0 0 0 3px rgba(255, 255, 255, .06), 0 12px 28px rgba(0, 0, 0, .6);
+}
+.hero-stage .hs-card.has-custom.is-center .hs-portal { box-shadow: inset 0 0 22px rgba(0, 0, 0, .55), inset 0 -26px 38px var(--glow, rgba(255, 210, 140, .25)), 0 0 0 3px color-mix(in srgb, var(--ac), transparent 70%), 0 0 30px var(--glow, rgba(255, 210, 140, .5)), 0 12px 28px rgba(0, 0, 0, .6); }
+.hero-stage .hs-portal .hs-rays {
+  position: absolute; left: 50%; top: 52%; width: 260%; aspect-ratio: 1; margin-left: -130%; transform: translateY(-50%);
+  background: repeating-conic-gradient(from 0deg, var(--ray, rgba(255, 255, 255, .16)) 0 8deg, transparent 8deg 24deg);
+  -webkit-mask: radial-gradient(closest-side, #000 18%, transparent 70%); mask: radial-gradient(closest-side, #000 18%, transparent 70%);
+}
+.hero-stage .hs-card.is-center .hs-portal .hs-rays { animation: hsRays 26s linear infinite; }
+.hero-stage .hs-portal i {
+  position: absolute; left: var(--px); bottom: -8px; width: calc(5px * var(--ps)); height: calc(5px * var(--ps)); border-radius: 50%;
+  background: var(--pc, #fff); box-shadow: 0 0 8px var(--pc, #fff); opacity: 0;
+}
+.hero-stage .hs-card.is-center .hs-portal i { animation: hsMote var(--pd) ease-out var(--pl) infinite; }
+.hero-stage .hs-card.has-custom .hs-art.custom { z-index: 2; inset: -34% -22% 1% -22% !important; width: auto !important; height: auto !important; aspect-ratio: auto !important; }
+.hero-stage .hs-card.has-custom .hs-shine { display: none; }
+@keyframes hsRays { to { transform: translateY(-50%) rotate(360deg); } }
+@keyframes hsMote { 0% { opacity: 0; transform: translateY(0) scale(.5); } 15% { opacity: .95; } 100% { opacity: 0; transform: translateY(-170px) translateX(var(--dx, 6px)) scale(1.1); } }
+
+/* Chủ đề từng nhân vật (màu nền, tia, hạt) */
+.hs-card[data-code="destiny"] { --b1: #3a1d6e; --b2: #0d0724; --ac: #f2c86e; --glow: rgba(190, 120, 255, .55); --ray: rgba(255, 214, 120, .2); --pc: #ffd980; }
+.hs-card[data-code="kaiba"]   { --b1: #0f4f93; --b2: #04122c; --ac: #7fe3ff; --glow: rgba(70, 200, 255, .6);  --ray: rgba(150, 230, 255, .22); --pc: #aef0ff; }
+.hs-card[data-code="joey"]    { --b1: #7a1d0e; --b2: #1a0504; --ac: #ffab4a; --glow: rgba(255, 110, 30, .6);  --ray: rgba(255, 170, 70, .2); --pc: #ffb23a; }
+.hs-card[data-code="pegasus"] { --b1: #7d1730; --b2: #1c0610; --ac: #ffd45e; --glow: rgba(255, 200, 70, .5);  --ray: rgba(255, 220, 120, .2); --pc: #ffe58a; }
+.hs-card[data-code="jaden"]   { --b1: #ff9a2e; --b2: #6a2208; --ac: #fff0a8; --glow: rgba(255, 236, 140, .6); --ray: rgba(255, 250, 200, .3); --pc: #fff6c0; }
+.hs-card[data-code="kaiba"] .hs-portal i { --dx: 14px; }
+.hs-card[data-code="joey"] .hs-portal i { --dx: -10px; background: #ff8a2a; box-shadow: 0 0 10px #ff6a00; }
+.hs-card[data-code="pegasus"] .hs-portal i { border-radius: 2px; width: calc(7px * var(--ps)); height: calc(10px * var(--ps)); --dx: 12px; }
+.hs-card[data-code="jaden"] .hs-portal i { border-radius: 0; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); width: calc(9px * var(--ps)); height: calc(9px * var(--ps)); }
+/* Kaiba: tia sét xanh nhấp nháy sau lưng */
+.hs-card[data-code="kaiba"].is-center .hs-portal::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 44%, rgba(190, 240, 255, .75) 49%, transparent 53%), linear-gradient(70deg, transparent 58%, rgba(150, 225, 255, .55) 61%, transparent 64%);
+  animation: hsBolt 3.2s steps(1) infinite; opacity: 0;
+}
+@keyframes hsBolt { 0%, 62%, 70%, 100% { opacity: 0; } 64% { opacity: 1; } 66% { opacity: .15; } 68% { opacity: .9; } }
+/* Joey: nền cháy phía dưới */
+.hs-card[data-code="joey"] .hs-portal::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 55%;
+  background: radial-gradient(ellipse at 50% 100%, rgba(255, 140, 30, .75), rgba(255, 70, 0, .25) 50%, transparent 72%);
+}
+.hs-card[data-code="joey"].is-center .hs-portal::before { animation: hsFlame 1.4s ease-in-out infinite alternate; }
+@keyframes hsFlame { from { opacity: .7; transform: scaleY(.9); } to { opacity: 1; transform: scaleY(1.08); } }
+@media (prefers-reduced-motion: reduce) { .hero-stage .hs-portal *, .hero-stage .hs-portal::before, .hero-stage .hs-portal::after { animation: none !important; } }
+@media (max-height: 560px), (max-width: 420px) { .hero-stage .hs-card.has-custom { width: 108px; height: 154px; } }
+.hs-card[data-code="mai"]   { --b1: #6a1f9a; --b2: #1a0630; --ac: #ff9be8; --glow: rgba(230, 110, 255, .55); --ray: rgba(255, 170, 240, .2); --pc: #ffb8f0; }
+.hs-card[data-code="yuma"]  { --b1: #0d5fb0; --b2: #04153a; --ac: #7ff0ff; --glow: rgba(60, 210, 255, .6); --ray: rgba(140, 240, 255, .24); --pc: #b6f6ff; }
+.hs-card[data-code="yusei"] { --b1: #6e1022; --b2: #0a0612; --ac: #ffb347; --glow: rgba(255, 90, 40, .55); --ray: rgba(255, 170, 70, .18); --pc: #ffc060; }
+.hs-card[data-code="mai"] .hs-portal i { border-radius: 50% 0 50% 0; width: calc(7px * var(--ps)); height: calc(12px * var(--ps)); --dx: -14px; }
+.hs-card[data-code="yuma"] .hs-portal i { --dx: 12px; }
+.hs-card[data-code="yusei"] .hs-portal i { background: #ffb347; box-shadow: 0 0 10px #ff7a1a; --dx: 10px; }
+
+/* Chân dung nhân vật đợt mới. Có ảnh AI ở assets/characters/<code>.webp thì sân khấu tự dùng ảnh đó. */
+.hero-figure-marik, .hero-portrait-marik, .anime-portrait-marik { --portrait-pos: 50% 18%; background-image: url('../memecard/portraits/marik-v1.webp') !important; }
+.hero-figure-jack, .hero-portrait-jack, .anime-portrait-jack { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/jack-v1.webp') !important; }
+.hero-figure-shark, .hero-portrait-shark, .anime-portrait-shark { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/shark-v1.webp') !important; }
+.hero-figure-chazz, .hero-portrait-chazz, .anime-portrait-chazz { --portrait-pos: 50% 50%; background-image: url('../memecard/portraits/chazz-v1.webp') !important; }
+.hs-card[data-code="marik"] { --b1: #4a1f7a; --b2: #120620; --ac: #f2c86e; --glow: rgba(170, 90, 255, .55); --ray: rgba(255, 214, 120, .18); --pc: #d9a6ff; }
+.hs-card[data-code="jack"]  { --b1: #8c1a12; --b2: #1c0406; --ac: #ffcf6a; --glow: rgba(255, 110, 40, .6); --ray: rgba(255, 190, 90, .2); --pc: #ffb347; }
+.hs-card[data-code="shark"] { --b1: #0f4f93; --b2: #03122a; --ac: #6fd8ff; --glow: rgba(60, 170, 255, .6); --ray: rgba(140, 220, 255, .22); --pc: #9fe4ff; }
+.hs-card[data-code="chazz"] { --b1: #1f5a3c; --b2: #06140f; --ac: #b8e986; --glow: rgba(130, 220, 110, .5); --ray: rgba(190, 240, 150, .18); --pc: #c8f59a; }
+.hs-card[data-code="zane"]  { --b1: #17506a; --b2: #050f1a; --ac: #c9d8e6; --glow: rgba(150, 210, 240, .5); --ray: rgba(200, 230, 245, .2); --pc: #d8eefa; }
+
+/* Khung cảnh riêng trong cổng vòm + mặt sau bài theo nhân vật. */
+.hero-stage .hs-portal .hs-rays { opacity: .45; }
+.hero-stage .hs-card.has-custom[data-code="destiny"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/destiny.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="kaiba"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/kaiba.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="joey"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/joey.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="pegasus"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/pegasus.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="jaden"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/jaden.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="zane"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/zane.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="mai"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/mai.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="yuma"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/yuma.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="yusei"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/yusei.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="marik"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/marik.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="jack"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/jack.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="shark"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/shark.webp') center / cover no-repeat; }
+.hero-stage .hs-card.has-custom[data-code="chazz"] .hs-portal { background: linear-gradient(180deg, rgba(4, 10, 22, .1) 30%, rgba(4, 10, 22, .78)), url('../memecard/arenas/chazz.webp') center / cover no-repeat; }
+#playerMonsters .card-back-art, #playerSpells .card-back-art { background: var(--back-player, none) center / cover no-repeat !important; }
+#enemyMonsters .card-back-art, #enemySpells .card-back-art { background: var(--back-enemy, none) center / cover no-repeat !important; }
+.card-back-art i { opacity: 0; }

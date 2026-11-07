@@ -184,3 +184,49 @@ Multiple agents/sessions share this checkout. Before staging or committing:
 - Board regression test: `node scripts/test-race.cjs`.
 - "Push" for this project means: `git push` **and**
   `firebase deploy --only hosting`.
+
+## TRUYỀN KỲ (SAGA) — cốt truyện + cấp đấu sĩ
+
+Owned files: `assets/js/meme_saga.js`, `assets/js/meme_saga_data.js`, `assets/css/meme_saga.css`
+(loaded in `memecard.html` right after `meme_journey.js`). Test: `node scripts/test-saga.cjs`.
+
+- 9 đấu sĩ × 6 hồi, cần cấp 1/4/8/14/22/32; cấp tối đa 40; mốc thẻ ở cấp 2,5,8,12,16,20,25,30,35,40.
+- Tiến độ lưu ở `state.story.saga` (không thêm khóa gốc mới vì `normalize()` của meme_progress.js bỏ khóa lạ).
+- Kết quả trận gắn qua việc bọc `memeJourney.onDuelFinished`; không sửa meme_game.js.
+- Thêm hồi/đấu sĩ: sửa `meme_saga_data.js` (bộ bài đối thủ phải có trong `MEME_DECK_PRESETS`; test sẽ kiểm tra).
+
+## VFX PACK (CC0) — assets/vfx
+
+`assets/js/meme_vfx_pack.js` bọc `memeFx.summon/attack/cardActivation/flipTrap` để phát thêm sprite CC0 từ
+`assets/vfx/{kenney-particles,gothicvania-magic9,starsteel-spells}` (nguồn + giấy phép ở `assets/vfx/CREDITS.txt`).
+Chỉ thêm lớp hiệu ứng trong `#memeFxLayer`, tắt khi `memeFx.mode==='minimal'` hoặc reduced-motion, tối đa 28 phần tử cùng lúc.
+Sprite Kenney đã chuyển độ sáng → alpha để tô màu bằng CSS mask. Chỉ thêm asset có giấy phép CC0/tương đương và ghi vào CREDITS.txt. Test: `node scripts/test-vfx-pack.cjs`.
+
+## LOBBY MENU (memecard.html)
+
+`assets/js/meme_lobby_menu.js` + `assets/css/meme_lobby_menu.css` gom Truyền Kỳ, Hành trình, Bảng Xếp Hạng, Cửa hàng, Bộ bài vào nút `☰ Menu`.
+`Đấu Rank nhanh` (#rankPlayBtn) và `Vào trận` (#playBtn) giữ riêng ở footer. Nút được di chuyển (giữ id + handler), script khác thêm nút vào footer sau đó vẫn được gom.
+Thêm nút phụ mới: thêm id vào `MENU_IDS`. Test: `node scripts/test-lobby-menu.cjs`.
+
+## HIỆU ỨNG TRẬN ĐẤU + GIỌNG NÓI
+
+`assets/js/meme_fx_cinema.js` + `assets/css/meme_fx_cinema.css`: bài vỡ + bụi vào Mộ (móc trong `remove()` và `clearSpell()` của `meme_anime_rules.js`), lá core tấn công, cut-in mắt (`assets/characters/eyes/<code>.webp`, tỉ lệ 4:1, hai mắt nằm ngang). Thêm nhân vật mới phải có dải mắt riêng. Test: `node scripts/test-cinema.cjs`.
+
+`assets/js/meme_ja_voice.js`: giọng chỉ tiếng Nhật, không đọc tiếng khác khi máy thiếu giọng ja-JP. Không tải clip phim/lồng tiếng từ mạng về repo: site công khai, nội dung có bản quyền. File giọng do chủ repo tự cung cấp đặt ở `assets/audio/voices/ja/<code>_<ngữ cảnh>.mp3`.
+
+Che bài úp: `maskFaceDown()` trong `pick`/`pickMany` đặt `hidden` cho mọi bài úp của đối thủ. Handler không cần tự đặt `hidden`.
+
+## NHÂN VẬT ĐỢT MỚI (Marik, Jack, Shark, Chazz)
+
+`assets/js/meme_roster2_catalog.js` (lá, bộ bài, nhân vật) + `assets/js/meme_roster2_engine.js` (hiệu ứng). Test từng lá: `node scripts/test-roster2.cjs`.
+Chỉ thêm lá khi làm đúng được văn bản TCG; tra chỉ số/hiệu ứng từ db.ygoprodeck.com, không dựa trí nhớ. Mã hiệu ứng mới phải vào `memeRules.supported`.
+Thêm nhân vật cần: chân dung + CSS `hero-figure-<code>`, dải mắt, thoại `meme_ja_voice.js`, kỹ năng (`skillCandidates` + hai danh sách code), lọc `getCardHero` + `<option>` trong `meme_upgrade_phase1.js`, cập nhật số lượng trong test.
+Truyền Kỳ chỉ hiện nhân vật đã có dữ liệu trong `MEME_SAGA`.
+
+## ẢNH THEO NHÂN VẬT
+
+`assets/characters/<code>.png` (ảnh toàn thân, không nén mất dữ liệu, không thu nhỏ: bản webp nén từng bị người dùng chê mờ). `assets/memecard/arenas/<code>.webp` là khung cảnh cho cổng vòm và nền bàn đấu; `assets/memecard/backs/*.webp` là mặt sau bài, gán trong `BACKS` ở `meme_hero_stage.js`. Biến CSS chứa ảnh phải dùng đường dẫn đầy đủ vì trình duyệt tính theo file CSS.
+
+## NỀN SÂN VÀ MẶT SAU BÀI TRONG SHOP
+
+Trong khung ô bài là sàn vector `assets/memecard/board-floor.svg` để luôn nét và dễ nhìn; đừng đặt ảnh AI vào đó (ô cảnh trong ảnh ghép chỉ ~300px, bị người dùng chê). Ảnh màu chỉ dùng cho vùng ngoài (`--arena-img`) và cổng vòm. `assets/js/meme_cosmetics.js` bán 25 nền + 18 mặt sau; ghi trong `themes.owned` dạng `arena:`/`back:`/`backon:` vì `normalize()` bỏ khóa lạ. Giao diện sân cũ (`data-theme`) tự thắng nền ảnh. Test: `node scripts/test-cosmetics.cjs`.

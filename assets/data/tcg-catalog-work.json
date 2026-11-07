@@ -1,6 +1,6 @@
 {
   "version": "20261026-tcg-work1",
-  "ready": false,
+  "ready": true,
   "format": {
     "lp": 4000,
     "monsterZones": 3,
@@ -2954,7 +2954,7 @@
       "effect_value": 0,
       "effect_trigger": "passive",
       "traits": [],
-      "description": "Gọi đặc biệt lần đầu từ tay bằng cách hiến tế Chiến Binh Nam Châm Alpha, Chiến Binh Nam Châm Beta và Gamma The Magnet Warrior từ tay hoặc sân. Có thể hiến tế lá này, chọn đủ ba quái đó trong Mộ và gọi đặc biệt cả ba.",
+      "description": "Gọi đặc biệt lần đầu từ tay bằng cách hiến tế Chiến Binh Nam Châm Alpha, Chiến Binh Nam Châm Beta và Chiến Binh Nam Châm Gamma từ tay hoặc sân. Có thể hiến tế lá này, chọn đủ ba quái đó trong Mộ và gọi đặc biệt cả ba.",
       "catalogue_version": "anime-v1",
       "art": {
         "emoji": "✦",

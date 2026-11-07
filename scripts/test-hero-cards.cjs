@@ -502,7 +502,7 @@ const HERO_IDS = [
       });
 
       // ── MGX · GX manga Elemental HERO ────────────────────────────
-      await test('Absolute Zero: fusion route, WATER boost on both fields, no TCG board wipe', async () => {
+      await test('Absolute Zero: fusion route, WATER boost on both fields, TCG board wipe on leaving', async () => {
         put('player', 'MGX-elemental_hero_ocean');
         put('player', 'MGX-elemental_hero_stratos', 1);
         duel.player.hand = ['AN-polymerization'];
@@ -515,14 +515,14 @@ const HERO_IDS = [
         put('enemy', 'MGX-elemental_hero_ocean', 1, 'def_down');
         eq(stat('player', az), 3500, '2500 + 500 × 2 face-up WATER');
         await memeAnime.perform(() => memeRules.remove('player', { slot: az, index: -1, extra: true }, 'effect'));
-        eq(duel.enemy.monsters.filter(Boolean).length, 2, 'manga card does not wipe the board');
+        eq(duel.enemy.monsters.filter(Boolean).length, 0, 'TCG: leaving the field destroys all opponent monsters');
       });
 
       await test('The Shining: +300 per banished HERO and recovers exactly two own banished HERO', async () => {
         put('player', 'MGX-elemental_hero_the_shining');
         duel.player.banished = ['MGX-elemental_hero_ocean', 'MGX-elemental_hero_woodsman'];
         duel.enemy.banished = ['AN-elemental_hero_avian'];
-        eq(stat('player', duel.player.monsters[0]), 3500, '2600 + 300 × 3');
+        eq(stat('player', duel.player.monsters[0]), 3200, '2600 + 300 × 2 own banished HERO (TCG)');
         await removeByEffect('player', 0);
         eq([...duel.player.hand].sort(), ['MGX-elemental_hero_ocean', 'MGX-elemental_hero_woodsman'].sort(), 'two HERO recovered');
         eq(duel.player.banished, [], 'own banished zone emptied');
@@ -530,7 +530,7 @@ const HERO_IDS = [
         eq(duel.player.grave.includes('MGX-elemental_hero_the_shining'), true, 'sent to GY');
       });
 
-      await test('Gaia: on-summon ATK halving is permanent for the target and self-boost', async () => {
+      await test('Gaia: on-summon ATK halving is until the End Phase for target and self', async () => {
         put('player', 'MGX-elemental_hero_stratos');
         put('player', 'MGX-elemental_hero_woodsman', 1);
         duel.player.hand = ['AN-polymerization'];
@@ -542,7 +542,7 @@ const HERO_IDS = [
         eq(stat('enemy', duel.enemy.monsters[0]), 1500, 'BEWD halved');
         eq(stat('player', gaia), 3700, '2200 + 1500');
         duel.round++;
-        eq(stat('player', gaia), 3700, 'boost persists');
+        eq(stat('player', gaia), 2200, 'TCG: boost ends at End Phase');
       });
 
       await test('Great Tornado: halves ATK and DEF of all face-up opponent monsters', async () => {
@@ -570,7 +570,7 @@ const HERO_IDS = [
         ok(await memeAnime.perform(() => memeAnime.resolveEffect('player', card('MGX-elemental_hero_terra_firma'), { source: tf })), 'effect resolves');
         eq(duel.player.monsters[1], null, 'HERO tributed');
         eq(stat('player', tf), 4100, '2500 + 1600');
-        eq(stat('player', tf, 'def'), 3400, '2000 + 1400');
+        eq(stat('player', tf, 'def'), 2000, 'TCG: ATK only, DEF unchanged');
         duel.round++;
         eq(stat('player', tf), 2500, 'ATK expires');
         eq(stat('player', tf, 'def'), 2000, 'DEF expires');
@@ -583,13 +583,13 @@ const HERO_IDS = [
         eq(stat('player', esc), 2700, '2500 + 100 × 2');
       });
 
-      await test('Ocean: direct attack requires Umi, with no TCG stat bonus', async () => {
+      await test('Ocean: no direct attack under Umi (TCG)', async () => {
         const ocean = put('player', 'MGX-elemental_hero_ocean');
         put('enemy', 'AN-blue_eyes_white_dragon');
         eq(memeAnime.directAllowed('player', ocean), false, 'blocked without Umi');
         duel.player.field = { id: 'MGX-umi' };
-        eq(stat('player', ocean), 1500, 'no Umi stat bonus');
-        eq(memeAnime.directAllowed('player', ocean), true, 'direct allowed under Umi');
+        eq(stat('player', ocean), 1500, 'Warrior: no Umi bonus');
+        eq(memeAnime.directAllowed('player', ocean), false, 'TCG: no direct attack under Umi');
         duel.player.field = null;
         eq(memeAnime.directAllowed('player', ocean), false, 'lost with Umi');
         duel.player.hand = ['MGX-elemental_hero_ocean'];
@@ -615,18 +615,11 @@ const HERO_IDS = [
         eq(duel.player.grave, [], 'GY emptied');
       });
 
-      await test('Stratos: halves its own ATK for a direct attack, then restores next turn', async () => {
+      await test('Stratos: on summon searches a HERO from the Deck (TCG)', async () => {
         const str = put('player', 'MGX-elemental_hero_stratos');
-        put('enemy', 'AN-blue_eyes_white_dragon');
-        ok(await activate(0), 'effect resolves');
-        eq(stat('player', str), 900, 'half ATK');
-        eq(memeAnime.directAllowed('player', str), true, 'direct unlocked');
-        duel.phase = 'BATTLE';
-        await battle('player', 0, null);
-        eq(duel.enemy.lp, 3100, '900 direct damage');
-        duel.round++;
-        eq(stat('player', str), 1800, 'ATK restored');
-        eq(memeAnime.directAllowed('player', str), false, 'direct locked again');
+        duel.player.deck = ['AN-elemental_hero_avian'];
+        await memeAnime.perform(() => memeAnime.postSummon('player', str, 'normal'));
+        eq(duel.player.hand, ['AN-elemental_hero_avian'], 'HERO searched');
       });
 
       await test('Shadow Mist: Special Summon searches a Change Quick-Play, shared once per turn', async () => {
@@ -778,11 +771,11 @@ const HERO_IDS = [
 
       await test('Koga: +500 ATK for every opponent monster, hidden zones included', async () => {
         const k = put('player', 'MGX-masked_hero_koga');
-        eq(stat('player', k), 2200, 'base');
+        eq(stat('player', k), 2500, 'base');
         put('enemy', 'AN-kuriboh');
         put('enemy', 'AN-kuriboh', 1);
         put('enemy', 'AN-kuriboh', 2, 'def_down');
-        eq(stat('player', k), 3700, '2200 + 500 × 3');
+        eq(stat('player', k), 4000, '2500 + 500 × 3');
       });
 
       await test('Divine Wind: draws after a battle kill but not after a direct attack', async () => {
@@ -801,7 +794,7 @@ const HERO_IDS = [
         eq(duel.player.deck.length, 1, 'Deck untouched');
       });
 
-      await test('Mask Change: rejects Elemental HERO, wrong Attribute and an excessive Level gap', async () => {
+      await test('Mask Change: rejects Elemental HERO and wrong Attribute; no Level gap limit (TCG)', async () => {
         put('player', 'MGX-elemental_hero_ocean');
         duel.player.extraDeck = ['MGX-masked_hero_vapor'];
         eq(memeAnime.transformationOptions('player', 'MGX-mask_change').length, 0, 'Elemental HERO rejected');
@@ -811,7 +804,7 @@ const HERO_IDS = [
         duel.player.monsters[0] = null;
         put('player', 'MGX-masked_hero_gust');
         duel.player.extraDeck = ['MGX-masked_hero_divine_wind'];
-        eq(memeAnime.transformationOptions('player', 'MGX-mask_change').length, 0, 'Level gap rejected');
+        ok(memeAnime.transformationOptions('player', 'MGX-mask_change').length > 0, 'TCG: no level gap limit');
         duel.player.extraDeck = ['MGX-masked_hero_blast'];
         eq(memeAnime.transformationOptions('player', 'MGX-mask_change').length, 1, 'legal pair accepted');
       });
@@ -1071,9 +1064,9 @@ const HERO_IDS = [
       await test('Form Change: swaps a HERO Fusion for a same-Level Masked HERO and recycles the source', async () => {
         put('player', 'AN-elemental_hero_flame_wingman');
         duel.player.hand = ['DL-form_change'];
-        duel.player.extraDeck = ['MGX-masked_hero_koga'];
+        duel.player.extraDeck = ['MGX-masked_hero_blast'];
         ok(await play(0), 'Form Change');
-        eq(duel.player.extra?.id, 'MGX-masked_hero_koga', 'Koga in the Extra Monster Zone');
+        eq(duel.player.extra?.id, 'MGX-masked_hero_blast', 'Blast in the Extra Monster Zone');
         eq(duel.player.extra?.transformationSummoned, true, 'Transformation flags');
         eq(duel.player.extraDeck, ['AN-elemental_hero_flame_wingman'], 'source returned to Extra Deck');
         eq(duel.player.grave.includes('DL-form_change'), true, 'Spell in GY');

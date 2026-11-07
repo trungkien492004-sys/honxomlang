@@ -1,0 +1,88 @@
+/* Truyền Kỳ: cấp đấu sĩ + cốt truyện. Tải sau meme_journey.css. */
+.modal-card:has(.saga-modal) { width: min(820px, 96vw); text-align: left; padding: 16px 18px 14px; }
+.saga-modal { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.saga-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-right: 26px; }
+.saga-head h2 { margin: 0; font: 900 23px/1.1 'Baloo 2', sans-serif; color: #ffe9b0; }
+.saga-head p { margin: 3px 0 0; font: 800 11.5px/1.4 'Nunito', sans-serif; color: #9fd0e8; }
+.saga-wallet { display: flex; gap: 6px; flex-wrap: wrap; align-self: flex-start; }
+.saga-wallet span { padding: 3px 9px; border-radius: 999px; background: rgba(20, 48, 72, .85); border: 1px solid rgba(140, 200, 230, .25); color: #dff2ff; font: 800 10.5px/1.4 'Nunito', sans-serif; white-space: nowrap; }
+
+.saga-heroes { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 3px; }
+.saga-heroes button { flex: 0 0 auto; min-width: 66px; display: grid; justify-items: center; gap: 1px; padding: 6px 8px; border-radius: 10px; border: 1px solid #4f7385; background: #122e41; color: #d9e6e9; cursor: pointer; }
+.saga-heroes button i { font-style: normal; font-size: 20px; line-height: 1.1; }
+.saga-heroes button b { font: 900 10.5px/1.2 'Nunito', sans-serif; }
+.saga-heroes button em { font: 800 9.5px/1.2 'Nunito', sans-serif; font-style: normal; color: var(--c); }
+.saga-heroes button.active { border-color: var(--c); background: #1d4258; box-shadow: 0 0 0 1px var(--c) inset; }
+
+.saga-card { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--c); background: linear-gradient(135deg, rgba(12, 36, 56, .9), rgba(18, 52, 72, .8)); display: grid; gap: 5px; }
+.saga-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.saga-card-top strong { font: 900 15px/1.2 'Baloo 2', sans-serif; color: #fff2cf; }
+.saga-card-top span { font: 900 12px/1 'Nunito', sans-serif; color: var(--c); }
+.saga-xp { height: 9px; border-radius: 99px; background: #0b2233; overflow: hidden; border: 1px solid rgba(140, 200, 230, .25); }
+.saga-xp i { display: block; height: 100%; background: linear-gradient(90deg, var(--c), #ffe9b0); }
+.saga-card small { font: 800 10.5px/1.35 'Nunito', sans-serif; color: #9fc6da; }
+.saga-card .saga-title { color: #ffe3ac; }
+
+.saga-tabs { display: flex; gap: 6px; }
+.saga-tabs button { padding: 5px 12px; border-radius: 7px; border: 1px solid #4f7385; background: #122e41; color: #d9e6e9; font: 900 11px/1.2 'Nunito', sans-serif; cursor: pointer; }
+.saga-tabs button.active { border-color: #e1bd7d; color: #ffe3ac; background: #354e50; }
+.saga-body { max-height: 40dvh; overflow-y: auto; padding-right: 2px; }
+.saga-intro { margin: 0 0 8px; font: 800 11.5px/1.45 'Nunito', sans-serif; color: #b8d8e8; font-style: italic; }
+.saga-acts { display: flex; flex-direction: column; gap: 6px; }
+.saga-act { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto 76px; align-items: center; gap: 8px; padding: 8px 9px; border-radius: 10px; background: rgba(12, 36, 56, .75); border: 1px solid rgba(140, 200, 230, .18); }
+.saga-act.locked { opacity: .55; }
+.saga-act.cleared { border-color: rgba(52, 211, 153, .45); background: rgba(10, 48, 44, .5); }
+.saga-act-num { width: 27px; height: 27px; border-radius: 50%; display: grid; place-items: center; background: #14324a; border: 1px solid rgba(140, 200, 230, .35); color: #ffe9b0; font: 900 11px/1 'Nunito', sans-serif; }
+.saga-act.cleared .saga-act-num { background: linear-gradient(140deg, #34d399, #059669); color: #06281c; }
+.saga-act-main b { display: block; font: 800 12.5px/1.3 'Nunito', sans-serif; color: #eef8ff; }
+.saga-act-main small { display: block; font: 800 10.5px/1.35 'Nunito', sans-serif; color: #9fc6da; }
+.saga-rew { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+.saga-rew span { padding: 1px 7px; border-radius: 99px; background: rgba(255, 233, 176, .1); color: #ffe3ac; font: 800 10px/1.5 'Nunito', sans-serif; }
+.saga-act-state { font: 800 10.5px/1.2 'Nunito', sans-serif; color: #cfe5ee; white-space: nowrap; }
+
+.saga-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 5px; }
+.saga-lv { padding: 5px 4px; border-radius: 8px; text-align: center; background: rgba(12, 36, 56, .75); border: 1px solid rgba(140, 200, 230, .15); opacity: .6; }
+.saga-lv b { display: block; font: 900 11px/1.2 'Nunito', sans-serif; color: #ffe9b0; }
+.saga-lv i { font-style: normal; font-size: 14px; }
+.saga-lv small { display: block; font: 800 8.5px/1.25 'Nunito', sans-serif; color: #b9d7e6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saga-lv.card { border-color: rgba(255, 210, 120, .5); }
+.saga-lv.got { opacity: 1; border-color: rgba(52, 211, 153, .55); background: rgba(10, 48, 44, .55); }
+.saga-note { margin: 8px 0 0; font: 800 10.5px/1.4 'Nunito', sans-serif; color: #9fc6da; }
+.saga-foot { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Màn thoại */
+.saga-dlg { position: fixed; inset: 0; z-index: 99999; background: radial-gradient(ellipse at 50% 30%, rgba(14, 40, 62, .93), rgba(3, 8, 16, .97)); display: grid; grid-template-rows: 1fr auto; cursor: pointer; animation: sagaFade .25s ease; }
+@keyframes sagaFade { from { opacity: 0; } to { opacity: 1; } }
+.saga-dlg-stage { display: flex; align-items: flex-end; justify-content: space-between; padding: 8vh 7vw 2vh; }
+.saga-dlg-who { display: grid; justify-items: center; gap: 6px; transition: transform .25s, opacity .25s, filter .25s; opacity: .45; filter: grayscale(.5); }
+.saga-dlg-who i { font-style: normal; display: grid; place-items: center; width: clamp(86px, 22vw, 170px); aspect-ratio: 1; border-radius: 50%; font-size: clamp(40px, 11vw, 84px); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 55%, #fff), color-mix(in srgb, var(--c) 40%, #0a1a28)); border: 3px solid var(--c); box-shadow: 0 0 30px color-mix(in srgb, var(--c) 55%, transparent); }
+.saga-dlg-who b { font: 900 14px/1.2 'Baloo 2', sans-serif; color: #fff2cf; }
+.saga-dlg.speak-left .saga-dlg-who.left, .saga-dlg.speak-right .saga-dlg-who.right { opacity: 1; filter: none; transform: translateY(-10px) scale(1.06); }
+.saga-dlg-box { margin: 0 auto 5vh; width: min(760px, 92vw); min-height: 130px; padding: 14px 18px; border-radius: 14px; background: rgba(8, 24, 38, .96); border: 2px solid #e1bd7d; box-shadow: 0 10px 40px rgba(0, 0, 0, .6); text-align: left; }
+.saga-dlg-name { display: block; font: 900 14px/1.2 'Baloo 2', sans-serif; color: #ffd98a; margin-bottom: 4px; }
+.saga-dlg-text { margin: 0; min-height: 52px; font: 800 15px/1.55 'Nunito', sans-serif; color: #f2f9ff; }
+.saga-dlg.narrate .saga-dlg-text { font-style: italic; color: #cfe5ee; }
+.saga-dlg-box small { display: block; margin-top: 6px; text-align: right; font: 800 10px/1 'Nunito', sans-serif; color: #7fa7bb; }
+.saga-dlg-skip { position: absolute; top: 14px; right: 14px; padding: 6px 12px; border-radius: 8px; border: 1px solid #4f7385; background: rgba(18, 46, 65, .9); color: #d9e6e9; font: 900 11px/1 'Nunito', sans-serif; cursor: pointer; }
+
+@media (max-width: 640px) {
+  .saga-act { grid-template-columns: 26px minmax(0, 1fr) 64px; }
+  .saga-act-state { display: none; }
+  .saga-dlg-box { margin-bottom: 3vh; }
+}
+
+/* Nút Truyền Kỳ ở footer sảnh (cùng khuôn với Hành trình) */
+#lobby .lobby-footer.rank-actions > #sagaBtn {
+  order: 2 !important;
+  position: relative;
+  height: 44px !important; min-height: 44px !important; max-height: 44px !important;
+  font-size: 14px !important; font-weight: 900 !important; border-radius: 11px !important;
+  padding: 6px 10px !important; white-space: nowrap !important;
+  display: flex !important; align-items: center !important; justify-content: center !important; gap: 4px;
+  align-self: center !important; margin: 0 !important; box-sizing: border-box !important; transform: none !important;
+  background: linear-gradient(135deg, #0d9488, #115e59) !important;
+  border: 1.5px solid #fcd34d !important;
+  color: #fff !important;
+  box-shadow: 0 3px 12px rgba(13, 148, 136, .45) !important;
+}
+#lobby .lobby-footer.rank-actions > #sagaBtn .ticket-badge { position: absolute; top: -5px; right: -5px; }
